@@ -35,6 +35,7 @@ namespace numcpp {
 
     using std::pow;
     using std::sqrt;
+    using std::cbrt;
 
     using std::ceil;
     using std::floor;
@@ -452,6 +453,65 @@ namespace numcpp {
             const T* data() const {
                 return this->values;
             }
+
+            // Returns an array with each of its elements initialized to the
+            // result of applying func to its corresponding element in *this.
+            array apply(T func(const T&)) const {
+                array out(this->length);
+                for (size_t i = 0; i < out.length; ++i) {
+                    out.values[i] = funct(this->values[i]);
+                }
+                return out;
+            }
+
+            array apply(T func(T)) const {
+                array out(this->length);
+                for (size_t i = 0; i < out.length; ++i) {
+                    out.values[i] = func(this->values[i]);
+                }
+                return out;
+            }
+
+            // Returns the maximum value contained in the array.
+            T max() const {
+                T out = this->values[0];
+                for (size_t i = 1; i < this->length; ++i) {
+                    if (out < this->values[i]) {
+                        out = this->values[i];
+                    }
+                }
+                return out;
+            }
+
+            // Returns the minimum value contained in the array.
+            T min() const {
+                T out = this->values[0];
+                for (size_t i = 1; i < this->length; ++i) {
+                    if (this->values[i] < out) {
+                        out = this->values[i];
+                    }
+                }
+                return out;
+            }
+
+            // Resizes the array, changing its size to n elements.
+            // If n is smaller than the current size, the content is reduced to
+            // its first n elements, removing those beyond.
+            // If n is greater than the current size, the content is expanded
+            // by inserting at the end as many elements as needed to reach a
+            // size of n.
+            void resize(size_t n, const T &val = T()) {
+                array tmp_copy(*this);
+                delete[] this->values;
+                this->length = n;
+                this->values = new T[n];
+                for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
+                    this->values[i] = tmp_copy.values[i];
+                }
+                for (size_t i = tmp_copy.length; i < n; ++i) {
+                    this->values[i] = val;
+                }
+            }
     };
 
     // unary array operators.
@@ -783,12 +843,6 @@ namespace numcpp {
         return !(val < v);
     }
 
-    // Matrices are two dimensional arrays.
-    template <class T>
-    class matrix {
-        ;
-    };
-
     // Context manager for setting print options.
     class printoptions {
         public:
@@ -913,6 +967,281 @@ namespace numcpp {
         return ostr;
     }
 
+    // Returns an array containing the cosines of all the elements of x, in the
+    // same order.
+    template <class T>
+    array<T> cos(const array<T> &x) {
+        return x.apply(cos);
+    }
+
+    // Returns an array containing the sines of all the elements of x, in the
+    // same order.
+    template <class T>
+    array<T> sin(const array<T> &x) {
+        return x.apply(sin);
+    }
+
+    // Returns an array containing the tangents of all the elements of x, in
+    // the same order.
+    template <class T>
+    array<T> tan(const array<T> &x) {
+        return x.apply(tan);
+    }
+
+    // Returns an array containing the principal values of the arc cosine of
+    // all the elements of x, expressed in radians, in the same order.
+    template <class T>
+    array<T> acos(const array<T> &x) {
+        return x.apply(acos);
+    }
+
+    // Returns an array containing the principal values of the arc sine of
+    // all the elements of x, expressed in radians, in the same order.
+    template <class T>
+    array<T> asin(const array<T> &x) {
+        return x.apply(asin);
+    }
+
+    // Returns an array containing the principal values of the arc tangent of
+    // all the elements of x, expressed in radians, in the same order.
+    template <class T>
+    array<T> atan(const array<T> &x) {
+        return x.apply(atan);
+    }
+
+    // Returns an array containing the principal value of the arc tangent of
+    // all the elements, in the same order. The tangent for which it is
+    // calculated is the quotient of coordinates y/x, using their sign to
+    // determine the appropriate quadrant.
+    template <class T>
+    array<T> atan2(const array<T> &y, const array<T> &x) {
+        if (y.size() != x.size()) {
+            throw std::runtime_error(
+                "operands could not be broadcast together with shapes (" +
+                std::to_string(y.size()) + ",) (" + std::to_string(x.size()) +
+                ",)"
+            );
+        }
+        array<T> out(y.size());
+        for (size_t i = 0; i < out.size(); ++i) {
+            out[i] = atan2(y[i], x[i]);
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> atan2(const array<T> &y, const T &x) {
+        array<T> x_as_array(y.size(), x);
+        return atan2(y, x_as_array);
+    }
+
+    template <class T>
+    array<T> atan2(const T &y, const array<T> &x) {
+        array<T> y_as_array(x.size(), y);
+        return atan2(y_as_array, x);
+    }
+
+    // Returns an array containing the hyperbolic cosines of all the elements
+    // of x, in the same order.
+    template <class T>
+    array<T> cosh(const array<T> &x) {
+        return x.apply(cosh);
+    }
+
+    // Returns an array containing the hyperbolic sines of all the elements
+    // of x, in the same order.
+    template <class T>
+    array<T> sinh(const array<T> &x) {
+        return x.apply(sinh);
+    }
+
+    // Returns an array containing the hyperbolic tangents of all the elements
+    // of x, in the same order.
+    template <class T>
+    array<T> tanh(const array<T> &x) {
+        return x.apply(tanh);
+    }
+
+    // Returns an array containing the area hyperbolic cosines of all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> acosh(const array<T> &x) {
+        return x.apply(acosh);
+    }
+
+    // Returns an array containing the area hyperbolic sines of all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> asinh(const array<T> &x) {
+        return x.apply(asinh);
+    }
+
+    // Returns an array containing the area hyperbolic tangents of all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> atanh(const array<T> &x) {
+        return x.apply(atanh);
+    }
+
+    // Returns an array containing the exponential function values of all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> exp(const array<T> &x) {
+        return x.apply(exp);
+    }
+
+    // Returns an array containing the base-2 exponential function values of
+    // all the elements of x, in the same order.
+    template <class T>
+    array<T> exp2(const array<T> &x) {
+        return x.apply(exp2);
+    }
+
+    // Returns an array containing the natural logarithm (base-e logarithm) of
+    // all the elements of x, in the same order.
+    template <class T>
+    array<T> log(const array<T> &x) {
+        return x.apply(log);
+    }
+
+    // Returns an array containing the binary logarithm (base-2 logarithm) of
+    // all the elements of x, in the same order.
+    template <class T>
+    array<T> log2(const array<T> &x) {
+        return x.apply(log2);
+    }
+
+    // Returns an array containing the common logarithm (base-10 logarithm) of
+    // all the elements of x, in the same order.
+    template <class T>
+    array<T> log10(const array<T> &x) {
+        return x.apply(log10);
+    }
+
+    // Returns an array containing the results of the power operation on all
+    // the elements, in the same order. The results calculated are x raised to
+    // the power y.
+    template <class T>
+    array<T> pow(const array<T> &x, const array<T> &y) {
+        if (x.size() != y.size()) {
+            throw std::runtime_error(
+                "operands could not be broadcast together with shapes (" +
+                std::to_string(x.size()) + ",) (" + std::to_string(y.size()) +
+                ",)"
+            );
+        }
+        array<T> out(y.size());
+        for (size_t i = 0; i < out.size(); ++i) {
+            out[i] = pow(x[i], y[i]);
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> pow(const array<T> &x, const T &y) {
+        array<T> y_as_array(x.size(), y);
+        return pow(x, y_as_array);
+    }
+
+    template <class T>
+    array<T> pow(const T &x, const array<T> &y) {
+        array<T> x_as_array(y.size(), x);
+        return pow(x_as_array, y);
+    }
+
+    // Returns an array containing the square root of all the elements of x, in
+    // the same order.
+    template <class T>
+    array<T> sqrt(const array<T> &x) {
+        return x.apply(sqrt);
+    }
+
+    // Returns an array containing the cubic root of all the elements of x, in
+    // the same order.
+    template <class T>
+    array<T> cbrt(const array<T> &x) {
+        return x.apply(cbrt);
+    }
+
+    // Returns an array containing the results of rounding upward all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> ceil(const array<T> &x) {
+        return x.apply(ceil);
+    }
+
+    // Returns an array containing the results of rounding downward all the
+    // elements of x, in the same order.
+    template <class T>
+    array<T> floor(const array<T> &x) {
+        return x.apply(floor);
+    }
+
+    // Returns an array containing the results of rounding all the elements of
+    // x toward the nearest integer value, in the same order.
+    template <class T>
+    array<T> round(const array<T> &x) {
+        return x.apply(round);
+    }
+
+    // Returns an array containing the results of rounding all the elements of
+    // x toward zero, in the same order.
+    template <class T>
+    array<T> trunc(const array<T> &x) {
+        return x.apply(trunc);
+    }
+
+    // Returns an array containing the results of the floating-point remainder
+    // on all the elements, in the same order. The results calculated are:
+    //     fmod = numer - tquot * denom
+    // where tquot is the truncated (i.e., rounded towards zero) result of:
+    // numer/denom.
+    template <class T>
+    array<T> fmod(const array<T> &numer, const array<T> &denom) {
+        if (numer.size() != denom.size()) {
+            throw std::runtime_error(
+                "operands could not be broadcast together with shapes (" +
+                std::to_string(numer.size()) + ",) (" +
+                std::to_string(denom.size()) + ",)"
+            );
+        }
+        array<T> out(numer.size());
+        for (size_t i = 0; i < out.size(); ++i) {
+            out[i] = fmod(numer[i], denom[i]);
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> fmod(const array<T> &numer, const T &denom) {
+        array<T> denom_as_array(numer.size(), denom);
+        return pow(numer, denom_as_array);
+    }
+
+    template <class T>
+    array<T> fmod(const T &numer, const array<T> &denom) {
+        array<T> numer_as_array(denom.size(), numer);
+        return pow(numer_as_array, denom);
+    }
+
+    // Returns an array containing the absolute values of all the elements of
+    // x, in the same order.
+    template <class T>
+    array<T> abs(const array<T> &x) {
+        return x.apply(abs);
+    }
+
+    // Returns the maximum value contained in the array.
+    template <class T>
+    T max(const array<T> &v) {
+        return v.max();
+    }
+
+    // Returns the minimum value contained in the array.
+    template <class T>
+    T min(const array<T> &v) {
+        return v.min();
+    }
 }
 
 #endif // NUMCPP_H_INCLUDED
