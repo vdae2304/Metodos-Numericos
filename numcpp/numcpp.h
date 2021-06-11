@@ -1,6 +1,7 @@
 #ifndef NUMCPP_H_INCLUDED
 #define NUMCPP_H_INCLUDED
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <initializer_list>
@@ -55,7 +56,7 @@ namespace numcpp {
     // of elements ordered in a strict linear sequence.
     template <class T>
     class array {
-        private:
+        protected:
             size_t length;
             T *values;
 
@@ -132,7 +133,7 @@ namespace numcpp {
                 }
             }
 
-            // Destructor.
+            // Destructor. Destroys the array.
             ~array() {
                 delete[] this->values;
                 this->length = 0;
@@ -472,24 +473,129 @@ namespace numcpp {
                 return out;
             }
 
-            // Returns the maximum value contained in the array.
-            T max() const {
-                T out = this->values[0];
+            // Return the index of the maximum value.
+            size_t argmax() const {
+                size_t index = 0;
                 for (size_t i = 1; i < this->length; ++i) {
-                    if (out < this->values[i]) {
-                        out = this->values[i];
+                    if (this->values[index] < this->values[i]) {
+                        index = i;
+                    }
+                }
+                return index;
+            }
+
+            // Return the index of the minimum value.
+            size_t argmin() const {
+                size_t index = 0;
+                for (size_t i = 1; i < this->length; ++i) {
+                    if (this->values[i] < this->values[index]) {
+                        index = i;
+                    }
+                }
+                return index;
+            }
+
+            // Returns the indices that would sort this array.
+            array<size_t> argsort() const {
+                array<size_t> indices(this->length);
+                for (size_t i = 0; i < this->length; ++i) {
+                    indices[i] = i;
+                }
+                std::sort(
+                    indices.data(),
+                    indices.data() + this->length,
+                    [=](size_t i, size_t j) {
+                          return this->values[i] < this->values[j];
+                    }
+                );
+                return indices;
+            }
+
+            // Copy of the array, cast to a specified type.
+            template <class U>
+            array<U> astype() const {
+                array<U> out(this->length);
+                for (size_t i = 0; i < this->length; ++i) {
+                    out[i] = U(this->values[i]);
+                }
+                return out;
+            }
+
+            // Return an array whose values are limited to [a_min, a_max].
+            // Given an interval, values outside the interval are clipped to
+            // the interval edges.
+            array clip(const T &a_min, const T &a_max) const {
+                array out(this->length);
+                for (size_t i = 0; i < this->length; ++i) {
+                    if (this->values[i] < a_min) {
+                        out[i] = a_min;
+                    }
+                    else if (a_max < this->values[i]) {
+                        out[i] = a_max;
+                    }
+                    else {
+                        out[i] = this->values[i];
                     }
                 }
                 return out;
             }
 
+            // Return the cumulative product of the elements.
+            array cumprod() const {
+                array out(this->length);
+                out[0] = this->values[0];
+                for (size_t i = 1; i < this->length; ++i) {
+                    out[i] = out[i - 1] * this->values[i];
+                }
+                return out;
+            }
+
+            // Return the cumulative sum of the elements.
+            array cumsum() const {
+                array out(this->length);
+                out[0] = this->values[0];
+                for (size_t i = 1; i < this->length; ++i) {
+                    out[i] = out[i - 1] + this->values[i];
+                }
+                return out;
+            }
+
+            // Return the dot product of two arrays.
+            T dot(const array &v) const {
+                if (this->length != v.length) {
+                    throw std::runtime_error(
+                        "operands could not be broadcast together with shapes"
+                        " (" + std::to_string(this->length) + ",) (" +
+                        std::to_string(v.length) + ",)"
+                    );
+                }
+                T out = T(0);
+                for (size_t i = 0; i < this->length; ++i) {
+                    out += this->values[i] * v.values[i];
+                }
+                return out;
+            }
+
+            // Returns the maximum value contained in the array.
+            T max() const {
+                return this->values[this->argmax()];
+            }
+
             // Returns the minimum value contained in the array.
             T min() const {
-                T out = this->values[0];
-                for (size_t i = 1; i < this->length; ++i) {
-                    if (this->values[i] < out) {
-                        out = this->values[i];
-                    }
+                return this->values[this->argmin()];
+            }
+
+            // Returns the average of the array elements.
+            T mean() const {
+                return this->sum() / this->length;
+            }
+
+            // Return the product of the array elements.
+            T prod() const {
+                T out = T(1);
+                for (size_t i = 0; i < this->length; ++i) {
+                    out *= this->values[i];
                 }
                 return out;
             }
@@ -511,6 +617,37 @@ namespace numcpp {
                 for (size_t i = tmp_copy.length; i < n; ++i) {
                     this->values[i] = val;
                 }
+            }
+
+            // Sort an array in-place.
+            void sort() {
+                std::sort(this->values, this->values + this->length);
+            }
+
+            // Returns the standard deviation of the array elements.
+            T stddev(size_t ddof = 0) const {
+                return sqrt(this->var(ddof));
+            }
+
+            // Return the sum of the array elements.
+            T sum() const {
+                T out = T(0);
+                for (size_t i = 0; i < this->length; ++i) {
+                    out += this->values[i];
+                }
+                return out;
+            }
+
+            // Returns the variance of the array elements.
+            T var(size_t ddof = 0) const {
+                T array_mean = this->mean();
+                T out = T(0);
+                for (size_t i = 0; i < this->length; ++i) {
+                    T deviation = this->values[i] - array_mean;
+                    out += deviation*deviation;
+                }
+                out /= (this->length - ddof);
+                return out;
             }
     };
 
@@ -891,19 +1028,19 @@ namespace numcpp {
             v.size() <= 2*printoptions::edgeitems
         ) {
             for (size_t i = 0; i < v.size(); ++i) {
-                ostr << v[i] << ' ';
+                ostr << v[i] << " ";
             }
         }
         else {
             for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << v[i] << ' ';
+                ostr << v[i] << " ";
             }
             ostr << "... ";
             for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << v[v.size() - printoptions::edgeitems + i] << ' ';
+                ostr << v[v.size() - printoptions::edgeitems + i] << " ";
             }
         }
-        ostr << "]\n";
+        ostr << "]";
         return ostr;
     }
 
@@ -930,7 +1067,6 @@ namespace numcpp {
                 }
             }
             if (smallest < 1e-4 || largest/smallest > 1e3) {
-                std::cerr << "(" << largest << " " << smallest << ")\n";
                 ostr << std::scientific;
             }
         }
@@ -943,7 +1079,7 @@ namespace numcpp {
                 if (v[i] >= 0 && printoptions::sign != '-') {
                     ostr << printoptions::sign;
                 }
-                ostr << v[i] << ' ';
+                ostr << v[i] << " ";
             }
         }
         else {
@@ -951,7 +1087,7 @@ namespace numcpp {
                 if (v[i] >= 0 && printoptions::sign != '-') {
                     ostr << printoptions::sign;
                 }
-                ostr << v[i] << ' ';
+                ostr << v[i] << " ";
             }
             ostr << " ...";
             for (size_t i = 0; i < printoptions::edgeitems; ++i) {
@@ -959,11 +1095,11 @@ namespace numcpp {
                 if (v[j] >= 0 && printoptions::sign != '-') {
                     ostr << printoptions::sign;
                 }
-                ostr << v[j] << ' ';
+                ostr << v[j] << " ";
             }
         }
 
-        ostr << std::defaultfloat << "]\n";
+        ostr << std::defaultfloat << "]";
         return ostr;
     }
 
@@ -1231,16 +1367,118 @@ namespace numcpp {
         return x.apply(abs);
     }
 
+    // Returns true if all elements evaluate to true.
+    bool all(const array<bool> &v) {
+        for (size_t i = 0; i < v.size(); ++i) {
+            if (!v[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Returns true if any of the elements evaluate to true.
+    bool any(const array<bool> &v) {
+        for (size_t i = 0; i < v.size(); ++i) {
+            if (v[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Return the index of the maximum value.
+    template <class T>
+    size_t argmax(const array<T> &v) {
+        return v.argmax();
+    }
+
+    // Return the index of the minimum value.
+    template <class T>
+    size_t argmin(const array<T> &v) {
+        return v.argmin();
+    }
+
+    // Returns the indices that would sort this array.
+    template <class T>
+    size_t argsort(const array<T> &v) {
+        return v.argsort();
+    }
+
+    // Return an array whose values are limited to [a_min, a_max].
+    // Given an interval, values outside the interval are clipped to the
+    // interval edges.
+    template <class T>
+    array<T> clip(const array<T> &v, const T &a_min, const T &a_max) {
+        return v.clip(a_min, a_max);
+    }
+
+    // Return the cumulative product of the elements.
+    template <class T>
+    array<T> cumprod(const array<T> &v) {
+        return v.cumprod();
+    }
+
+    // Return the cumulative sum of the elements.
+    template <class T>
+    array<T> cumsum(const array<T> &v) {
+        return v.cumsum();
+    }
+
+    // Return the dot product of two arrays.
+    template <class T>
+    T dot(const array<T> &v, const array<T> &w) {
+        return v.dot(w);
+    }
+
     // Returns the maximum value contained in the array.
     template <class T>
     T max(const array<T> &v) {
         return v.max();
     }
 
+    // Returns the average of the array elements.
+    template <class T>
+    T mean(const array<T> &v) {
+        return v.mean();
+    }
+
     // Returns the minimum value contained in the array.
     template <class T>
     T min(const array<T> &v) {
         return v.min();
+    }
+
+    // Return the product of the array elements.
+    template <class T>
+    T prod(const array<T> &v) {
+        return v.prod();
+    }
+
+    // Return a sorted copy of an array.
+    template <class T>
+    array<T> sort(const array<T> &v) {
+        array<T> sorted(v);
+        sorted.sort();
+        return sorted;
+    }
+
+    // Returns the standard deviation of the array elements.
+    template <class T>
+    T stddev(const array<T> &v) {
+        return v.stddev();
+    }
+
+    // Return the sum of the array elements.
+    template <class T>
+    T sum(const array<T> &v) {
+        return v.sum();
+    }
+
+    // Returns the variance of the array elements.
+    template <class T>
+    T var(const array<T> &v) {
+        return v.var();
     }
 }
 
