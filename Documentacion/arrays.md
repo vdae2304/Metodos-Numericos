@@ -1,15 +1,16 @@
-# Numcpp
+# Arreglos
 
 ## Contenido
 
-[Arreglos](#Arreglos)
-- [Constructor](#Constructores)
+- [Constructores](#Constructores)
 - [Destructor](#Destructor)
 - [Rutinas para la creación de arreglos](#Rutinas-para-la-creación-de-arreglos)
 - [Operadores de asignación](#Operadores-de-asignación)
 - [Sobrecarga de operadores](#Sobrecarga-de-operadores)
+- [Rutinas para la manipulación de arreglos](#Rutinas-para-la-manipulación-de-arreglos)
+- [Indexado avanzado](#Indexado-avanzado)
 
-# Arreglos
+<hr>
 
 Los arreglos son contenedores secuenciales de tamaño fijo: guardan un número 
 específico de elementos organizados estrictamente en una secuencia lineal.
@@ -103,28 +104,28 @@ Destruye el arreglo.
 
 - **empty**: Crea un nuevo arreglo de tamaño `n` sin inicializar.
 ```cpp
-template<class T> 
+template<class T = double> 
 array<T> empty(size_t n);
 ```
 
 - **zeros**: Crea un nuevo arreglo de tamaño `n` inicializando los valores a 
 cero.
 ```cpp
-template<class T> 
+template<class T = double> 
 array<T> zeros(size_t n);
 ```
 
 - **ones**: Crea un nuevo arreglo de tamaño `n` inicializando los valores a 
 uno.
 ```cpp
-template<class T> 
+template<class T = double> 
 array<T> ones(size_t n);
 ```
 
 - **full**: Crea un nuevo arreglo de tamaño `n` inicializando los valores a 
 `val`.
 ```cpp
-template <class T> 
+template <class T = double> 
 array<T> full(size_t n, const T &val);
 ```
 
@@ -149,10 +150,10 @@ int main() {
 ```
 
 ```
-[Out] vacio: [ 14621440 0 14614864 0 0 ]
-      cero: [ 0 0 0 0 0 ]
-      uno: [ 1 1 1 1 1 ]
-      tres: [ 3 3 3 3 3 ]
+[Out] vacio: [7609056, 0, 7602512, 0, 0]
+      cero: [0, 0, 0, 0, 0]
+      uno: [1, 1, 1, 1, 1]
+      tres: [3, 3, 3, 3, 3]
 ```
 
 ### Desde un archivo binario
@@ -190,15 +191,15 @@ int main() {
 ```
 
 ```
-[Out] [ 1 2 3 4 5 6 7 8 9 10 ]
+[Out] [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ```
 
 ### Rangos numéricos
 
 - **arange**: Crea un nuevo arreglo con valores equi-espaciados dentro de un 
 intervalo. Los valores son generados dentro del intervalo semi-abierto 
-`[start, stop)` con saltos de tamaño `step`. Por defecto, el valor de inicio es
-0 y el tamaño de paso es 1.
+`[start, stop)` con saltos de tamaño `step`. Por defecto, el valor de 
+inicio es 0 y el tamaño de paso es 1.
 ```cpp
 template <class T> 
 array<T> arange(const T &stop);
@@ -208,7 +209,7 @@ array<T> arange(const T &start, const T &stop, const T &step = T(1));
 
 - **linspace**: Crea un nuevo arreglo con números equi-espaciados sobre un 
 intervalo especificado. Devuelve `num` muestras equi-espaciadas, calculadas 
-sobre el intervalo `[start, stop]`. Opcionalmente, el extremo derecho del 
+sobre el intervalo cerrado `[start, stop]`. Opcionalmente, el extremo derecho del 
 intervalo puede ser excluido.
 ```cpp
 template <class T> 
@@ -259,34 +260,34 @@ int main() {
     cout << np::arange(5, 0, -1) << "\n";
 
     cout << "linspace:\n";
-    cout << np::linspace(0.0, 1.0, 5) << "\n";
-    cout << np::linspace(0.0, 1.0, 5, false) << "\n";
+    cout << np::linspace(0., 1., 5) << "\n";
+    cout << np::linspace(0., 1., 5, false) << "\n";
 
     cout << "logspace:\n";
-    cout << np::logspace(1.0, 5.0, 5, true, 2.0) << "\n";
-    cout << np::logspace(0.0, 5.0, 5, false, 10.0) << "\n";
+    cout << np::logspace(1., 5., 5, true, 2.) << "\n";
+    cout << np::logspace(0., 5., 5, false, 10.) << "\n";
 
     cout << "geomspace:\n";
-    cout << np::geomspace(1.0, 256.0, 9) << "\n";
-    cout << np::geomspace(1.0, 100000.0, 5, false) << "\n";
+    cout << np::geomspace(1., 256., 9) << "\n";
+    cout << np::geomspace(1., 100000., 5, false) << "\n";
     return 0;
 }
 ```
 
 ```
 [Out] arange:
-      [ 0 1 2 3 4 5 6 7 8 9 ]
-      [ 1 4 7 10 13 16 19 ]
-      [ 5 4 3 2 1 ]
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      [1, 4, 7, 10, 13, 16, 19]
+      [5, 4, 3, 2, 1]
       linspace:
-      [ 0 0.25 0.5 0.75 1 ]
-      [ 0 0.2 0.4 0.6 0.8 ]
+      [0, 0.25, 0.5, 0.75, 1]
+      [0, 0.2, 0.4, 0.6, 0.8]
       logspace:
-      [ 2 4 8 16 32 ]
-      [ 1 10 100 1000 10000 ]
+      [2, 4, 8, 16, 32]
+      [1, 10, 100, 1000, 10000]
       geomspace:
-      [ 1 2 4 8 16 32 64 128 256 ]
-      [ 1 10 100 1000 10000 ]
+      [1, 2, 4, 8, 16, 32, 64, 128, 256]
+      [1, 10, 100, 1000, 10000]
 ```
 
 ## Operadores de asignación
@@ -429,5 +430,271 @@ template<class T> array<bool> operator>= (const T &val, const array<T> &v);
 template <class T>
 std::ostream& operator<< (std::ostream &ostr, const array<T> &v);
 ```
+## Rutinas para la manipulación de arreglos
 
-# Funciones matemáticas
+### Métodos básicos
+
+- **size**: Devuelve el número de elementos en el arreglo.
+```cpp
+size_t size() const;
+```
+
+- **data**: Devuelve un puntero a la memoria del arreglo utilizado 
+internamente.
+```cpp
+T* data();
+const T* data() const;
+```
+
+- **resize**: Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
+que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
+eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
+actual, el contenido es expandido agregando al final tantos elementos sean
+necesarios para alcanzar un tamaño de `n`.
+```cpp
+void resize(size_t n, const T &val = T());
+```
+
+### Indexado
+
+Accede al `i`-ésimo elemento del arreglo. Note que el primer elemento tiene 
+la posición 0, no 1. Valores mayores o iguales que el tamaño del arreglo 
+causan un comportamiento indefinido.
+```cpp
+T& operator[] (size_t i);
+const T& operator[] (size_t i) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = np::zeros(5);
+    cout << "v tiene " << v.size() << " elementos.\n";
+    v[0] = 1.;
+    v[3] = 2.5;
+    v[2] = -0.1;
+    v.resize(10);
+    cout << "v tiene " << v.size() << " elementos.\n";
+    cout << "Los elementos de v son:\n" << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] v tiene 5 elementos.
+      v tiene 10 elementos.
+      Los elementos de v son:
+      [1, 0, -0.1, 2.5, 0, 0, 0, 0, 0, 0]
+```
+
+## Indexado avanzado
+
+### Slices
+
+Un `slice` describe una selección de elementos a utilizar como índices por 
+el operador `[]`. Un slice está definido por un índice de inicio (`start`), 
+un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo, 
+`slice(3, 20, 5)` selecciona los elementos en las posiciones 3, 8, 13 y 18.
+Por defecto, el valor de inicio es 0 y el tamaño de paso es 1.
+```cpp
+slice(size_t stop);
+slice(size_t start, size_t stop, size_t step = 1);
+```
+Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
+tipo  `subarray<T, slice>` representando un subarreglo con los elementos 
+seleccionados por el slice.
+```cpp
+template <class T>
+class subarray<T, slice> {
+public:
+    void operator= (const array<T> &v);
+    void operator= (const T &val);
+
+    void operator+= (const array<T> &v);
+    void operator-= (const array<T> &v);
+    void operator*= (const array<T> &v);
+    void operator/= (const array<T> &v);
+    void operator%= (const array<T> &v);
+    void operator&= (const array<T> &v);
+    void operator|= (const array<T> &v);
+    void operator^= (const array<T> &v);
+    void operator<<= (const array<T> &v);
+    void operator>>= (const array<T> &v);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    array<T> copy() const;
+    size_t size() const;
+};
+```
+
+#### Ejemplo
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
+    np::subarray<int, np::slice> sub = v[np::slice(3, 10, 2)];
+    cout << "Los elementos de v son: " << v << "\n";
+    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
+    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
+    sub = 0;
+    cout << "Los elementos de v son ahora: " << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Los elementos de v son: [8, -3, 7, 5, 10, -1, 1, 3, -5, 14]
+      El subarreglo tiene 4 elementos.
+      Los elementos del subarreglo son: [5, -1, 3, 14]
+      Los elementos de v son ahora: [8, -3, 7, 0, 10, 0, 1, 0, -5, 0]
+```
+
+### Arreglos de índices
+
+Al indexar un arreglo mediante un arreglo de índices (de tipo `size_t`), el 
+operador devuelve un objeto de tipo  `subarray<T, size_t>` representando un 
+subarreglo con los elementos especificados por el arreglo de índices.
+```cpp
+template <class T>
+class subarray<T, size_t> {
+public:
+    void operator= (const array<T> &v);
+    void operator= (const T &val);
+
+    void operator+= (const array<T> &v);
+    void operator-= (const array<T> &v);
+    void operator*= (const array<T> &v);
+    void operator/= (const array<T> &v);
+    void operator%= (const array<T> &v);
+    void operator&= (const array<T> &v);
+    void operator|= (const array<T> &v);
+    void operator^= (const array<T> &v);
+    void operator<<= (const array<T> &v);
+    void operator>>= (const array<T> &v);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    array<T> copy() const;
+    size_t size() const;
+};
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
+    np::array<size_t> indices = {1, 5, 6, 8, 2};
+    np::subarray<int, size_t> sub = v[indices];
+    cout << "Los elementos de v son: " << v << "\n";
+    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
+    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
+    sub = 0;
+    cout << "Los elementos de v son ahora: " << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Los elementos de v son: [8, -3, 7, 5, 10, -1, 1, 3, -5, 14]
+      El subarreglo tiene 5 elementos.
+      Los elementos del subarreglo son: [-3, -1, 1, -5, 7]
+      Los elementos de v son ahora: [8, 0, 0, 5, 10, 0, 0, 3, 0, 14]
+```
+
+### Arreglos booleanos
+
+Al indexar un arreglo mediante un arreglo booleano, el operador 
+devuelve un objeto de tipo  `subarray<T, bool>` representando un 
+subarreglo con los elementos seleccionados por la máscara booleana.
+```cpp
+template <class T>
+class subarray<T, bool> {
+public:
+    void operator= (const array<T> &v);
+    void operator= (const T &val);
+
+    void operator+= (const array<T> &v);
+    void operator-= (const array<T> &v);
+    void operator*= (const array<T> &v);
+    void operator/= (const array<T> &v);
+    void operator%= (const array<T> &v);
+    void operator&= (const array<T> &v);
+    void operator|= (const array<T> &v);
+    void operator^= (const array<T> &v);
+    void operator<<= (const array<T> &v);
+    void operator>>= (const array<T> &v);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    array<T> copy() const;
+    size_t size() const;
+};
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
+    np::array<bool> mascara = {1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
+    np::subarray<int, bool> sub = v[mascara];
+    cout << "Los elementos de v son: " << v << "\n";
+    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
+    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
+    sub = 0;
+    cout << "Los elementos de v son ahora: " << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Los elementos de v son: [8, -3, 7, 5, 10, -1, 1, 3, -5, 14]
+      El subarreglo tiene 5 elementos.
+      Los elementos del subarreglo son: [8, -3, 10, 1, -5]
+      Los elementos de v son ahora: [0, 0, 7, 5, 0, -1, 0, 3, 0, 14]
+```
