@@ -1,3 +1,14 @@
+# Numcpp
+
+## Contenido
+
+[Arreglos](#Arreglos)
+- [Constructor](#Constructores)
+- [Destructor](#Destructor)
+- [Rutinas para la creación de arreglos](#Rutinas-para-la-creación-de-arreglos)
+- [Operadores de asignación](#Operadores-de-asignación)
+- [Sobrecarga de operadores](#Sobrecarga-de-operadores)
+
 # Arreglos
 
 Los arreglos son contenedores secuenciales de tamaño fijo: guardan un número 
