@@ -140,52 +140,6 @@ namespace numcpp {
                 this->values = nullptr;
             }
 
-            // Return a new uninitialized array.
-            static array empty(size_t n) {
-                return array(n);
-            }
-
-            // Return a new array setting values to zero.
-            static array zeros(size_t n) {
-                return array(n, T(0));
-            }
-
-            // Return a new array setting values to one.
-            static array ones(size_t n) {
-                return array(n, T(1));
-            }
-
-            // Return a new array of given length filled with value.
-            static array full(size_t n, const T &val) {
-                return array(n, val);
-            }
-
-            // Return a new array from a binary file.
-            static array load(const char *file) {
-                FILE *pfile = fopen(file, "rb");
-                array out;
-                if (pfile != NULL) {
-                    fread(&out.length, sizeof(size_t), 1, pfile);
-                    out.values = new T[out.length];
-                    fread(out.values, sizeof(T), out.length, pfile);
-                    fclose(pfile);
-                }
-                else {
-                    throw std::runtime_error(
-                        std::string("No such file or directory: ") + file
-                    );
-                }
-                return out;
-            }
-
-            // Save an array to a binary file.
-            void save(const char *file) const {
-                FILE *pfile = fopen(file, "wb");
-                fwrite(&this->length, sizeof(size_t), 1, pfile);
-                fwrite(this->values, sizeof(T), this->length, pfile);
-                fclose(pfile);
-            }
-
             // Copy assignment. Assigns the contents of v to *this after
             // resizing the object (if necessary).
             array& operator= (const array &v) {
@@ -651,6 +605,139 @@ namespace numcpp {
             }
     };
 
+    // Return a new uninitialized array.
+    template<class T>
+    array<T> empty(size_t n) {
+        return array<T>(n);
+    }
+
+    // Return a new array setting values to zero.
+    template<class T>
+    array<T> zeros(size_t n) {
+        return array<T>(n, T(0));
+    }
+
+    // Return a new array setting values to one.
+    template<class T>
+    array<T> ones(size_t n) {
+        return array<T>(n, T(1));
+    }
+
+    // Return a new array of given length filled with value.
+    template <class T>
+    array<T> full(size_t n, const T &val) {
+        return array<T>(n, val);
+    }
+
+    // Return a new array from a binary file.
+    template <class T>
+    array<T> load(const char *file) {
+        FILE *pfile = fopen(file, "rb");
+        if (pfile != NULL) {
+            size_t n;
+            fread(&n, sizeof(size_t), 1, pfile);
+            array<T> out(n);
+            fread(out.data(), sizeof(T), n, pfile);
+            fclose(pfile);
+            return out;
+        }
+        else {
+            throw std::runtime_error(
+                std::string("No such file or directory: ") + file
+            );
+        }
+    }
+
+    // Save an array to a binary file.
+    template <class T>
+    void save(const char *file, const array<T> &v) {
+        FILE *pfile = fopen(file, "wb");
+        if (pfile != NULL) {
+            size_t n = v.size();
+            fwrite(&n, sizeof(size_t), 1, pfile);
+            fwrite(v.data(), sizeof(T), v.size(), pfile);
+            fclose(pfile);
+        }
+        else {
+            throw std::runtime_error(std::string("Can not modify ") + file);
+        }
+    }
+
+    // Return evenly spaced values within a given interval. Values are
+    // generated within the half-open interval [start, stop) (in other words,
+    // the interval including start but excluding stop).
+    template <class T>
+    array<T> arange(const T &stop) {
+        size_t n = ceil(stop);
+        array<T> out(n);
+        for (size_t i = 0; i < n; ++i) {
+            out[i] = T(i);
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> arange(const T &start, const T &stop, const T &step = T(1)) {
+        size_t n = ceil((stop - start) / (double)step);
+        array<T> out(n);
+        for (size_t i = 0; i < n; ++i) {
+            out[i] = start + i*step;
+        }
+        return out;
+    }
+
+    // Return evenly spaced numbers over a specified interval. Returns num
+    // evenly spaced samples, calculated over the interval [start, stop].
+    // The endpoint of the interval can optionally be excluded.
+    template <class T>
+    array<T> linspace(
+        const T &start, const T &stop,
+        size_t num = 50,
+        bool endpoint = true
+    ) {
+        array<T> out(num);
+        T step = (stop - start) / (num - endpoint);
+        for (size_t i = 0; i < num; ++i) {
+            out[i] = start + i*step;
+        }
+        return out;
+    }
+
+    // Return numbers spaced evenly on a log scale. In linear space, the
+    // sequence starts at pow(base, start) (base to the power of start) and
+    // ends with pow(base, stop).
+    template <class T>
+    array<T> logspace(
+        const T &start, const T &stop,
+        size_t num = 50,
+        bool endpoint = true,
+        const T &base = 10.0
+    ) {
+        array<T> out(num);
+        T step = (stop - start) / (num - endpoint);
+        for (size_t i = 0; i < num; ++i) {
+            out[i] = pow(base, start + i*step);
+        }
+        return out;
+    }
+
+    // Return numbers spaced evenly on a log scale (a geometric progression).
+    // This is similar to logspace, but with endpoints specified directly. Each
+    // output sample is a constant multiple of the previous.
+    template <class T>
+    array<T> geomspace(
+        const T &start, const T &stop,
+        size_t num = 50,
+        bool endpoint = true
+    ) {
+        array<T> out(num);
+        T base = pow(stop/start, 1.0/(num - endpoint));
+        for (size_t i = 0; i < num; ++i) {
+            out[i] = start * pow(base, i);
+        }
+        return out;
+    }
+
     // unary array operators.
     template <class T>
     array<T> operator+ (const array<T> &v) {
@@ -988,41 +1075,61 @@ namespace numcpp {
             static size_t precision;
 
             // Total number of array elements which trigger summarization
-            // rather than full representation (default 1000).
+            // rather than full representation (default 100).
             static size_t threshold;
 
             // Number of array items in summary at beginning and end of each
             // dimension (default 3).
             static size_t edgeitems;
 
-            // If true, always print floating point numbers using fixed point
-            // notation, in which case numbers equal to zero in the current
-            // precision will print as zero. If false, then scientific notation
-            // is used when absolute value of the smallest number is < 1e-4 or
-            // the ratio of the maximum absolute value to the minimum is > 1e3.
-            // The default is False.
-            static bool suppress;
+            // Controls printing of the sign of numeric types. If true, always
+            // print the sign of positive values. If false, omit the sign
+            // character of positive values. (default false)
+            static bool sign;
 
-            // Controls printing of the sign of floating-point types. If '+',
-            // always print the sign of positive values. If ' ', always prints
-            // a space (whitespace character) in the sign position of positive
-            // values. If '-', omit the sign character of positive values.
-            // (default '-')
-            static char sign;
+            // Controls the interpretation of the precision option for
+            // floating-point types. Can take the following values:
+            // - "default":    write floating-point values in default
+            //                 floating-point notation.
+            // - "fixed":      write floating-point values in fixed-point
+            //                 notation.
+            // - "scientific": write floating-point values in scientific
+            //                 notation.
+            static std::string floatmode;
     };
 
     size_t printoptions::precision = 8;
-    size_t printoptions::threshold = 1000;
+    size_t printoptions::threshold = 100;
     size_t printoptions::edgeitems = 3;
-    bool printoptions::suppress = false;
-    char printoptions::sign = '-';
+    bool printoptions::sign = false;
+    std::string printoptions::floatmode = "default";
 
-    template <
-        class T,
-        std::enable_if_t<!std::is_floating_point<T>::value, bool> = true
-    >
+    template <class T>
     std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
-        ostr << std::boolalpha << "[ ";
+        ostr << std::boolalpha << std::setprecision(printoptions::precision);
+        if (printoptions::sign) {
+            ostr << std::showpos;
+        }
+        else {
+            ostr << std::noshowpos;
+        }
+        if (printoptions::floatmode == "default") {
+            ostr << std::defaultfloat;
+        }
+        else if (printoptions::floatmode == "fixed") {
+            ostr << std::fixed;
+        }
+        else if (printoptions::floatmode == "scientific") {
+            ostr << std::scientific;
+        }
+        else {
+            throw std::invalid_argument(
+                "printoptions::floatmode must be one of \"default\", "
+                "\"fixed\" or \"scientific\""
+            );
+        }
+
+        ostr << "[ ";
         if (
             v.size() < printoptions::threshold ||
             v.size() <= 2*printoptions::edgeitems
@@ -1041,65 +1148,7 @@ namespace numcpp {
             }
         }
         ostr << "]";
-        return ostr;
-    }
 
-    template <
-        class T,
-        std::enable_if_t<std::is_floating_point<T>::value, bool> = true
-    >
-    std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
-        ostr << std::setprecision(printoptions::precision) << "[ ";
-
-        if (printoptions::suppress) {
-            ostr << std::fixed;
-        }
-        else {
-            T largest = abs(v[0]);
-            T smallest = largest;
-            for (size_t i = 1; i < v.size(); ++i) {
-                T current = abs(v[i]);
-                if (current > largest) {
-                    largest = current;
-                }
-                else if (current != 0 && current < smallest) {
-                    smallest = current;
-                }
-            }
-            if (smallest < 1e-4 || largest/smallest > 1e3) {
-                ostr << std::scientific;
-            }
-        }
-
-        if (
-            v.size() < printoptions::threshold ||
-            v.size() <= 2*printoptions::edgeitems
-        ) {
-            for (size_t i = 0; i < v.size(); ++i) {
-                if (v[i] >= 0 && printoptions::sign != '-') {
-                    ostr << printoptions::sign;
-                }
-                ostr << v[i] << " ";
-            }
-        }
-        else {
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                if (v[i] >= 0 && printoptions::sign != '-') {
-                    ostr << printoptions::sign;
-                }
-                ostr << v[i] << " ";
-            }
-            ostr << " ...";
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                size_t j = v.size() - printoptions::edgeitems + i;
-                if (v[j] >= 0 && printoptions::sign != '-') {
-                    ostr << printoptions::sign;
-                }
-                ostr << v[j] << " ";
-            }
-        }
-
-        ostr << std::defaultfloat << "]";
         return ostr;
     }
 
