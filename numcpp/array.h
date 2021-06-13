@@ -95,25 +95,25 @@ namespace numcpp {
     ////////////////////////////////////////////////////////////////////////////
 
     // Return a new uninitialized array.
-    template <class T = double>
+    template <class T>
     array<T> empty(size_t n) {
         return array<T>(n);
     }
 
     // Return a new array setting values to zero.
-    template <class T = double>
+    template <class T>
     array<T> zeros(size_t n) {
         return array<T>(n, T(0));
     }
 
     // Return a new array setting values to one.
-    template <class T = double>
+    template <class T>
     array<T> ones(size_t n) {
         return array<T>(n, T(1));
     }
 
     // Return a new array of given length filled with value.
-    template <class T = double>
+    template <class T>
     array<T> full(size_t n, const T &val) {
         return array<T>(n, val);
     }
@@ -166,7 +166,7 @@ namespace numcpp {
     }
 
     template <class T>
-    array<T> arange(const T &start, const T &stop, const T &step = T(1)) {
+    array<T> arange(const T &start, const T &stop, const T &step) {
         size_t n = ceil((stop - start) / (double)step);
         array<T> out(n);
         for (size_t i = 0; i < n; ++i) {
@@ -181,8 +181,8 @@ namespace numcpp {
     template <class T>
     array<T> linspace(
         const T &start, const T &stop,
-        size_t num = 50,
-        bool endpoint = true
+        size_t num,
+        bool endpoint
     ) {
         array<T> out(num);
         T step = (stop - start) / (num - endpoint);
@@ -198,9 +198,8 @@ namespace numcpp {
     template <class T>
     array<T> logspace(
         const T &start, const T &stop,
-        size_t num = 50,
-        bool endpoint = true,
-        const T &base = 10.0
+        size_t num, bool endpoint,
+        const T &base
     ) {
         array<T> out(num);
         T step = (stop - start) / (num - endpoint);
@@ -216,8 +215,8 @@ namespace numcpp {
     template <class T>
     array<T> geomspace(
         const T &start, const T &stop,
-        size_t num = 50,
-        bool endpoint = true
+        size_t num,
+        bool endpoint
     ) {
         array<T> out(num);
         T base = pow(stop/start, 1.0/(num - endpoint));
@@ -838,12 +837,6 @@ namespace numcpp {
     // Array indexing                                                         //
     ////////////////////////////////////////////////////////////////////////////
 
-    // Returns the number of elements in the array.
-    template <class T>
-    size_t array<T>::size() const {
-        return this->length;
-    }
-
     // Returns a reference to the element at position i in the array.
     template <class T>
     T& array<T>::operator[] (size_t i) {
@@ -853,36 +846,6 @@ namespace numcpp {
     template <class T>
     const T& array<T>::operator[] (size_t i) const {
         return this->values[i];
-    }
-
-    // Returns a pointer to the memory array used internally by the array.
-    template <class T>
-    T* array<T>::data() {
-        return this->values;
-    }
-
-    template <class T>
-    const T* array<T>::data() const {
-        return this->values;
-    }
-
-    // Resizes the array, changing its size to n elements.
-    // If n is smaller than the current size, the content is reduced to its
-    // first n elements, removing those beyond.
-    // If n is greater than the current size, the content is expanded by
-    // inserting at the end as many elements as needed to reach a size of n.
-    template <class T>
-    void array<T>::resize(size_t n, const T &val) {
-        array<T> tmp_copy(*this);
-        delete[] this->values;
-        this->length = n;
-        this->values = new T[n];
-        for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
-            this->values[i] = tmp_copy.values[i];
-        }
-        for (size_t i = tmp_copy.length; i < n; ++i) {
-            this->values[i] = val;
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1793,16 +1756,10 @@ namespace numcpp {
 
     // Apply a function to each of the elements in *this.
     template <class T>
-    void array<T>::apply(T func(const T&)) {
+    template <class Function>
+    void array<T>::apply(Function f) {
         for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = func(this->values[i]);
-        }
-    }
-
-    template <class T>
-    void array<T>::apply(T func(T)) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = func(this->values[i]);
+            this->values[i] = f(this->values[i]);
         }
     }
 
@@ -1894,6 +1851,17 @@ namespace numcpp {
         return out;
     }
 
+    // Returns a pointer to the memory array used internally by the array.
+    template <class T>
+    T* array<T>::data() {
+        return this->values;
+    }
+
+    template <class T>
+    const T* array<T>::data() const {
+        return this->values;
+    }
+
     // Return the dot product of two arrays.
     template <class T>
     T array<T>::dot(const array<T> &v) const {
@@ -1917,16 +1885,16 @@ namespace numcpp {
         return this->values[this->argmax()];
     }
 
-    // Returns the minimum value contained in the array.
-    template <class T>
-    T array<T>::min() const {
-        return this->values[this->argmin()];
-    }
-
     // Returns the average of the array elements.
     template <class T>
     T array<T>::mean() const {
         return this->sum() / this->length;
+    }
+
+    // Returns the minimum value contained in the array.
+    template <class T>
+    T array<T>::min() const {
+        return this->values[this->argmin()];
     }
 
     // Return the product of the array elements.
@@ -1937,6 +1905,31 @@ namespace numcpp {
             out *= this->values[i];
         }
         return out;
+    }
+
+    // Resizes the array, changing its size to n elements.
+    // If n is smaller than the current size, the content is reduced to its
+    // first n elements, removing those beyond.
+    // If n is greater than the current size, the content is expanded by
+    // inserting at the end as many elements as needed to reach a size of n.
+    template <class T>
+    void array<T>::resize(size_t n, const T &val) {
+        array<T> tmp_copy(*this);
+        delete[] this->values;
+        this->length = n;
+        this->values = new T[n];
+        for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
+            this->values[i] = tmp_copy.values[i];
+        }
+        for (size_t i = tmp_copy.length; i < n; ++i) {
+            this->values[i] = val;
+        }
+    }
+
+    // Returns the number of elements in the array.
+    template <class T>
+    size_t array<T>::size() const {
+        return this->length;
     }
 
     // Sort an array in-place.
@@ -2010,19 +2003,42 @@ namespace numcpp {
     }
 
     // Returns an array with each of its elements initialized to the result of
-    // applying func to the corresponding element in v.
-    template <class T>
-    array<T> apply(T func(const T&), const array<T> &v) {
+    // applying f to the corresponding element in v.
+    template <class T, class Function>
+    array<T> apply(Function f, const array<T> &v) {
         array<T> out(v);
-        out.apply(func);
+        out.apply(f);
         return out;
     }
 
-    template <class T>
-    array<T> apply(T func(T), const array<T> &v) {
-        array<T> out(v);
-        out.apply(func);
+    // Returns an array with each of its elements initialized to the result of
+    // applying f to the corresponding element in v and w.
+    template <class T, class Function>
+    array<T> apply(Function f, const array<T> &v, const array<T> &w) {
+        if (v.size() != w.size()) {
+            throw std::runtime_error(
+                "operands could not be broadcast together with shapes  (" +
+                std::to_string(v.size()) + ",) (" + std::to_string(w.size()) +
+                ",)"
+            );
+        }
+        array<T> out(v.size());
+        for (size_t i = 0; i < v.size(); ++i) {
+            out[i] = f(v[i], w[i]);
+        }
         return out;
+    }
+
+    template <class T, class Function>
+    array<T> apply(Function f, const array<T> &v, const T &val) {
+        array<T> w(v.size(), val);
+        return apply(f, v, w);
+    }
+
+    template <class T, class Function>
+    array<T> apply(Function f, const T &val, const array<T> &v) {
+        array<T> w(v.size(), val);
+        return apply(f, w, v);
     }
 
     // Return the index of the maximum value.
@@ -2105,8 +2121,8 @@ namespace numcpp {
 
     // Returns the standard deviation of the array elements.
     template <class T>
-    T stddev(const array<T> &v) {
-        return v.stddev();
+    T stddev(const array<T> &v, size_t ddof) {
+        return v.stddev(ddof);
     }
 
     // Return the sum of the array elements.
@@ -2115,10 +2131,16 @@ namespace numcpp {
         return v.sum();
     }
 
+    // Swap contents between two arrays.
+    template <class T>
+    void swap(array<T> &v, array<T> &w) {
+        v.swap(w);
+    }
+
     // Returns the variance of the array elements.
     template <class T>
-    T var(const array<T> &v) {
-        return v.var();
+    T var(const array<T> &v, size_t ddof) {
+        return v.var(ddof);
     }
 }
 
