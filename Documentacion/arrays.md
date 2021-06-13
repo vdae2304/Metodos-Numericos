@@ -10,6 +10,7 @@
 - [Indexado básico](#Indexado-básico)
 - [Indexado avanzado](#Indexado-avanzado)
 - [Lista de métodos](#Lista-de-métodos)
+- [Funciones globales](#Funciones-globales)
 
 <hr>
 
@@ -203,6 +204,7 @@ inicio es 0 y el tamaño de paso es 1.
 ```cpp
 template <class T> 
 array<T> arange(const T &stop);
+
 template <class T> 
 array<T> arange(const T &start, const T &stop, const T &step = T(1));
 ```
@@ -256,7 +258,7 @@ namespace np = numcpp;
 int main() {
     cout << "arange:\n";
     cout << np::arange(10) << "\n";
-    cout << np::arange(1, 20, 3) << "\n";
+    cout << np::arange(0., 1., 0.1) << "\n";
     cout << np::arange(5, 0, -1) << "\n";
 
     cout << "linspace:\n";
@@ -277,7 +279,7 @@ int main() {
 ```
 [Out] arange:
       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-      [1, 4, 7, 10, 13, 16, 19]
+      [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
       [5, 4, 3, 2, 1]
       linspace:
       [0, 0.25, 0.5, 0.75, 1]
@@ -432,27 +434,11 @@ std::ostream& operator<< (std::ostream &ostr, const array<T> &v);
 ```
 ## Indexado básico
 
-### Métodos básicos
+### Tamaño
 
 - **size**: Devuelve el número de elementos en el arreglo.
 ```cpp
 size_t size() const;
-```
-
-- **data**: Devuelve un puntero a la memoria del arreglo utilizado 
-internamente.
-```cpp
-T* data();
-const T* data() const;
-```
-
-- **resize**: Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
-que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
-eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
-actual, el contenido es expandido agregando al final tantos elementos sean
-necesarios para alcanzar un tamaño de `n`.
-```cpp
-void resize(size_t n, const T &val = T());
 ```
 
 ### Indexado
@@ -478,18 +464,14 @@ int main() {
     v[0] = 1.;
     v[3] = 2.5;
     v[2] = -0.1;
-    v.resize(10);
-    cout << "v tiene " << v.size() << " elementos.\n";
-    cout << "Los elementos de v son:\n" << v << "\n";
+    cout << "Los elementos de v son: " << v << "\n";
     return 0;
 }
 ```
 
 ```
 [Out] v tiene 5 elementos.
-      v tiene 10 elementos.
-      Los elementos de v son:
-      [1, 0, -0.1, 2.5, 0, 0, 0, 0, 0, 0]
+      Los elementos de v son: [1, 0, -0.1, 2.5, 0]
 ```
 
 ## Indexado avanzado
@@ -500,10 +482,10 @@ Un `slice` describe una selección de elementos a utilizar como índices por
 el operador `[]`. Un slice está definido por un índice de inicio (`start`), 
 un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo, 
 `slice(3, 20, 5)` selecciona los elementos en las posiciones 3, 8, 13 y 18.
-Por defecto, el valor de inicio es 0 y el tamaño de paso es 1.
+Por defecto, el valor de inicio es 0 y el tamaño de paso es 1. Los saltos negativos están permitidos.
 ```cpp
-slice(size_t stop);
-slice(size_t start, size_t stop, size_t step = 1);
+slice(size_type stop);
+slice(size_type start, size_type stop, size_type step = 1);
 ```
 Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
 tipo  `subarray<T, slice>` representando un subarreglo con los elementos 
@@ -701,33 +683,118 @@ int main() {
 
 ## Lista de métodos
 
-### Memoria y tamaño
+### `apply` 
 
-- **data**: Devuelve un puntero a la memoria del arreglo utilizado 
-internamente.
+Sustituye cada elemento del arreglo con el resultado de evaluar una función al 
+elemento correspondiente.
 ```cpp
-T* data();
-const T* data() const;
+template <class Function = T(T)>
+void apply(Function f);
 ```
 
-- **resize**: Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
-que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
-eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
-actual, el contenido es expandido agregando al final tantos elementos sean
-necesarios para alcanzar un tamaño de `n`.
+#### Ejemplo
+
 ```cpp
-void resize(size_t n, const T &val = T());
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+
+double square(double x) {
+    return x*x;
+}
+
+int main() {
+    np::array<double> v = {1., -9., 5., 10., -2., 7.};
+    v.apply(square);
+    cout << v << "\n";
+    return 0;
+}
 ```
 
-- **size**: Devuelve el número de elementos en el arreglo.
-```cpp
-size_t size() const;
+```
+[Out] [1, 81, 25, 100, 4, 49]
 ```
 
-### Conversión de tipo
+### `argmax` 
 
-- **astype**: Crea una copia del arreglo, haciendo la conversión al tipo de 
-dato especificado.
+Devuelve el índice del mayor valor contenido en el arreglo.
+```cpp
+size_t argmax() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
+    cout << v.argmax() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 0
+```
+
+### `argmin` 
+
+Devuelve el índice del menor valor contenido en el arreglo.
+```cpp
+size_t argmin() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
+    cout << v.argmin() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 3
+```
+
+### `argsort` 
+
+Devuelve el arreglo de índices que ordenan el arreglo.
+```cpp
+array<size_t> argsort() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -4.1, 2.5, 0., 3.};
+    cout << v.argsort() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [1, 3, 0, 2, 4]
+```
+
+### `astype` 
+
+Crea una copia del arreglo, haciendo la conversión al tipo de dato 
+especificado.
 ```cpp
 template <class U> array<U> astype() const;
 ```
@@ -751,16 +818,12 @@ int main() {
 [Out] [1, 2, 3, -4, 0]
 ```
 
-### Ordenamiento
+### `clip` 
 
-- **argsort**: Devuelve el arreglo de índices que ordenan el arreglo.
+Restringe los valores de un arreglo. Dado un intervalo, valores  fuera del 
+intervalo son restringidos a los extremos del intervalo.
 ```cpp
-array<size_t> argsort() const;
-```
-
-- **sort**: Ordena los elementos de un arreglo.
-```cpp
-void sort();
+void clip(const T &a_min, const T &a_max);
 ```
 
 #### Ejemplo
@@ -771,83 +834,22 @@ void sort();
 using namespace std;
 namespace np = numcpp;
 int main() {
-    np::array<double> v = {1., 2.5, 3., -4.1, 0.};
-    cout << v.argsort() << "\n";
-    v.sort();
+    np::array<double> v = {1., -9., 3., 10., -2., 7.};
+    v.clip(0., 5.);
     cout << v << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] [3, 4, 0, 1, 2]
-      [-4.1, 0, 1, 2.5, 3]
+[Out] [1, 0, 3, 5, 0, 5]
 ```
 
-### Máximos y mínimos
+### `cumprod`
 
-- **argmax**: Devuelve el índice del mayor valor contenido en el arreglo.
-```cpp
-size_t argmax() const;
-```
-
-- **argmin**: Devuelve el índice del menor valor contenido en el arreglo.
-```cpp
-size_t argmin() const;
-```
-
-- **max**: Devuelve el mayor valor contenido en el arreglo.
-```cpp
-T max() const;
-```
-
-- **min**: Devuelve el menor valor contenido en el arreglo.
-```cpp
-T min() const;
-```
-
-#### Ejemplo
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
-    cout << "v[" << v.argmax() << "] = " << v.max() << "\n";
-    cout << "v[" << v.argmin() << "] = " << v.min() << "\n";
-    return 0;
-}
-```
-
-```
-[Out] v[0] = 5
-      v[3] = -4.1
-```
-
-### Sumas y productos
-
-- **cumprod**: Crea un arreglo con los productos acumulados de los elementos de
-un arreglo.
+Crea un arreglo con los productos acumulados de los elementos de un arreglo.
 ```cpp
 array cumprod() const;
-```
-
-- **cumsum**: Crea un arreglo con las sumas acumuladas de los elementos de un 
-arreglo.
-```cpp
-array cumsum() const;
-```
-
-- **prod**: Devuelve el producto de los elementos de un arreglo.
-```cpp
-T prod() const;
-```
-
-- **sum**: Devuelve la suma de los elementos de un arreglo.
-```cpp
-T sum() const;
 ```
 
 #### Ejemplo
@@ -859,25 +861,52 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<int> v = {2, 3, 5, 1, 4};
-    cout << "Suma: " << v.sum() << "\n";
-    cout << "Sumas acumuladas: " << v.cumsum() << "\n";
-    cout << "Producto: " << v.prod() << "\n";
-    cout << "Productos acumulados: " << v.cumprod() << "\n";
+    cout << v.cumprod() << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] Suma: 15
-      Sumas acumuladas: [2, 5, 10, 11, 15]
-      Producto: 120
-      Productos acumulados: [2, 6, 30, 30, 120]
+[Out] [2, 6, 30, 30, 120]
 ```
 
-### Álgebra lineal
+### `cumsum` 
+Crea un arreglo con las sumas acumuladas de los elementos de un  arreglo.
+```cpp
+array cumsum() const;
+```
 
-- **dot**: Devuelve el producto punto entre dos arreglos. El producto punto se define como 
-![$v^T w = \sum_{i = 1}^{n} v_i w_i$](https://render.githubusercontent.com/render/math?math=v%5ET%20w%20%3D%20%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20v_i%20w_i)
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {2, 3, 5, 1, 4};
+    cout << v.cumsum() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [2, 5, 10, 11, 15]
+```
+
+### `data`
+
+Devuelve un puntero a la memoria del arreglo utilizado 
+internamente.
+```cpp
+T* data();
+const T* data() const;
+```
+
+### `dot` 
+
+Devuelve el producto punto entre dos arreglos. El producto punto está definido
+como `sum(v * w)`.
 ```cpp
 T dot(const array &v) const;
 ```
@@ -901,24 +930,264 @@ int main() {
 [Out] 9
 ```
 
-### Estadística
+### `max` 
 
-- **mean**: Devuelve la media de los elementos de un arreglo. La media se define como 
-![$\bar{x} = \frac{1}{n}\sum_{i = 1}^{n} x_i$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D%20%3D%20%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20x_i)
+Devuelve el mayor valor contenido en el arreglo.
+```cpp
+T max() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
+    cout << v.max() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 5
+```
+
+### `mean` 
+
+Devuelve la media o promedio de los elementos de un arreglo. La media está 
+definida como `x.sum() / x.size()`.
 ```cpp
 T mean() const;
 ```
 
-- **stddev**: Devuelve la desviación estándar de los elementos de un arreglo. 
-La desviación estándar se define como la raíz cuadrada de la varianza.
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -3., 2., 0., 5., 2.};
+    cout << v.mean() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 1.16667
+```
+
+### `min` 
+
+Devuelve el menor valor contenido en el arreglo.
+```cpp
+T min() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
+   cout << v.min() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] -4.1
+```
+
+### `prod` 
+
+Devuelve el producto de los elementos de un arreglo.
+```cpp
+T prod() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {2, 3, 5, 1, 4};
+    cout << v.prod() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 120
+```
+
+### `resize`
+
+Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
+que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
+eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
+actual, el contenido es expandido agregando al final tantos elementos sean
+necesarios para alcanzar un tamaño de `n`.
+```cpp
+void resize(size_t n, const T &val = T());
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -9., 5., 10., -2., 7.};
+    cout << "Antes: " << v << "\n";
+    v.resize(10, 0.);
+    cout << "Tras expandir: " << v << "\n";
+    v.resize(3, 0.);
+    cout << "Tras recortar: " << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Antes: [1, -9, 5, 10, -2, 7]
+      Tras expandir: [1, -9, 5, 10, -2, 7, 0, 0, 0, 0]
+      Tras recortar: [1, -9, 5]
+```
+
+### `size`
+
+Devuelve el número de elementos en el arreglo.
+```cpp
+size_t size() const;
+```
+
+### `sort` 
+
+Ordena los elementos de un arreglo.
+```cpp
+void sort();
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -4.1, 2.5, 0., 3.};
+    v.sort();
+    cout << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [-4.1, 0, 1, 2.5, 3]
+```
+
+### `stddev` 
+
+Devuelve la desviación estándar de los elementos de un arreglo. La desviación 
+estándar está definida como `sqrt(pow(x - x.mean(), 2) / (x.size() - ddof))` 
+(la raíz cuadrada de la  varianza) donde `ddof` son los grados de libertad. 
+Por defecto, `ddof = 0`.
 ```cpp
 T stddev(size_t ddof = 0) const;
 ```
 
-- **var**: Devuelve la varianza de los elementos de un arreglo. La varianza se 
-define como 
-![$S^2 = \frac{1}{n - ddof}\sum_{i = 1}^{n} (x_i - \bar{x})^2$](https://render.githubusercontent.com/render/math?math=S%5E2%20%3D%20%5Cfrac%7B1%7D%7Bn%20-%20ddof%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20(x_i%20-%20%5Cbar%7Bx%7D)%5E2) 
-donde `ddof` indica los grados de libertad. Por defecto, `ddof = 0`.
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -3., 2., 0., 5., 2.};
+    cout << v.stddev() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 2.40947
+```
+
+### `sum` 
+
+Devuelve la suma de los elementos de un arreglo.
+```cpp
+T sum() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {2, 3, 5, 1, 4};
+    cout << v.sum() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 15
+```
+
+### `swap` 
+
+Intercambia el contenido del arreglo con otro arreglo `v`. Esta función está 
+implementada para funcionar en tiempo constante.
+```cpp
+void swap(array &v);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -9., 5., 10., -2.};
+    np::array<double> w = {1, 2, 3};
+    cout << "Antes: " << v << " y " << w << "\n";
+    v.swap(w);
+    cout << "Despues: " << v << " y " << w << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Antes: [1, -9, 5, 10, -2] y [1, 2, 3]
+      Despues: [1, 2, 3] y [1, -9, 5, 10, -2]
+```
+
+
+### `var` 
+
+Devuelve la varianza de los elementos de un arreglo. La varianza está definida 
+como `pow(x - x.mean(), 2) / (x.size() - ddof)` donde `ddof` son los grados de 
+libertad. Por defecto, `ddof = 0`.
 ```cpp
 T var(size_t ddof = 0) const;
 ```
@@ -932,15 +1201,363 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<double> v = {1., -3., 2., 0., 5., 2.};
-    cout << "Media: " << v.mean() << "\n";
-    cout << "Varianza: " << v.var() << "\n";
-    cout << "Desviacion estandar: " << v.stddev() << "\n";
+    cout << v.var() << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] Media: 1.16667
-      Varianza: 5.80556
-      Desviacion estandar: 2.40947
+[Out] 5.80556
+```
+
+## Funciones globales
+
+### `all`
+
+Devuelve `true` si todos los elementos de un arreglo evalúan a `true`.
+```cpp
+bool all(const array<bool> &v);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {1, 3, 2, 5, 7};
+    cout << boolalpha << "Son todos positivos? " << np::all(v > 0) << "\n";
+    cout << "Son todos pares? " << np::all(v % 2 == 0) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Son todos positivos? true
+      Son todos pares? false
+```
+
+### `any`
+
+Devuelve `true` si algún elemento de un arreglo evalúa a `true`.
+```cpp
+bool any(const array<bool> &v);
+```
+
+### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {1, 3, 2, 5, 7};
+    cout << boolalpha << "Hay algun negativo? " << np::any(v < 0) << "\n";
+    cout << "Hay algun par? " << np::any(v % 2 == 0) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Hay algun negativo? false
+      Hay algun par? true
+```
+
+### `apply`
+
+En su primera versión, crea un arreglo donde cada uno de sus elementos está 
+inicializado con el resultado de evaluar una función `f` en los elementos 
+correspondientes de `v`. A diferencia del método `v.apply()`, esta función no
+modifica los elementos de `v`.
+
+En su segunda versión, crea un arreglo donde cada uno de sus elementos está 
+inicializado con el resultado de evaluar una función `f` en los elementos 
+correspondientes de `v` y `w`; en los elementos de `v` contra `val`; en `val`
+contra los elementos de `v` según sea el caso.
+```cpp
+template <class T, class Function = T(T)>
+array<T> apply(Function f, const array<T> &v);
+
+template <class T, class Function = T(T, T)>
+array<T> apply(Function f, const array<T> &v, const array<T> &w);
+
+template <class T, class Function = T(T, T)>
+array<T> apply(Function f, const array<T> &v, const T &val);
+
+template <class T, class Function = T(T, T)>
+array<T> apply(Function f, const T &val, const array<T> &v);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+
+double square(double x) {
+    return x*x;
+}
+
+double f(double x, double y) {
+    return x + 2*y;
+}
+
+int main() {
+    np::array<double> x = {1, 3, 2, 5, 7};
+    np::array<double> y = {-1, 0, 2, 5, 3};
+    cout << np::apply(square, x) << "\n";
+    cout << np::apply(f, x, y) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [1, 9, 4, 25, 49]
+      [-1, 3, 6, 15, 13]
+```
+
+### `arange`
+
+Crea un nuevo arreglo con valores equi-espaciados dentro de un intervalo. Los 
+valores son generados dentro del intervalo semi-abierto `[start, stop)` con 
+saltos de tamaño `step`. Por defecto, el valor de inicio es 0 y el tamaño de 
+paso es 1.
+```cpp
+template <class T> 
+array<T> arange(const T &stop);
+
+template <class T> 
+array<T> arange(const T &start, const T &stop, const T &step = T(1));
+```
+
+### `argmax` 
+
+Devuelve el índice del mayor valor contenido en el arreglo.
+```cpp
+template <class T>
+size_t argmax(const array<T> &v);
+```
+
+### `argmin` 
+
+Devuelve el índice del menor valor contenido en el arreglo.
+```cpp
+template <class T>
+size_t argmin(const array<T> &v);
+```
+
+### `argsort` 
+
+Devuelve el arreglo de índices que ordenan el arreglo.
+```cpp
+template <class T>
+size_t argsort(const array<T> &v);
+```
+
+### `clip` 
+
+Crea un arreglo donde cada uno de sus elementos está inicializado con el 
+resultado de restringir los valores de un arreglo. A diferencia del método 
+`v.clip()`, esta función no modifica los elementos de `v`.
+```cpp
+template <class T>
+array<T> clip(const array<T> &v, const T &a_min, const T &a_max);
+```
+
+### `cumprod`
+
+Crea un arreglo con los productos acumulados de los elementos de un arreglo.
+```cpp
+template <class T>
+array<T> cumprod(const array<T> &v);
+```
+
+### `cumsum` 
+Crea un arreglo con las sumas acumuladas de los elementos de un  arreglo.
+```cpp
+template <class T>
+array<T> cumprod(const array<T> &v);
+```
+
+### `dot` 
+
+Devuelve el producto punto entre dos arreglos. 
+```cpp
+template <class T>
+T dot(const array<T> &v, const array<T> &w);
+```
+
+### `empty`
+Crea un nuevo arreglo de tamaño `n` sin inicializar.
+```cpp
+template<class T = double> 
+array<T> empty(size_t n);
+```
+
+
+### `full` 
+Crea un nuevo arreglo de tamaño `n` inicializando los valores a `val`.
+```cpp
+template <class T = double> 
+array<T> full(size_t n, const T &val);
+```
+
+### `geomspace` 
+
+Crea un nuevo arreglo con números en una progresión geométrica. 
+Cada valor de la muestra es un múltiplo constante del anterior. Opcionalmente, 
+el extremo derecho del intervalo puede ser excluido.
+```cpp
+template <class T>
+array<T> geomspace(
+    const T &start, const T &stop,
+    size_t num = 50,
+    bool endpoint = true
+)
+```
+
+### `linspace`
+
+Crea un nuevo arreglo con números equi-espaciados sobre un intervalo 
+especificado. Devuelve `num` muestras equi-espaciadas, calculadas sobre el 
+intervalo cerrado `[start, stop]`. Opcionalmente, el extremo derecho del 
+intervalo puede ser excluido.
+```cpp
+template <class T> 
+array<T> linspace(
+    const T &start, const T &stop, 
+    size_t num = 50, 
+    bool endpoint = true
+)
+```
+
+### `load` 
+
+Crea un nuevo arreglo desde un archivo binario. La función arroja una 
+excepción del tipo `runtime_error` si el archivo pasado como argumento no
+existe.
+```cpp
+template <class T>
+array<T> load(const char *file);
+```
+
+### `logspace` 
+
+Crea un nuevo arreglo con números equi-espaciados en una escala logarítmica. 
+En la escala lineal, la secuencia empieza en `pow(base, start)` (`base` 
+elevado a la potencia `start`) y termina en `pow(base, stop)`. 
+Opcionalmente, el extremo derecho del intervalo puede ser excluido. Por 
+defecto, la base es igual a 10.
+```cpp
+template <class T>
+array<T> logspace(
+    const T &start, const T &stop,
+    size_t num = 50,
+    bool endpoint = true,
+    const T &base = 10.0
+)
+```
+
+### `max` 
+
+Devuelve el mayor valor contenido en el arreglo.
+```cpp
+template <class T>
+T max(const array<T> &v);
+```
+
+### `mean` 
+
+Devuelve la media o promedio de los elementos de un arreglo.
+```cpp
+template <class T>
+T mean(const array<T> &v);
+```
+
+### `min` 
+
+Devuelve el menor valor contenido en el arreglo.
+```cpp
+template <class T>
+T min(const array<T> &v);
+```
+
+### `ones` 
+Crea un nuevo arreglo de tamaño `n` inicializando los valores a uno.
+```cpp
+template<class T = double> 
+array<T> ones(size_t n);
+```
+
+### `prod` 
+
+Devuelve el producto de los elementos de un arreglo.
+```cpp
+template <class T>
+T prod(const array<T> &v); 
+```
+
+### `save`
+
+Guarda el contenido de un arreglo en un archivo binario. La función arroja una 
+excepción del tipo `runtime_error` si el archivo pasado como argumento no se 
+pudo abrir.
+```cpp
+template <class T>
+void save(const char *file, const array<T> &v);
+```
+
+### `sort` 
+
+Crea una copia con los elementos ordenados de un arreglo. A diferencia del 
+método `v.sort()`, esta función no modifica los elementos de `v`.
+```cpp
+template <class T>
+array<T> sort(const array<T> &v);
+```
+
+### `stddev` 
+
+Devuelve la desviación estándar de los elementos de un arreglo con `ddof` 
+grados de libertad. Por defecto, `ddof = 0`.
+```cpp
+template <class T>
+T stddev(const array<T> &v, size_t ddof = 0);
+```
+
+### `sum` 
+
+Devuelve la suma de los elementos de un arreglo.
+```cpp
+template <class T>
+T sum(const array<T> &v);
+```
+
+### `swap` 
+
+Intercambia el contenido entre dos arreglos. Esta función está implementada 
+para funcionar en tiempo constante.
+```cpp
+template <class T>
+void swap(array<T> &v, array<T> &w);
+```
+### `var` 
+
+Devuelve la varianza de los elementos de un arreglo con `ddof` grados de 
+libertad. Por defecto, `ddof = 0`.
+```cpp
+template <class T>
+T var(const array<T> &v, size_t ddof = 0);
+```
+
+### `zeros` 
+Crea un nuevo arreglo de tamaño `n` inicializando los valores a cero.
+```cpp
+template<class T = double> 
+array<T> zeros(size_t n);
 ```
