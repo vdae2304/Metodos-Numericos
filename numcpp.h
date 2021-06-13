@@ -233,8 +233,8 @@ namespace numcpp {
             // Copy of the array, cast to a specified type.
             template <class U> array<U> astype() const;
 
-            // Clip (limit) the values in the array. Given an interval, values outside
-            // the interval are clipped to the interval edges.
+            // Clip (limit) the values in the array. Given an interval, values
+            // outside the interval are clipped to the interval edges.
             void clip(const T &a_min, const T &a_max);
 
             // Return the cumulative product of the elements.
@@ -266,6 +266,9 @@ namespace numcpp {
 
             // Return the sum of the array elements.
             T sum() const;
+
+            // Swap contents with v.
+            void swap(array &v);
 
             // Returns the variance of the array elements.
             T var(size_t ddof = 0) const;

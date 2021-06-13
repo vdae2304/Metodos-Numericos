@@ -1905,7 +1905,7 @@ namespace numcpp {
             );
         }
         T out = T(0);
-        for (size_t i = 0; i < *this.size(); ++i) {
+        for (size_t i = 0; i < this->length; ++i) {
             out += this->values[i] * v.values[i];
         }
         return out;
@@ -1959,6 +1959,17 @@ namespace numcpp {
             out += this->values[i];
         }
         return out;
+    }
+
+    // Swap contents with v.
+    template <class T>
+    void array<T>::swap(array<T> &v) {
+        size_t tmp_length = this->length;
+        T *tmp_values = this->values;
+        this->length = v.length;
+        this->values = v.values;
+        v.length = tmp_length;
+        v.values = tmp_values;
     }
 
     // Returns the variance of the array elements.

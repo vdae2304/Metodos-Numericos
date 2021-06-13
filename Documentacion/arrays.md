@@ -7,8 +7,9 @@
 - [Rutinas para la creación de arreglos](#Rutinas-para-la-creación-de-arreglos)
 - [Operadores de asignación](#Operadores-de-asignación)
 - [Sobrecarga de operadores](#Sobrecarga-de-operadores)
-- [Rutinas para la manipulación de arreglos](#Rutinas-para-la-manipulación-de-arreglos)
+- [Indexado básico](#Indexado-básico)
 - [Indexado avanzado](#Indexado-avanzado)
+- [Lista de métodos](#Lista-de-métodos)
 
 <hr>
 
@@ -40,7 +41,6 @@ int main() {
     cout << np::sum(v * w) << "\n";
     return 0;
 }
-
 ```
 
 ```
@@ -430,7 +430,7 @@ template<class T> array<bool> operator>= (const T &val, const array<T> &v);
 template <class T>
 std::ostream& operator<< (std::ostream &ostr, const array<T> &v);
 ```
-## Rutinas para la manipulación de arreglos
+## Indexado básico
 
 ### Métodos básicos
 
@@ -459,7 +459,7 @@ void resize(size_t n, const T &val = T());
 
 Accede al `i`-ésimo elemento del arreglo. Note que el primer elemento tiene 
 la posición 0, no 1. Valores mayores o iguales que el tamaño del arreglo 
-causan un comportamiento indefinido.
+tendrán un comportamiento indefinido.
 ```cpp
 T& operator[] (size_t i);
 const T& operator[] (size_t i) const;
@@ -697,4 +697,250 @@ int main() {
       El subarreglo tiene 5 elementos.
       Los elementos del subarreglo son: [8, -3, 10, 1, -5]
       Los elementos de v son ahora: [0, 0, 7, 5, 0, -1, 0, 3, 0, 14]
+```
+
+## Lista de métodos
+
+### Memoria y tamaño
+
+- **data**: Devuelve un puntero a la memoria del arreglo utilizado 
+internamente.
+```cpp
+T* data();
+const T* data() const;
+```
+
+- **resize**: Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
+que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
+eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
+actual, el contenido es expandido agregando al final tantos elementos sean
+necesarios para alcanzar un tamaño de `n`.
+```cpp
+void resize(size_t n, const T &val = T());
+```
+
+- **size**: Devuelve el número de elementos en el arreglo.
+```cpp
+size_t size() const;
+```
+
+### Conversión de tipo
+
+- **astype**: Crea una copia del arreglo, haciendo la conversión al tipo de 
+dato especificado.
+```cpp
+template <class U> array<U> astype() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., 2.5, 3., -4.1, 0.};
+    np::array<int> w = v.astype<int>();
+    cout << w;
+    return 0;
+}
+```
+
+```
+[Out] [1, 2, 3, -4, 0]
+```
+
+### Ordenamiento
+
+- **argsort**: Devuelve el arreglo de índices que ordenan el arreglo.
+```cpp
+array<size_t> argsort() const;
+```
+
+- **sort**: Ordena los elementos de un arreglo.
+```cpp
+void sort();
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., 2.5, 3., -4.1, 0.};
+    cout << v.argsort() << "\n";
+    v.sort();
+    cout << v << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [3, 4, 0, 1, 2]
+      [-4.1, 0, 1, 2.5, 3]
+```
+
+### Máximos y mínimos
+
+- **argmax**: Devuelve el índice del mayor valor contenido en el arreglo.
+```cpp
+size_t argmax() const;
+```
+
+- **argmin**: Devuelve el índice del menor valor contenido en el arreglo.
+```cpp
+size_t argmin() const;
+```
+
+- **max**: Devuelve el mayor valor contenido en el arreglo.
+```cpp
+T max() const;
+```
+
+- **min**: Devuelve el menor valor contenido en el arreglo.
+```cpp
+T min() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {5., 2.5, 3., -4.1, 0., 1.};
+    cout << "v[" << v.argmax() << "] = " << v.max() << "\n";
+    cout << "v[" << v.argmin() << "] = " << v.min() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] v[0] = 5
+      v[3] = -4.1
+```
+
+### Sumas y productos
+
+- **cumprod**: Crea un arreglo con los productos acumulados de los elementos de
+un arreglo.
+```cpp
+array cumprod() const;
+```
+
+- **cumsum**: Crea un arreglo con las sumas acumuladas de los elementos de un 
+arreglo.
+```cpp
+array cumsum() const;
+```
+
+- **prod**: Devuelve el producto de los elementos de un arreglo.
+```cpp
+T prod() const;
+```
+
+- **sum**: Devuelve la suma de los elementos de un arreglo.
+```cpp
+T sum() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {2, 3, 5, 1, 4};
+    cout << "Suma: " << v.sum() << "\n";
+    cout << "Sumas acumuladas: " << v.cumsum() << "\n";
+    cout << "Producto: " << v.prod() << "\n";
+    cout << "Productos acumulados: " << v.cumprod() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Suma: 15
+      Sumas acumuladas: [2, 5, 10, 11, 15]
+      Producto: 120
+      Productos acumulados: [2, 6, 30, 30, 120]
+```
+
+### Álgebra lineal
+
+- **dot**: Devuelve el producto punto entre dos arreglos. El producto punto se define como 
+![$v^T w = \sum_{i = 1}^{n} v_i w_i$](https://render.githubusercontent.com/render/math?math=v%5ET%20w%20%3D%20%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20v_i%20w_i)
+```cpp
+T dot(const array &v) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1, 5, 2, 0, 1};
+    np::array<double> w = {7, -1, 2, 8, 3};
+    cout << v.dot(w) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 9
+```
+
+### Estadística
+
+- **mean**: Devuelve la media de los elementos de un arreglo. La media se define como 
+![$\bar{x} = \frac{1}{n}\sum_{i = 1}^{n} x_i$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D%20%3D%20%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20x_i)
+```cpp
+T mean() const;
+```
+
+- **stddev**: Devuelve la desviación estándar de los elementos de un arreglo. 
+La desviación estándar se define como la raíz cuadrada de la varianza.
+```cpp
+T stddev(size_t ddof = 0) const;
+```
+
+- **var**: Devuelve la varianza de los elementos de un arreglo. La varianza se 
+define como 
+![$S^2 = \frac{1}{n - ddof}\sum_{i = 1}^{n} (x_i - \bar{x})^2$](https://render.githubusercontent.com/render/math?math=S%5E2%20%3D%20%5Cfrac%7B1%7D%7Bn%20-%20ddof%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20(x_i%20-%20%5Cbar%7Bx%7D)%5E2) 
+donde `ddof` indica los grados de libertad. Por defecto, `ddof = 0`.
+```cpp
+T var(size_t ddof = 0) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1., -3., 2., 0., 5., 2.};
+    cout << "Media: " << v.mean() << "\n";
+    cout << "Varianza: " << v.var() << "\n";
+    cout << "Desviacion estandar: " << v.stddev() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Media: 1.16667
+      Varianza: 5.80556
+      Desviacion estandar: 2.40947
 ```
