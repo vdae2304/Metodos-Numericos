@@ -366,6 +366,33 @@ namespace numcpp {
         return apply(sign, x);
     }
 
+    // Returns the greatest common divisor of the integers m and n.
+    template <class T>
+    T gcd(T m, T n) {
+        if (n == 0) {
+            return m;
+        }
+        else {
+            return gcd(n, m % n);
+        }
+    }
+
+    template <class T>
+    array<T> gcd(const array<T> &m, const array<T> &n) {
+        return apply(gcd, m, n);
+    }
+
+    // Returns the lowest common multiple of the integers m and n.
+    template <class T>
+    T lcm(T m, T n) {
+        return (m * n) / gcd(m, n);
+    }
+
+    template <class T>
+    array<T> lcm(const array<T> &m, const array<T> &n) {
+        return apply(lcm, m, n);
+    }
+
     // Return element-wise maximum.
     template <class T>
     array<T> maximum(const array<T> &x, const array<T> &y) {

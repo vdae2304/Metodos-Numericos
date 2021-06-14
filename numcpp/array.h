@@ -2171,21 +2171,14 @@ namespace numcpp {
 
     template <class T>
     array<T> erase(const array<T> &v, const array<size_t> indices) {
-        for (size_t j = 1; j < indices.size(); ++j) {
-            if (indices[j] < indices[j - 1]) {
-                throw std::runtime_error("indices must be sorted");
-            }
-            else if (indices[j] == indices[j - 1]) {
-                throw std::runtime_error("indices must be distinct");
-            }
+        array<bool> keep(v.size(), true);
+        for (size_t i = 0; i < indices.size(); ++i) {
+            keep[indices[i]] = false;
         }
         array<T> out(v.size() - indices.size());
-        size_t n = 0, j = 0;
+        size_t n = 0;
         for (size_t i = 0; i < v.size(); ++i) {
-            if (j < indices.size() && indices[j] == i) {
-                ++j;
-            }
-            else {
+            if (keep[i]) {
                 out[n++] = v[i];
             }
         }
@@ -2217,21 +2210,17 @@ namespace numcpp {
                 std::to_string(values.size()) + ",)"
             );
         }
-        for (size_t j = 1; j < indices.size(); ++j) {
-            if (indices[j] < indices[j - 1]) {
-                throw std::runtime_error("indices must be sorted");
-            }
-        }
         array<T> out(v.size() + indices.size());
+        array<size_t> sorted = indices.argsort();
         size_t n = 0, j = 0;
         for (size_t i = 0; i < v.size(); ++i) {
-            while (j < indices.size() && indices[j] == i) {
-                out[n++] = values[j++];
+            while (j < indices.size() && indices[sorted[j]] == i) {
+                out[n++] = values[sorted[j++]];
             }
             out[n++] = v[i];
         }
         while (j < indices.size()) {
-            out[n++] = values[j++];
+            out[n++] = values[sorted[j++]];
         }
         return out;
     }
