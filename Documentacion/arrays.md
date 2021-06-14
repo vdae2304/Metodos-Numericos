@@ -484,8 +484,8 @@ un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo,
 `slice(3, 20, 5)` selecciona los elementos en las posiciones 3, 8, 13 y 18.
 Por defecto, el valor de inicio es 0 y el tamaño de paso es 1. Los saltos negativos están permitidos.
 ```cpp
-slice(size_type stop);
-slice(size_type start, size_type stop, size_type step = 1);
+slice(size_t stop);
+slice(size_t start, size_t stop, int step = 1);
 ```
 Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
 tipo  `subarray<T, slice>` representando un subarreglo con los elementos 
