@@ -6,6 +6,7 @@ namespace numcpp {
     using std::cos;
     using std::sin;
     using std::tan;
+    using std::hypot;
     using std::acos;
     using std::asin;
     using std::atan;
@@ -32,7 +33,6 @@ namespace numcpp {
     using std::floor;
     using std::round;
     using std::trunc;
-    using std::fmod;
 
     using std::abs;
     using std::min;
@@ -44,6 +44,10 @@ namespace numcpp {
 
     // This namespace contains several constants.
     namespace constants {
+        const long double inf = HUGE_VALL;
+        const long double infty = inf;
+        const long double infinity = inf;
+
         const long double e = exp(1.0L);
         const long double pi = acos(-1.0L);
     };
@@ -71,6 +75,12 @@ namespace numcpp {
     template <class T>
     array<T> tan(const array<T> &x) {
         return apply(tan, x);
+    }
+
+    // Returns the hypotenuse of a right-angled triangle whose legs are x and y.
+    template <class T>
+    array<T> hypot(const array<T> &x, const array<T> &y) {
+        return apply(hypot, x, y);
     }
 
     // Returns an array containing the principal values of the arc cosine of
@@ -111,6 +121,52 @@ namespace numcpp {
     template <class T>
     array<T> atan2(const T &y, const array<T> &x) {
         return apply(atan2, y, x);
+    }
+
+    // Convert angles from radians to degrees.
+    double degrees(double x) {
+        return 180*x / constants::pi;
+    }
+
+    float degrees(float x) {
+        return 180*x / constants::pi;
+    }
+
+    long double degrees(long double x) {
+        return 180*x / constants::pi;
+    }
+
+    template <class T>
+    double degrees(T x) {
+        return 180*x / constants::pi;
+    }
+
+    template <class T>
+    array<T> degrees(const array<T> &x) {
+        return apply(degrees, x);
+    }
+
+    // Convert angles from degrees to radians.
+    double radians(double x) {
+        return constants::pi*x / 180;
+    }
+
+    float radians(float x) {
+        return constants::pi*x / 180;
+    }
+
+    long double radians(long double x) {
+        return constants::pi*x / 180;
+    }
+
+    template <class T>
+    double radians(T x) {
+        return constants::pi*x / 180;
+    }
+
+    template <class T>
+    array<T> radians(const array<T> &x) {
+        return apply(radians, x);
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -231,28 +287,8 @@ namespace numcpp {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // Arithmetic operations                                                  //
+    // Power functions                                                        //
     ////////////////////////////////////////////////////////////////////////////
-
-    // Returns an array containing the results of the floating-point remainder
-    // on all the elements, in the same order. The results calculated are:
-    //     fmod = numer - tquot * denom
-    // where tquot is the truncated (i.e., rounded towards zero) result of:
-    // numer/denom.
-    template <class T>
-    array<T> fmod(const array<T> &numer, const array<T> &denom) {
-        return apply(fmod, numer, denom);
-    }
-
-    template <class T>
-    array<T> fmod(const array<T> &numer, const T &denom) {
-        return apply(fmod, numer, denom);
-    }
-
-    template <class T>
-    array<T> fmod(const T &numer, const array<T> &denom) {
-        return apply(fmod, numer, denom);
-    }
 
     // Returns an array containing the results of the power operation on all
     // the elements, in the same order. The results calculated are x raised to
@@ -272,15 +308,17 @@ namespace numcpp {
         return apply(pow, x, y);
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Miscellaneous                                                          //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Returns an array containing the absolute values of all the elements of
-    // x, in the same order.
+    // Returns the square of a number.
     template <class T>
-    array<T> abs(const array<T> &x) {
-        return apply(abs, x);
+    T square(T x) {
+        return x*x;
+    }
+
+    // Returns an array containing the squares of all the elements of x, in the
+    // same order.
+    template <class T>
+    array<T> square(const array<T> &x) {
+        return apply(square, x);
     }
 
     // Returns an array containing the square root of all the elements of x, in
@@ -295,6 +333,49 @@ namespace numcpp {
     template <class T>
     array<T> cbrt(const array<T> &x) {
         return apply(cbrt, x);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Miscellaneous                                                          //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Returns an array containing the absolute values of all the elements of
+    // x, in the same order.
+    template <class T>
+    array<T> abs(const array<T> &x) {
+        return apply(abs, x);
+    }
+
+    // The sign function returns -1 if x < 0, 0 if x == 0 and 1 if x > 0.
+    template <class T>
+    T sign(T x) {
+        if (x > 0) {
+            return 1;
+        }
+        else if (x < 0) {
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    // Return an element-wise indication of the sign of a number.
+    template <class T>
+    array<T> sign(const array<T> &x) {
+        return apply(sign, x);
+    }
+
+    // Return element-wise maximum.
+    template <class T>
+    array<T> maximum(const array<T> &x, const array<T> &y) {
+        return apply([](T x, T y) { return max(x, y); }, x, y);
+    }
+
+    // Return element-wise minimum.
+    template <class T>
+    array<T> minimum(const array<T> &x, const array<T> &y) {
+        return apply([](T x, T y) { return min(x, y); }, x, y);
     }
 }
 

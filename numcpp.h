@@ -18,20 +18,19 @@ namespace numcpp {
     // used as an index in valarray::operator[].
     class slice {
         public:
-            typedef long long size_type;
-
-            size_type start, stop, step;
+            size_t start, stop;
+            int step;
 
             slice() {
             }
 
-            slice(size_type stop) {
+            slice(size_t stop) {
                 this->start = 0;
                 this->stop = stop;
                 this->step = 1;
             }
 
-            slice(size_type start, size_type stop, size_type step = 1) {
+            slice(size_t start, size_t stop, int step = 1) {
                 this->start = start;
                 this->stop = stop;
                 this->step = step;
