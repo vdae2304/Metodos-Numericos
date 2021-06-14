@@ -833,6 +833,62 @@ namespace numcpp {
         return !(val < v);
     }
 
+    // Standard output.
+    template <class T>
+    std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
+        ostr << std::boolalpha << std::setprecision(printoptions::precision);
+
+        if (printoptions::sign) {
+            ostr << std::showpos;
+        }
+        else {
+            ostr << std::noshowpos;
+        }
+
+        if (printoptions::floatmode == "default") {
+            ostr << std::defaultfloat;
+        }
+        else if (printoptions::floatmode == "fixed") {
+            ostr << std::fixed;
+        }
+        else if (printoptions::floatmode == "scientific") {
+            ostr << std::scientific;
+        }
+        else {
+            throw std::invalid_argument(
+                "printoptions::floatmode must be one of \"default\", "
+                "\"fixed\" or \"scientific\""
+            );
+        }
+
+        ostr << "[";
+        if (
+            v.size() < printoptions::threshold ||
+            v.size() <= 2*printoptions::edgeitems
+        ) {
+            std::string sep = "";
+            for (size_t i = 0; i < v.size(); ++i) {
+                ostr << sep << v[i];
+                sep = ", ";
+            }
+        }
+        else {
+            std::string sep = "";
+            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
+                ostr << sep << v[i];
+                sep = ", ";
+            }
+            sep = ", ..., ";
+            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
+                ostr << sep << v[v.size() - printoptions::edgeitems + i];
+                sep = ", ";
+            }
+        }
+        ostr << "]";
+
+        return ostr;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // Array indexing                                                         //
     ////////////////////////////////////////////////////////////////////////////
@@ -2069,6 +2125,19 @@ namespace numcpp {
         return clipped;
     }
 
+    // Concatenate (join) two arrays.
+    template <class T>
+    array<T> concatenate(const array<T> &v, const array<T> &w) {
+        array<T> out(v.size() + w.size());
+        for (size_t i = 0; i < v.size(); ++i) {
+            out[i] = v[i];
+        }
+        for (size_t i = 0; i < w.size(); ++i) {
+            out[v.size() + i] = w[i];
+        }
+        return out;
+    }
+
     // Return the cumulative product of the elements.
     template <class T>
     array<T> cumprod(const array<T> &v) {
@@ -2085,6 +2154,86 @@ namespace numcpp {
     template <class T>
     T dot(const array<T> &v, const array<T> &w) {
         return v.dot(w);
+    }
+
+    // Delete values from an array.
+    template <class T>
+    array<T> erase(const array<T> &v, size_t index) {
+        array<T> out(v.size() - 1);
+        for (size_t i = 0; i < index; ++i) {
+            out[i] = v[i];
+        }
+        for (size_t i = index + 1; i < v.size(); ++i) {
+            out[i - 1] = v[i];
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> erase(const array<T> &v, const array<size_t> indices) {
+        for (size_t j = 1; j < indices.size(); ++j) {
+            if (indices[j] < indices[j - 1]) {
+                throw std::runtime_error("indices must be sorted");
+            }
+            else if (indices[j] == indices[j - 1]) {
+                throw std::runtime_error("indices must be distinct");
+            }
+        }
+        array<T> out(v.size() - indices.size());
+        size_t n = 0, j = 0;
+        for (size_t i = 0; i < v.size(); ++i) {
+            if (j < indices.size() && indices[j] == i) {
+                ++j;
+            }
+            else {
+                out[n++] = v[i];
+            }
+        }
+        return out;
+    }
+
+    // Insert values before the given indices.
+    template <class T>
+    array<T> insert(const array<T> &v, size_t index, const T &value) {
+        array<T> out(v.size() + 1);
+        for (size_t i = 0; i < index; ++i) {
+            out[i] = v[i];
+        }
+        out[index] = value;
+        for (size_t i = index + 1; i < out.size(); ++i) {
+            out[i] = v[i - 1];
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> insert(
+        const array<T> &v, const array<size_t> &indices, const array<T> &values
+    ) {
+        if (indices.size() != values.size()) {
+            throw std::runtime_error(
+                "operands could not be broadcast together with shapes  (" +
+                std::to_string(indices.size()) + ",) (" +
+                std::to_string(values.size()) + ",)"
+            );
+        }
+        for (size_t j = 1; j < indices.size(); ++j) {
+            if (indices[j] < indices[j - 1]) {
+                throw std::runtime_error("indices must be sorted");
+            }
+        }
+        array<T> out(v.size() + indices.size());
+        size_t n = 0, j = 0;
+        for (size_t i = 0; i < v.size(); ++i) {
+            while (j < indices.size() && indices[j] == i) {
+                out[n++] = values[j++];
+            }
+            out[n++] = v[i];
+        }
+        while (j < indices.size()) {
+            out[n++] = values[j++];
+        }
+        return out;
     }
 
     // Returns the maximum value contained in the array.
@@ -2141,6 +2290,51 @@ namespace numcpp {
     template <class T>
     T var(const array<T> &v, size_t ddof) {
         return v.var(ddof);
+    }
+
+    // Return the indices of the elements that evaluate to true.
+    array<size_t> where(const array<bool> &condition) {
+        size_t n = 0;
+        for (size_t i = 0; i < condition.size(); ++i) {
+            n += condition[i];
+        }
+        array<size_t> out(n);
+        n = 0;
+        for (size_t i = 0; i < condition.size(); ++i) {
+            if (condition[i]) {
+                out[n++] = i;
+            }
+        }
+        return out;
+    }
+
+    // Return elements chosen from v or w depending on condition.
+    template <class T>
+    array<T> where(const array<bool> &condition, const array<T> &expr_true) {
+        size_t n = 0;
+        for (size_t i = 0; i < condition.size(); ++i) {
+            n += condition[i];
+        }
+        array<T> out(n);
+        n = 0;
+        for (size_t i = 0; i < condition.size(); ++i) {
+            if (condition[i]) {
+                out[n++] = expr_true[i];
+            }
+        }
+        return out;
+    }
+
+    template <class T>
+    array<T> where(
+       const array<bool> &condition,
+       const array<T> &expr_true, const array<T> &expr_false
+    ) {
+        array<T> out(condition.size());
+        for (size_t i = 0; i < condition.size(); ++i) {
+            out[i] = condition[i] ? expr_true[i] : expr_false[i];
+        }
+        return out;
     }
 }
 

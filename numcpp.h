@@ -453,61 +453,6 @@ namespace numcpp {
         std::string floatmode = "default";
     };
 
-    template <class T>
-    std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
-        ostr << std::boolalpha << std::setprecision(printoptions::precision);
-
-        if (printoptions::sign) {
-            ostr << std::showpos;
-        }
-        else {
-            ostr << std::noshowpos;
-        }
-
-        if (printoptions::floatmode == "default") {
-            ostr << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            ostr << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            ostr << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
-        }
-
-        ostr << "[";
-        if (
-            v.size() < printoptions::threshold ||
-            v.size() <= 2*printoptions::edgeitems
-        ) {
-            std::string sep = "";
-            for (size_t i = 0; i < v.size(); ++i) {
-                ostr << sep << v[i];
-                sep = ", ";
-            }
-        }
-        else {
-            std::string sep = "";
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << sep << v[i];
-                sep = ", ";
-            }
-            sep = ", ..., ";
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << sep << v[v.size() - printoptions::edgeitems + i];
-                sep = ", ";
-            }
-        }
-        ostr << "]";
-
-        return ostr;
-    }
-
     // Returns true if all elements evaluate to true.
     bool all(const array<bool> &v);
 
@@ -557,6 +502,10 @@ namespace numcpp {
     template <class T>
     array<T> clip(const array<T> &v, const T &a_min, const T &a_max);
 
+    // Concatenate (join) two arrays.
+    template <class T>
+    array<T> concatenate(const array<T> &v, const array<T> &w);
+
     // Return the cumulative product of the elements.
     template <class T>
     array<T> cumprod(const array<T> &v);
@@ -573,6 +522,13 @@ namespace numcpp {
     template <class T = double>
     array<T> empty(size_t n);
 
+    // Delete values from an array.
+    template <class T>
+    array<T> erase(const array<T> &v, size_t index);
+
+    template <class T>
+    array<T> erase(const array<T> &v, const array<size_t> indices);
+
     // Return a new array of given length filled with value.
     template <class T = double>
     array<T> full(size_t n, const T &val);
@@ -585,6 +541,15 @@ namespace numcpp {
         const T &start, const T &stop,
         size_t num = 50,
         bool endpoint = true
+    );
+
+    // Insert values before the given indices.
+    template <class T>
+    array<T> insert(const array<T> &v, size_t index, const T &value);
+
+    template <class T>
+    array<T> insert(
+        const array<T> &v, const array<size_t> &indices, const array<T> &values
     );
 
     // Return evenly spaced numbers over a specified interval. Returns num
@@ -655,6 +620,19 @@ namespace numcpp {
     // Returns the variance of the array elements.
     template <class T>
     T var(const array<T> &v, size_t ddof = 0);
+
+    // Return the indices of the elements that evaluate to true.
+    array<size_t> where(const array<bool> &condition);
+
+    // Return elements chosen from v or w depending on condition.
+    template <class T>
+    array<T> where(const array<bool> &condition, const array<T> &expr_true);
+
+    template <class T>
+    array<T> where(
+       const array<bool> &condition,
+       const array<T> &expr_true, const array<T> &expr_false
+    );
 
     // Return a new array setting values to zero.
     template <class T = double>
