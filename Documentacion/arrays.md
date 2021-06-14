@@ -1214,7 +1214,7 @@ int main() {
 
 ### `all`
 
-Devuelve `true` si todos los elementos de un arreglo evalúan a `true`.
+Devuelve `true` si todos los elementos de un arreglo evaluan a `true`.
 ```cpp
 bool all(const array<bool> &v);
 ```
@@ -1241,7 +1241,7 @@ int main() {
 
 ### `any`
 
-Devuelve `true` si algún elemento de un arreglo evalúa a `true`.
+Devuelve `true` si algún elemento de un arreglo evalua a `true`.
 ```cpp
 bool any(const array<bool> &v);
 ```
@@ -1369,6 +1369,33 @@ template <class T>
 array<T> clip(const array<T> &v, const T &a_min, const T &a_max);
 ```
 
+### `concatenate`
+
+Concatena (une) dos arreeglos.
+```cpp
+template <class T>
+array<T> concatenate(const array<T> &v, const array<T> &w);
+```
+
+#### Ejemplo 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {1, -9, 5, 10};
+    np::array<int> w = {0, 7, -1};
+    cout << np::concatenate(v, w) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [1, -9, 5, 10, 0, 7, -1]
+```
+
 ### `cumprod`
 
 Crea un arreglo con los productos acumulados de los elementos de un arreglo.
@@ -1399,6 +1426,41 @@ template<class T = double>
 array<T> empty(size_t n);
 ```
 
+### `erase`
+
+Elimina valores de un arreglo. Cuando se elimina más de un valor, la función 
+supone que los índices son todos distintos y se encuentran ordenados de manera 
+creciente.
+```cpp
+template <class T>
+array<T> erase(const array<T> &v, size_t index);
+
+template <class T>
+array<T> erase(const array<T> &v, const array<size_t> indices);
+
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {3., -1., 7., 5., 2., 10., -3., 2., 1., 8.};
+    cout << v << "\n";
+    cout << np::erase(v, 2) << "\n";
+    cout << np::erase(v, {0, 2, 3, 7, 9}) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [3, -1, 7, 5, 2, 10, -3, 2, 1, 8]
+      [3, -1, 5, 2, 10, -3, 2, 1, 8]
+      [-1, 2, 10, -3, 1]
+```
 
 ### `full` 
 Crea un nuevo arreglo de tamaño `n` inicializando los valores a `val`.
@@ -1419,6 +1481,43 @@ array<T> geomspace(
     size_t num = 50,
     bool endpoint = true
 )
+```
+
+### `insert`
+
+Inserta valores antes de los índices indicados. Cuando se inserta más de
+un valor, la función supone que los índices se encuentran ordenados de manera 
+no decreciente.
+```cpp
+template <class T>
+array<T> insert(const array<T> &v, size_t index, const T &value);
+
+template <class T>
+array<T> insert(
+    const array<T> &v, const array<size_t> &indices, const array<T> &values
+);
+```
+
+#### Ejemplo 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {3., -1., 7., 5., 2., 10.};
+    cout << v << "\n";
+    cout << np::insert(v, 1, 8.1) << "\n";
+    cout << np::insert(v, {0, 2, 5, 5, 6}, {0.1, -0.5, 1.2, 3.1, 3.5}) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [3, -1, 7, 5, 2, 10]
+      [3, 8.1, -1, 7, 5, 2, 10]
+      [0.1, 3, -1, -0.5, 7, 5, 2, 1.2, 3.1, 10, 3.5]
 ```
 
 ### `linspace`
@@ -1553,6 +1652,55 @@ libertad. Por defecto, `ddof = 0`.
 ```cpp
 template <class T>
 T var(const array<T> &v, size_t ddof = 0);
+```
+
+### `where`
+
+En su primera versión, devuelve el arreglo de índices de las posiciones en 
+donde `condition` evalua a `true`.
+
+En su segunda versión, devuelve un arreglo escogiendo los elementos de 
+`expr_true` que se encuentran en las posiciones en donde `condition` evalua a
+`true`.
+
+En su tercera versión, devuelve un arreglo escogiendo entre los elementos de 
+`expr_true` que se encuentran en las posiciones en donde `condition` evalua a
+`true` y los elementos de `expr_false` que se encuentran en las posiciones en 
+donde `condition` evalua a `false`.
+
+```cpp
+array<size_t> where(const array<bool> &condition);
+
+template <class T>
+array<T> where(const array<bool> &condition, const array<T> &expr_true);
+
+template <class T>
+array<T> where(
+    const array<bool> &condition,
+    const array<T> &expr_true, const array<T> &expr_false
+);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<int> v = {1, -9, 5, 10, -2, 4, -1, 7, 3, 0};
+    cout << np::where(v > 0) << "\n";
+    cout << np::where(v > 0, v) << "\n";
+    cout << np::where(v > 0, v, -v) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [0, 2, 3, 5, 7, 8]
+      [1, 5, 10, 4, 7, 3]
+      [1, 9, 5, 10, 2, 4, 1, 7, 3, 0]
 ```
 
 ### `zeros` 
