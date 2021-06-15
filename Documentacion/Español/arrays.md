@@ -30,7 +30,6 @@ programa. Los arreglos están representados mediante la clase `array`.
 
 Calcula la suma de los productos elemento a elemento de dos arreglos (producto
 punto).
-
 ```cpp
 #include <iostream>
 #include "numcpp.h"
@@ -211,8 +210,8 @@ array<T> arange(const T &start, const T &stop, const T &step = T(1));
 
 - **linspace**: Crea un nuevo arreglo con números equi-espaciados sobre un 
 intervalo especificado. Devuelve `num` muestras equi-espaciadas, calculadas 
-sobre el intervalo cerrado `[start, stop]`. Opcionalmente, el extremo derecho del 
-intervalo puede ser excluido.
+sobre el intervalo cerrado `[start, stop]`. Opcionalmente, el extremo derecho 
+del intervalo puede ser excluido.
 ```cpp
 template <class T> 
 array<T> linspace(
@@ -427,7 +426,7 @@ template<class T> array<bool> operator>= (const array<T> &v, const T &val);
 template<class T> array<bool> operator>= (const T &val, const array<T> &v);
 ```
 
-### Salida estándar
+### Entrada/Salida
 ```cpp
 template <class T>
 std::ostream& operator<< (std::ostream &ostr, const array<T> &v);
@@ -896,8 +895,7 @@ int main() {
 
 ### `data`
 
-Devuelve un puntero a la memoria del arreglo utilizado 
-internamente.
+Devuelve un puntero a la memoria del arreglo utilizado internamente.
 ```cpp
 T* data();
 const T* data() const;
@@ -1033,11 +1031,11 @@ int main() {
 
 ### `resize`
 
-Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor
-que el tamaño actual, el contenido es reducido a los primeros `n` elementos,
-eliminando aquellos más allá de esa posición. Si `n` es mayor que el tamaño 
-actual, el contenido es expandido agregando al final tantos elementos sean
-necesarios para alcanzar un tamaño de `n`.
+Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor que el tamaño 
+actual, el contenido es reducido a los primeros `n` elementos, eliminando 
+aquellos más allá de esa posición. Si `n` es mayor que el tamaño actual, el 
+contenido es expandido agregando al final tantos elementos seannecesarios para 
+alcanzar un tamaño de `n`.
 ```cpp
 void resize(size_t n, const T &val = T());
 ```
@@ -1102,7 +1100,7 @@ int main() {
 ### `stddev` 
 
 Devuelve la desviación estándar de los elementos de un arreglo. La desviación 
-estándar está definida como `sqrt(pow(x - x.mean(), 2) / (x.size() - ddof))` 
+estándar está definida como `sqrt(square(x - x.mean()) / (x.size() - ddof))` 
 (la raíz cuadrada de la  varianza) donde `ddof` son los grados de libertad. 
 Por defecto, `ddof = 0`.
 ```cpp
@@ -1186,7 +1184,7 @@ int main() {
 ### `var` 
 
 Devuelve la varianza de los elementos de un arreglo. La varianza está definida 
-como `pow(x - x.mean(), 2) / (x.size() - ddof)` donde `ddof` son los grados de 
+como `square(x - x.mean()) / (x.size() - ddof)` donde `ddof` son los grados de 
 libertad. Por defecto, `ddof = 0`.
 ```cpp
 T var(size_t ddof = 0) const;
@@ -1428,16 +1426,13 @@ array<T> empty(size_t n);
 
 ### `erase`
 
-Elimina valores de un arreglo. Cuando se elimina más de un valor, la función 
-supone que los índices son todos distintos y se encuentran ordenados de manera 
-creciente.
+Elimina valores de un arreglo en base a su posición o índice.
 ```cpp
 template <class T>
 array<T> erase(const array<T> &v, size_t index);
 
 template <class T>
 array<T> erase(const array<T> &v, const array<size_t> indices);
-
 ```
 
 #### Ejemplo
@@ -1451,7 +1446,7 @@ int main() {
     np::array<double> v = {3., -1., 7., 5., 2., 10., -3., 2., 1., 8.};
     cout << v << "\n";
     cout << np::erase(v, 2) << "\n";
-    cout << np::erase(v, {0, 2, 3, 7, 9}) << "\n";
+    cout << np::erase(v, {0, 5, 2, 9}) << "\n";
     return 0;
 }
 ```
@@ -1459,7 +1454,7 @@ int main() {
 ```
 [Out] [3, -1, 7, 5, 2, 10, -3, 2, 1, 8]
       [3, -1, 5, 2, 10, -3, 2, 1, 8]
-      [-1, 2, 10, -3, 1]
+      [-1, 5, 2, -3, 2, 1]
 ```
 
 ### `full` 
@@ -1485,9 +1480,7 @@ array<T> geomspace(
 
 ### `insert`
 
-Inserta valores antes de los índices indicados. Cuando se inserta más de
-un valor, la función supone que los índices se encuentran ordenados de manera 
-no decreciente.
+Inserta valores en un arreglo antes de las posiciones o índices indicados.
 ```cpp
 template <class T>
 array<T> insert(const array<T> &v, size_t index, const T &value);
@@ -1509,7 +1502,7 @@ int main() {
     np::array<double> v = {3., -1., 7., 5., 2., 10.};
     cout << v << "\n";
     cout << np::insert(v, 1, 8.1) << "\n";
-    cout << np::insert(v, {0, 2, 5, 5, 6}, {0.1, -0.5, 1.2, 3.1, 3.5}) << "\n";
+    cout << np::insert(v, {0, 5, 2, 6}, {0.1, 1.2, -0.5, 3.5}) << "\n";
     return 0;
 }
 ```
@@ -1517,7 +1510,7 @@ int main() {
 ```
 [Out] [3, -1, 7, 5, 2, 10]
       [3, 8.1, -1, 7, 5, 2, 10]
-      [0.1, 3, -1, -0.5, 7, 5, 2, 1.2, 3.1, 10, 3.5]
+      [0.1, 3, -1, -0.5, 7, 5, 2, 1.2, 10, 3.5]
 ```
 
 ### `linspace`
@@ -1667,7 +1660,6 @@ En su tercera versión, devuelve un arreglo escogiendo entre los elementos de
 `expr_true` que se encuentran en las posiciones en donde `condition` evalua a
 `true` y los elementos de `expr_false` que se encuentran en las posiciones en 
 donde `condition` evalua a `false`.
-
 ```cpp
 array<size_t> where(const array<bool> &condition);
 

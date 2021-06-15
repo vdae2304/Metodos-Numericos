@@ -1,20 +1,20 @@
-# Funciones matemáticas
+# Mathematical functions
 
-## Contenido
+## Content
 
-- [Constantes](#Constantes)
-- [Funciones trigonométricas](#Funciones-trigonométricas)
-- [Funciones hiperbólicas](#Funciones-hiperbólicas)
-- [Exponenciales y logaritmos](#Exponenciales-y-logaritmos)
-- [Funciones potencia](#Funciones-potencia)
-- [Redondeo](#Redondeo)
-- [Misceláneo](#Misceláneo)
+- [Constants](#Constants)
+- [Trigonometric functions](#Trigonometric-functions)
+- [Hyperbolic functions](#Hyperbolic-functions)
+- [Exponential and logarithms](#Exponential-and-logarithms)
+- [Power functions](#Power-functions)
+- [Rounding](#Rounding)
+- [Miscellaneous](#Miscellaneous)
 
-## Constantes
+## Constants
 
 ### `constants::inf`, `constants::infty`, `constants::infinity`
 
-Representación de punto flotante de infinito (positivo).
+Floating point representation of (positive) infinite.
 
 ### `constants::e`
 
@@ -24,11 +24,11 @@ Representación de punto flotante de infinito (positivo).
 
 *pi = 3.14159265359...*
 
-## Funciones trigonométricas
+## Trigonometric functions
 
 ### `cos`
 
-Devuelve el coseno de un ángulo *x* en radianes.
+Returns the cosine of an angle of *x* in radians.
 ```cpp
 double cos(double x);
 float cos(float x);
@@ -43,7 +43,7 @@ array<T> cos(const array<T> &x);
 
 ### `sin`
 
-Devuelve el seno de un ángulo *x* en radianes.
+Returns the sine of an angle of *x* in radians.
 ```cpp
 double sin(double x);
 float sin(float x);
@@ -58,7 +58,7 @@ array<T> sin(const array<T> &x);
 
 ### `tan`
 
-Devuelve la tangente de un ángulo *x* en radianes.
+Returns the tangent of an angle of *x* in radians.
 ```cpp
 double tan(double x);
 float tan(float x);
@@ -73,7 +73,7 @@ array<T> tan(const array<T> &x);
 
 ### `hypot`
 
-Devuelve la hipotenusa de un triángulo rectángulo cuyos catetos son *x* y *y*.
+Returns the hypotenuse of a right-angled triangle whose legs are *x* and *y*.
 ```cpp
 double hypot(double x, double y);
 float hypot(float x, float y);
@@ -88,7 +88,7 @@ array<T> hypot(const array<T> &x, const array<T> &y);
 
 ### `acos`
 
-Devuelve el valor principal del arco coseno de *x*, expresado en radianes.
+Returns the principal value of the arc cosine of *x*, expressed in radians.
 ```cpp
 double acos(double x);
 float acos(float x);
@@ -103,7 +103,7 @@ array<T> acos(const array<T> &x);
 
 ### `asin`
 
-Devuelve el valor principal del arco seno de *x*, expresado en radianes.
+Returns the principal value of the arc sine of *x*, expressed in radians.
 ```cpp
 double asin(double x);
 float asin(float x);
@@ -118,7 +118,7 @@ array<T> asin(const array<T> &x);
 
 ### `atan`
 
-Devuelve el valor principal del arco tangente de *x*, expresado en radianes.
+Returns the principal value of the arc tangent of *x*, expressed in radians.
 ```cpp
 double atan(double x);
 float atan(float x);
@@ -133,9 +133,9 @@ array<T> atan(const array<T> &x);
 
 ### `atan2`
 
-Devuelve el valor principal del arco tangente de *y/x*, expresado en radianes.
-Para calcular el valor, la función toma en cuenta el signo de *x* y *y* para
-determinar el cuadrante.
+Returns the principal value of the arc tangent of *y/x,* expressed in radians.
+To compute the value, the function takes into account the sign of both 
+arguments in order to determine the quadrant.
 ```cpp
 double atan2(double x, double y);
 float atan2(float x, float y);
@@ -156,7 +156,7 @@ array<T> atan2(const T &y, const array<T> &x);
 
 ### `degrees`
 
-Convierte un ángulo de radianes a grados.
+Convert angles from radians to degrees.
 ```cpp
 double degrees(double x);
 float degrees(float x);
@@ -171,7 +171,7 @@ array<T> degrees(const array<T> &x);
 
 ### `radians`
 
-Convierte un ángulo de grados a radianes.
+Convert angles from degrees to radians.
 ```cpp
 double radians(double x);
 float radians(float x);
@@ -184,11 +184,11 @@ template <class T>
 array<T> radians(const array<T> &x);
 ```
 
-## Funciones hiperbólicas
+## Hyperbolic functions
 
 ### `cosh`
 
-Devuelve el coseno hiperbólico de *x*.
+Returns the hyperbolic cosine of *x*.
 ```cpp
 double cosh(double x);
 float cosh(float x);
@@ -203,7 +203,7 @@ array<T> cosh(const array<T> &x);
 
 ### `sinh`
 
-Devuelve el seno hiperbólico de *x*.
+Returns the hyperbolic sine of *x*.
 ```cpp
 double sinh(double x);
 float sinh(float x);
@@ -218,7 +218,7 @@ array<T> sinh(const array<T> &x);
 
 ### `tanh`
 
-Devuelve la tangente hiperbólica de *x*.
+Returns the hyperbolic tangent of *x*.
 ```cpp
 double tanh(double x);
 float tanh(float x);
@@ -233,7 +233,7 @@ array<T> tanh(const array<T> &x);
 
 ### `acosh`
 
-Devuelve el área del coseno hiperbólico de *x*.
+Returns the area hyperbolic cosine of *x*.
 ```cpp
 double acosh(double x);
 float acosh(float x);
@@ -248,7 +248,7 @@ array<T> acosh(const array<T> &x);
 
 ### `asinh`
 
-Devuelve el área del seno hiperbólico de *x*.
+Returns the area hyperbolic sine of *x*.
 ```cpp
 double asinh(double x);
 float asinh(float x);
@@ -263,7 +263,7 @@ array<T> asinh(const array<T> &x);
 
 ### `atanh`
 
-Devuelve el área de la tangente hiperbólica de *x*.
+Returns the area hyperbolic tangent of *x*.
 ```cpp
 double atanh(double x);
 float atanh(float x);
@@ -276,11 +276,12 @@ template <class T>
 array<T> atanh(const array<T> &x);
 ```
 
-## Exponenciales y logaritmos
+## Exponential and logarithms
 
 ### `exp`
 
-Devuelve la función exponencial de base *e* de *x*, es decir, *e* elevado a la potencia *x*.
+Returns the base-*e* exponential function of *x*, which is *e* raised to the 
+power *x*.
 ```cpp
 double exp(double x);
 float exp(float x);
@@ -295,7 +296,8 @@ array<T> exp(const array<T> &x);
 
 ### `exp2`
 
-Devuelve la función exponencial de base 2 de *x*, es decir, 2 elevado a la potencia *x*.
+Returns the base-2 exponential function of *x*, which is 2 raised to the power 
+*x*.
 ```cpp
 double exp2(double x);
 float exp2(float x);
@@ -310,7 +312,7 @@ array<T> exp2(const array<T> &x);
 
 ### `log`
 
-Devuelve el logaritmo natural (base *e*) de *x*.
+Returns the natural (base *e*) logarithm of *x*.
 ```cpp
 double log(double x);
 float log(float x);
@@ -325,7 +327,7 @@ array<T> log(const array<T> &x);
 
 ### `log2`
 
-Devuelve el logaritmo binario (base 2) de *x*.
+Returns the binary (base-2) logarithm of *x*.
 ```cpp
 double log2(double x);
 float log2(float x);
@@ -340,7 +342,7 @@ array<T> log2(const array<T> &x);
 
 ### `log10`
 
-Devuelve el logaritmo común (base 10) de *x*.
+Returns the common (base-10) logarithm of *x*.
 ```cpp
 double log10(double x);
 float log10(float x);
@@ -353,11 +355,11 @@ template <class T>
 array<T> log10(const array<T> &x);
 ```
 
-## Funciones potencia
+## Power functions
 
 ### `pow`
 
-Devuelve *x* elevado a la potencia *y*.
+Returns *x* raised to the power *y*.
 ```cpp
 double pow(double x, double y);
 float pow(float x, float y);
@@ -378,7 +380,7 @@ array<T> pow(const T &x, const array<T> &y);
 
 ### `square`
 
-Devuelve *x* elevado al cuadrado.
+Returns the square of *x*.
 ```cpp
 template <class T>
 T square(T x);
@@ -389,7 +391,7 @@ array<T> square(const array<T> &x);
 
 ### `sqrt`
 
-Devuelve la raíz cuadrada de *x*.
+Returns the square root of *x*.
 ```cpp
 double sqrt(double x);
 float sqrt(float x);
@@ -404,7 +406,7 @@ array<T> sqrt(const array<T> &x);
 
 ### `cbrt`
 
-Devuelve la raíz cúbica de *x*.
+Returns the cubic root of *x*.
 ```cpp
 double cbrt(double x);
 float cbrt(float x);
@@ -417,11 +419,12 @@ template <class T>
 array<T> sqrt(const array<T> &x);
 ```
 
-## Redondeo
+## Rounding
 
 ### `ceil`
 
-Redondea *x* hacia arriba, devolviendo el menor entero que no es menor que *x*.
+Rounds *x* upward, returning the smallest integral value that is not less than 
+*x*.
 ```cpp
 double ceil(double x);
 float ceil(float x);
@@ -436,7 +439,8 @@ array<T> ceil(const array<T> &x);
 
 ### `floor`
 
-Redondea *x* hacia abajo, devolviendo el mayor entero que no es mayor que *x*.
+Rounds *x* downward, returning the largest integral value that is not greater 
+than *x*.
 ```cpp
 double floor(double x);
 float floor(float x);
@@ -451,7 +455,7 @@ array<T> floor(const array<T> &x);
 
 ### `round`
 
-Devuelve el entero más cercano a *x*. 
+Returns the integral value that is nearest to *x*.
 ```cpp
 double round(double x);
 float round(float x);
@@ -466,8 +470,8 @@ array<T> round(const array<T> &x);
 
 ### `trunc`
 
-Redondea *x* hacia cero, devolviendo el entero más cercano que no es más grande 
-en magnitud que *x*.
+Rounds *x* toward zero, returning the nearest integral value that is not larger 
+in magnitude than *x*.
 ```cpp
 double trunc(double x);
 float trunc(float x);
@@ -480,11 +484,11 @@ template <class T>
 array<T> trunc(const array<T> &x);
 ```
 
-## Misceláneo
+## Miscellaneous
 
 ### `abs`
 
-Devuelve el valor absoluto de *x*: *|x|*.
+Returns the absolute value of *x*: *|x|*.
 ```cpp
 double abs(double x);
 float abs(float x);
@@ -499,8 +503,8 @@ array<T> abs(const array<T> &x);
 
 ### `sign`
 
-La función signo devuelve -1 si *x* es menor que cero, 1 si *x* es mayor que 
-cero y *0* si *x* es igual a cero.
+The sign function returns -1 if *x* is less than zero, 1 if *x* is greater than
+zero and 0 if *x* is equal to zero.
 ```cpp
 template <class T>
 T sign(T x);
@@ -509,11 +513,31 @@ template <class T>
 array<T> sign(const array<T> &x);
 ``` 
 
+### `gcd`
+
+Returns the greatest common divisor of the integers *m* and *n*.
+```cpp
+template <class T>
+T gcd(T m, T n);
+
+template <class T>
+array<T> gcd(const array<T> &m, const array<T> &n);
+```
+
+### `lcm`
+
+Returns the least common multiple of the integers *m* and *n*.
+```cpp
+template <class T>
+T lcm(T m, T n);
+
+template <class T>
+array<T> lcm(const array<T> &m, const array<T> &n);
+```
+
 ### `maximum`
 
-Devuelve un arreglo donde cada uno de sus elementos es inicializado con el 
-máximo entre el elemento correspondiente de `x` y el elemento correspondiente 
-de `y`.
+Returns the element-wise maximum of two arrays.
 ```cpp
 template <class T>
 array<T> maximum(const array<T> &x, const array<T> &y);
@@ -521,9 +545,7 @@ array<T> maximum(const array<T> &x, const array<T> &y);
 
 ### `minimum`
 
-Devuelve un arreglo donde cada uno de sus elementos es inicializado con el 
-mínimo entre el elemento correspondiente de `x` y el elemento correspondiente 
-de `y`.
+Returns the element-wise minimum of two arrays.
 ```cpp
 template <class T>
 array<T> minimum(const array<T> &x, const array<T> &y);
