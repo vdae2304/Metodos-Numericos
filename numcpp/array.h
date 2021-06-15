@@ -50,7 +50,8 @@ namespace numcpp {
         }
     }
 
-    // Copy constructor. Constructs an array with the contents of v.
+    // Copy constructor. Constructs an array with a copy of each of the
+    // elements in v, in the same order.
     template <class T>
     array<T>::array(const array<T> &v) {
         this->length = v.length;

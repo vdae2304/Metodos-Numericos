@@ -15,7 +15,7 @@ namespace numcpp {
 
     // This class represents an array slice selector. It does not contain nor
     // refers to any element - it only describes a selection of elements to be
-    // used as an index in valarray::operator[].
+    // used as an index in array::operator[].
     class slice {
         public:
             size_t start, stop;
@@ -73,7 +73,8 @@ namespace numcpp {
             template <class InputIterator>
             array(InputIterator first, InputIterator last);
 
-            // Copy constructor. Constructs an array with the contents of v.
+            // Copy constructor. Constructs an array with a copy of each of the
+            // elements in v, in the same order.
             array(const array &v);
 
             // Move constructor. Constructs an array that acquires the elements
