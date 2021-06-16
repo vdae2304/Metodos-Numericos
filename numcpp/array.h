@@ -76,10 +76,9 @@ namespace numcpp {
     array<T>::array(std::initializer_list<T> il) {
         this->length = il.size();
         this->values = new T[this->length];
-        const T* it = il.begin();
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = *it;
-            ++it;
+        size_t n = 0;
+        for (const T &val : il) {
+            this->values[n++] = val;
         }
     }
 
@@ -132,9 +131,9 @@ namespace numcpp {
             return out;
         }
         else {
-            throw std::runtime_error(
-                std::string("No such file or directory: ") + file
-            );
+            std::ostringstream error;
+            error << "No such file or directory: " << file;
+            throw std::runtime_error(error.str());
         }
     }
 
@@ -145,11 +144,13 @@ namespace numcpp {
         if (pfile != NULL) {
             size_t n = v.size();
             fwrite(&n, sizeof(size_t), 1, pfile);
-            fwrite(v.data(), sizeof(T), v.size(), pfile);
+            fwrite(v.data(), sizeof(T), n, pfile);
             fclose(pfile);
         }
         else {
-            throw std::runtime_error(std::string("Can not modify ") + file);
+            std::ostringstream error;
+            error << "Can not modify: " << file;
+            throw std::runtime_error(error.str());
         }
     }
 
@@ -272,11 +273,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator+= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes  (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] += v.values[i];
@@ -287,11 +287,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator-= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] -= v.values[i];
@@ -302,11 +301,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator*= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] *= v.values[i];
@@ -317,11 +315,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator/= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] /= v.values[i];
@@ -332,11 +329,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator%= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] %= v.values[i];
@@ -347,11 +343,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator&= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] &= v.values[i];
@@ -362,11 +357,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator|= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes  (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] |= v.values[i];
@@ -377,11 +371,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator^= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] ^= v.values[i];
@@ -392,11 +385,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator<<= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] <<= v.values[i];
@@ -407,11 +399,10 @@ namespace numcpp {
     template <class T>
     array<T>& array<T>::operator>>= (const array<T> &v) {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] >>= v.values[i];
@@ -721,11 +712,10 @@ namespace numcpp {
     template<class T>
     array<bool> operator== (const array<T> &v, const array<T> &w) {
         if (v.size() != w.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(v.size()) + ",) (" + std::to_string(w.size()) +
-                 ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << v.size() << ",) (" << w.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         array<bool> out(v.size());
         for (size_t i = 0; i < out.size(); ++i) {
@@ -764,11 +754,10 @@ namespace numcpp {
     template<class T>
     array<bool> operator< (const array<T> &v, const array<T> &w) {
         if (v.size() != w.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(v.size()) + ",) (" + std::to_string(w.size()) +
-                 ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << v.size() << ",) (" << w.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         array<bool> out(v.size());
         for (size_t i = 0; i < out.size(); ++i) {
@@ -821,7 +810,7 @@ namespace numcpp {
 
     template<class T>
     array<bool> operator>= (const array<T> &v, const array<T> &w) {
-        return !(w < v);
+        return !(v < w);
     }
 
     template<class T>
@@ -837,6 +826,7 @@ namespace numcpp {
     // Standard output.
     template <class T>
     std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
+        std::ios_base::fmtflags default_flags(ostr.flags());
         ostr << std::boolalpha << std::setprecision(printoptions::precision);
 
         if (printoptions::sign) {
@@ -887,6 +877,7 @@ namespace numcpp {
         }
         ostr << "]";
 
+        ostr.setf(default_flags);
         return ostr;
     }
 
@@ -932,10 +923,10 @@ namespace numcpp {
     void subarray<T, slice>::operator= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] = v[i];
@@ -955,10 +946,10 @@ namespace numcpp {
     void subarray<T, slice>::operator+= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] += v[i];
@@ -969,10 +960,10 @@ namespace numcpp {
     void subarray<T, slice>::operator-= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] -= v[i];
@@ -983,10 +974,10 @@ namespace numcpp {
     void subarray<T, slice>::operator*= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] *= v[i];
@@ -997,10 +988,10 @@ namespace numcpp {
     void subarray<T, slice>::operator/= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] /= v[i];
@@ -1011,10 +1002,10 @@ namespace numcpp {
     void subarray<T, slice>::operator%= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] %= v[i];
@@ -1025,10 +1016,10 @@ namespace numcpp {
     void subarray<T, slice>::operator&= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] &= v[i];
@@ -1039,10 +1030,10 @@ namespace numcpp {
     void subarray<T, slice>::operator|= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] |= v[i];
@@ -1053,10 +1044,10 @@ namespace numcpp {
     void subarray<T, slice>::operator^= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] ^= v[i];
@@ -1067,10 +1058,10 @@ namespace numcpp {
     void subarray<T, slice>::operator<<= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] <<= v[i];
@@ -1081,10 +1072,10 @@ namespace numcpp {
     void subarray<T, slice>::operator>>= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->slc.start + i*this->slc.step] >>= v[i];
@@ -1216,10 +1207,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] = v[i];
@@ -1239,10 +1230,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator+= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] += v[i];
@@ -1253,10 +1244,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator-= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] -= v[i];
@@ -1267,10 +1258,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator*= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] *= v[i];
@@ -1281,10 +1272,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator/= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] /= v[i];
@@ -1295,10 +1286,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator%= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] %= v[i];
@@ -1309,10 +1300,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator&= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] &= v[i];
@@ -1323,10 +1314,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator|= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] |= v[i];
@@ -1337,10 +1328,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator^= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] ^= v[i];
@@ -1351,10 +1342,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator<<= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] <<= v[i];
@@ -1365,10 +1356,10 @@ namespace numcpp {
     void subarray<T, size_t>::operator>>= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         for (size_t i = 0; i < n; ++i) {
             this->values[this->indices[i]] >>= v[i];
@@ -1500,10 +1491,10 @@ namespace numcpp {
     void subarray<T, bool>::operator= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1527,10 +1518,10 @@ namespace numcpp {
     void subarray<T, bool>::operator+= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1544,10 +1535,10 @@ namespace numcpp {
     void subarray<T, bool>::operator-= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1561,10 +1552,10 @@ namespace numcpp {
     void subarray<T, bool>::operator*= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1578,10 +1569,10 @@ namespace numcpp {
     void subarray<T, bool>::operator/= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1595,10 +1586,10 @@ namespace numcpp {
     void subarray<T, bool>::operator%= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1612,10 +1603,10 @@ namespace numcpp {
     void subarray<T, bool>::operator&= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1629,10 +1620,10 @@ namespace numcpp {
     void subarray<T, bool>::operator|= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1646,10 +1637,10 @@ namespace numcpp {
     void subarray<T, bool>::operator^= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1663,10 +1654,10 @@ namespace numcpp {
     void subarray<T, bool>::operator<<= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1680,10 +1671,10 @@ namespace numcpp {
     void subarray<T, bool>::operator>>= (const array<T> &v) {
         size_t n = this->size();
         if (n != v.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(n) + ",) (" + std::to_string(v.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         n = 0;
         for (size_t i = 0; i < this->mask.size(); ++i) {
@@ -1923,11 +1914,10 @@ namespace numcpp {
     template <class T>
     T array<T>::dot(const array<T> &v) const {
         if (this->length != v.length) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes (" +
-                std::to_string(this->length) + ",) (" +
-                std::to_string(v.length) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << this->length << ",) (" << v.length << ",)";
+            throw std::runtime_error(error.str());
         }
         T out = T(0);
         for (size_t i = 0; i < this->length; ++i) {
@@ -2073,11 +2063,10 @@ namespace numcpp {
     template <class T, class Function>
     array<T> apply(Function f, const array<T> &v, const array<T> &w) {
         if (v.size() != w.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes  (" +
-                std::to_string(v.size()) + ",) (" + std::to_string(w.size()) +
-                ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << v.size() << ",) (" << w.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         array<T> out(v.size());
         for (size_t i = 0; i < v.size(); ++i) {
@@ -2205,11 +2194,10 @@ namespace numcpp {
         const array<T> &v, const array<size_t> &indices, const array<T> &values
     ) {
         if (indices.size() != values.size()) {
-            throw std::runtime_error(
-                "operands could not be broadcast together with shapes  (" +
-                std::to_string(indices.size()) + ",) (" +
-                std::to_string(values.size()) + ",)"
-            );
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << indices.size() << ",) (" << values.size() << ",)";
+            throw std::runtime_error(error.str());
         }
         array<T> out(v.size() + indices.size());
         array<size_t> sorted = indices.argsort();

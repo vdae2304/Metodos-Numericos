@@ -3,13 +3,16 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
+#include <cstdio>
+#include <fstream>
 #include <initializer_list>
 #include <iomanip>
 #include <ios>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace numcpp {
 
@@ -426,6 +429,128 @@ namespace numcpp {
             size_t size() const;
     };
 
+    // Matrices are fixed-size two dimensional sequence containers: they hold a
+    // specific number of elements arranged in rows and columns.
+    template <class T>
+    class matrix {
+        protected:
+            size_t nrows, ncols;
+            T *values;
+
+        public:
+            typedef size_t size_type;
+            typedef T value_type;
+
+            // Default constructor. Constructs an empty matrix with no elements.
+            matrix();
+
+            // Size constructor. Constructs a matrix with m rows and n columns.
+            matrix(size_t m, size_t n);
+
+            // Fill constructor. Constructs a matrix with m rows and n columns,
+            // each element initialized to val.
+            matrix(size_t m, size_t n, const T &val);
+
+            // Container constructor. Constructs a matrix with m rows and n
+            // columns, each element initialized to its corresponding element
+            // in the container, in the same order.
+            template <class InputIterator>
+            matrix(size_t m, size_t n, InputIterator first);
+
+            // Copy constructor. Constructs a matrix with a copy of each of the
+            // elements in A, in the same order.
+            matrix(const matrix &A);
+
+            // Move constructor. Constructs a matrix that acquires the elements
+            // of A.
+            matrix(matrix &&A);
+
+            // Initializer list of lists. Constructs a matrix with a copy of
+            // each of the elements in ill, in the same order.
+            matrix(std::initializer_list< std::initializer_list<T> > ill);
+
+            // Destructor. Destroys the matrix.
+            ~matrix();
+
+            // Copy assignment. Assigns the contents of A to *this after
+            // resizing the object (if necessary).
+            matrix& operator= (const matrix &A);
+
+            // Move assignment. Acquires the contents of A.
+            matrix& operator= (matrix &&A);
+
+            // Fill assignment. Assigns val to every element.
+            matrix& operator= (const T &val);
+
+            // Compound assignments.
+            matrix& operator+= (const matrix &A);
+
+            matrix& operator-= (const matrix &A);
+
+            matrix& operator*= (const matrix &A);
+
+            matrix& operator/= (const matrix &A);
+
+            matrix& operator%= (const matrix &A);
+
+            matrix& operator&= (const matrix &A);
+
+            matrix& operator|= (const matrix &A);
+
+            matrix& operator^= (const matrix &A);
+
+            matrix& operator<<= (const matrix &A);
+
+            matrix& operator>>= (const matrix &A);
+
+            matrix& operator+= (const T &val);
+
+            matrix& operator-= (const T &val);
+
+            matrix& operator*= (const T &val);
+
+            matrix& operator/= (const T &val);
+
+            matrix& operator%= (const T &val);
+
+            matrix& operator&= (const T &val);
+
+            matrix& operator|= (const T &val);
+
+            matrix& operator^= (const T &val);
+
+            matrix& operator<<= (const T &val);
+
+            matrix& operator>>= (const T &val);
+
+            // Array subscript. Returns a pointer to the beginning of the i-th
+            // row.
+            T* operator[] (size_t i);
+
+            const T* operator[] (size_t i) const;
+
+            // Returns a reference to the element at row index.first and column
+            // index.second in the matrix.
+            T& operator[] (std::pair<size_t, size_t> index);
+
+            const T& operator[] (std::pair<size_t, size_t> index) const;
+
+            // Returns the number of columns in the matrix.
+            size_t columns() const;
+
+            // Returns a pointer to the memory array used internally by the
+            // matrix.
+            T* data();
+
+            const T* data() const;
+
+            // Returns the number of rows in the matrix.
+            size_t rows() const;
+
+            // Returns the number of rows and columns.
+            std::pair<size_t, size_t> shape() const;
+    };
+
     // Context manager for setting print options.
     namespace printoptions {
         // Number of digits of precision for floating point output (default 8).
@@ -522,6 +647,10 @@ namespace numcpp {
     template <class T = double>
     array<T> empty(size_t n);
 
+    // Return a new uninitialized matrix.
+    template <class T = double>
+    matrix<T> empty(size_t m, size_t n);
+
     // Delete values from an array.
     template <class T>
     array<T> erase(const array<T> &v, size_t index);
@@ -532,6 +661,10 @@ namespace numcpp {
     // Return a new array of given length filled with value.
     template <class T = double>
     array<T> full(size_t n, const T &val);
+
+    // Return a new matrix of given shape filled with value.
+    template <class T = double>
+    matrix<T> full(size_t m, size_t n, const T &val);
 
     // Return numbers spaced evenly on a log scale (a geometric progression).
     // This is similar to logspace, but with endpoints specified directly. Each
@@ -566,6 +699,26 @@ namespace numcpp {
     template <class T>
     array<T> load(const char *file);
 
+    // Return a new matrix from a binary file.
+    template <class T>
+    matrix<T> load_matrix(const char *file);
+
+    // Return a new matrix from a text file.
+    template <class T>
+    matrix<T> load_txt(
+        const char *file,
+        char delimiter = ' ',
+        bool header = false
+    );
+
+    template <class T>
+    matrix<T> load_txt(
+        const char *file,
+        char delimiter,
+        bool header,
+        array<std::string> &names
+    );
+
     // Return numbers spaced evenly on a log scale. In linear space, the
     // sequence starts at pow(base, start) (base to the power of start) and
     // ends with pow(base, stop).
@@ -593,6 +746,10 @@ namespace numcpp {
     template <class T = double>
     array<T> ones(size_t n);
 
+    // Return a new matrix setting values to one.
+    template <class T = double>
+    matrix<T> ones(size_t m, size_t n);
+
     // Return the product of the array elements.
     template <class T>
     T prod(const array<T> &v);
@@ -600,6 +757,22 @@ namespace numcpp {
     // Save an array to a binary file.
     template <class T>
     void save(const char *file, const array<T> &v);
+
+    // Save a matrix to a binary file.
+    template <class T>
+    void save_matrix(const char *file, const matrix<T> &A);
+
+    // Save a matrix to a text file.
+    template <class T>
+    void save_txt(const char *file, const matrix<T> &A, char delimiter = ' ');
+
+    template <class T>
+    void save_txt(
+        const char *file,
+        const matrix<T> &A,
+        char delimiter,
+        const array<std::string> &names
+    );
 
     // Return a sorted copy of an array.
     template <class T>
@@ -637,9 +810,14 @@ namespace numcpp {
     // Return a new array setting values to zero.
     template <class T = double>
     array<T> zeros(size_t n);
+
+    // Return a new matrix setting values to zero.
+    template <class T = double>
+    matrix<T> zeros(size_t m, size_t n);
 }
 
 #include "numcpp/array.h"
+#include "numcpp/matrix.h"
 #include "numcpp/math.h"
 
 #endif // NUMCPP_H_INCLUDED
