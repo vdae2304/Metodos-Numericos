@@ -1147,27 +1147,541 @@ namespace numcpp {
         return this->values + (i * this->ncols);
     }
 
-    // Returns a reference to the element at row index.first and column
-    // index.second in the matrix.
+    // Returns a reference to the element at row i and column j in the
+    // the matrix.
     template <class T>
-    T& matrix<T>::operator[] (std::pair<size_t, size_t> index) {
-        size_t i = index.first, j = index.second;
+    T& matrix<T>::at(size_t i, size_t j) {
         return this->values[i * this->ncols + j];
     }
 
     template <class T>
-    const T& matrix<T>::operator[] (std::pair<size_t, size_t> index) const {
-        size_t i = index.first, j = index.second;
+    const T& matrix<T>::at(size_t i, size_t j) const {
         return this->values[i * this->ncols + j];
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // Slice indexing                                                         //
+    // Sub-matrix indexing                                                    //
     ////////////////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Integer array indexing                                                 //
-    ////////////////////////////////////////////////////////////////////////////
+    // Slice-slice indexing: Return a sub-matrix object that selects the
+    // elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(slice i, slice j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(slice i, slice j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    // Slice-integer array indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(slice i, const array<size_t> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = j;
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(slice i, const array<size_t> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = j;
+        return view;
+    }
+
+    // Slice-boolean array indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(slice i, const array<bool> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(slice i, const array<bool> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    // Integer array-slice indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<size_t> &i, slice j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(const array<size_t> &i, slice j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    // Integer array-integer array indexing: Return a sub-matrix object that
+    // selects the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<size_t> &i, const array<size_t> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = j;
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T>
+    matrix<T>::at(const array<size_t> &i, const array<size_t> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = j;
+        return view;
+    }
+
+    // Integer array-boolean array indexing: Return a sub-matrix object that
+    // selects the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<size_t> &i, const array<bool> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = where(j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T>
+    matrix<T>::at(const array<size_t> &i, const array<bool> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = where(j);
+        return view;
+    }
+
+    // Boolean array-slice indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<bool> &i, slice j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(const array<bool> &i, slice j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    // Boolean array-integer array indexing: Return a sub-matrix object that
+    // selects the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<bool> &i, const array<size_t> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = j;
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T>
+    matrix<T>::at(const array<bool> &i, const array<size_t> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = j;
+        return view;
+    }
+
+    // Boolean array-boolean array indexing: Return a sub-matrix object that
+    // selects the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<bool> &i, const array<bool> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T>
+    matrix<T>::at(const array<bool> &i, const array<bool> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    // Assignment operators.
+    template <class T>
+    void submatrix<T>::operator= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) = A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) = val;
+            }
+        }
+    }
+
+    // Compound assignment.
+    template <class T>
+    void submatrix<T>::operator+= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) += A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator-= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) -= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator*= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) *= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator/= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) /= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator%= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) %= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator&= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) &= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator|= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) |= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator^= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) ^= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator<<= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) <<= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator>>= (const matrix<T> &A) {
+        size_t m = this->rows(), n = this->columns();
+        if (m != A.rows() || n != A.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << m << "," << n << ") ("
+                  << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) >>= A[i][j];
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator+= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) += val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator-= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) -= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator*= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) *= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator/= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) /= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator%= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) %= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator&= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) &= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator|= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) |= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator^= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) ^= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator<<= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) <<= val;
+            }
+        }
+    }
+
+    template <class T>
+    void submatrix<T>::operator>>= (const T &val) {
+        size_t m = this->rows(), n = this->columns();
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                this->at(i, j) >>= val;
+            }
+        }
+    }
+
+    // Matrix subscript. Returns a reference to the element at row i and column
+    // j in the the sub-matrix.
+    template <class T>
+    T& submatrix<T>::at(size_t i, size_t j) {
+        return (*this->parent)[this->row_indices[i]][this->col_indices[j]];
+    }
+
+    template <class T>
+    const T& submatrix<T>::at(size_t i, size_t j) const {
+        return (*this->parent)[this->row_indices[i]][this->col_indices[j]];
+    }
+
+    // Returns the number of columns selected by the sub-matrix.
+    template <class T>
+    size_t submatrix<T>::columns() const {
+        return this->col_indices.size();
+    }
+
+    // Return a copy of the elements selected by the sub-matrix.
+    template <class T>
+    matrix<T> submatrix<T>::copy() const {
+        size_t m = this->rows(), n = this->columns();
+        matrix<T> out(m, n);
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                out[i][j] = this->at(i, j);
+            }
+        }
+        return out;
+    }
+
+    // Returns the number of rows selected by the sub-matrix.
+    template <class T>
+    size_t submatrix<T>::rows() const {
+        return this->row_indices.size();
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     // Methods                                                                //
@@ -1194,12 +1708,6 @@ namespace numcpp {
     template <class T>
     size_t matrix<T>::rows() const {
         return this->nrows;
-    }
-
-    // Returns the number of rows and columns.
-    template <class T>
-    std::pair<size_t, size_t> matrix<T>::shape() const {
-        return std::make_pair(this->nrows, this->ncols);
     }
 
     ////////////////////////////////////////////////////////////////////////////

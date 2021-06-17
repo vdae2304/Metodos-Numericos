@@ -11,7 +11,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace numcpp {
@@ -21,8 +20,7 @@ namespace numcpp {
     // used as an index in array::operator[].
     class slice {
         public:
-            size_t start, stop;
-            int step;
+            size_t start, stop, step;
 
             slice() {
             }
@@ -33,20 +31,14 @@ namespace numcpp {
                 this->step = 1;
             }
 
-            slice(size_t start, size_t stop, int step = 1) {
+            slice(size_t start, size_t stop, size_t step = 1) {
                 this->start = start;
                 this->stop = stop;
                 this->step = step;
             }
     };
 
-    // This class is used as an intermediate type returned by array's subscript
-    // operator (operator[]). It references the elements in the array object
-    // that are selected by the subscript, and overloads the assignment and
-    // compound assignment operators, allowing direct access to the elements in
-    // the selection. The type is convertible to an array, producing a new
-    // object with copies of the referred elements.
-    template <class T, class subscript> class subarray;
+    template <class T> class subarray;
 
     // Arrays are fixed-size sequence containers: they hold a specific number
     // of elements ordered in a strict linear sequence.
@@ -150,22 +142,21 @@ namespace numcpp {
 
             // Slice indexing: Return a sub-array object that selects the
             // elements specified by its argument.
-            subarray<T, slice> operator[] (const slice &slc);
+            subarray<T> operator[] (slice slc);
 
-            const subarray<T, slice> operator[] (const slice &slc) const;
+            const subarray<T> operator[] (slice slc) const;
 
             // Integer array indexing: Return a sub-array object that selects
             // the elements specified by its argument.
-            subarray<T, size_t> operator[] (const array<size_t> &indices);
+            subarray<T> operator[] (const array<size_t> &indices);
 
-            const subarray<T, size_t>
-            operator[] (const array<size_t> &indices) const;
+            const subarray<T> operator[] (const array<size_t> &indices) const;
 
             // Boolean array indexing: Return a sub-array object that selects
             // the elements specified by its argument.
-            subarray<T, bool> operator[] (const array<bool> &mask);
+            subarray<T> operator[] (const array<bool> &mask);
 
-            const subarray<T, bool> operator[] (const array<bool> &mask) const;
+            const subarray<T> operator[] (const array<bool> &mask) const;
 
             // Apply a function to each of the elements in *this.
             template <class Function = T(T)>
@@ -242,73 +233,15 @@ namespace numcpp {
     };
 
     // This class is used as an intermediate type returned by array's subscript
-    // operator (operator[]) when used with slices.
+    // operator (operator[]). It references the elements in the array object
+    // that are selected by the subscript, and overloads the assignment and
+    // compound assignment operators, allowing direct access to the elements in
+    // the selection. The type is convertible to an array, producing a new
+    // object with copies of the referred elements.
     template <class T>
-    class subarray<T, slice> {
+    class subarray {
         protected:
-            T *values;
-            slice slc;
-
-            friend class array<T>;
-
-        public:
-            // Assignment operators.
-            void operator= (const array<T> &v);
-
-            void operator= (const T &val);
-
-            // Compound assignment.
-            void operator+= (const array<T> &v);
-
-            void operator-= (const array<T> &v);
-
-            void operator*= (const array<T> &v);
-
-            void operator/= (const array<T> &v);
-
-            void operator%= (const array<T> &v);
-
-            void operator&= (const array<T> &v);
-
-            void operator|= (const array<T> &v);
-
-            void operator^= (const array<T> &v);
-
-            void operator<<= (const array<T> &v);
-
-            void operator>>= (const array<T> &v);
-
-            void operator+= (const T &val);
-
-            void operator-= (const T &val);
-
-            void operator*= (const T &val);
-
-            void operator/= (const T &val);
-
-            void operator%= (const T &val);
-
-            void operator&= (const T &val);
-
-            void operator|= (const T &val);
-
-            void operator^= (const T &val);
-
-            void operator<<= (const T &val);
-
-            void operator>>= (const T &val);
-
-            array<T> copy() const;
-
-            size_t size() const;
-    };
-
-    // This class is used as an intermediate type returned by array's subscript
-    // operator (operator[]) when used with an array of indices.
-    template <class T>
-    class subarray<T, size_t> {
-        protected:
-            T *values;
+            array<T> *parent;
             array<size_t> indices;
 
             friend class array<T>;
@@ -360,74 +293,19 @@ namespace numcpp {
 
             void operator>>= (const T &val);
 
-            // Methods.
-            array<T> copy() const;
+            // Array subscript. Returns a reference to the element at position
+            // i in the sub-array.
+            T& operator[] (size_t i);
 
-            size_t size() const;
-    };
-
-    // This class is used as an intermediate type returned by array's subscript
-    // operator (operator[]) when used with masks.
-    template <class T>
-    class subarray<T, bool> {
-        protected:
-            T *values;
-            array<bool> mask;
-
-            friend class array<T>;
-
-        public:
-            // Assignment operators.
-            void operator= (const array<T> &v);
-
-            void operator= (const T &val);
-
-            // Compound assignment.
-            void operator+= (const array<T> &v);
-
-            void operator-= (const array<T> &v);
-
-            void operator*= (const array<T> &v);
-
-            void operator/= (const array<T> &v);
-
-            void operator%= (const array<T> &v);
-
-            void operator&= (const array<T> &v);
-
-            void operator|= (const array<T> &v);
-
-            void operator^= (const array<T> &v);
-
-            void operator<<= (const array<T> &v);
-
-            void operator>>= (const array<T> &v);
-
-            void operator+= (const T &val);
-
-            void operator-= (const T &val);
-
-            void operator*= (const T &val);
-
-            void operator/= (const T &val);
-
-            void operator%= (const T &val);
-
-            void operator&= (const T &val);
-
-            void operator|= (const T &val);
-
-            void operator^= (const T &val);
-
-            void operator<<= (const T &val);
-
-            void operator>>= (const T &val);
+            const T& operator[] (size_t i) const;
 
             // Methods.
             array<T> copy() const;
 
             size_t size() const;
     };
+
+    template <class T> class submatrix;
 
     // Matrices are fixed-size two dimensional sequence containers: they hold a
     // specific number of elements arranged in rows and columns.
@@ -529,11 +407,69 @@ namespace numcpp {
 
             const T* operator[] (size_t i) const;
 
-            // Returns a reference to the element at row index.first and column
-            // index.second in the matrix.
-            T& operator[] (std::pair<size_t, size_t> index);
+            // Returns a reference to the element at row i and column j in the
+            // the matrix.
+            T& at(size_t i, size_t j);
 
-            const T& operator[] (std::pair<size_t, size_t> index) const;
+            const T& at(size_t i, size_t j) const;
+
+            // Slice-slice indexing: Return a sub-matrix object that selects
+            // the elements specified by its arguments.
+            submatrix<T> at(slice i, slice j);
+
+            const submatrix<T> at(slice i, slice j) const;
+
+            // Slice-integer array indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(slice i, const array<size_t> &j);
+
+            const submatrix<T> at(slice i, const array<size_t> &j) const;
+
+            // Slice-boolean array indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(slice i, const array<bool> &j);
+
+            const submatrix<T> at(slice i, const array<bool> &j) const;
+
+            // Integer array-slice indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(const array<size_t> &i, slice j);
+
+            const submatrix<T> at(const array<size_t> &i, slice j) const;
+
+            // Integer array-integer array indexing: Return a sub-matrix object
+            // that selects the elements specified by its arguments.
+            submatrix<T> at(const array<size_t> &i, const array<size_t> &j);
+
+            const submatrix<T>
+            at(const array<size_t> &i, const array<size_t> &j) const;
+
+            // Integer array-boolean array indexing: Return a sub-matrix object
+            // that selects the elements specified by its arguments.
+            submatrix<T> at(const array<size_t> &i, const array<bool> &j);
+
+            const submatrix<T>
+            at(const array<size_t> &i, const array<bool> &j) const;
+
+            // Boolean array-slice indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(const array<bool> &i, slice j);
+
+            const submatrix<T> at(const array<bool> &i, slice j) const;
+
+            // Boolean array-integer array indexing: Return a sub-matrix object
+            // that selects the elements specified by its arguments.
+            submatrix<T> at(const array<bool> &i, const array<size_t> &j);
+
+            const submatrix<T>
+            at(const array<bool> &i, const array<size_t> &j) const;
+
+            // Boolean array-boolean array indexing: Return a sub-matrix object
+            // that selects the elements specified by its arguments.
+            submatrix<T> at(const array<bool> &i, const array<bool> &j);
+
+            const submatrix<T>
+            at(const array<bool> &i, const array<bool> &j) const;
 
             // Returns the number of columns in the matrix.
             size_t columns() const;
@@ -546,9 +482,82 @@ namespace numcpp {
 
             // Returns the number of rows in the matrix.
             size_t rows() const;
+    };
 
-            // Returns the number of rows and columns.
-            std::pair<size_t, size_t> shape() const;
+    // This class is used as an intermediate type returned by matrix's subscript
+    // operator (operator[]). It references the elements in the matrix object
+    // that are selected by the subscript, and overloads the assignment and
+    // compound assignment operators, allowing direct access to the elements in
+    // the selection. The type is convertible to a matrix, producing a new
+    // object with copies of the referred elements.
+    template <class T>
+    class submatrix {
+        protected:
+            matrix<T> *parent;
+            array<size_t> row_indices;
+            array<size_t> col_indices;
+
+            friend class matrix<T>;
+
+        public:
+            // Assignment operators.
+            void operator= (const matrix<T> &A);
+
+            void operator= (const T &val);
+
+            // Compound assignment.
+            void operator+= (const matrix<T> &A);
+
+            void operator-= (const matrix<T> &A);
+
+            void operator*= (const matrix<T> &A);
+
+            void operator/= (const matrix<T> &A);
+
+            void operator%= (const matrix<T> &A);
+
+            void operator&= (const matrix<T> &A);
+
+            void operator|= (const matrix<T> &A);
+
+            void operator^= (const matrix<T> &A);
+
+            void operator<<= (const matrix<T> &A);
+
+            void operator>>= (const matrix<T> &A);
+
+            void operator+= (const T &val);
+
+            void operator-= (const T &val);
+
+            void operator*= (const T &val);
+
+            void operator/= (const T &val);
+
+            void operator%= (const T &val);
+
+            void operator&= (const T &val);
+
+            void operator|= (const T &val);
+
+            void operator^= (const T &val);
+
+            void operator<<= (const T &val);
+
+            void operator>>= (const T &val);
+
+            // Matrix subscript. Returns a reference to the element at row i
+            // and column j in the the sub-matrix.
+            T& at(size_t i, size_t j);
+
+            const T& at(size_t i, size_t j) const;
+
+            // Methods.
+            size_t columns() const;
+
+            matrix<T> copy() const;
+
+            size_t rows() const;
     };
 
     // Context manager for setting print options.
