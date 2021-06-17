@@ -1163,6 +1163,126 @@ namespace numcpp {
     // Sub-matrix indexing                                                    //
     ////////////////////////////////////////////////////////////////////////////
 
+    // Index-slice indexing: Return a sub-matrix object that selects the
+    // elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(size_t i, slice j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(size_t i, slice j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = arange(j.start, j.stop, j.step);
+        return view;
+    }
+
+    // Index-integer array indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(size_t i, const array<size_t> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = j;
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(size_t i, const array<size_t> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = j;
+        return view;
+    }
+
+    // Index-boolean array indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(size_t i, const array<bool> &j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(size_t i, const array<bool> &j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = full(1, i);
+        view.col_indices = where(j);
+        return view;
+    }
+
+    // Slice-index indexing: Return a sub-matrix object that selects the
+    // elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(slice i, size_t j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = full(1, j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(slice i, size_t j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = arange(i.start, i.stop, i.step);
+        view.col_indices = full(1, j);
+        return view;
+    }
+
+    // Integer array-index indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<size_t> &i, size_t j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = full(1, j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(const array<size_t> &i, size_t j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = i;
+        view.col_indices = full(1, j);
+        return view;
+    }
+
+    // Boolean array-index indexing: Return a sub-matrix object that selects
+    // the elements specified by its arguments.
+    template <class T>
+    submatrix<T> matrix<T>::at(const array<bool> &i, size_t j) {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = full(1, j);
+        return view;
+    }
+
+    template <class T>
+    const submatrix<T> matrix<T>::at(const array<bool> &i, size_t j) const {
+        submatrix<T> view;
+        view.parent = this;
+        view.row_indices = where(i);
+        view.col_indices = full(1, j);
+        return view;
+    }
+
     // Slice-slice indexing: Return a sub-matrix object that selects the
     // elements specified by its arguments.
     template <class T>

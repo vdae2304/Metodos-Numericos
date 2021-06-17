@@ -413,6 +413,42 @@ namespace numcpp {
 
             const T& at(size_t i, size_t j) const;
 
+            // Index-slice indexing: Return a sub-matrix object that selects
+            // the elements specified by its arguments.
+            submatrix<T> at(size_t i, slice j);
+
+            const submatrix<T> at(size_t i, slice j) const;
+
+            // Index-integer array indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(size_t i, const array<size_t> &j);
+
+            const submatrix<T> at(size_t i, const array<size_t> &j) const;
+
+            // Index-boolean array indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(size_t i, const array<bool> &j);
+
+            const submatrix<T> at(size_t i, const array<bool> &j) const;
+
+            // Slice-index indexing: Return a sub-matrix object that selects
+            // the elements specified by its arguments.
+            submatrix<T> at(slice i, size_t j);
+
+            const submatrix<T> at(slice i, size_t j) const;
+
+            // Integer array-index indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(const array<size_t> &i, size_t j);
+
+            const submatrix<T> at(const array<size_t> &i, size_t j) const;
+
+            // Boolean array-index indexing: Return a sub-matrix object that
+            // selects the elements specified by its arguments.
+            submatrix<T> at(const array<bool> &i, size_t j);
+
+            const submatrix<T> at(const array<bool> &i, size_t j) const;
+
             // Slice-slice indexing: Return a sub-matrix object that selects
             // the elements specified by its arguments.
             submatrix<T> at(slice i, slice j);
