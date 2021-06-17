@@ -429,11 +429,6 @@ size_t rows() const;
 size_t columns() const;
 ```
 
-- **shape**: Returns the number of rows and columns in the matrix.
-```cpp
-std::pair<size_t, size_t> shape() const;
-```
-
 ### Indexing
 
 There are two main approaches to access the elements in a matrix. The first 
@@ -445,11 +440,11 @@ second time with an index `j` will return a reference to the element at the
 T* operator[] (size_t i);
 const T* operator[] (size_t i) const;
 ```
-The second approach is using the `[]` with an `std::pair` object, which returns 
-a reference to the element at the specified row and column.
+The second approach is using the `at` method with two indices `i` and `j`, 
+which returns a reference to the element at the `i`-th row and `j`-th column.
 ```cpp
-T& operator[] (std::pair<size_t, size_t> index);
-const T& operator[] (std::pair<size_t, size_t> index) const;
+T& at(size_t i, size_t j);
+const T& at(size_t i, size_t j) const;
 ```
 Notice that the indices starts from 0, no 1. Accessing to elements outside the 
 matrix cause undefined behaviour.

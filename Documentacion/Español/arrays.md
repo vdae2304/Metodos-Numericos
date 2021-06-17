@@ -442,9 +442,9 @@ size_t size() const;
 
 ### Indexado
 
-Accede al `i`-ésimo elemento del arreglo. Note que el primer elemento tiene 
-la posición 0, no 1. Valores mayores o iguales que el tamaño del arreglo 
-tendrán un comportamiento indefinido.
+- **Operador [ ]**: Accede al `i`-ésimo elemento del arreglo. Note que el 
+primer elemento tiene la posición 0, no 1. Valores mayores o iguales que el 
+tamaño del arreglo tendrán un comportamiento indefinido.
 ```cpp
 T& operator[] (size_t i);
 const T& operator[] (size_t i) const;
@@ -475,23 +475,17 @@ int main() {
 
 ## Indexado avanzado
 
-### Slices
+### Sub-arreglos
 
-Un `slice` describe una selección de elementos a utilizar como índices por 
-el operador `[]`. Un slice está definido por un índice de inicio (`start`), 
-un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo, 
-`slice(3, 20, 5)` selecciona los elementos en las posiciones 3, 8, 13 y 18.
-Por defecto, el valor de inicio es 0 y el tamaño de paso es 1. Los saltos negativos están permitidos.
-```cpp
-slice(size_t stop);
-slice(size_t start, size_t stop, int step = 1);
-```
-Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
-tipo  `subarray<T, slice>` representando un subarreglo con los elementos 
-seleccionados por el slice.
+Un sub-arreglo es una clase intermedia devuelta por el operador `[]` de un 
+arreglo. Hace referencia a los elementos en el arreglo que son seleccionados 
+por el sub-índice, y sobrecarga los operadores de asignación y asignación 
+compuesta, permitiendo acceder directamente a los elementos en la selección. 
+El objeto puede ser convertido en un arreglo, generando un nuevo objeto con 
+copias de los elementos referenciados.
 ```cpp
 template <class T>
-class subarray<T, slice> {
+class subarray<T> {
 public:
     void operator= (const array<T> &v);
     void operator= (const T &val);
@@ -518,9 +512,31 @@ public:
     void operator<<= (const T &val);
     void operator>>= (const T &val);
 
+    T& operator[] (size_t i);
+    const T& operator[] (size_t i) const;
+
     array<T> copy() const;
     size_t size() const;
 };
+```
+
+### Slices
+
+Un `slice` describe una selección de elementos a utilizar como índices por 
+el operador `[]`. Un slice está definido por un índice de inicio (`start`), 
+un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo, 
+`slice(3, 20, 5)` selecciona los elementos en las posiciones 3, 8, 13 y 18.
+Por defecto, el valor de inicio es 0 y el tamaño de paso es 1.
+```cpp
+slice(size_t stop);
+slice(size_t start, size_t stop, size_t step = 1);
+```
+Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
+tipo  `subarray<T>` representando un subarreglo con los elementos seleccionados 
+por el slice.
+```cpp
+subarray<T> operator[] (slice slc);
+const subarray<T> operator[] (slice slc) const;
 ```
 
 #### Ejemplo
@@ -531,7 +547,7 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
-    np::subarray<int, np::slice> sub = v[np::slice(3, 10, 2)];
+    np::subarray<int> sub = v[np::slice(3, 10, 2)];
     cout << "Los elementos de v son: " << v << "\n";
     cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
     cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
@@ -551,40 +567,11 @@ int main() {
 ### Arreglos de índices
 
 Al indexar un arreglo mediante un arreglo de índices (de tipo `size_t`), el 
-operador devuelve un objeto de tipo  `subarray<T, size_t>` representando un 
-subarreglo con los elementos especificados por el arreglo de índices.
+operador devuelve un objeto de tipo  `subarray<T>` representando un subarreglo 
+con los elementos especificados por el arreglo de índices.
 ```cpp
-template <class T>
-class subarray<T, size_t> {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    array<T> copy() const;
-    size_t size() const;
-};
+subarray<T> operator[] (const array<size_t> &indices);
+const subarray<T> operator[] (const array<size_t> &indices) const;
 ```
 
 #### Ejemplo
@@ -597,7 +584,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<size_t> indices = {1, 5, 6, 8, 2};
-    np::subarray<int, size_t> sub = v[indices];
+    np::subarray<int> sub = v[indices];
     cout << "Los elementos de v son: " << v << "\n";
     cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
     cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
@@ -616,41 +603,12 @@ int main() {
 
 ### Arreglos booleanos
 
-Al indexar un arreglo mediante un arreglo booleano, el operador 
-devuelve un objeto de tipo  `subarray<T, bool>` representando un 
-subarreglo con los elementos seleccionados por la máscara booleana.
+Al indexar un arreglo mediante un arreglo booleano, el operador devuelve un 
+objeto de tipo  `subarray<T>` representando un subarreglo con los elementos 
+seleccionados por la máscara booleana.
 ```cpp
-template <class T>
-class subarray<T, bool> {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    array<T> copy() const;
-    size_t size() const;
-};
+subarray<T> operator[] (const array<bool> &mask);
+const subarray<T> operator[] (const array<bool> &mask) const;
 ```
 
 #### Ejemplo
@@ -663,7 +621,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<bool> mascara = {1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
-    np::subarray<int, bool> sub = v[mascara];
+    np::subarray<int> sub = v[mascara];
     cout << "Los elementos de v son: " << v << "\n";
     cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
     cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";

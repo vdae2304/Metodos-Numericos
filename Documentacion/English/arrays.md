@@ -434,9 +434,9 @@ size_t size() const;
 
 ### Indexing
 
-Access the `i`-th element in the array. Notice that the first element has the 
-position 0, not 1. Values equal or greater than the array's size cause 
-undefined behaviour.
+- **[] operator**: Access the `i`-th element in the array. Notice that the 
+first element has the position 0, not 1. Values equal or greater than the 
+array's size cause undefined behaviour.
 ```cpp
 T& operator[] (size_t i);
 const T& operator[] (size_t i) const;
@@ -467,22 +467,17 @@ int main() {
 
 ## Advanced indexing
 
-### Slice indexing
+### Sub-arrays
 
-A `slice` describes a selection of elements to be used as an index by the 
-`[]` operator. A slice is defined by a starting index (`start`), a stop index 
-(`stop`) and a step size (`step`). For example, `slice(3, 20, 5)` selects the 
-elements with indices 3, 8, 13 and 18. By default, the starting index is 0 and 
-the step size is 1. Negative steps are allowed.
-```cpp
-slice(size_t stop);
-slice(size_t start, size_t stop, int step = 1);
-```
-When indexing an array using slices, the operator returns a `subarray<T, slice>` 
-object representing a subarray with the elements selected by the slice.
+A sub-array is an intermediate class returned by the array's subscript `[]` 
+operator. It references the elements in the array that are selected by the 
+subscript, and overloads the assignment and compound assignment operators, 
+allowing direct access to the elements in the selection. The object is 
+convertible to an array, producing a new object with copies of the referred 
+elements.
 ```cpp
 template <class T>
-class subarray<T, slice> {
+class subarray<T> {
 public:
     void operator= (const array<T> &v);
     void operator= (const T &val);
@@ -509,9 +504,30 @@ public:
     void operator<<= (const T &val);
     void operator>>= (const T &val);
 
+    T& operator[] (size_t i);
+    const T& operator[] (size_t i) const;
+
     array<T> copy() const;
     size_t size() const;
 };
+```
+
+### Slice indexing
+
+A `slice` describes a selection of elements to be used as an index by the 
+`[]` operator. A slice is defined by a starting index (`start`), a stop index 
+(`stop`) and a step size (`step`). For example, `slice(3, 20, 5)` selects the 
+elements with indices 3, 8, 13 and 18. By default, the starting index is 0 and 
+the step size is 1.
+```cpp
+slice(size_t stop);
+slice(size_t start, size_t stop, int step = 1);
+```
+Indexing an array using slices, the operator will return a `subarray<T>` 
+object representing a subarray with the elements selected by the slice.
+```cpp
+subarray<T> operator[] (slice slc);
+const subarray<T> operator[] (slice slc) const;
 ```
 
 #### Example
@@ -522,7 +538,7 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
-    np::subarray<int, np::slice> sub = v[np::slice(3, 10, 2)];
+    np::subarray<int> sub = v[np::slice(3, 10, 2)];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";
@@ -541,41 +557,12 @@ int main() {
 
 ### Integer array indexing
 
-When indexing an array using integer arrays (of `size_t` data type), the 
-operator returns a `subarray<T, size_t>` object representing a subarray with 
-the elements selected by the integer array.
+Indexing an array using integer arrays (of `size_t` data type), the operator 
+will returns a `subarray<T>` object representing a subarray with the elements 
+selected by the integer array.
 ```cpp
-template <class T>
-class subarray<T, size_t> {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    array<T> copy() const;
-    size_t size() const;
-};
+subarray<T> operator[] (const array<size_t> &indices);
+const subarray<T> operator[] (const array<size_t> &indices) const;
 ```
 
 #### Example
@@ -588,7 +575,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<size_t> indices = {1, 5, 6, 8, 2};
-    np::subarray<int, size_t> sub = v[indices];
+    np::subarray<int> sub = v[indices];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";
@@ -607,41 +594,11 @@ int main() {
 
 ### Boolean array indexing
 
-When indexing an array using boolean arrays, the operator returns a 
-`subarray<T, bool>` object representing a subarray with the elements selected 
-by the boolean mask.
+Indexing an array using boolean arrays, the operator will return a `subarray<T>` 
+object representing a subarray with the elements selected by the boolean mask.
 ```cpp
-template <class T>
-class subarray<T, bool> {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    array<T> copy() const;
-    size_t size() const;
-};
+subarray<T> operator[] (const array<bool> &mask);
+const subarray<T> operator[] (const array<bool> &mask) const;
 ```
 
 #### Example
@@ -654,12 +611,13 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<bool> mascara = {1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
-    np::subarray<int, bool> sub = v[mascara];
+    np::subarray<int> sub = v[mascara];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";
     sub = 0;
     cout << "v's elements are now: " << v << "\n";
+    return 0;
 }
 ```
 

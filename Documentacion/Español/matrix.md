@@ -437,11 +437,6 @@ size_t rows() const;
 size_t columns() const;
 ```
 
-- **shape**: Devuelve el número de renglones y columnas en la matriz.
-```cpp
-std::pair<size_t, size_t> shape() const;
-```
-
 ### Indexado
 
 Existen dos formas principales de acceder a los elementos de una matriz. La 
@@ -453,12 +448,12 @@ referencia al elemento en el renglón `i`-ésimo y la columna `j`-ésima.
 T* operator[] (size_t i);
 const T* operator[] (size_t i) const;
 ```
-La segunda forma es utilizando el operador `[]` con un objeto de tipo 
-`std::pair`, lo cual devuelve una referencia al elemento en el renglón y 
-columna indicados.
+La segunda forma es utilizando el método `at` con dos índices `i` y `j`, lo 
+cual devuelve una referencia al elemento en el renglón `i`-ésimo y columna 
+`j`-ésima.
 ```cpp
-T& operator[] (std::pair<size_t, size_t> index);
-const T& operator[] (std::pair<size_t, size_t> index) const;
+T& at(size_t i, size_t j);
+const T& at(size_t i, size_t j) const;
 ```
 Note que los índices empiezan desde 0, no 1. Acceder a elementos fuera de la 
 matriz tendrá comportamiento indefinido.
