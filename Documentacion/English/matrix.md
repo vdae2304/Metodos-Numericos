@@ -457,15 +457,149 @@ matrix cause undefined behaviour.
 using namespace std;
 namespace np = numcpp;
 int main() {
+    np::matrix<double> A = np::zeros(3, 5);
+    cout << "A has " << A.rows() << " rows";
+    cout << " and " << A.columns() << " columns.\n";
+    A[0][2] = 1.5;
+    A[0][3] = 10.0;
+    A[1][1] = -2.1;
+    A.at(2, 0) = 0.1;
+    A.at(2, 4) = 3.7;
+    cout << "A's elements are:\n" << A << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] 
+[Out] A has 3 rows and 5 columns.
+      A's elements are:
+      [[  0,    0, 1.5, 10,   0]
+       [  0, -2.1,   0,  0,   0]
+       [0.1,    0,   0,  0, 3.7]]
 ```
 
 ## Advanced indexing
+
+### Sub-matrices
+
+A sub-matrix is an intermediate class returned by the matrix's `at` method. It 
+references the elements in the matrix that are selected by the subscripts, and 
+overloads the assignment and compound assignment operators, allowing direct 
+access to the elements in the selection. The object is convertible to a matrix, 
+producing a new object with copies of the referred elements.
+```cpp
+template <class T>
+class submatrix {
+public:
+    void operator= (const matrix<T> &A);
+    void operator= (const T &val);
+
+    void operator+= (const matrix<T> &A);
+    void operator-= (const matrix<T> &A);
+    void operator*= (const matrix<T> &A);
+    void operator/= (const matrix<T> &A);
+    void operator%= (const matrix<T> &A);
+    void operator&= (const matrix<T> &A);
+    void operator|= (const matrix<T> &A);
+    void operator^= (const matrix<T> &A);
+    void operator<<= (const matrix<T> &A);
+    void operator>>= (const matrix<T> &A);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    T& at(size_t i, size_t j);
+    const T& at(size_t i, size_t j) const;
+
+    size_t columns() const;
+    matrix<T> copy() const;
+    size_t rows() const;
+};
+```
+The `at` method accepts `size_t`, `slice`, `array<size_t>` and `array<bool>` 
+objects on each axe.
+
+The first one respresents a selection of elements over a single row/column 
+through an index.
+
+The second one represents a selection of elements through a slice. A slice is 
+defined by a starting index (`start`), a stop index (`stop`) and a step size 
+(`step`). For example, `slice(3, 20, 5)` selects the elements with indices 3, 
+8, 13 and 18. By default, the starting index is 0 and the step size is 1.
+
+The third one represents a selection of elements through an array of indices.
+
+The fourth one represents a selecion of elements through a boolean mask.
+
+#### Example
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{7, 0, -1, 14, 3, 0},
+                         {5, 3, 10, 2, 0, -1},
+                         {0, 1, 7, -5, 9, 3},
+                         {1, 5, 0, 0, -2, 9}};
+    cout << "A's elements are:\n" << A << "\n";
+
+    // Select rows 0, 1, 2, 3 and columns 1, 5.
+    np::submatrix<int> sub = A.at(np::slice(4), np::array<size_t> {1, 5});
+    cout << "The submatrix has " << sub.rows() << " rows";
+    cout << " and " << sub.columns() << " columns.\n";
+    cout << "The submatrix elements are:\n" << sub.copy() << "\n";
+    sub = 0;
+    cout << "A's elements are now:\n" << A << "\n";
+
+    // Select row 1 and columns 1, 3, 5.
+    A.at(1, np::slice(1, 6, 2)) += 10;
+    cout << "A's elements are now:\n" << A << "\n";
+
+    // Select rows 1, 2 and columns 0, 1, 4.
+    A.at(np::array<size_t> {1, 2}, np::array<bool> {1, 1, 0, 0, 1, 0}) *= 3;
+    cout << "A's elements are now:\n" << A << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] A's elements are:
+      [[7, 0, -1, 14,  3,  0]
+       [5, 3, 10,  2,  0, -1]
+       [0, 1,  7, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
+      The submatrix has 4 rows and 2 columns.
+      The submatrix elements are:
+      [[0,  0]
+       [3, -1]
+       [1,  3]
+       [5,  9]]
+      A's elements are now:
+       [[7, 0, -1, 14,  3, 0]
+        [5, 0, 10,  2,  0, 0]
+        [0, 0,  7, -5,  9, 0]
+        [1, 0,  0,  0, -2, 0]]
+       A's elements are now:
+       [[7,  0, -1, 14,  3,  0]
+        [5, 10, 10, 12,  0, 10]
+        [0,  0,  7, -5,  9,  0]
+        [1,  0,  0,  0, -2,  0]]
+       A's elements are now:
+       [[ 7,  0, -1, 14,  3,  0]
+        [15, 30, 10, 12,  0, 10]
+        [ 0,  0,  7, -5, 27,  0]
+        [ 1,  0,  0,  0, -2,  0]]
+```
 
 ## Methods list
 

@@ -466,15 +466,154 @@ matriz tendrá comportamiento indefinido.
 using namespace std;
 namespace np = numcpp;
 int main() {
+    np::matrix<double> A = np::zeros(3, 5);
+    cout << "A tiene " << A.rows() << " renglones";
+    cout << " y " << A.columns() << " columnas.\n";
+    A[0][2] = 1.5;
+    A[0][3] = 10.0;
+    A[1][1] = -2.1;
+    A.at(2, 0) = 0.1;
+    A.at(2, 4) = 3.7;
+    cout << "Los elementos de A son:\n" << A << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] 
+[Out] A tiene 3 renglones y 5 columnas.
+      Los elementos de A son:
+      [[  0,    0, 1.5, 10,   0]
+       [  0, -2.1,   0,  0,   0]
+       [0.1,    0,   0,  0, 3.7]]
 ```
 
 ## Indexado avanzado
+
+### Sub-matrices
+
+Una sub-matriz es una clase intermedia devuelta por el método `at` de una 
+matriz. Hace referencia a los elementos en la matriz que son seleccionados 
+por los sub-índices, y sobrecarga los operadores de asignación y asignación 
+compuesta, permitiendo acceder directamente a los elementos en la selección. 
+El objeto puede ser convertido en una matriz, generando un nuevo objeto con 
+copias de los elementos referenciados.
+```cpp
+template <class T>
+class submatrix {
+public:
+    void operator= (const matrix<T> &A);
+    void operator= (const T &val);
+
+    void operator+= (const matrix<T> &A);
+    void operator-= (const matrix<T> &A);
+    void operator*= (const matrix<T> &A);
+    void operator/= (const matrix<T> &A);
+    void operator%= (const matrix<T> &A);
+    void operator&= (const matrix<T> &A);
+    void operator|= (const matrix<T> &A);
+    void operator^= (const matrix<T> &A);
+    void operator<<= (const matrix<T> &A);
+    void operator>>= (const matrix<T> &A);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    T& at(size_t i, size_t j);
+    const T& at(size_t i, size_t j) const;
+
+    size_t columns() const;
+    matrix<T> copy() const;
+    size_t rows() const;
+};
+```
+El método `at` acepta objetos de tipo `size_t`, `slice`, `array<size_t>` y 
+`array<bool>` en cada eje. 
+
+El primero representa una selección de elementos sobre un solo renglón/columna 
+mediante un índice.
+
+El segundo corresponde a una selección de elementos mediante un slice. Un slice 
+está definido por un índice de inicio (`start`), un índice de fin (`stop`) y un 
+tamaño de paso (`step`). Por ejemplo, `slice(3, 20, 5)` selecciona los 
+elementos en las posiciones 3, 8, 13 y 18. Por defecto, el valor de inicio es 0 
+y el tamaño de paso es 1.
+
+El tercero corresponde a una selección de elementos mediante un arreglo de 
+índices.
+
+El cuarto corresponde a una selección de elementos mediante una máscara 
+booleana.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{7, 0, -1, 14, 3, 0},
+                         {5, 3, 10, 2, 0, -1},
+                         {0, 1, 7, -5, 9, 3},
+                         {1, 5, 0, 0, -2, 9}};
+    cout << "Los elementos de A son:\n" << A << "\n";
+
+    // Selecciona los renglones 0, 1, 2, 3 y las columnas 1, 5.
+    np::submatrix<int> sub = A.at(np::slice(4), np::array<size_t> {1, 5});
+    cout << "La submatriz tiene " << sub.rows() << " renglones";
+    cout << " y " << sub.columns() << " columnas.\n";
+    cout << "Los elementos de la submatriz son:\n" << sub.copy() << "\n";
+    sub = 0;
+    cout << "Los elementos de A son ahora:\n" << A << "\n";
+
+    // Selecciona el renglon 1 y las columnas 1, 3, 5.
+    A.at(1, np::slice(1, 6, 2)) += 10;
+    cout << "Los elementos de A son ahora:\n" << A << "\n";
+
+    // Selecciona los renglones 1, 2 y las columnas 0, 1, 4.
+    A.at(np::array<size_t> {1, 2}, np::array<bool> {1, 1, 0, 0, 1, 0}) *= 3;
+    cout << "Los elementos de A son ahora\n" << A << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] Los elementos de A son:
+      [[7, 0, -1, 14,  3,  0]
+       [5, 3, 10,  2,  0, -1]
+       [0, 1,  7, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
+      La submatriz tiene 4 renglones y 2 columnas.
+      Los elementos de la submatriz son:
+      [[0,  0]
+       [3, -1]
+       [1,  3]
+       [5,  9]]
+      Los elementos de A son ahora:
+      [[7, 0, -1, 14,  3, 0]
+       [5, 0, 10,  2,  0, 0]
+       [0, 0,  7, -5,  9, 0]
+       [1, 0,  0,  0, -2, 0]]
+      Los elementos de A son ahora:
+      [[7,  0, -1, 14,  3,  0]
+       [5, 10, 10, 12,  0, 10]
+       [0,  0,  7, -5,  9,  0]
+       [1,  0,  0,  0, -2,  0]]
+      Los elementos de A son ahora
+      [[ 7,  0, -1, 14,  3,  0]
+       [15, 30, 10, 12,  0, 10]
+       [ 0,  0,  7, -5, 27,  0]
+       [ 1,  0,  0,  0, -2,  0]]
+```
 
 ## Lista de métodos
 
