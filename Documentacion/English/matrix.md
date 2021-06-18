@@ -1057,7 +1057,7 @@ The standard deviation is defined as
 where 
 ![$\bar{x}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D) 
 is the mean and 
-![$\bar{x}$](https://render.githubusercontent.com/render/math?math=ddof) 
+![$ddof$](https://render.githubusercontent.com/render/math?math=ddof) 
 are the degrees of freedom.
 
 #### Example
@@ -1116,6 +1116,104 @@ int main() {
       [10, 7]
 ```
 
+### `swap` 
+
+Swap contents with `A`. This function is implemented to work in constant time.
+```cpp
+void swap(matrix &A);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -9., 5., 10., -2.}};
+    np::matrix<double> B = {{1, 2}, {3, 4}};
+    cout << "Before:\n" << A << "\n" << B << "\n";
+    A.swap(B);
+    cout << "After:\n" << A << "\n" << B << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Before:
+      [[1, -9, 5, 10, -2]]
+      [[1, 2]
+       [3, 4]]
+      After:
+      [[1, 2]
+       [3, 4]]
+      [[1, -9, 5, 10, -2]]
+```
+
+### `trace`
+
+Returns the sum along the diagonal of the matrix with the given offset, i.e., 
+the sum of the elements `a[i][i + offset]` for all `i`. `offset` can be both 
+positive and negative. By default, `offset = 0`.
+```cpp
+T trace(int offset = 0) const;
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{3, 8, -1, 5},
+                         {0, 5, 1, 2},
+                         {1, -2, 0, 5},
+                         {7, 0, 5, 9}};
+    cout << A.trace() << "\n";
+    cout << A.trace(1) << "\n";
+    cout << A.trace(-1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 17
+      14
+      3
+```
+
+### `transpose`
+
+Returns a copy of the matrix transposed. 
+```cpp
+matrix<T> transpose() const;
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{3, 8, -1, 5},
+                         {1, -2, 0, 5}};
+    cout << A.transpose() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[ 3,  1]
+       [ 8, -2]
+       [-1,  0]
+       [ 5,  5]]
+```
+
 ### `var` 
 
 In its first version, returns the variance of the matrix elements. In its 
@@ -1132,7 +1230,7 @@ The variance is defined as
 where 
 ![$\bar{x}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D) 
 is the mean and 
-![$\bar{x}$](https://render.githubusercontent.com/render/math?math=ddof) 
+![$ddof$](https://render.githubusercontent.com/render/math?math=ddof) 
 are the degrees of freedom.
 
 #### Example
@@ -1160,3 +1258,626 @@ int main() {
 ```
 
 ## Global functions
+
+### `apply` 
+
+In its first version, returns a matrix with each element initialized to the 
+result of applying a function `f` to its corresponding element in `A`. Contrary 
+to the `A.apply()` method, this function does not modify the elements in `A`.
+
+In its second version, returns a matrix with each element initialized to the 
+result of applying a function `f` to the corresponding elements in `A` and `B`;
+to the elements in `A` against `val`; to `val` against the elements in `A` 
+depending on the case.
+```cpp
+template <class T, class Function = T(T)>
+matrix<T> apply(Function f, const matrix<T> &A);
+
+template <class T, class Function = T(T, T)>
+matrix<T> apply(Function f, const matrix<T> &A, const matrix<T> &B);
+
+template <class T, class Function = T(T, T)>
+matrix<T> apply(Function f, const matrix<T> &A, const T &val);
+
+template <class T, class Function = T(T, T)>
+matrix<T> apply(Function f, const T &val, const matrix<T> &A);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+
+double square(double x) {
+    return x*x;
+}
+
+double f(double x, double y) {
+    return x + 2*y;
+}
+
+int main() {
+    np::matrix<double> x = {{1, 3, 2}, {0, 5, 7}};
+    np::matrix<double> y = {{-1, 0, 2}, {5, 3, 1}};
+    cout << np::apply(square, x) << "\n";
+    cout << np::apply(f, x, y) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[1,  9,  4]
+       [0, 25, 49]]
+      [[-1,  3, 6]
+       [10, 11, 9]]
+```
+
+### `argmax`
+
+In its first version, returns the index of the maximum value contained in the 
+matrix. In its second version, returns the index of the maximum value contained  
+in the matrix along the given axis.
+```cpp
+template <class T>
+std::pair<size_t, size_t> argmax(const matrix<T> &A);
+
+template <class T>
+array<size_t> argmax(const matrix<T> &A, size_t axis);
+```
+
+### `argmin`
+
+In its first version, returns the index of the minimum value contained in the 
+matrix. In its second version, returns the index of the minimum value contained 
+in the matrix along the given axis.
+```cpp
+template <class T>
+std::pair<size_t, size_t> argmin(const matrix<T> &A);
+
+template <class T>
+array<size_t> argmin(const matrix<T> &A, size_t axis);
+```
+
+### `clip` 
+
+Returns a matrix with each element initialized to the result of clipping the 
+values in a matrix `A`. Contrary to the `A.clip()` method, this function does 
+not modify the elements in `A`.
+```cpp
+template <class T>
+matrix<T> clip(const matrix<T> &A, const T &a_min, const T &a_max);
+```
+
+### `column_stack`
+
+Concatenate arrays and matrices vertically.
+```cpp
+template <class T>
+matrix<T> column_stack(const array<T> &v, const array<T> &w);
+
+template <class T>
+matrix<T> column_stack(const matrix<T> &A, const array<T> &v);
+
+template <class T>
+matrix<T> column_stack(const array<T> &v, const matrix<T> &A);
+
+template <class T>
+matrix<T> column_stack(const matrix<T> &A, const matrix<T> &B);
+```
+
+#### Example 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{5, 3}, {0, 1}, {-1, 2}};
+    np::matrix<int> B = {{7, 1}, {-2, 5}, {3, 0}};
+    np::array<int> v = {1, 2, 3};
+    np::array<int> w = {0, -1, 5};
+    cout << np::column_stack(v, w) << "\n";
+    cout << np::column_stack(A, v) << "\n";
+    cout << np::column_stack(v, A) << "\n";
+    cout << np::column_stack(A, B) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[1,  0]
+       [2, -1]
+       [3,  5]]
+      [[ 5, 3, 1]
+       [ 0, 1, 2]
+       [-1, 2, 3]]
+      [[1,  5, 3]
+       [2,  0, 1]
+       [3, -1, 2]]
+      [[ 5, 3,  7, 1]
+       [ 0, 1, -2, 5]
+       [-1, 2,  3, 0]]
+```
+
+### `corrcoef`
+
+In its first version, returns the correlation coefficient of two arrays `x` and 
+`y`. In its second version, returns the matrix correlation coefficient of `X`. 
+If `rowvar = true`, then each row of `X` represents a variable, with 
+observations in the columns. Otherwise, each column represents a variable, with 
+observations in the rows.
+```cpp
+template <class T>
+T corrcoef(const array<T> &x, const array<T> &y);
+
+template <class T>
+matrix<T> corrcoef(const matrix<T> &X, bool rowvar = true);
+```
+The correlation coefficient between two variables is defined as
+
+![$\rho_{X, Y} = \frac{\sigma_{X, Y}}{\sigma_X \sigma_Y}$](https://render.githubusercontent.com/render/math?math=%5Crho_%7BX%2C%20Y%7D%20%3D%20%5Cfrac%7B%5Csigma_%7BX%2C%20Y%7D%7D%7B%5Csigma_X%20%5Csigma_Y%7D)
+
+where 
+![$\sigma_{X, Y}$](https://render.githubusercontent.com/render/math?math=%5Csigma_%7BX%2C%20Y%7D)
+is the covariance and 
+![$\sigma_X$](https://render.githubusercontent.com/render/math?math=%5Csigma_X)
+,
+![$\sigma_Y$](https://render.githubusercontent.com/render/math?math=%5Csigma_Y)
+are the standard deviations.
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> x = np::arange(0., 10., 0.1);
+    np::array<double> y = np::square(x);
+    np::matrix<double> X = np::column_stack(x, y);
+
+    cout << "corr(x, y): " << np::corrcoef(x, y) << "\n";
+    cout << "Correlation matrix:\n" << np::corrcoef(X, false) << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] corr(x, y): 0.967644
+      Correlation matrix:
+      [[         1, 0.96764439]
+       [0.96764439,          1]]
+```
+
+### `cov`
+
+In its first version, returns the covariance of two arrays `x` and `y`. In its 
+second version, returns the variance and covariance matrix of `X`. If 
+`rowvar = true`, then each row of `X` represents a variable, with observations 
+in the columns. Otherwise, each column represents a variable, with observations 
+in the rows.
+```cpp
+template <class T>
+T cov(const array<T> &x, const array<T> &y, size_t ddof = 0);
+
+template <class T>
+matrix<T> cov(const matrix<T> &X, bool rowvar = true, size_t ddof = 0);
+```
+The covariance between two variables
+![$X = (x_1, x_2, \ldots, x_n)$](https://render.githubusercontent.com/render/math?math=X%20%3D%20(x_1%2C%20x_2%2C%20%5Cldots%2C%20x_n)) 
+and 
+![$Y = (y_1, y_2, \ldots, y_n)$](https://render.githubusercontent.com/render/math?math=Y%20%3D%20(y_1%2C%20y_2%2C%20%5Cldots%2C%20y_n)) 
+is defined as
+
+![$\sigma_{X, Y} = \frac{1}{n - ddof}\sum_{i = 1}^{n} (x_i - \bar{x})(y_i - \bar{y})$](https://render.githubusercontent.com/render/math?math=%5Csigma_%7BX%2C%20Y%7D%20%3D%20%5Cfrac%7B1%7D%7Bn%20-%20ddof%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20(x_i%20-%20%5Cbar%7Bx%7D)(y_i%20-%20%5Cbar%7By%7D))
+
+where 
+![$\bar{x}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D) 
+,
+![$\bar{y}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7By%7D) 
+are the means and 
+![$ddof$](https://render.githubusercontent.com/render/math?math=ddof) 
+are the degrees of freedom.
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> x = np::arange(0., 10., 0.1);
+    np::array<double> y = np::square(x);
+    np::matrix<double> X = np::column_stack(x, y);
+
+    cout << "cov(x, y): " << np::cov(x, y) << "\n";
+    cout << "var(x): " << np::var(x) << "\n";
+    cout << "var(y): " << np::var(y) << "\n";
+    cout << "Covariance matrix:\n" << np::cov(X, false) << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] cov(x, y): 82.4918
+      var(x): 8.3325
+      var(y): 872.196
+      Covariance matrix:
+      [[  8.3325,  82.49175]
+       [82.49175, 872.19611]]
+```
+
+### `diagonal`
+
+In its first version, returns an array with the elements on the matrix diagonal. 
+In its second version, returns a matrix with its elements on the diagonal 
+initialized to the values in an array. A zero value of `offset` refers to the 
+main diagonal, a positive value refers to an upper diagonal, and a negative 
+value to a lower diagonal. By default, `offset = 0`.
+```cpp
+template <class T>
+array<T> diagonal(const matrix<T> &A, int offset = 0);
+
+template <class T>
+matrix<T> diagonal(const array<T> &v, int offset = 0);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{1, 8, 7, 3},
+                         {4, -1, 2, 0},
+                         {0, 5, 3, 2},
+                         {7, 2, 0, 5}};
+    np::array<int> v = {1, 2, 3};
+    cout << np::diagonal(A) << "\n";
+    cout << np::diagonal(A, -1) << "\n";
+    cout << np::diagonal(v) << "\n";
+    cout << np::diagonal(v, 1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [1, -1, 3, 5]
+      [4, 5, 0]
+      [[1, 0, 0]
+       [0, 2, 0]
+       [0, 0, 3]]
+      [[0, 1, 0, 0]
+       [0, 0, 2, 0]
+       [0, 0, 0, 3]
+       [0, 0, 0, 0]]
+```
+
+### `dot`
+
+In its first version, returns the dot product between two vectors. In its 
+second version, returns the vector-matrix product between a row vector and a
+matrix. In its third version, returns the matrix-vector product between a 
+matrix and a column vector. In its fourth version, returns the matrix 
+multiplication between two matrices.
+```cpp
+template <class T>
+T dot(const array<T> &v, const array<T> &w);
+
+template <class T>
+array<T> dot(const array<T> &v, const matrix<T> &A);
+
+template <class T>
+array<T> dot(const matrix<T> &A, const array<T> &v);
+
+template <class T>
+matrix<T> dot(const matrix<T> &A, const matrix<T> &B);
+```
+
+### `empty` 
+
+Returns a new uninitialized matrix with `m` rows and `n` columns.
+```cpp
+template<class T = double> 
+matrix<T> empty(size_t m, size_t n);
+```
+
+### `eye`
+
+Returns a matrix with ones on the diagonal and zeros elsewhere. A zero value of 
+`offset` refers to the main diagonal, a positive value refers to an upper 
+diagonal, and a negative value to a lower diagonal. By default, `offset = 0`.
+```cpp
+template <class T = double>
+matrix<T> eye(size_t m, size_t n, int offset = 0);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = np::eye<int>(3, 3);
+    np::matrix<int> B = np::eye<int>(3, 4, 1);
+    cout << A << "\n" << B << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[1, 0, 0]
+       [0, 1, 0]
+       [0, 0, 1]]
+      [[0, 1, 0, 0]
+       [0, 0, 1, 0]
+       [0, 0, 0, 1]]
+```
+
+### `full` 
+
+Returns a new matrix with `m` rows and `n` columns setting values to `val`.
+```cpp
+template <class T = double> 
+matrix<T> full(size_t m, size_t n, const T &val);
+```
+
+### `load_matrix` 
+
+Returns a new matrix from a binary file. The function throws a `runtime_error` 
+exception if the file passed as an argument does not exist.
+```cpp
+template <class T>
+matrix<T> load_matrix(const char *file);
+```
+
+### `load_txt` 
+
+Returns a new matrix from a text file. The delimiter that separates values in 
+the same row can optionally be specified. By default, the delimiter is a white 
+space. Additionally it can be specified if the first row of the file is a 
+header. If so, the header's values can be saved into a `string` array. The 
+function throws  a `runtime_error` exception if the file passed as an argument 
+does not exist.
+```cpp
+template <class T>
+matrix<T> load_txt(
+    const char *file,
+    char delimiter = ' ',
+    bool header = false
+);
+
+template <class T>
+matrix<T> load_txt(
+    const char *file,
+    char delimiter,
+    bool header,
+    array<std::string> &names
+);
+```
+
+### `max`
+
+In its first version, returns the maximum value contained in the matrix. In its 
+second version, returns the maximum value contained in the matrix along the 
+given axis.
+```cpp
+template <class T>
+T max(const matrix<T> &A);
+
+template <class T>
+array<T> max(const matrix<T> &A, size_t axis);
+```
+
+### `mean` 
+
+In its first version, returns the mean or average of the matrix elements. In 
+its second version, returns the mean or average of the matrix elements along 
+the given axis.
+```cpp
+template <class T>
+T mean(const matrix<T> &A);
+
+template <class T>
+array<T> mean(const matrix<T> &A, size_t axis);
+```
+
+### `min`
+
+In its first version, returns the minimum value contained in the matrix. In its 
+second version, returns the minimum value contained in the matrix along the 
+given axis.
+```cpp
+template <class T>
+T min(const matrix<T> &A);
+
+template <class T>
+array<T> min(const matrix<T> &A, size_t axis);
+```
+
+### `ones` 
+
+Returns a new matrix with `m` rows and `n` columns setting values to one.
+```cpp
+template<class T = double> 
+matrix<T> ones(size_t m, size_t n);
+```
+
+### `prod`
+
+In its first version, returns the product of the matrix elements. In its second 
+version, returns the product of the matrix elements along the given axis.
+```cpp
+template <class T>
+T prod(const matrix<T> &A);
+
+template <class T>
+array<T> prod(const matrix<T> &A, size_t axis);
+```
+
+### `row_stack`
+
+Concatenate arrays and matrices horizontally.
+```cpp
+template <class T>
+matrix<T> row_stack(const array<T> &v, const array<T> &w);
+
+template <class T>
+matrix<T> row_stack(const matrix<T> &A, const array<T> &v);
+
+template <class T>
+matrix<T> row_stack(const array<T> &v, const matrix<T> &A);
+
+template <class T>
+matrix<T> row_stack(const matrix<T> &A, const matrix<T> &B);
+```
+
+#### Example 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{5, 3, 0}, {1, -1, 2}};
+    np::matrix<int> B = {{7, 1, -2}, {5, 3, 0}};
+    np::array<int> v = {1, 2, 3};
+    np::array<int> w = {0, -1, 5};
+    cout << np::row_stack(v, w) << "\n";
+    cout << np::row_stack(A, v) << "\n";
+    cout << np::row_stack(v, A) << "\n";
+    cout << np::row_stack(A, B) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[1,  2, 3]
+       [0, -1, 5]]
+      [[5,  3, 0]
+       [1, -1, 2]
+       [1,  2, 3]]
+      [[1,  2, 3]
+       [5,  3, 0]
+       [1, -1, 2]]
+      [[5,  3,  0]
+       [1, -1,  2]
+       [7,  1, -2]
+       [5,  3,  0]]
+```
+
+### `save_matrix` 
+
+Save a matrix's content into a binary file. The function throws a 
+`runtime_error` exception if the file passed as an argument could not be 
+opened.
+```cpp
+template <class T>
+void save_matrix(const char *file, const matrix<T> &A);
+```
+
+### `save_txt` 
+
+Save a matrix's content into a text file. The delimiter that will separate 
+values in the same row can optionally be specified. By default, the delimiter 
+is a white space. Aditionaly the file's header can be specified. The function 
+throws a `runtime_error` exception if the file passed as an argument could not 
+be opened.
+```cpp
+template <class T>
+void save_txt(const char *file, const matrix<T> &A, char delimiter = ' ');
+
+template <class T>
+void save_txt(
+    const char *file,
+    const matrix<T> &A,
+    char delimiter,
+    const array<std::string> &names
+);
+```
+
+### `stddev` 
+
+In its first version, returns the standard deviation of the matrix elements. In 
+its second version, returns the standard deviation of the matrix elements along 
+the given axis.
+```cpp
+template <class T>
+T stddev(const matrix<T> &A, size_t ddof = 0);
+
+template <class T>
+array<T> stddev(const matrix<T> &A, size_t ddof, size_t axis);
+```
+
+### `sum`
+
+In its first version, returns the sum of the matrix elements. In its second 
+version, returns the sum of the matrix elements along the given axis.
+```cpp
+template <class T>
+T sum(const matrix<T> &A);
+
+template <class T>
+array<T> sum(const matrix<T> &A, size_t axis);
+```
+
+### `swap` 
+
+Swap contents between two matrices. This function is implemented to work in 
+constant time.
+```cpp
+template <class T>
+void swap(matrix<T> &A, matrix<T> &B);
+```
+
+### `trace`
+
+Returns the sum along the diagonal of the matrix with the given offset, i.e., 
+the sum of the elements `A[i][i + offset]` for all `i`. `offset` can be both 
+positive and negative. By default, `offset = 0`.
+```cpp
+template <class T>
+T trace(const matrix<T> &A, int offset = 0);
+```
+
+### `transpose`
+
+Returns a copy of the matrix transposed. 
+```cpp
+template <class T>
+matrix<T> transpose(const matrix<T> &A);
+```
+
+### `var` 
+
+In its first version, returns the variance of the matrix elements. In its 
+second version, returns the variance of the matrix elements along the given 
+axis.
+```cpp
+template <class T>
+T var(const matrix<T> &A, size_t ddof = 0);
+
+template <class T>
+array<T> var(const matrix<T> &A, size_t ddof, size_t axis);
+```
+
+### `zeros` 
+
+Returns a new matrix with `m` rows and `n` columns setting values to zero.
+```cpp
+template<class T = double> 
+matrix<T> zeros(size_t m, size_t n);
+```

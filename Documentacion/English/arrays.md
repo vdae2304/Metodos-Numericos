@@ -1125,7 +1125,6 @@ int main() {
       After: [1, 2, 3] and [1, -9, 5, 10, -2]
 ```
 
-
 ### `var` 
 
 Returns the variance of the array elements. The variance is defined by 

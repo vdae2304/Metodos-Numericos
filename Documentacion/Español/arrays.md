@@ -1138,7 +1138,6 @@ int main() {
       Despues: [1, 2, 3] y [1, -9, 5, 10, -2]
 ```
 
-
 ### `var` 
 
 Devuelve la varianza de los elementos de un arreglo. La varianza está definida 
