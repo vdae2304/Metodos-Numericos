@@ -40,6 +40,7 @@ namespace numcpp {
     };
 
     template <class T> class subarray;
+    template <class T> class matrix;
 
     // Arrays are fixed-size sequence containers: they hold a specific number
     // of elements ordered in a strict linear sequence.
@@ -191,8 +192,11 @@ namespace numcpp {
 
             const T* data() const;
 
-            // Return the dot product of two arrays.
+            // Return the dot product between two arrays or between a row
+            // vector and a matrix.
             T dot(const array &v) const;
+
+            array dot(const matrix<T> &A) const;
 
             // Returns the maximum value contained in the array.
             T max() const;
@@ -592,7 +596,7 @@ namespace numcpp {
             void swap(matrix &A);
 
             // Returns the sum along the diagonal in the matrix.
-            T trace() const;
+            T trace(int offset = 0) const;
 
             // Returns a copy of the matrix transposed.
             matrix<T> transpose() const;
@@ -728,6 +732,22 @@ namespace numcpp {
     template <class T, class Function = T(T, T)>
     array<T> apply(Function f, const T &val, const array<T> &v);
 
+    // Returns a matrix with each of its elements initialized to the result of
+    // applying f to the corresponding element in A.
+    template <class T, class Function = T(T)>
+    matrix<T> apply(Function f, const matrix<T> &A);
+
+    // Returns a matrix with each of its elements initialized to the result of
+    // applying f to the corresponding element in A and B.
+    template <class T, class Function = T(T, T)>
+    matrix<T> apply(Function f, const matrix<T> &A, const matrix<T> &B);
+
+    template <class T, class Function = T(T, T)>
+    matrix<T> apply(Function f, const matrix<T> &A, const T &val);
+
+    template <class T, class Function = T(T, T)>
+    matrix<T> apply(Function f, const T &val, const matrix<T> &A);
+
     // Return evenly spaced values within a given interval. Values are
     // generated within the half-open interval [start, stop) (in other words,
     // the interval including start but excluding stop).
@@ -741,9 +761,21 @@ namespace numcpp {
     template <class T>
     size_t argmax(const array<T> &v);
 
+    template <class T>
+    std::pair<size_t, size_t> argmax(const matrix<T> &A);
+
+    template <class T>
+    array<size_t> argmax(const matrix<T> &A, size_t axis);
+
     // Return the index of the minimum value.
     template <class T>
     size_t argmin(const array<T> &v);
+
+    template <class T>
+    std::pair<size_t, size_t> argmin(const matrix<T> &A);
+
+    template <class T>
+    array<size_t> argmin(const matrix<T> &A, size_t axis);
 
     // Returns the indices that would sort this array.
     template <class T>
@@ -755,9 +787,39 @@ namespace numcpp {
     template <class T>
     array<T> clip(const array<T> &v, const T &a_min, const T &a_max);
 
+    template <class T>
+    matrix<T> clip(const matrix<T> &A, const T &a_min, const T &a_max);
+
+    // Concatenate arrays and matrices vertically.
+    template <class T>
+    matrix<T> column_stack(const array<T> &v, const array<T> &w);
+
+    template <class T>
+    matrix<T> column_stack(const matrix<T> &A, const array<T> &v);
+
+    template <class T>
+    matrix<T> column_stack(const array<T> &v, const matrix<T> &A);
+
+    template <class T>
+    matrix<T> column_stack(const matrix<T> &A, const matrix<T> &B);
+
     // Concatenate (join) two arrays.
     template <class T>
     array<T> concatenate(const array<T> &v, const array<T> &w);
+
+    // Returns the correlation matrix.
+    template <class T>
+    T corrcoef(const array<T> &x, const array<T> &y);
+
+    template <class T>
+    matrix<T> corrcoef(const matrix<T> &X, bool rowvar = true);
+
+    // Returns the covariance matrix.
+    template <class T>
+    T cov(const array<T> &x, const array<T> &y, size_t ddof = 0);
+
+    template <class T>
+    matrix<T> cov(const matrix<T> &X, bool rowvar = true, size_t ddof = 0);
 
     // Return the cumulative product of the elements.
     template <class T>
@@ -767,9 +829,29 @@ namespace numcpp {
     template <class T>
     array<T> cumsum(const array<T> &v);
 
-    // Return the dot product of two arrays.
+    // Extract a diagonal or construct a diagonal matrix.
+    template <class T>
+    array<T> diagonal(const matrix<T> &A, int offset = 0);
+
+    template <class T>
+    matrix<T> diagonal(const array<T> &v, int offset = 0);
+
+    // Return the dot product of
+    // (i)   two vectors,
+    // (ii)  row vector and matrix,
+    // (iii) matrix and column vector,
+    // (iv)  two matrices.
     template <class T>
     T dot(const array<T> &v, const array<T> &w);
+
+    template <class T>
+    array<T> dot(const array<T> &v, const matrix<T> &A);
+
+    template <class T>
+    array<T> dot(const matrix<T> &A, const array<T> &v);
+
+    template <class T>
+    matrix<T> dot(const matrix<T> &A, const matrix<T> &B);
 
     // Return a new uninitialized array.
     template <class T = double>
@@ -803,6 +885,10 @@ namespace numcpp {
         size_t num = 50,
         bool endpoint = true
     );
+
+    // Returns a matrix with ones on the diagonal and zeros elsewhere.
+    template <class T = double>
+    matrix<T> eye(size_t m, size_t n, int offset = 0);
 
     // Insert values before the given indices.
     template <class T>
@@ -862,13 +948,31 @@ namespace numcpp {
     template <class T>
     T max(const array<T> &v);
 
+    template <class T>
+    T max(const matrix<T> &A);
+
+    template <class T>
+    array<T> max(const matrix<T> &A, size_t axis);
+
     // Returns the average of the array elements.
     template <class T>
     T mean(const array<T> &v);
 
+    template <class T>
+    T mean(const matrix<T> &A);
+
+    template <class T>
+    array<T> mean(const matrix<T> &A, size_t axis);
+
     // Returns the minimum value contained in the array.
     template <class T>
     T min(const array<T> &v);
+
+    template <class T>
+    T min(const matrix<T> &A);
+
+    template <class T>
+    array<T> min(const matrix<T> &A, size_t axis);
 
     // Return a new array setting values to one.
     template <class T = double>
@@ -881,6 +985,25 @@ namespace numcpp {
     // Return the product of the array elements.
     template <class T>
     T prod(const array<T> &v);
+
+    template <class T>
+    T prod(const matrix<T> &A);
+
+    template <class T>
+    array<T> prod(const matrix<T> &A, size_t axis);
+
+    // Concatenate arrays and matrices horizontally.
+    template <class T>
+    matrix<T> row_stack(const array<T> &v, const array<T> &w);
+
+    template <class T>
+    matrix<T> row_stack(const matrix<T> &A, const array<T> &v);
+
+    template <class T>
+    matrix<T> row_stack(const array<T> &v, const matrix<T> &A);
+
+    template <class T>
+    matrix<T> row_stack(const matrix<T> &A, const matrix<T> &B);
 
     // Save an array to a binary file.
     template <class T>
@@ -910,17 +1033,46 @@ namespace numcpp {
     template <class T>
     T stddev(const array<T> &v, size_t ddof = 0);
 
+    template <class T>
+    T stddev(const matrix<T> &A, size_t ddof = 0);
+
+    template <class T>
+    array<T> stddev(const matrix<T> &A, size_t ddof, size_t axis);
+
     // Return the sum of the array elements.
     template <class T>
     T sum(const array<T> &v);
+
+    template <class T>
+    T sum(const matrix<T> &A);
+
+    template <class T>
+    array<T> sum(const matrix<T> &A, size_t axis);
 
     // Swap contents between two arrays.
     template <class T>
     void swap(array<T> &v, array<T> &w);
 
+    template <class T>
+    void swap(matrix<T> &A, matrix<T> &B);
+
+    // Returns the sum along the diagonal in the matrix.
+    template <class T>
+    T trace(const matrix<T> &A, int offset = 0);
+
+    // Returns a copy of the matrix transposed.
+    template <class T>
+    matrix<T> transpose(const matrix<T> &A);
+
     // Returns the variance of the array elements.
     template <class T>
     T var(const array<T> &v, size_t ddof = 0);
+
+    template <class T>
+    T var(const matrix<T> &A, size_t ddof = 0);
+
+    template <class T>
+    array<T> var(const matrix<T> &A, size_t ddof, size_t axis);
 
     // Return the indices of the elements that evaluate to true.
     array<size_t> where(const array<bool> &condition);

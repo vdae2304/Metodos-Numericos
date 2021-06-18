@@ -1356,6 +1356,25 @@ namespace numcpp {
         return out;
     }
 
+    // Returns the vector-matrix multiplication between *this and A.
+    template <class T>
+    array<T> array<T>::dot(const matrix<T> &A) const {
+        if (this->length != A.rows()) {
+            std::ostringstream error;
+            error << "matmul: Number of columns in left operand does not match "
+                  << "number of rows in right operand: (," << this->length
+                  << ") (" << A.rows() << "," << A.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        array<T> out(A.columns(), T(0));
+        for (size_t i = 0; i < A.rows(); ++i) {
+            for (size_t j = 0; j < A.columns(); ++j) {
+                out[j] += this->values[i] * A.at(i, j);
+            }
+        }
+        return out;
+    }
+
     // Returns the maximum value contained in the array.
     template <class T>
     T array<T>::max() const {
@@ -1420,7 +1439,7 @@ namespace numcpp {
     // Returns the standard deviation of the array elements.
     template <class T>
     T array<T>::stddev(size_t ddof) const {
-        return sqrt(this->var(ddof));
+        return std::sqrt(this->var(ddof));
     }
 
     // Return the sum of the array elements.
@@ -1576,6 +1595,12 @@ namespace numcpp {
     template <class T>
     T dot(const array<T> &v, const array<T> &w) {
         return v.dot(w);
+    }
+
+    // Return the dot product of a row vector and a matrix.
+    template <class T>
+    array<T> dot(const array<T> &v, const matrix<T> &A) {
+        return v.dot(A);
     }
 
     // Delete values from an array.
