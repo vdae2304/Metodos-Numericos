@@ -1391,15 +1391,17 @@ namespace numcpp {
     // inserting at the end as many elements as needed to reach a size of n.
     template <class T>
     void array<T>::resize(size_t n, const T &val) {
-        array<T> tmp_copy(*this);
-        delete[] this->values;
-        this->length = n;
-        this->values = new T[n];
-        for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
-            this->values[i] = tmp_copy.values[i];
-        }
-        for (size_t i = tmp_copy.length; i < n; ++i) {
-            this->values[i] = val;
+        if (this->length != n) {
+            array<T> tmp_copy(*this);
+            delete[] this->values;
+            this->length = n;
+            this->values = new T[n];
+            for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
+                this->values[i] = tmp_copy.values[i];
+            }
+            for (size_t i = tmp_copy.length; i < n; ++i) {
+                this->values[i] = val;
+            }
         }
     }
 

@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace numcpp {
@@ -507,6 +508,27 @@ namespace numcpp {
             const submatrix<T>
             at(const array<bool> &i, const array<bool> &j) const;
 
+            // Apply a function to each of the elements in *this.
+            template <class Function = T(T)>
+            void apply(Function f);
+
+            // Return the index of the maximum value.
+            std::pair<size_t, size_t> argmax() const;
+
+            array<size_t> argmax(size_t axis) const;
+
+            // Return the index of the minimum value.
+            std::pair<size_t, size_t> argmin() const;
+
+            array<size_t> argmin(size_t axis) const;
+
+            // Copy of the matrix, cast to a specified type.
+            template <class U> matrix<U> astype() const;
+
+            // Clip (limit) the values in the matrix. Given an interval, values
+            // outside the interval are clipped to the interval edges.
+            void clip(const T &a_min, const T &a_max);
+
             // Returns the number of columns in the matrix.
             size_t columns() const;
 
@@ -516,8 +538,69 @@ namespace numcpp {
 
             const T* data() const;
 
+            // Returns the matrix multiplication between a matrix and a column
+            // vector or between two matrices.
+            array<T> dot(const array<T> &v) const;
+
+            matrix dot(const matrix &A) const;
+
+            // Returns a copy of the matrix collapsed into an array.
+            array<T> flatten() const;
+
+            // Returns the maximum value contained in the matrix.
+            T max() const;
+
+            array<T> max(size_t axis) const;
+
+            // Returns the average of the matrix elements.
+            T mean() const;
+
+            array<T> mean(size_t axis) const;
+
+            // Returns the minimum value contained in the matrix.
+            T min() const;
+
+            array<T> min(size_t axis) const;
+
+            // Return the product of the matrix elements.
+            T prod() const;
+
+            array<T> prod(size_t axis) const;
+
+            // Resizes the matrix, changing its size to m rows and n columns.
+            // If the new size is smaller than the current size, the content is
+            // reduced, removing the last elements.
+            // If the new size is greater than the current size, the content is
+            // expanded by inserting at the end as many elements as needed.
+            // In any case, the contents will be rearranged to fit the new size.
+            void resize(size_t m, size_t n, const T &val = T());
+
             // Returns the number of rows in the matrix.
             size_t rows() const;
+
+            // Returns the standard deviation of the matrix elements.
+            T stddev(size_t ddof = 0) const;
+
+            array<T> stddev(size_t ddof, size_t axis) const;
+
+            // Return the sum of the matrix elements.
+            T sum() const;
+
+            array<T> sum(size_t axis) const;
+
+            // Swap contents with A.
+            void swap(matrix &A);
+
+            // Returns the sum along the diagonal in the matrix.
+            T trace() const;
+
+            // Returns a copy of the matrix transposed.
+            matrix<T> transpose() const;
+
+            // Returns the variance of the matrix elements.
+            T var(size_t ddof = 0) const;
+
+            array<T> var(size_t ddof, size_t axis) const;
     };
 
     // This class is used as an intermediate type returned by matrix's subscript
