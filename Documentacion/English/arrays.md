@@ -665,7 +665,7 @@ int main() {
 
 ### `argmax` 
 
-Returns the index of the maximum value stored in the array.
+Returns the index of the maximum value contained in the array.
 ```cpp
 size_t argmax() const;
 ```
@@ -690,7 +690,7 @@ int main() {
 
 ### `argmin` 
 
-Returns the index of the minimum value stored in the array.
+Returns the index of the minimum value contained in the array.
 ```cpp
 size_t argmin() const;
 ```
@@ -755,7 +755,7 @@ namespace np = numcpp;
 int main() {
     np::array<double> v = {1., 2.5, 3., -4.1, 0.};
     np::array<int> w = v.astype<int>();
-    cout << w;
+    cout << w << "\n";
     return 0;
 }
 ```

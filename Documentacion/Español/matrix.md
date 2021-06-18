@@ -617,4 +617,564 @@ int main() {
 
 ## Lista de métodos
 
+### `apply` 
+
+Sustituye cada elemento de la matriz con el resultado de evaluar una función en 
+el elemento correspondiente.
+```cpp
+template <class Function = T(T)>
+void apply(Function f);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+
+double square(double x) {
+    return x*x;
+}
+
+int main() {
+    np::matrix<double> A = {{1., -9., 5.}, {10., -2., 7.}};
+    A.apply(square);
+    cout << A << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[  1, 81, 25]
+       [100,  4, 49]]
+```
+
+### `argmax`
+
+En su primera versión, devuelve el índice del mayor valor contenido en la 
+matriz. En su segunda versión, devuelve el índice del mayor valor contenido en 
+la matriz a lo largo del eje indicado.
+```cpp
+std::pair<size_t, size_t> argmax() const;
+array<size_t> argmax(size_t axis) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{3., 0., 5.},
+                            {-4.1, 2.5, 1.}};
+    cout << "(" << A.argmax().first << ", " << A.argmax().second << ")\n";
+    cout << A.argmax(0) << "\n";
+    cout << A.argmax(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] (0, 2)
+      [0, 1, 0]
+      [2, 1]
+```
+
+### `argmin`
+
+En su primera versión, devuelve el índice del menor valor contenido en la 
+matriz. En su segunda versión, devuelve el índice del menor valor contenido en 
+la matriz a lo largo del eje indicado.
+```cpp
+std::pair<size_t, size_t> argmin() const;
+array<size_t> argmin(size_t axis) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{3., 0., 5.},
+                            {-4.1, 2.5, 1.}};
+    cout << "(" << A.argmin().first << ", " << A.argmin().second << ")\n";
+    cout << A.argmin(0) << "\n";
+    cout << A.argmin(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] (1, 0)
+      [1, 0, 1]
+      [1, 0]
+```
+
+### `astype` 
+
+Crea una copia de la matriz, haciendo la conversión al tipo de dato 
+especificado.
+```cpp
+template <class U> matrix<U> astype() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., 2.5, 3.}, {-4.1, 0., 5.1}};
+    np::matrix<int> B = A.astype<int>();
+    cout << B << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[ 1, 2, 3]
+       [-4, 0, 5]]
+```
+
+### `clip` 
+
+Restringe los valores de una matriz. Dado un intervalo, valores  fuera del 
+intervalo son restringidos a los extremos del intervalo.
+```cpp
+void clip(const T &a_min, const T &a_max);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -9., 3.}, {10., -2., 7.}};
+    A.clip(0., 5.);
+    cout << A << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[1, 0, 3]
+       [5, 0, 5]]
+```
+
+### `columns` 
+
+Devuelve el número de columnas en la matriz.
+```cpp
+size_t columns() const;
+```
+
+### `data`
+
+Devuelve un puntero a la memoria del arreglo utilizado internamente por la 
+matriz.
+```cpp
+T* data();
+const T* data() const;
+```
+
+### `dot`
+
+En su primera versión, devuelve la multiplicación matriz-vector entre `*this` y 
+`v`. En su segunda versión, devuelve la multiplicación de matrices entre 
+`*this` y `A`. 
+```cpp
+array<T> dot(const array<T> &v) const;
+matrix dot(const matrix &A) const;
+```
+La multiplicación de matrices entre dos matrices *A* y *B* está 
+definida como la matriz cuyos elementos son
+
+![$c_{ij} = \sum_k a_{ik}b_{kj}$](https://render.githubusercontent.com/render/math?math=c_%7Bij%7D%20%3D%20%5Csum_k%20a_%7Bik%7Db_%7Bkj%7D)
+
+Esto es, la entrada *(i, j)* corresponde al producto punto entre el renglón 
+*i*-ésimo de *A* y la columna *j*-ésima de *B*. 
+
+El método arroja una excepción del tipo `runtime_error` si el número de 
+columnas de `*this` no coincide con el número de elementos de `v` o el número 
+de renglones de `A`.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., 3.},
+                            {-2., 5.},
+                            {7., 0.}};
+    np::array<double> v = {1., -1.};
+    np::matrix<double> B = {{1., 1.},
+                            {-1., 1.}};
+    cout << A.dot(v) << "\n";
+    cout << A.dot(B) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [-2, -7, 7]
+      [[-2, 4]
+       [-7, 3]
+       [ 7, 7]]
+```
+
+### `flatten`
+
+Devuelve una copia de la matriz colapsada en un arreglo.
+```cpp
+array<T> flatten() const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., 2.5, 3.},
+                            {-4.1, 0., 5.1}};
+    cout << A.flatten() << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [1, 2.5, 3, -4.1, 0, 5.1]
+```
+
+### `max`
+
+En su primera versión, devuelve el mayor valor contenido en la matriz. En su 
+segunda versión, devuelve el mayor valor contenido en la matriz a lo largo del 
+eje indicado.
+```cpp
+T max() const;
+array<T> max(size_t axis) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{3., 0., 5.},
+                            {-4.1, 2.5, 1.}};
+    cout << A.max() << "\n";
+    cout << A.max(0) << "\n";
+    cout << A.max(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 5
+      [3, 2.5, 5]
+      [5, 2.5]
+```
+
+### `mean` 
+
+En su primera versión, devuelve la media o promedio de los elementos de una 
+matriz. En su segunda versión, devuelve la media o promedio de los elementos de 
+una matriz a lo largo del eje indicado.
+```cpp
+T mean() const;
+array<T> mean(size_t axis) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -3., 2., 7.},
+                            {0., 5., 2., -1.},
+                            {5., 1., 5., 3.}};
+    cout << A.mean() << "\n";
+    cout << A.mean(0) << "\n";
+    cout << A.mean(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 2.25
+      [2, 1, 3, 3]
+      [1.75, 1.5, 3.5]
+```
+
+### `min`
+
+En su primera versión, devuelve el menor valor contenido en la matriz. En su 
+segunda versión, devuelve el menor valor contenido en la matriz a lo largo del 
+eje indicado.
+```cpp
+T min() const;
+array<T> min(size_t axis) const;
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{3., 0., 5.},
+                            {-4.1, 2.5, 1.}};
+    cout << A.min() << "\n";
+    cout << A.min(0) << "\n";
+    cout << A.min(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] -4.1
+      [-4.1, 0, 1]
+      [0, -4.1]
+```
+
+### `prod`
+
+En su primera versión, devuelve el producto de los elementos de una matriz. En 
+su segunda versión, devuelve el producto de los elementos de una matriz a lo 
+largo del eje indicado.
+```cpp
+T prod() const;
+array<T> prod(size_t axis) const;
+```
+
+#### Ejemplo 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{2, 3, 5},
+                         {1, 4, 2}};
+    cout << A.prod() << "\n";
+    cout << A.prod(0) << "\n";
+    cout << A.prod(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 240
+      [2, 12, 10]
+      [30, 8]
+```
+
+### `resize`
+
+Cambia el tamaño de la matriz a `m` renglones y `n` columnas. 
+
+Si el número total de elementos en la matriz se mantiene constante, el 
+contenido de la matriz es reacomodado para ajustarse al nuevo tamaño.
+
+Si el número total de elementos en la matriz disminuye, el contenido de la 
+matriz es reducido eliminando del final tantos elementos sean necesarios 
+para alcanzar el nuevo tamaño.
+
+Si el número total de elementos en la matriz incrementa, el contenido de la 
+matriz es expandido agregando al final tantos elementos sean necesarios para 
+alcanzar el nuevo tamaño.
+```cpp
+void resize(size_t m, size_t n, const T &val = T());
+```
+
+#### Ejemplo 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -9.}, {5., 10.}, {-2., 7.}};
+    cout << "Antes:\n" << A << "\n";
+    A.resize(1, 6, 0.);
+    cout << "Tras reacomodar:\n" << A << "\n";
+    A.resize(4, 2, 0.);
+    cout << "Tras expandir:\n" << A << "\n";
+    A.resize(2, 2, 0.);
+    cout << "Tras recortar:\n" << A << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Antes:
+      [[ 1, -9]
+       [ 5, 10]
+       [-2,  7]]
+      Tras reacomodar:
+      [[1, -9, 5, 10, -2, 7]]
+      Tras expandir:
+      [[ 1, -9]
+       [ 5, 10]
+       [-2,  7]
+       [ 0,  0]]
+      Tras recortar:
+      [[1, -9]
+       [5, 10]]
+```
+
+### `rows` 
+
+Devuelve el número de renglones en la matriz.
+```cpp
+size_t rows() const;
+```
+
+### `stddev` 
+
+En su primera versión, devuelve la desviación estándar de los elementos de una 
+matriz. En su segunda versión, devuelve la desviación estándar de los elementos 
+de una matriz a lo largo del eje indicado.
+```cpp
+T stddev(size_t ddof = 0) const;
+array<T> stddev(size_t ddof, size_t axis) const;
+```
+La desviación estándar está definida como
+
+![$\sqrt{\frac{1}{n - ddof}\sum_{i = 1}^{n} (x_i - \bar{x})^2}$](https://render.githubusercontent.com/render/math?math=%5Csqrt%7B%5Cfrac%7B1%7D%7Bn%20-%20ddof%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20(x_i%20-%20%5Cbar%7Bx%7D)%5E2%7D)
+
+donde 
+![$\bar{x}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D) 
+es la media y
+![$\bar{x}$](https://render.githubusercontent.com/render/math?math=ddof) 
+son los grados de libertad.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -3., 2., 7.},
+                            {0., 5., 2., -1.},
+                            {5., 1., 5., 3.}};
+    cout << A.stddev(0) << "\n";
+    cout << A.stddev(0, 0) << "\n";
+    cout << A.stddev(0, 1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 2.77263
+      [2.1602469, 3.2659863, 1.4142136, 3.2659863]
+      [3.5619517, 2.2912878, 1.6583124]
+```
+
+### `sum`
+
+En su primera versión, devuelve la suma de los elementos de una matriz. En su 
+segunda versión, devuelve la suma de los elementos de una matriz a lo largo del 
+eje indicado.
+```cpp
+T sum() const;
+array<T> sum(size_t axis) const;
+```
+
+#### Ejemplo 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{2, 3, 5},
+                         {1, 4, 2}};
+    cout << A.sum() << "\n";
+    cout << A.sum(0) << "\n";
+    cout << A.sum(1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 17
+      [3, 7, 7]
+      [10, 7]
+```
+
+### `var` 
+
+En su primera versión, devuelve la varianza de los elementos de una matriz. En 
+su segunda versión, devuelve la varianza de los elementos de una matriz a lo 
+largo del eje indicado.
+```cpp
+T var(size_t ddof = 0) const;
+array<T> var(size_t ddof, size_t axis) const;
+```
+La varianza está definida como
+
+![$S^2 = \frac{1}{n - ddof}\sum_{i = 1}^{n} (x_i - \bar{x})^2$](https://render.githubusercontent.com/render/math?math=S%5E2%20%3D%20%5Cfrac%7B1%7D%7Bn%20-%20ddof%7D%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%20(x_i%20-%20%5Cbar%7Bx%7D)%5E2)
+
+donde 
+![$\bar{x}$](https://render.githubusercontent.com/render/math?math=%5Cbar%7Bx%7D) 
+es la media y
+![$\bar{x}$](https://render.githubusercontent.com/render/math?math=ddof) 
+son los grados de libertad.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1., -3., 2., 7.},
+                            {0., 5., 2., -1.},
+                            {5., 1., 5., 3.}};
+    cout << A.var(0) << "\n";
+    cout << A.var(0, 0) << "\n";
+    cout << A.var(0, 1) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] 7.6875
+      [4.6666667, 10.666667, 2, 10.666667]
+      [12.6875, 5.25, 2.75]
+```
+
 ## Funciones globales

@@ -642,8 +642,8 @@ int main() {
 
 ### `apply` 
 
-Sustituye cada elemento del arreglo con el resultado de evaluar una función al 
-elemento correspondiente.
+Sustituye cada elemento del arreglo con el resultado de evaluar una función en 
+el elemento correspondiente.
 ```cpp
 template <class Function = T(T)>
 void apply(Function f);
@@ -766,7 +766,7 @@ namespace np = numcpp;
 int main() {
     np::array<double> v = {1., 2.5, 3., -4.1, 0.};
     np::array<int> w = v.astype<int>();
-    cout << w;
+    cout << w << "\n";
     return 0;
 }
 ```
@@ -992,7 +992,7 @@ int main() {
 Cambia el tamaño del arreglo a `n` elementos. Si `n` es menor que el tamaño 
 actual, el contenido es reducido a los primeros `n` elementos, eliminando 
 aquellos más allá de esa posición. Si `n` es mayor que el tamaño actual, el 
-contenido es expandido agregando al final tantos elementos seannecesarios para 
+contenido es expandido agregando al final tantos elementos sean necesarios para 
 alcanzar un tamaño de `n`.
 ```cpp
 void resize(size_t n, const T &val = T());
