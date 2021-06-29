@@ -475,9 +475,13 @@ subscript, and overloads the assignment and compound assignment operators,
 allowing direct access to the elements in the selection. The object is 
 convertible to an array, producing a new object with copies of the referred 
 elements.
+
+There are three types of sub-arrays depending on how the subscripts are 
+selected: `slice_subarray`, `index_subarray` y 
+`mask_subarray`.
 ```cpp
 template <class T>
-class subarray<T> {
+class slice_subarray {
 public:
     void operator= (const array<T> &v);
     void operator= (const T &val);
@@ -512,6 +516,77 @@ public:
 };
 ```
 
+```cpp
+template <class T>
+class index_subarray {
+public:
+    void operator= (const array<T> &v);
+    void operator= (const T &val);
+
+    void operator+= (const array<T> &v);
+    void operator-= (const array<T> &v);
+    void operator*= (const array<T> &v);
+    void operator/= (const array<T> &v);
+    void operator%= (const array<T> &v);
+    void operator&= (const array<T> &v);
+    void operator|= (const array<T> &v);
+    void operator^= (const array<T> &v);
+    void operator<<= (const array<T> &v);
+    void operator>>= (const array<T> &v);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    T& operator[] (size_t i);
+    const T& operator[] (size_t i) const;
+
+    array<T> copy() const;
+    size_t size() const;
+};
+```
+
+```cpp
+template <class T>
+class mask_subarray {
+public:
+    void operator= (const array<T> &v);
+    void operator= (const T &val);
+
+    void operator+= (const array<T> &v);
+    void operator-= (const array<T> &v);
+    void operator*= (const array<T> &v);
+    void operator/= (const array<T> &v);
+    void operator%= (const array<T> &v);
+    void operator&= (const array<T> &v);
+    void operator|= (const array<T> &v);
+    void operator^= (const array<T> &v);
+    void operator<<= (const array<T> &v);
+    void operator>>= (const array<T> &v);
+
+    void operator+= (const T &val);
+    void operator-= (const T &val);
+    void operator*= (const T &val);
+    void operator/= (const T &val);
+    void operator%= (const T &val);
+    void operator&= (const T &val);
+    void operator|= (const T &val);
+    void operator^= (const T &val);
+    void operator<<= (const T &val);
+    void operator>>= (const T &val);
+
+    array<T> copy() const;
+    size_t size() const;
+};
+```
+
 ### Slice indexing
 
 A `slice` describes a selection of elements to be used as an index by the 
@@ -523,11 +598,11 @@ the step size is 1.
 slice(size_t stop);
 slice(size_t start, size_t stop, int step = 1);
 ```
-Indexing an array using slices, the operator will return a `subarray<T>` 
+Indexing an array using slices, the operator will return a `slice_subarray<T>` 
 object representing a subarray with the elements selected by the slice.
 ```cpp
-subarray<T> operator[] (slice slc);
-const subarray<T> operator[] (slice slc) const;
+slice_subarray<T> operator[] (slice slc);
+const slice_subarray<T> operator[] (slice slc) const;
 ```
 
 #### Example
@@ -538,7 +613,7 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
-    np::subarray<int> sub = v[np::slice(3, 10, 2)];
+    np::slice_subarray<int> sub = v[np::slice(3, 10, 2)];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";
@@ -558,11 +633,11 @@ int main() {
 ### Integer array indexing
 
 Indexing an array using integer arrays (of `size_t` data type), the operator 
-will returns a `subarray<T>` object representing a subarray with the elements 
-selected by the integer array.
+will return a `index_subarray<T>` object representing a subarray with the 
+elements selected by the integer array.
 ```cpp
-subarray<T> operator[] (const array<size_t> &indices);
-const subarray<T> operator[] (const array<size_t> &indices) const;
+index_subarray<T> operator[] (const array<size_t> &index);
+const index_subarray<T> operator[] (const array<size_t> &index) const;
 ```
 
 #### Example
@@ -575,7 +650,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<size_t> indices = {1, 5, 6, 8, 2};
-    np::subarray<int> sub = v[indices];
+    np::index_subarray<int> sub = v[indices];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";
@@ -594,11 +669,12 @@ int main() {
 
 ### Boolean array indexing
 
-Indexing an array using boolean arrays, the operator will return a `subarray<T>` 
-object representing a subarray with the elements selected by the boolean mask.
+Indexing an array using boolean arrays, the operator will return a 
+`mask_subarray<T>` object representing a subarray with the elements selected by 
+the boolean mask.
 ```cpp
-subarray<T> operator[] (const array<bool> &mask);
-const subarray<T> operator[] (const array<bool> &mask) const;
+mask_subarray<T> operator[] (const array<bool> &mask);
+const mask_subarray<T> operator[] (const array<bool> &mask) const;
 ```
 
 #### Example
@@ -611,7 +687,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<bool> mascara = {1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
-    np::subarray<int> sub = v[mascara];
+    np::mask_subarray<int> sub = v[mascara];
     cout << "v's elements are: " << v << "\n";
     cout << "The subarray has " << sub.size() << " elements.\n";
     cout << "The subarray's elements are: " << sub.copy() << "\n";

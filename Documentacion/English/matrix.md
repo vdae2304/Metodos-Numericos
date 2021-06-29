@@ -480,13 +480,19 @@ int main() {
 
 ## Advanced indexing
 
-### Sub-matrices
+### Slices and sub-matrices
 
-A sub-matrix is an intermediate class returned by the matrix's `at` method. It 
-references the elements in the matrix that are selected by the subscripts, and 
-overloads the assignment and compound assignment operators, allowing direct 
-access to the elements in the selection. The object is convertible to a matrix, 
-producing a new object with copies of the referred elements.
+A sub-matrix is an intermediate class returned by the matrix's `at` method when 
+using slices. It references the elements in the matrix that are selected by the 
+subscripts, and overloads the assignment and compound assignment operators, 
+allowing direct access to the elements in the selection. The object is 
+convertible to a matrix, producing a new object with copies of the referred 
+elements.
+```cpp
+submatrix<T> at(slice i, slice j);
+const submatrix<T> at(slice i, slice j) const;
+```
+
 ```cpp
 template <class T>
 class submatrix {
@@ -524,20 +530,6 @@ public:
     size_t rows() const;
 };
 ```
-The `at` method accepts `size_t`, `slice`, `array<size_t>` and `array<bool>` 
-objects on each axe.
-
-The first one respresents a selection of elements over a single row/column 
-through an index.
-
-The second one represents a selection of elements through a slice. A slice is 
-defined by a starting index (`start`), a stop index (`stop`) and a step size 
-(`step`). For example, `slice(3, 20, 5)` selects the elements with indices 3, 
-8, 13 and 18. By default, the starting index is 0 and the step size is 1.
-
-The third one represents a selection of elements through an array of indices.
-
-The fourth one represents a selecion of elements through a boolean mask.
 
 #### Example
 ```cpp
@@ -552,20 +544,68 @@ int main() {
                          {1, 5, 0, 0, -2, 9}};
     cout << "A's elements are:\n" << A << "\n";
 
-    // Select rows 0, 1, 2, 3 and columns 1, 5.
-    np::submatrix<int> sub = A.at(np::slice(4), np::array<size_t> {1, 5});
+    // Select rows 0, 1, 2, 3 and columns 1, 3, 5.
+    np::submatrix<int> sub = A.at(np::slice(4), np::slice(1, 6, 2));
     cout << "The submatrix has " << sub.rows() << " rows";
     cout << " and " << sub.columns() << " columns.\n";
     cout << "The submatrix elements are:\n" << sub.copy() << "\n";
     sub = 0;
     cout << "A's elements are now:\n" << A << "\n";
 
-    // Select row 1 and columns 1, 3, 5.
-    A.at(1, np::slice(1, 6, 2)) += 10;
-    cout << "A's elements are now:\n" << A << "\n";
+    return 0;
+}
 
-    // Select rows 1, 2 and columns 0, 1, 4.
-    A.at(np::array<size_t> {1, 2}, np::array<bool> {1, 1, 0, 0, 1, 0}) *= 3;
+```
+
+```
+[Out] A's elements are:
+      [[7, 0, -1, 14,  3,  0]
+       [5, 3, 10,  2,  0, -1]
+       [0, 1,  7, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
+      The submatrix has 4 rows and 3 columns.
+      The submatrix elements are:
+      [[0, 14,  0]
+       [3,  2, -1]
+       [1, -5,  3]
+       [5,  0,  9]]
+      A's elements are now:
+      [[7, 0, -1, 0,  3, 0]
+       [5, 0, 10, 0,  0, 0]
+       [0, 0,  7, 0,  9, 0]
+       [1, 0,  0, 0, -2, 0]]
+```
+
+### Integer array indexing
+
+Indexing a matrix using integer arrays (of `size_t` data type) on each axis, 
+the operator will return a `index_subarray<T>` object representing a subarray 
+with the elements selected by the integer arrays.
+```cpp
+index_subarray<T> at(const array<size_t> &i, const array<size_t> &j);
+const index_subarray<T> at(const array<size_t> &i, const array<size_t> &j) const;
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{7, 0, -1, 14, 3, 0},
+                         {5, 3, 10, 2, 0, -1},
+                         {0, 1, 7, -5, 9, 3},
+                         {1, 5, 0, 0, -2, 9}};
+    cout << "A's elements are:\n" << A << "\n";
+
+    // Select positions (0, 0), (0, 2), (0, 5), (2, 1), (3, 0), (3, 4)
+    np::array<size_t> i = {0, 0, 0, 2, 3, 3};
+    np::array<size_t> j = {0, 2, 5, 1, 0, 4};
+    np::index_subarray<int> sub = A.at(i, j);
+    cout << "The selected elements are:\n" << sub.copy() << "\n";
+    sub = 0;
     cout << "A's elements are now:\n" << A << "\n";
 
     return 0;
@@ -578,27 +618,63 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      The submatrix has 4 rows and 2 columns.
-      The submatrix elements are:
-      [[0,  0]
-       [3, -1]
-       [1,  3]
-       [5,  9]]
+      The selected elements are:
+      [7, -1, 0, 1, 1, -2]
       A's elements are now:
-       [[7, 0, -1, 14,  3, 0]
-        [5, 0, 10,  2,  0, 0]
-        [0, 0,  7, -5,  9, 0]
-        [1, 0,  0,  0, -2, 0]]
-       A's elements are now:
-       [[7,  0, -1, 14,  3,  0]
-        [5, 10, 10, 12,  0, 10]
-        [0,  0,  7, -5,  9,  0]
-        [1,  0,  0,  0, -2,  0]]
-       A's elements are now:
-       [[ 7,  0, -1, 14,  3,  0]
-        [15, 30, 10, 12,  0, 10]
-        [ 0,  0,  7, -5, 27,  0]
-        [ 1,  0,  0,  0, -2,  0]]
+      [[0, 0,  0, 14, 3,  0]
+       [5, 3, 10,  2, 0, -1]
+       [0, 0,  7, -5, 9,  3]
+       [0, 5,  0,  0, 0,  9]]
+```
+
+### Boolean matrix indexing
+
+Indexing a matrix using boolean matrices, the operator will return a 
+`mask_subarray<T>` object representing a subarray with the elements selected by 
+the boolean mask.
+```cpp
+mask_subarray<T> at(const matrix<bool> &mask);
+const mask_subarray<T> at(const matrix<bool> &mask) const;
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<int> A = {{7, 0, -1, 14, 3, 0},
+                         {5, 3, 10, 2, 0, -1},
+                         {0, 1, 7, -5, 9, 3},
+                         {1, 5, 0, 0, -2, 9}};
+    cout << "A's elements are:\n" << A << "\n";
+
+    // Select the positions with negative values.
+    np::matrix<bool> mask = A < 0;
+    np::mask_subarray<int> sub = A.at(mask);
+    cout << "The selected elements are:\n" << sub.copy() << "\n";
+    sub = 0;
+    cout << "A's elements are now:\n" << A << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] A's elements are:
+      [[7, 0, -1, 14,  3,  0]
+       [5, 3, 10,  2,  0, -1]
+       [0, 1,  7, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
+      The selected elements are:
+      [-1, -1, -5, -2]
+      A's elements are now:
+      [[7, 0,  0, 14, 3, 0]
+       [5, 3, 10,  2, 0, 0]
+       [0, 1,  7,  0, 9, 3]
+       [1, 5,  0,  0, 0, 9]]
 ```
 
 ## Methods list
