@@ -1160,137 +1160,17 @@ namespace numcpp {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    // Sub-matrix indexing                                                    //
+    // Slice indexing                                                         //
     ////////////////////////////////////////////////////////////////////////////
 
-    // Index-slice indexing: Return a sub-matrix object that selects the
-    // elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(size_t i, slice j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(size_t i, slice j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    // Index-integer array indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(size_t i, const array<size_t> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = j;
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(size_t i, const array<size_t> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = j;
-        return view;
-    }
-
-    // Index-boolean array indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(size_t i, const array<bool> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = where(j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(size_t i, const array<bool> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = full(1, i);
-        view.col_indices = where(j);
-        return view;
-    }
-
-    // Slice-index indexing: Return a sub-matrix object that selects the
-    // elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(slice i, size_t j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(slice i, size_t j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    // Integer array-index indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<size_t> &i, size_t j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(const array<size_t> &i, size_t j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    // Boolean array-index indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<bool> &i, size_t j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(const array<bool> &i, size_t j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = full(1, j);
-        return view;
-    }
-
-    // Slice-slice indexing: Return a sub-matrix object that selects the
-    // elements specified by its arguments.
+    // Return a sub-matrix object that selects the elements specified by the
+    // slice.
     template <class T>
     submatrix<T> matrix<T>::at(slice i, slice j) {
         submatrix<T> view;
         view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = arange(j.start, j.stop, j.step);
+        view.i = i;
+        view.j = j;
         return view;
     }
 
@@ -1298,172 +1178,8 @@ namespace numcpp {
     const submatrix<T> matrix<T>::at(slice i, slice j) const {
         submatrix<T> view;
         view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    // Slice-integer array indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(slice i, const array<size_t> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = j;
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(slice i, const array<size_t> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = j;
-        return view;
-    }
-
-    // Slice-boolean array indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(slice i, const array<bool> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = where(j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(slice i, const array<bool> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = arange(i.start, i.stop, i.step);
-        view.col_indices = where(j);
-        return view;
-    }
-
-    // Integer array-slice indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<size_t> &i, slice j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(const array<size_t> &i, slice j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    // Integer array-integer array indexing: Return a sub-matrix object that
-    // selects the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<size_t> &i, const array<size_t> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = j;
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T>
-    matrix<T>::at(const array<size_t> &i, const array<size_t> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = j;
-        return view;
-    }
-
-    // Integer array-boolean array indexing: Return a sub-matrix object that
-    // selects the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<size_t> &i, const array<bool> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = where(j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T>
-    matrix<T>::at(const array<size_t> &i, const array<bool> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = i;
-        view.col_indices = where(j);
-        return view;
-    }
-
-    // Boolean array-slice indexing: Return a sub-matrix object that selects
-    // the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<bool> &i, slice j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T> matrix<T>::at(const array<bool> &i, slice j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = arange(j.start, j.stop, j.step);
-        return view;
-    }
-
-    // Boolean array-integer array indexing: Return a sub-matrix object that
-    // selects the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<bool> &i, const array<size_t> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = j;
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T>
-    matrix<T>::at(const array<bool> &i, const array<size_t> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = j;
-        return view;
-    }
-
-    // Boolean array-boolean array indexing: Return a sub-matrix object that
-    // selects the elements specified by its arguments.
-    template <class T>
-    submatrix<T> matrix<T>::at(const array<bool> &i, const array<bool> &j) {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = where(j);
-        return view;
-    }
-
-    template <class T>
-    const submatrix<T>
-    matrix<T>::at(const array<bool> &i, const array<bool> &j) const {
-        submatrix<T> view;
-        view.parent = this;
-        view.row_indices = where(i);
-        view.col_indices = where(j);
+        view.i = i;
+        view.j = j;
         return view;
     }
 
@@ -1770,18 +1486,22 @@ namespace numcpp {
     // j in the the sub-matrix.
     template <class T>
     T& submatrix<T>::at(size_t i, size_t j) {
-        return (*this->parent)[this->row_indices[i]][this->col_indices[j]];
+        return (*this->parent)[this->i.start + i*this->i.step]
+                              [this->j.start + j*this->j.step];
     }
 
     template <class T>
     const T& submatrix<T>::at(size_t i, size_t j) const {
-        return (*this->parent)[this->row_indices[i]][this->col_indices[j]];
+        return (*this->parent)[this->i.start + i*this->i.step]
+                              [this->j.start + j*this->j.step];
     }
 
     // Returns the number of columns selected by the sub-matrix.
     template <class T>
     size_t submatrix<T>::columns() const {
-        return this->col_indices.size();
+        return ceil(
+            ((double)this->j.stop - (double)this->j.start) / this->j.step
+        );
     }
 
     // Return a copy of the elements selected by the sub-matrix.
@@ -1800,7 +1520,61 @@ namespace numcpp {
     // Returns the number of rows selected by the sub-matrix.
     template <class T>
     size_t submatrix<T>::rows() const {
-        return this->row_indices.size();
+        return ceil(
+            ((double)this->i.stop - (double)this->i.start) / this->i.step
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Integer array indexing                                                 //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Return a sub-array object that selects the elements specified by the
+    // integer array.
+    template <class T>
+    index_subarray<T>
+    matrix<T>::at(const array<size_t> &i, const array<size_t> &j) {
+        index_subarray<T> view;
+        view.values = this->values;
+        view.index.resize(std::min(i.size(), j.size()));
+        for (size_t k = 0; k < view.index.size(); ++k) {
+            view.index[k] = i[k] * this->ncols + j[k];
+        }
+        return view;
+    }
+
+    template <class T>
+    const index_subarray<T>
+    matrix<T>::at(const array<size_t> &i, const array<size_t> &j) const {
+        index_subarray<T> view;
+        view.values = this->values;
+        view.index.resize(std::min(i.size(), j.size()));
+        for (size_t k = 0; k < view.index.size(); ++k) {
+            view.index[k] = i[k] * this->ncols + j[k];
+        }
+        return view;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Boolean array indexing                                                 //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Return a sub-array object that selects the elements specified by the
+    // boolean array.
+    template <class T>
+    mask_subarray<T> matrix<T>::at(const matrix<bool> &mask) {
+        mask_subarray<T> view;
+        view.values = this->values;
+        view.mask = mask.flatten();
+        return view;
+    }
+
+    template <class T>
+    const mask_subarray<T> matrix<T>::at(const matrix<bool> &mask) const {
+        mask_subarray<T> view;
+        view.values = this->values;
+        view.mask = mask.flatten();
+        return view;
     }
 
     ////////////////////////////////////////////////////////////////////////////
