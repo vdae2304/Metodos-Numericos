@@ -1257,6 +1257,44 @@ int main() {
       Are all even? false
 ```
 
+### `allclose`
+
+Returns `true` if two arrays are element-wise equal within a tolerance. If the 
+following equation is element-wise true, the function returns `true`:
+`abs(v[i] - w[i]) <= atol + rtol*abs(w[i])`, where `atol` is the absoltue 
+tolerance and `rtol` is the relative tolerance.
+```cpp
+template <class T>
+bool allclose(
+    const array<T> &v, const array<T> &w,
+    const T &atol = 1e-8, const T &rtol = 1e-5
+);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1e10, 1e-7};
+    np::array<double> w = {1.00001e10, 1e-8};
+    cout << boolalpha << np::allclose(v, w) << "\n";
+    v = {1e10, 1e-8};
+    w = {1.00001e10, 1e-9};
+    cout << np::allclose(v, w) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] false
+      true
+```
+
 ### `any`
 
 Returns `true` if any of the elements evaluate to `true`.

@@ -2103,6 +2103,26 @@ namespace numcpp {
         return true;
     }
 
+    // Returns true if two arrays are element-wise equal within a tolerance.
+    template <class T>
+    bool allclose(
+        const array<T> &v, const array<T> &w,
+        const T &atol, const T &rtol
+    ) {
+        if (v.size() != w.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << v.size() << ",) (" << w.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < v.size(); ++i) {
+            if (std::abs(v[i] - w[i]) > atol + rtol*std::abs(w[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Returns true if any of the elements evaluate to true.
     bool any(const array<bool> &v) {
         for (size_t i = 0; i < v.size(); ++i) {

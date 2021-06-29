@@ -1349,6 +1349,45 @@ int main() {
 
 ## Funciones globales
 
+### `allclose`
+
+Devuelve `true` si los elementos de dos matrices son iguales dentro de una 
+cierta tolerancia. Si la siguiente ecuación se cumple para todos los elementos,
+la función devuelve `true`: 
+`abs(A[i][j] - B[i][j]) <= atol + rtol*abs(B[i][j])`, donde `atol` es la 
+tolerancia absoluta y `rtol` es la tolerancia relativa.
+```cpp
+template <class T>
+bool allclose(
+    const matrix<T> &A, const matrix<T> &B,
+    const T &atol = 1e-8, const T &rtol = 1e-5
+);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{1e10}, {1e-7}};
+    np::matrix<double> B = {{1.00001e10}, {1e-8}};
+    cout << boolalpha << np::allclose(A, B) << "\n";
+    A = {{1e10}, {1e-8}};
+    B = {{1.00001e10}, {1e-9}};
+    cout << np::allclose(A, B) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] false
+      true
+```
+
 ### `apply` 
 
 En su primera versión, devuelve una matriz donde cada elemento está 

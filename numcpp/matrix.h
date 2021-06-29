@@ -2019,6 +2019,31 @@ namespace numcpp {
     // Global functions                                                       //
     ////////////////////////////////////////////////////////////////////////////
 
+    // Returns true if two matrices are element-wise equal within a tolerance.
+    template <class T>
+    bool allclose(
+        const matrix<T> &A, const matrix<T> &B,
+        const T &atol, const T &rtol
+    ) {
+        if (A.rows() != B.rows() || A.columns() != B.columns()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << A.rows() << "," << A.columns() << ") ("
+                  << B.rows() << "," << B.columns() << ")";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < A.rows(); ++i) {
+            for (size_t j = 0; j < A.columns(); ++j) {
+                if (
+                    std::abs(A[i][j] - B[i][j]) > atol + rtol*std::abs(B[i][j])
+                ) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     // Returns a matrix with each of its elements initialized to the result of
     // applying f to the corresponding element in A.
     template <class T, class Function = T(T)>

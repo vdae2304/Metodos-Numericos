@@ -1269,6 +1269,44 @@ int main() {
       Son todos pares? false
 ```
 
+### `allclose`
+
+Devuelve `true` si los elementos de dos arreglos son iguales dentro de una 
+cierta tolerancia. Si la siguiente ecuación se cumple para todos los elementos,
+la función devuelve `true`: `abs(v[i] - w[i]) <= atol + rtol*abs(w[i])`, donde 
+`atol` es la tolerancia absoluta y `rtol` es la tolerancia relativa.
+```cpp
+template <class T>
+bool allclose(
+    const array<T> &v, const array<T> &w,
+    const T &atol = 1e-8, const T &rtol = 1e-5
+);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {1e10, 1e-7};
+    np::array<double> w = {1.00001e10, 1e-8};
+    cout << boolalpha << np::allclose(v, w) << "\n";
+    v = {1e10, 1e-8};
+    w = {1.00001e10, 1e-9};
+    cout << np::allclose(v, w) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] false
+      true
+```
+
 ### `any`
 
 Devuelve `true` si algún elemento de un arreglo evalua a `true`.
