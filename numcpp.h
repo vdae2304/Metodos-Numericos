@@ -764,6 +764,19 @@ namespace numcpp {
     // Returns true if all elements evaluate to true.
     bool all(const array<bool> &v);
 
+    // Returns true if two arrays are element-wise equal within a tolerance.
+    template <class T>
+    bool allclose(
+        const array<T> &v, const array<T> &w,
+        const T &atol = 1e-8, const T &rtol = 1e-5
+    );
+
+    template <class T>
+    bool allclose(
+        const matrix<T> &A, const matrix<T> &B,
+        const T &atol = 1e-8, const T &rtol = 1e-5
+    );
+
     // Returns true if any of the elements evaluate to true.
     bool any(const array<bool> &v);
 
