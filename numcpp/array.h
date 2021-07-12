@@ -201,9 +201,7 @@ namespace numcpp {
     // The endpoint of the interval can optionally be excluded.
     template <class T>
     array<T> linspace(
-        const T &start, const T &stop,
-        size_t num,
-        bool endpoint
+        const T &start, const T &stop, size_t num, bool endpoint
     ) {
         array<T> out(num);
         T step = (stop - start) / (num - endpoint);
@@ -218,9 +216,7 @@ namespace numcpp {
     // ends with pow(base, stop).
     template <class T>
     array<T> logspace(
-        const T &start, const T &stop,
-        size_t num, bool endpoint,
-        const T &base
+        const T &start, const T &stop, size_t num, bool endpoint, const T &base
     ) {
         array<T> out(num);
         T step = (stop - start) / (num - endpoint);
@@ -235,9 +231,7 @@ namespace numcpp {
     // output sample is a constant multiple of the previous.
     template <class T>
     array<T> geomspace(
-        const T &start, const T &stop,
-        size_t num,
-        bool endpoint
+        const T &start, const T &stop, size_t num, bool endpoint
     ) {
         array<T> out(num);
         T base = pow(stop/start, 1.0/(num - endpoint));
@@ -1849,8 +1843,8 @@ namespace numcpp {
     template <class T>
     template <class Function>
     void array<T>::apply(Function f) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = f(this->values[i]);
+        for (size_t i = 0; i < this->size(); ++i) {
+            (*this)[i] = f((*this)[i]);
         }
     }
 
@@ -1858,8 +1852,8 @@ namespace numcpp {
     template <class T>
     size_t array<T>::argmax() const {
         size_t index = 0;
-        for (size_t i = 1; i < this->length; ++i) {
-            if (this->values[index] < this->values[i]) {
+        for (size_t i = 1; i < this->size(); ++i) {
+            if ((*this)[index] < (*this)[i]) {
                 index = i;
             }
         }
@@ -1870,8 +1864,8 @@ namespace numcpp {
     template <class T>
     size_t array<T>::argmin() const {
         size_t index = 0;
-        for (size_t i = 1; i < this->length; ++i) {
-            if (this->values[i] < this->values[index]) {
+        for (size_t i = 1; i < this->size(); ++i) {
+            if ((*this)[i] < (*this)[index]) {
                 index = i;
             }
         }
@@ -1881,15 +1875,18 @@ namespace numcpp {
     // Returns the indices that would sort this array.
     template <class T>
     array<size_t> array<T>::argsort() const {
-        array<size_t> indices(this->length);
+        array<size_t> indices(this->size());
         for (size_t i = 0; i < indices.size(); ++i) {
             indices[i] = i;
         }
         std::sort(
             indices.data(),
             indices.data() + indices.size(),
-            [=](size_t i, size_t j) {
-                  return this->values[i] < this->values[j];
+            [&](size_t i, size_t j) {
+                  if ((*this)[i] == (*this)[j]) {
+                    return i < j;
+                  }
+                  return (*this)[i] < (*this)[j];
             }
         );
         return indices;
@@ -1899,9 +1896,9 @@ namespace numcpp {
     template <class T>
     template <class U>
     array<U> array<T>::astype() const {
-        array<U> out(this->length);
-        for (size_t i = 0; i < this->length; ++i) {
-            out[i] = U(this->values[i]);
+        array<U> out(this->size());
+        for (size_t i = 0; i < out.size(); ++i) {
+            out[i] = U((*this)[i]);
         }
         return out;
     }
@@ -1910,12 +1907,12 @@ namespace numcpp {
     // the interval are clipped to the interval edges.
     template <class T>
     void array<T>::clip(const T &a_min, const T &a_max) {
-        for (size_t i = 0; i < this->length; ++i) {
-            if (this->values[i] < a_min) {
-                this->values[i] = a_min;
+        for (size_t i = 0; i < this->size(); ++i) {
+            if ((*this)[i] < a_min) {
+                (*this)[i] = a_min;
             }
-            else if (a_max < this->values[i]) {
-                this->values[i] = a_max;
+            else if (a_max < (*this)[i]) {
+                (*this)[i] = a_max;
             }
         }
     }
@@ -1923,10 +1920,10 @@ namespace numcpp {
     // Return the cumulative product of the elements.
     template <class T>
     array<T> array<T>::cumprod() const {
-        array<T> out(this->length);
-        out[0] = this->values[0];
-        for (size_t i = 1; i < this->length; ++i) {
-            out[i] = out[i - 1] * this->values[i];
+        array<T> out(this->size());
+        out[0] = (*this)[0];
+        for (size_t i = 1; i < this->size(); ++i) {
+            out[i] = out[i - 1] * (*this)[i];
         }
         return out;
     }
@@ -1934,10 +1931,10 @@ namespace numcpp {
     // Return the cumulative sum of the elements.
     template <class T>
     array<T> array<T>::cumsum() const {
-        array<T> out(this->length);
-        out[0] = this->values[0];
-        for (size_t i = 1; i < this->length; ++i) {
-            out[i] = out[i - 1] + this->values[i];
+        array<T> out(this->size());
+        out[0] = (*this)[0];
+        for (size_t i = 1; i < this->size(); ++i) {
+            out[i] = out[i - 1] + (*this)[i];
         }
         return out;
     }
@@ -1956,15 +1953,15 @@ namespace numcpp {
     // Return the dot product of two arrays.
     template <class T>
     T array<T>::dot(const array<T> &v) const {
-        if (this->length != v.length) {
+        if (this->size() != v.size()) {
             std::ostringstream error;
             error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
+                  << this->size() << ",) (" << v.size() << ",)";
             throw std::runtime_error(error.str());
         }
         T out = T(0);
-        for (size_t i = 0; i < this->length; ++i) {
-            out += this->values[i] * v.values[i];
+        for (size_t i = 0; i < this->size(); ++i) {
+            out += (*this)[i] * v[i];
         }
         return out;
     }
@@ -1972,17 +1969,17 @@ namespace numcpp {
     // Returns the vector-matrix multiplication between *this and A.
     template <class T>
     array<T> array<T>::dot(const matrix<T> &A) const {
-        if (this->length != A.rows()) {
+        if (this->size() != A.rows()) {
             std::ostringstream error;
             error << "matmul: Number of columns in left operand does not match "
-                  << "number of rows in right operand: (," << this->length
+                  << "number of rows in right operand: (," << this->size()
                   << ") (" << A.rows() << "," << A.columns() << ")";
             throw std::runtime_error(error.str());
         }
         array<T> out(A.columns(), T(0));
         for (size_t i = 0; i < A.rows(); ++i) {
             for (size_t j = 0; j < A.columns(); ++j) {
-                out[j] += this->values[i] * A.at(i, j);
+                out[j] += (*this)[i] * A.at(i, j);
             }
         }
         return out;
@@ -1991,27 +1988,27 @@ namespace numcpp {
     // Returns the maximum value contained in the array.
     template <class T>
     T array<T>::max() const {
-        return this->values[this->argmax()];
+        return (*this)[this->argmax()];
     }
 
     // Returns the average of the array elements.
     template <class T>
     T array<T>::mean() const {
-        return this->sum() / this->length;
+        return this->sum() / this->size();
     }
 
     // Returns the minimum value contained in the array.
     template <class T>
     T array<T>::min() const {
-        return this->values[this->argmin()];
+        return (*this)[this->argmin()];
     }
 
     // Return the product of the array elements.
     template <class T>
     T array<T>::prod() const {
         T out = T(1);
-        for (size_t i = 0; i < this->length; ++i) {
-            out *= this->values[i];
+        for (size_t i = 0; i < this->size(); ++i) {
+            out *= (*this)[i];
         }
         return out;
     }
@@ -2046,7 +2043,7 @@ namespace numcpp {
     // Sort an array in-place.
     template <class T>
     void array<T>::sort() {
-        std::sort(this->values, this->values + this->length);
+        std::sort(this->data(), this->data() + this->size());
     }
 
     // Returns the standard deviation of the array elements.
@@ -2059,8 +2056,8 @@ namespace numcpp {
     template <class T>
     T array<T>::sum() const {
         T out = T(0);
-        for (size_t i = 0; i < this->length; ++i) {
-            out += this->values[i];
+        for (size_t i = 0; i < this->size(); ++i) {
+            out += (*this)[i];
         }
         return out;
     }
@@ -2081,11 +2078,11 @@ namespace numcpp {
     T array<T>::var(size_t ddof) const {
         T array_mean = this->mean();
         T out = T(0);
-        for (size_t i = 0; i < this->length; ++i) {
-            T deviation = this->values[i] - array_mean;
+        for (size_t i = 0; i < this->size(); ++i) {
+            T deviation = (*this)[i] - array_mean;
             out += deviation*deviation;
         }
-        out /= (this->length - ddof);
+        out /= (this->size() - ddof);
         return out;
     }
 
@@ -2106,8 +2103,7 @@ namespace numcpp {
     // Returns true if two arrays are element-wise equal within a tolerance.
     template <class T>
     bool allclose(
-        const array<T> &v, const array<T> &w,
-        const T &atol, const T &rtol
+        const array<T> &v, const array<T> &w, const T &atol, const T &rtol
     ) {
         if (v.size() != w.size()) {
             std::ostringstream error;

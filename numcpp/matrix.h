@@ -176,10 +176,7 @@ namespace numcpp {
 
     template <class T>
     matrix<T> load_txt(
-        const char *file,
-        char delimiter,
-        bool header,
-        array<std::string> &names
+        const char *file, char delimiter, bool header, array<std::string> &names
     ) {
         std::ifstream loader(file);
 
@@ -276,9 +273,7 @@ namespace numcpp {
 
     template <class T>
     void save_txt(
-        const char *file,
-        const matrix<T> &A,
-        char delimiter,
+        const char *file, const matrix<T> &A, char delimiter,
         const array<std::string> &names
     ) {
         std::ofstream out(file);
@@ -1585,30 +1580,35 @@ namespace numcpp {
     template <class T>
     template <class Function>
     void matrix<T>::apply(Function f) {
-        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
-            this->values[i] = f(this->values[i]);
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                this->at(i, j) = f(this->at(i, j));
+            }
         }
     }
 
     // Return the index of the maximum value.
     template <class T>
     std::pair<size_t, size_t> matrix<T>::argmax() const {
-        size_t index = 0;
-        for (size_t i = 1; i < this->nrows * this->ncols; ++i) {
-            if (this->values[index] < this->values[i]) {
-                index = i;
+        std::pair<size_t, size_t> index(0, 0);
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                if (this->at(index.first, index.second) < this->at(i, j)) {
+                    index.first = i;
+                    index.second = j;
+                }
             }
         }
-        return std::make_pair(index / this->ncols, index % this->ncols);
+        return index;
     }
 
     // Return the index of the maximum value along a given axis.
     template <class T>
     array<size_t> matrix<T>::argmax(size_t axis) const {
         if (axis == 0) {
-            array<size_t> out(this->ncols, 0);
-            for (size_t i = 1; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<size_t> out(this->columns(), 0);
+            for (size_t i = 1; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     if (this->at(out[j], j) < this->at(i, j)) {
                         out[j] = i;
                     }
@@ -1617,9 +1617,9 @@ namespace numcpp {
             return out;
         }
         else if (axis == 1) {
-            array<size_t> out(this->nrows, 0);
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 1; j < this->ncols; ++j) {
+            array<size_t> out(this->rows(), 0);
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 1; j < this->columns(); ++j) {
                     if (this->at(i, out[i]) < this->at(i, j)) {
                         out[i] = j;
                     }
@@ -1635,22 +1635,25 @@ namespace numcpp {
     // Return the index of the minimum value.
     template <class T>
     std::pair<size_t, size_t> matrix<T>::argmin() const {
-        size_t index = 0;
-        for (size_t i = 1; i < this->nrows * this->ncols; ++i) {
-            if (this->values[i] < this->values[index]) {
-                index = i;
+        std::pair<size_t, size_t> index(0, 0);
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                if (this->at(i, j) < this->at(index.first, index.second)) {
+                    index.first = i;
+                    index.second = j;
+                }
             }
         }
-        return std::make_pair(index / this->ncols, index % this->ncols);
+        return index;
     }
 
     // Return the index of the minimum value along a given axis.
     template <class T>
     array<size_t> matrix<T>::argmin(size_t axis) const {
         if (axis == 0) {
-            array<size_t> out(this->ncols, 0);
-            for (size_t i = 1; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<size_t> out(this->columns(), 0);
+            for (size_t i = 1; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     if (this->at(i, j) < this->at(out[j], j)) {
                         out[j] = i;
                     }
@@ -1659,9 +1662,9 @@ namespace numcpp {
             return out;
         }
         else if (axis == 1) {
-            array<size_t> out(this->nrows, 0);
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 1; j < this->ncols; ++j) {
+            array<size_t> out(this->rows(), 0);
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 1; j < this->columns(); ++j) {
                     if (this->at(i, j) < this->at(i, out[i])) {
                         out[i] = j;
                     }
@@ -1678,9 +1681,9 @@ namespace numcpp {
     template <class T>
     template <class U>
     matrix<U> matrix<T>::astype() const {
-        matrix<U> out(this->nrows, this->ncols);
-        for (size_t i = 0; i < this->nrows; ++i) {
-            for (size_t j = 0; j < this->ncols; ++j) {
+        matrix<U> out(this->rows(), this->columns());
+        for (size_t i = 0; i < out.rows(); ++i) {
+            for (size_t j = 0; j < out.columns(); ++j) {
                 out.at(i, j) = U(this->at(i, j));
             }
         }
@@ -1691,12 +1694,14 @@ namespace numcpp {
     // the interval are clipped to the interval edges.
     template <class T>
     void matrix<T>::clip(const T &a_min, const T &a_max) {
-        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
-            if (this->values[i] < a_min) {
-                this->values[i] = a_min;
-            }
-            else if (a_max < this->values[i]) {
-                this->values[i] = a_max;
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                if (this->at(i, j) < a_min) {
+                    this->at(i, j) = a_min;
+                }
+                else if (a_max < this->at(i, j)) {
+                    this->at(i, j) = a_max;
+                }
             }
         }
     }
@@ -1721,17 +1726,17 @@ namespace numcpp {
     // Returns the matrix-vector multiplication between *this and v.
     template <class T>
     array<T> matrix<T>::dot(const array<T> &v) const {
-        if (this->ncols != v.size()) {
+        if (this->columns() != v.size()) {
             std::ostringstream error;
             error << "matmul: Number of columns in left operand does not match "
                   << "number of rows in right operand: ("
-                  << this->nrows << "," << this->ncols << ") ("
+                  << this->rows() << "," << this->columns() << ") ("
                   << v.size() << ",)";
             throw std::runtime_error(error.str());
         }
-        array<T> out(this->nrows, T(0));
-        for (size_t i = 0; i < this->nrows; ++i) {
-            for (size_t j = 0; j < this->ncols; ++j) {
+        array<T> out(this->rows(), T(0));
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
                 out[i] += this->at(i, j) * v[j];
             }
         }
@@ -1741,18 +1746,18 @@ namespace numcpp {
     // Returns the matrix multiplication between *this and A.
     template <class T>
     matrix<T> matrix<T>::dot(const matrix &A) const {
-        if (this->ncols != A.rows()) {
+        if (this->columns() != A.rows()) {
             std::ostringstream error;
             error << "matmul: Number of columns in left operand does not match "
                   << "number of rows in right operand: ("
-                  << this->nrows << "," << this->ncols << ") ("
+                  << this->rows() << "," << this->columns() << ") ("
                   << A.rows() << "," << A.columns() << ")";
             throw std::runtime_error(error.str());
         }
-        matrix<T> out(this->nrows, A.columns(), T(0));
-        for (size_t i = 0; i < this->nrows; ++i) {
+        matrix<T> out(this->rows(), A.columns(), T(0));
+        for (size_t i = 0; i < this->rows(); ++i) {
             for (size_t j = 0; j < A.columns(); ++j) {
-                for (size_t k = 0; k < this->ncols; ++k) {
+                for (size_t k = 0; k < this->columns(); ++k) {
                     out.at(i, j) += this->at(i, k) * A.at(k, j);
                 }
             }
@@ -1763,7 +1768,7 @@ namespace numcpp {
     // Returns a copy of the matrix collapsed into an array.
     template <class T>
     array<T> matrix<T>::flatten() const {
-        size_t length = this->nrows * this->ncols;
+        size_t length = this->rows() * this->columns();
         return array<T>(this->data(), this->data() + length);
     }
 
@@ -1789,14 +1794,14 @@ namespace numcpp {
     // Returns the average of the matrix elements.
     template <class T>
     T matrix<T>::mean() const {
-        return this->sum() / (this->nrows * this->ncols);
+        return this->sum() / (this->rows() * this->columns());
     }
 
     // Returns the average of the matrix elements along a given axis.
     template <class T>
     array<T> matrix<T>::mean(size_t axis) const {
         array<T> out = this->sum(axis);
-        out /= (axis == 0) ? this->nrows : this->ncols;
+        out /= (axis == 0) ? this->rows() : this->columns();
         return out;
     }
 
@@ -1823,8 +1828,10 @@ namespace numcpp {
     template <class T>
     T matrix<T>::prod() const {
         T out = T(1);
-        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
-            out *= this->values[i];
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                out *= this->at(i, j);
+            }
         }
         return out;
     }
@@ -1833,18 +1840,18 @@ namespace numcpp {
     template <class T>
     array<T> matrix<T>::prod(size_t axis) const {
         if (axis == 0) {
-            array<T> out(this->ncols, T(1));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->columns(), T(1));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     out[j] *= this->at(i, j);
                 }
             }
             return out;
         }
         else if (axis == 1) {
-            array<T> out(this->nrows, T(1));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->rows(), T(1));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     out[i] *= this->at(i, j);
                 }
             }
@@ -1902,8 +1909,10 @@ namespace numcpp {
     template <class T>
     T matrix<T>::sum() const {
         T out = T(0);
-        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
-            out += this->values[i];
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                out += this->at(i, j);
+            }
         }
         return out;
     }
@@ -1912,18 +1921,18 @@ namespace numcpp {
     template <class T>
     array<T> matrix<T>::sum(size_t axis) const {
         if (axis == 0) {
-            array<T> out(this->ncols, T(0));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->columns(), T(0));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     out[j] += this->at(i, j);
                 }
             }
             return out;
         }
         else if (axis == 1) {
-            array<T> out(this->nrows, T(0));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->rows(), T(0));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     out[i] += this->at(i, j);
                 }
             }
@@ -1953,7 +1962,7 @@ namespace numcpp {
     T matrix<T>::trace(int offset) const {
         T out = T(0);
         size_t i = (offset >= 0) ? 0 : -offset;
-        for (; i < this->nrows && i + offset < this->ncols; ++i) {
+        for (; i < this->rows() && i + offset < this->columns(); ++i) {
             out += this->at(i, i + offset);
         }
         return out;
@@ -1962,9 +1971,9 @@ namespace numcpp {
     // Returns a copy of the matrix transposed.
     template <class T>
     matrix<T> matrix<T>::transpose() const {
-        matrix<T> out(this->ncols, this->nrows);
-        for (size_t i = 0; i < this->nrows; ++i) {
-            for (size_t j = 0; j < this->ncols; ++j) {
+        matrix<T> out(this->columns(), this->rows());
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
                 out.at(j, i) = this->at(i, j);
             }
         }
@@ -1976,11 +1985,13 @@ namespace numcpp {
     T matrix<T>::var(size_t ddof) const {
         T matrix_mean = this->mean();
         T out = T(0);
-        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
-            T deviation = this->values[i] - matrix_mean;
-            out += deviation*deviation;
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->columns(); ++j) {
+                T deviation = this->at(i, j) - matrix_mean;
+                out += deviation*deviation;
+            }
         }
-        out /= (this->nrows * this->ncols - ddof);
+        out /= (this->rows() * this->columns() - ddof);
         return out;
     }
 
@@ -1988,26 +1999,26 @@ namespace numcpp {
     array<T> matrix<T>::var(size_t ddof, size_t axis) const {
         if (axis == 0) {
             array<T> matrix_mean = this->mean(axis);
-            array<T> out(this->ncols, T(0));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->columns(), T(0));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     T deviation = this->at(i, j) - matrix_mean[j];
                     out[j] += deviation * deviation;
                 }
             }
-            out /= (this->nrows - ddof);
+            out /= (this->rows() - ddof);
             return out;
         }
         else if (axis == 1) {
             array<T> matrix_mean = this->mean(axis);
-            array<T> out(this->nrows, T(0));
-            for (size_t i = 0; i < this->nrows; ++i) {
-                for (size_t j = 0; j < this->ncols; ++j) {
+            array<T> out(this->rows(), T(0));
+            for (size_t i = 0; i < this->rows(); ++i) {
+                for (size_t j = 0; j < this->columns(); ++j) {
                     T deviation = this->at(i, j) - matrix_mean[i];
                     out[i] += deviation * deviation;
                 }
             }
-            out /= (this->ncols - ddof);
+            out /= (this->columns() - ddof);
             return out;
         }
         else {
@@ -2022,8 +2033,7 @@ namespace numcpp {
     // Returns true if two matrices are element-wise equal within a tolerance.
     template <class T>
     bool allclose(
-        const matrix<T> &A, const matrix<T> &B,
-        const T &atol, const T &rtol
+        const matrix<T> &A, const matrix<T> &B, const T &atol, const T &rtol
     ) {
         if (A.rows() != B.rows() || A.columns() != B.columns()) {
             std::ostringstream error;
@@ -2046,7 +2056,7 @@ namespace numcpp {
 
     // Returns a matrix with each of its elements initialized to the result of
     // applying f to the corresponding element in A.
-    template <class T, class Function = T(T)>
+    template <class T, class Function>
     matrix<T> apply(Function f, const matrix<T> &A) {
         matrix<T> out(A);
         out.apply(f);
@@ -2055,7 +2065,7 @@ namespace numcpp {
 
     // Returns a matrix with each of its elements initialized to the result of
     // applying f to the corresponding element in A and B.
-    template <class T, class Function = T(T, T)>
+    template <class T, class Function>
     matrix<T> apply(Function f, const matrix<T> &A, const matrix<T> &B) {
         if (A.rows() != B.rows() || A.columns() != B.columns()) {
             std::ostringstream error;
@@ -2073,7 +2083,7 @@ namespace numcpp {
         return out;
     }
 
-    template <class T, class Function = T(T, T)>
+    template <class T, class Function>
     matrix<T> apply(Function f, const matrix<T> &A, const T &val) {
         matrix<T> B(A.rows(), A.columns(), val);
         return apply(f, A, B);
@@ -2149,13 +2159,14 @@ namespace numcpp {
         return out;
     }
 
-    // Returns the correlation matrix.
+    // Returns the correlation coefficient of x and y.
     template <class T>
     T corrcoef(const array<T> &x, const array<T> &y) {
         size_t ddof = x.size() - 1;
         return cov(x, y, ddof) / (x.stddev(ddof) * y.stddev(ddof));
     }
 
+    // Returns the correlation matrix.
     template <class T>
     matrix<T> corrcoef(const matrix<T> &X, bool rowvar) {
         size_t ddof = rowvar ? X.columns() - 1 : X.rows() - 1;
