@@ -529,3 +529,77 @@ int main() {
 [Out] true
       x = [0.087912088, 0.68131868, 0.64835165, -0.23076923]
 ```
+
+### `qr`
+
+Computes the QR decomposition of a matrix with linearly independent columns. 
+The decomposition is
+
+![$A = QR$](https://render.githubusercontent.com/render/math?math=A%20%3D%20QR) 
+
+where *Q* is an orthonormal matrix (i.e., ![$Q^T Q = Q Q^T = I$](https://render.githubusercontent.com/render/math?math=Q%5ET%20Q%20%3D%20Q%20Q%5ET%20%3D%20I))
+and *R* is an upper triangular matrix.
+
+If *A* is a rectangular matrix of shape *m × n*, *m ≥ n*, the decomposition can 
+be partitioned as
+
+![$A = QR = \begin{bmatrix}Q_1 & Q_2\end{bmatrix}\begin{bmatrix}R_1\\ 
+0\end{bmatrix} = Q_1R_1$](https://render.githubusercontent.com/render/math?math=A%20%3D%20QR%20%3D%20%5Cbegin%7Bbmatrix%7DQ_1%20%26%20Q_2%5Cend%7Bbmatrix%7D%5Cbegin%7Bbmatrix%7DR_1%5C%5C%20%0A0%5Cend%7Bbmatrix%7D%20%3D%20Q_1R_1)
+
+where *Q<sub>1</sub>*, *Q<sub>2</sub>* have orthonormal columns, *R* is an 
+upper triangular matrix and *0* is the zero matrix.
+```cpp
+template <class T>
+void qr(
+    const numcpp::matrix<T> &A,
+    numcpp::matrix<T> &Q,
+    numcpp::matrix<T> &R,
+    bool full_matrices = true
+);
+```
+If `full_matrices = true` (default), *Q* and *R* will be of shape *m × m* and 
+*m × n*, respectively. Otherwise, *Q* and *R* will be of shape *m × n* and 
+*n × n*. The function throws a `LinAlgError` exception if the decomposition 
+fails.
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, 1,  2},
+                            { 1, 5, 2,  2},
+                            {-2, 1, 0, -1},
+                            { 3, 2, 4,  0}};
+    np::matrix<double> Q, R;
+    scicpp::qr(A, Q, R);
+
+    cout << boolalpha;
+    cout << np::allclose(np::dot(Q, Q.transpose()), np::eye(4, 4)) << "\n";
+    cout << np::allclose(np::dot(Q.transpose(), Q), np::eye(4, 4)) << "\n";
+    cout << np::allclose(Q.dot(R), A) << "\n";
+    cout << "Q:\n" << Q << "\nR:\n" << R << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] true
+      true
+      true
+      Q:
+      [[ -0.8819171, 0.067050916,  -0.39272679, -0.25197632]
+       [-0.12598816, -0.90997671,  -0.11494443,  0.37796447]
+       [ 0.25197632, -0.39272679, -0.067050916,  -0.8819171]
+       [-0.37796447, -0.11494443,   0.90997671, -0.12598816]]
+      R:
+      [[-7.9372539, -3.7796447, -2.6457513,  -2.2677868]
+       [         0, -4.9713465, -2.2126802,  -1.2931248]
+       [         0,          0,  3.0172912, -0.94829152]
+       [         0,          0,          0,   1.1338934]]
+```
