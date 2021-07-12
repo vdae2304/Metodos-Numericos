@@ -46,11 +46,11 @@ namespace scicpp {
         for (size_t k = 0; k < LU.rows(); ++k) {
             size_t pivot = k;
             for (size_t i = k + 1; i < LU.rows(); ++i) {
-                if (std::abs(LU[pivot][k]) < std::abs(LU[i][k])) {
+                if (numcpp::abs(LU[pivot][k]) < numcpp::abs(LU[i][k])) {
                     pivot = i;
                 }
             }
-            if (std::abs(LU[pivot][k]) <= tol) {
+            if (numcpp::abs(LU[pivot][k]) <= tol) {
                 continue;
             }
 
@@ -79,7 +79,7 @@ namespace scicpp {
     ) {
         numcpp::array<size_t> piv;
         lu_factor(A, piv, L);
-        P = numcpp::zeros(A.rows(), A.columns());
+        P = numcpp::zeros<T>(A.rows(), A.columns());
         for (size_t i = 0; i < P.rows(); ++i) {
             P[i][piv[i]] = T(1);
         }
@@ -113,8 +113,8 @@ namespace scicpp {
         }
 
         T tol = std::numeric_limits<T>::epsilon();
-        L = numcpp::zeros(A.rows(), A.columns());
-        D = numcpp::zeros(A.rows());
+        L = numcpp::zeros<T>(A.rows(), A.columns());
+        D = numcpp::zeros<T>(A.rows());
 
         for (size_t j = 0; j < A.columns(); ++j) {
             L[j][j] = T(1);
@@ -122,7 +122,7 @@ namespace scicpp {
                 D[j] += L[j][k] * D[k] * L[j][k];
             }
             D[j] = A[j][j] - D[j];
-            if (std::abs(D[j]) <= tol) {
+            if (numcpp::abs(D[j]) <= tol) {
                 continue;
             }
 
@@ -151,7 +151,7 @@ namespace scicpp {
         }
 
         T tol = std::numeric_limits<T>::epsilon();
-        L = numcpp::zeros(A.rows(), A.columns());
+        L = numcpp::zeros<T>(A.rows(), A.columns());
 
         for (size_t j = 0; j < A.columns(); ++j) {
             for (size_t k = 0; k < j; ++k) {
@@ -162,7 +162,7 @@ namespace scicpp {
             if (L[j][j] <= tol) {
                 throw LinAlgError("Non symmetric positive-definite matrix.");
             }
-            L[j][j] = std::sqrt(L[j][j]);
+            L[j][j] = numcpp::sqrt(L[j][j]);
 
             for (size_t i = j + 1; i < A.rows(); ++i) {
                 for (size_t k = 0; k < j; ++k) {
@@ -198,7 +198,7 @@ namespace scicpp {
         }
 
         T tol = std::numeric_limits<T>::epsilon();
-        numcpp::array<T> x = numcpp::zeros(b.size());
+        numcpp::array<T> x = numcpp::zeros<T>(b.size());
         if (transpose) {
             lower = !lower;
         }
@@ -210,7 +210,7 @@ namespace scicpp {
                 }
                 x[i] = b[i] - x[i];
                 if (!unit_diagonal) {
-                    if (std::abs(A[i][i]) <= tol) {
+                    if (numcpp::abs(A[i][i]) <= tol) {
                         throw LinAlgError("Singular matrix.");
                     }
                     x[i] /= A[i][i];
@@ -224,7 +224,7 @@ namespace scicpp {
                 }
                 x[i] = b[i] - x[i];
                 if (!unit_diagonal) {
-                    if (std::abs(A[i][i]) <= tol) {
+                    if (numcpp::abs(A[i][i]) <= tol) {
                         throw LinAlgError("Singular matrix.");
                     }
                     x[i] /= A[i][i];
@@ -256,7 +256,7 @@ namespace scicpp {
         }
 
         T tol = std::numeric_limits<T>::epsilon();
-        numcpp::matrix<T> x = numcpp::zeros(b.rows(), b.columns());
+        numcpp::matrix<T> x = numcpp::zeros<T>(b.rows(), b.columns());
         if (transpose) {
             lower = !lower;
         }
@@ -269,7 +269,7 @@ namespace scicpp {
                     }
                     x[i][j] = b[i][j] - x[i][j];
                     if (!unit_diagonal) {
-                        if (std::abs(A[i][i]) <= tol) {
+                        if (numcpp::abs(A[i][i]) <= tol) {
                             throw LinAlgError("Singular matrix.");
                         }
                         x[i][j] /= A[i][i];
@@ -285,7 +285,7 @@ namespace scicpp {
                     }
                     x[i][j] = b[i][j] - x[i][j];
                     if (!unit_diagonal) {
-                        if (std::abs(A[i][i]) <= tol) {
+                        if (numcpp::abs(A[i][i]) <= tol) {
                             throw LinAlgError("Singular matrix.");
                         }
                         x[i][j] /= A[i][i];
@@ -472,6 +472,103 @@ namespace scicpp {
         }
 
         return out;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // QR decomposition                                                       //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Computes the "raw" QR decomposition of a matrix.
+    template <class T>
+    void qr_raw(
+        const numcpp::matrix<T> &A,
+        numcpp::array<T> &tau,
+        numcpp::matrix<T> &R
+    ) {
+        if (A.rows() < A.columns()) {
+            throw std::runtime_error(
+                "qr: Number of columns should be less than number of rows"
+            );
+        }
+
+        T tol = std::numeric_limits<T>::epsilon();
+        tau.resize(A.columns());
+        R = A;
+
+        for (size_t k = 0; k < R.columns(); ++k) {
+            numcpp::array<T> v(R.rows() - k);
+            numcpp::matrix<T> R_copy(R.rows() - k, R.columns() - k);
+            for (size_t i = k; i < R.rows(); ++i) {
+                v[i - k] = R[i][k];
+                for (size_t j = k; j < R.columns(); ++j) {
+                    R_copy[i - k][j - k] = R[i][j];
+                }
+            }
+            v[0] += (v[0] >= T(0) ? numcpp::sqrt(v.dot(v))
+                                  : -numcpp::sqrt(v.dot(v)));
+
+            T squared_norm = v.dot(v);
+            if (squared_norm <= tol) {
+                throw LinAlgError("Linearly dependent columns.");
+            }
+
+            for (size_t i = k; i < R.rows(); ++i) {
+                for (size_t j = k; j < R.columns(); ++j) {
+                    for (size_t l = k; l < R.rows(); ++l) {
+                        R[i][j] -= (2.0*v[i - k]*v[l - k] / squared_norm) *
+                                   R_copy[l - k][j - k];
+                    }
+                }
+            }
+
+            tau[k] = v[0];
+            for (size_t i = k + 1; i < R.rows(); ++i) {
+                R[i][k] = v[i - k];
+            }
+        }
+    }
+
+    // Computes the QR decomposition of a matrix.
+    template <class T>
+    void qr(
+        const numcpp::matrix<T> &A,
+        numcpp::matrix<T> &Q,
+        numcpp::matrix<T> &R,
+        bool full_matrices = true
+    ) {
+        numcpp::array<T> tau;
+        Q = numcpp::eye<T>(A.rows(), full_matrices ? A.rows() : A.columns());
+        qr_raw(A, tau, R);
+
+        for (size_t k = tau.size() - 1; k != -1; --k) {
+            numcpp::array<T> v(R.rows() - k);
+            v[0] = tau[k];
+            for (size_t i = k + 1; i < R.rows(); ++i) {
+                v[i - k] = R[i][k];
+                R[i][k] = T(0);
+            }
+
+            numcpp::matrix<T> Q_copy(Q.rows() - k, Q.columns() - k);
+            for (size_t i = k; i < Q.rows(); ++i) {
+                for (size_t j = k; j < Q.columns(); ++j) {
+                    Q_copy[i - k][j - k] = Q[i][j];
+                }
+            }
+
+            T squared_norm = v.dot(v);
+            for (size_t i = k; i < Q.rows(); ++i) {
+                for (size_t j = k; j < Q.columns(); ++j) {
+                    for (size_t l = k; l < Q.rows(); ++l) {
+                        Q[i][j] -= Q_copy[l - k][j - k] *
+                                   (2.0*v[i - k]*v[l - k] / squared_norm);
+                    }
+                }
+            }
+        }
+
+        if (!full_matrices) {
+            R.resize(R.columns(), R.columns());
+        }
     }
 }
 
