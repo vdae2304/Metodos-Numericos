@@ -603,3 +603,17 @@ int main() {
        [         0,          0,  3.0172912, -0.94829152]
        [         0,          0,          0,   1.1338934]]
 ```
+
+### `qr_raw`
+
+Computes the QR decomposition of a matrix with linearly independent columns. 
+The matrix *Q* is codified in the lower triangle of `R` and in `tau`. The 
+decomposition is computed using Householder transformations.
+```cpp
+template <class T>
+void qr_raw(
+    const numcpp::matrix<T> &A,
+    numcpp::array<T> &tau,
+    numcpp::matrix<T> &R
+);
+```
