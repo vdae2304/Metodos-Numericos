@@ -224,7 +224,7 @@ namespace scicpp {
         }
         if (A.columns() != b.size()) {
             std::ostringstream error;
-            error << "matmul: Number of columns in left operand does not match "
+            error << "solve: Number of columns in left operand does not match "
                   << "number of rows in right operand: (" << A.rows() << ","
                   << A.columns() << ") (" << b.size() << ",)";
             throw std::runtime_error(error.str());
@@ -281,7 +281,7 @@ namespace scicpp {
         }
         if (A.columns() != b.rows()) {
             std::ostringstream error;
-            error << "matmul: Number of columns in left operand does not match "
+            error << "solve: Number of columns in left operand does not match "
                   << "number of rows in right operand: (" << A.rows() << ","
                   << A.columns() << ") (" << b.rows() << "," << b.columns()
                   << ")";
@@ -537,8 +537,8 @@ namespace scicpp {
                     R_copy[i - k][j - k] = R[i][j];
                 }
             }
-            v[0] += (v[0] >= T(0) ? numcpp::sqrt(v.dot(v))
-                                  : -numcpp::sqrt(v.dot(v)));
+            v[0] += (v[0] >= T(0)) ? numcpp::sqrt(v.dot(v))
+                                   : -numcpp::sqrt(v.dot(v));
 
             T squared_norm = v.dot(v);
             if (squared_norm <= tol) {
@@ -602,6 +602,173 @@ namespace scicpp {
         if (!full_matrices) {
             R.resize(R.columns(), R.columns());
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Eigenvalues and eigenvectors                                           //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Computes the eigenvalues and eigenvectors of a symmetric matrix.
+    template <class T>
+    void eigen_symm(
+        const numcpp::matrix<T> &A,
+        numcpp::matrix<T> &V,
+        numcpp::array<T> &D
+    ) {
+        if (A.rows() != A.columns()) {
+            throw std::runtime_error("eigen_symm: Expected square matrix.");
+        }
+
+        size_t max_iter = 1000000;
+        T tol = std::numeric_limits<T>::epsilon();
+        V = numcpp::eye<T>(A.rows(), A.columns());
+        numcpp::matrix<T> S = A;
+
+        numcpp::array<size_t> argmax(A.rows(), 0);
+        for (size_t i = 0; i < A.rows(); ++i) {
+            for (size_t j = 0; j < i; ++j) {
+                if (numcpp::abs(A[i][argmax[i]]) < numcpp::abs(A[i][j])) {
+                    argmax[i] = j;
+                }
+            }
+        }
+
+        while (max_iter--) {
+            size_t i = 1, j = argmax[1];
+            for (size_t k = 1; k < S.rows(); ++k) {
+                if (numcpp::abs(S[i][j]) < numcpp::abs(S[k][argmax[k]])) {
+                    i = k;
+                    j = argmax[k];
+                }
+            }
+
+            if (numcpp::abs(S[i][j]) <= tol) {
+                D = numcpp::diagonal(S);
+                return;
+            }
+
+            T sii = S[i][i], sij = S[i][j], sjj = S[j][j];
+            T theta = (sjj - sii) / (2.0*sij);
+            T t = (theta >= T(0)) ? 1.0/(theta + numcpp::sqrt(1 + theta*theta))
+                                  : 1.0/(theta - numcpp::sqrt(1 + theta*theta));
+            T c = 1.0/numcpp::sqrt(1 + t*t);
+            T s = c*t;
+
+            for (size_t k = 0; k < V.rows(); ++k) {
+                T vki = V[k][i];
+                T vkj = V[k][j];
+                V[k][i] = c*vki - s*vkj;
+                V[k][j] = s*vki + c*vkj;
+            }
+
+            S[i][i] = c*c*sii - 2.0*s*c*sij + s*s*sjj;
+            S[i][j] = S[j][i] = T(0);
+            S[j][j] = s*s*sii + 2.0*s*c*sij + c*c*sjj;
+            for (size_t k = 0; k < S.rows(); ++k) {
+                if (k != i && k != j) {
+                    T ski = S[k][i];
+                    T skj = S[k][j];
+                    S[i][k] = S[k][i] = c*ski - s*skj;
+                    S[j][k] = S[k][j] = s*ski + c*skj;
+                }
+            }
+
+            for (size_t k = 1; k < S.rows(); ++k) {
+                if (k == i || k == j || argmax[k] == i || argmax[k] == j) {
+                    for (size_t l = 0; l < k; ++l) {
+                        if (numcpp::abs(S[k][argmax[k]]) < numcpp::abs(S[k][l]))
+                        {
+                            argmax[k] = l;
+                        }
+                    }
+                }
+                else {
+                    if (numcpp::abs(S[k][argmax[k]]) < numcpp::abs(S[k][i])) {
+                        argmax[k] = i;
+                    }
+                    if (numcpp::abs(S[k][argmax[k]] < numcpp::abs(S[k][j]))) {
+                        argmax[k] = j;
+                    }
+                }
+            }
+        }
+
+        throw LinAlgError("eigen_symm: Algorithm failed to converge.");
+    }
+
+    // Computes the eigenvalues (only) of a symmetric matrix.
+    template <class T>
+    numcpp::array<T> eigenvals_symm(const numcpp::matrix<T> &A) {
+        if (A.rows() != A.columns()) {
+            throw std::runtime_error("eigenvals_symm: Expected square matrix.");
+        }
+
+        size_t max_iter = 1000000;
+        T tol = std::numeric_limits<T>::epsilon();
+        numcpp::matrix<T> S = A;
+
+        numcpp::array<size_t> argmax(A.rows(), 0);
+        for (size_t i = 0; i < A.rows(); ++i) {
+            for (size_t j = 0; j < i; ++j) {
+                if (numcpp::abs(A[i][argmax[i]]) < numcpp::abs(A[i][j])) {
+                    argmax[i] = j;
+                }
+            }
+        }
+
+        while (max_iter--) {
+            size_t i = 1, j = argmax[1];
+            for (size_t k = 1; k < S.rows(); ++k) {
+                if (numcpp::abs(S[i][j]) < numcpp::abs(S[k][argmax[k]])) {
+                    i = k;
+                    j = argmax[k];
+                }
+            }
+
+            if (numcpp::abs(S[i][j]) <= tol) {
+                return numcpp::diagonal(S);
+            }
+
+            T sii = S[i][i], sij = S[i][j], sjj = S[j][j];
+            T theta = (sjj - sii) / (2.0*sij);
+            T t = (theta >= T(0)) ? 1.0/(theta + numcpp::sqrt(1 + theta*theta))
+                                  : 1.0/(theta - numcpp::sqrt(1 + theta*theta));
+            T c = 1.0/numcpp::sqrt(1 + t*t);
+            T s = c*t;
+
+            S[i][i] = c*c*sii - 2.0*s*c*sij + s*s*sjj;
+            S[i][j] = S[j][i] = T(0);
+            S[j][j] = s*s*sii + 2.0*s*c*sij + c*c*sjj;
+            for (size_t k = 0; k < S.rows(); ++k) {
+                if (k != i && k != j) {
+                    T ski = S[k][i];
+                    T skj = S[k][j];
+                    S[i][k] = S[k][i] = c*ski - s*skj;
+                    S[j][k] = S[k][j] = s*ski + c*skj;
+                }
+            }
+
+            for (size_t k = 1; k < S.rows(); ++k) {
+                if (k == i || k == j || argmax[k] == i || argmax[k] == j) {
+                    for (size_t l = 0; l < k; ++l) {
+                        if (numcpp::abs(S[k][argmax[k]]) < numcpp::abs(S[k][l]))
+                        {
+                            argmax[k] = l;
+                        }
+                    }
+                }
+                else {
+                    if (numcpp::abs(S[k][argmax[k]]) < numcpp::abs(S[k][i])) {
+                        argmax[k] = i;
+                    }
+                    if (numcpp::abs(S[k][argmax[k]] < numcpp::abs(S[k][j]))) {
+                        argmax[k] = j;
+                    }
+                }
+            }
+        }
+
+        throw LinAlgError("eigenvals_symm: Algorithm failed to converge.");
     }
 }
 
