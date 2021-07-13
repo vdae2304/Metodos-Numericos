@@ -4,6 +4,7 @@
 
 - [Funciones básicas](#Funciones-básicas)
 - [Factorizaciones](#Factorizaciones)
+- [Valores y vectores propios](#Valores-y-vectores-propios)
 
 ## Funciones básicas
 
@@ -670,4 +671,76 @@ void qr_raw(
     numcpp::array<T> &tau,
     numcpp::matrix<T> &R
 );
+```
+
+## Valores y vectores propios
+
+### `eigen_symm`
+
+Calcula la descomposición espectral de una matriz simétrica. La descomposición 
+es
+
+![$A = VDV^T$](https://render.githubusercontent.com/render/math?math=A%20%3D%20VDV%5ET)
+
+donde *V* es una matriz ortonormal (i.e., ![$V^T V = V V^T = I$](https://render.githubusercontent.com/render/math?math=V%5ET%20V%20%3D%20V%20V%5ET%20%3D%20I))
+y *D* es una matriz diagonal. Las columnas de *V* son conocidas como los 
+vectores propios y los elementos en la diagonal de *D* son conocidos como los 
+valores propios. La descomposición es calculada a través de rotaciones de 
+Givens.
+
+```cpp
+template <class T>
+void eigen_symm(
+    const numcpp::matrix<T> &A,
+    numcpp::matrix<T> &V,
+    numcpp::array<T> &D
+);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, -2,  5},
+                            { 3, 5,  1,  2},
+                            {-2, 1,  0, -1},
+                            { 5, 2, -1,  0}};
+    np::matrix<double> V;
+    np::array<double> D;
+    scicpp::eigen_symm(A, V, D);
+
+    cout << boolalpha;
+    cout << np::allclose(np::dot(V, V.transpose()), np::eye(4, 4)) << "\n";
+    cout << np::allclose(np::dot(V.transpose(), V), np::eye(4, 4)) << "\n";
+    cout << np::allclose(A, V.dot(np::diagonal(D)).dot(V.transpose())) << "\n";
+    cout << "V:\n" << V << "\nD:\n" << D << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] true
+      true
+      true
+      V:
+      [[ 0.77811649, -0.34624052,  0.28875493, -0.43734749]
+       [ 0.45009962,  0.83195125, -0.31737551,  -0.0673813]
+       [-0.12966954,  0.41600906,  0.89943338, 0.033791498]
+       [ 0.41848641, -0.12211096, 0.083144242,  0.89612782]]
+      D:
+      [11.757732, 3.9579505, -1.0873842, -2.6282986]
+```
+
+### `eigenvals_symm`
+
+Calcula los valores propios de una matriz simétrica.
+```cpp
+template <class T>
+numcpp::array<T> eigenvals_symm(const numcpp::matrix<T> &A);
 ```
