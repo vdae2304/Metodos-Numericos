@@ -7,6 +7,57 @@
 
 ## Basic functions
 
+### `norm`
+
+Computes the norm of a vector. This function is able to return one of the 
+following norms:
+
+- `p = 1` 
+
+![$\|v\|_1 = \sum_{i = 1}^{n}|v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_1%20%3D%20%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C) 
+
+- `p = 2` (default)
+
+![$\|v\|_2 = \sqrt{\sum_{i = 1}^{n}v_i^2}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_2%20%3D%20%5Csqrt%7B%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7Dv_i%5E2%7D) 
+
+- `p = inf`
+
+![$\|v\|_{\infty} = \underset{i}{\max \,} |v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_%7B%5Cinfty%7D%20%3D%20%5Cunderset%7Bi%7D%7B%5Cmax%20%5C%2C%7D%20%7Cv_i%7C) 
+
+- Any other value of `p`
+
+![$\|v\|_p = \left(\sum_{i = 1}^{n}|v_i|^p\right)^{1/p}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_p%20%3D%20%5Cleft(%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C%5Ep%5Cright)%5E%7B1%2Fp%7D)
+
+```cpp
+template <class T>
+T norm(const numcpp::array<T> &v, double p = 2);
+```
+
+#### Example 
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> v = {-4, 0, 1, 5, 2};
+    cout << "p = 2: " << scicpp::norm(v) << "\n";
+    cout << "p = 1: " << scicpp::norm(v, 1) << "\n";
+    cout << "p = inf: " << scicpp::norm(v, np::constants::inf) << "\n";
+    cout << "p = 3: " << scicpp::norm(v, 3) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] p = 2: 6.78233
+      p = 1: 12
+      p = inf: 5
+      p = 3: 5.82848
+```
+
 ### `solve_triangular`
 
 Solves the equation ![$Ax = b$](https://render.githubusercontent.com/render/math?math=Ax%20%3D%20b) 
@@ -45,7 +96,7 @@ The function throws a `LinAlgError` exception if the matrix is singular.
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -112,7 +163,7 @@ numcpp::matrix<T> solve(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -146,7 +197,7 @@ numcpp::matrix<T> inv(const numcpp::matrix<T> &A);
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -185,7 +236,7 @@ T det(const numcpp::matrix<T> &A);
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -228,7 +279,7 @@ void lu(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -303,7 +354,7 @@ numcpp::matrix<T> lu_solve(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -352,7 +403,7 @@ void ldl(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -407,7 +458,7 @@ numcpp::matrix<T> ldl_solve(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -456,7 +507,7 @@ void cholesky(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -504,7 +555,7 @@ numcpp::matrix<T> cholesky_solve(
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
@@ -567,7 +618,7 @@ fails.
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "scicpp.h"
+#include "scicpp/linalg.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
