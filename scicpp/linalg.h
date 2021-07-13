@@ -25,6 +25,39 @@ namespace scicpp {
     };
 
     ////////////////////////////////////////////////////////////////////////////
+    // Basic functions                                                        //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Compute the norm of a vector.
+    template <class T>
+    T norm(const numcpp::array<T> &v, double p = 2) {
+        T out = T(0);
+        if (p < 1) {
+            throw std::invalid_argument("norm: p must be at least 1.");
+        }
+        else if (p == 1) {
+            for (size_t i = 0; i < v.size(); ++i) {
+                out += numcpp::abs(v[i]);
+            }
+        }
+        else if (p == 2) {
+            out = numcpp::sqrt(v.dot(v));
+        }
+        else if (p == numcpp::constants::inf) {
+            for (size_t i = 0; i < v.size(); ++i) {
+                out = numcpp::max(out, numcpp::abs(v[i]));
+            }
+        }
+        else {
+            for (size_t i = 0; i < v.size(); ++i) {
+                out += numcpp::pow(numcpp::abs(v[i]), p);
+            }
+            out = numcpp::pow(out, 1.0/p);
+        }
+        return out;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // LU decomposition                                                       //
     ////////////////////////////////////////////////////////////////////////////
 
@@ -487,7 +520,7 @@ namespace scicpp {
     ) {
         if (A.rows() < A.columns()) {
             throw std::runtime_error(
-                "qr: Number of columns should be less than number of rows"
+                "qr: Number of columns must be less than number of rows."
             );
         }
 
