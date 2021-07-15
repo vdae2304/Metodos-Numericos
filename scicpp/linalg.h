@@ -770,6 +770,133 @@ namespace scicpp {
 
         throw LinAlgError("eigenvals_symm: Algorithm failed to converge.");
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Singular value decomposition                                           //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Constructs the sigma matrix in SVD from singular values.
+    template <class T>
+    numcpp::matrix<T> diagsvd(const numcpp::array<T> &S, size_t m, size_t n) {
+        numcpp::matrix<T> out = numcpp::zeros<T>(m, n);
+        for (size_t i = 0; i < S.size(); ++i) {
+            out[i][i] = S[i];
+        }
+        return out;
+    }
+
+    // Computes the singular value decomposition of a matrix.
+    template <class T>
+    void svd(
+        const numcpp::matrix<T> &A,
+        numcpp::matrix<T> &U,
+        numcpp::array<T> &S,
+        numcpp::matrix<T> &V,
+        bool full_matrices = true
+    ) {
+        if (
+            (full_matrices && A.rows() > A.columns()) ||
+            (!full_matrices && A.rows() < A.columns())
+        ) {
+            T tol = std::numeric_limits<T>::epsilon();
+            eigen_symm(numcpp::dot(A, A.transpose()), U, S);
+
+            for (size_t k = 0; k < S.size(); ++k) {
+                size_t piv = k;
+                for (size_t i = k + 1; i < S.size(); ++i) {
+                    if (S[piv] < S[i]) {
+                        piv = i;
+                    }
+                }
+                std::swap(S[k], S[piv]);
+                S[k] = (S[k] >= 0) ? numcpp::sqrt(S[k]) : T(0);
+                for (size_t i = 0; i < U.rows(); ++i) {
+                    std::swap(U[i][k], U[i][piv]);
+                }
+            }
+
+            if (full_matrices) {
+                S.resize(A.columns());
+                V = numcpp::zeros<T>(A.columns(), A.columns());
+            }
+            else {
+                V = numcpp::zeros<T>(A.columns(), A.rows());
+            }
+
+            for (size_t j = 0; j < V.columns(); ++j) {
+                if (S[j] <= tol) {
+                    continue;
+                }
+                for (size_t i = 0; i < V.rows(); ++i) {
+                    for (size_t k = 0; k < U.rows(); ++k) {
+                        V[i][j] += A[k][i] * U[k][j];
+                    }
+                    V[i][j] /= S[j];
+                }
+            }
+        }
+        else {
+            T tol = std::numeric_limits<T>::epsilon();
+            eigen_symm(numcpp::dot(A.transpose(), A), V, S);
+
+            for (size_t k = 0; k < S.size(); ++k) {
+                size_t piv = k;
+                for (size_t i = k + 1; i < S.size(); ++i) {
+                    if (S[piv] < S[i]) {
+                        piv = i;
+                    }
+                }
+                std::swap(S[k], S[piv]);
+                S[k] = (S[k] >= 0) ? numcpp::sqrt(S[k]) : T(0);
+                for (size_t i = 0; i < V.rows(); ++i) {
+                    std::swap(V[i][k], V[i][piv]);
+                }
+            }
+
+            if (full_matrices) {
+                S.resize(A.rows());
+                U = numcpp::zeros<T>(A.rows(), A.rows());
+            }
+            else {
+                U = numcpp::zeros<T>(A.rows(), A.columns());
+            }
+
+            for (size_t j = 0; j < U.columns(); ++j) {
+                if (S[j] <= tol) {
+                    continue;
+                }
+                for (size_t i = 0; i < U.rows(); ++i) {
+                    for (size_t k = 0; k < V.rows(); ++k) {
+                        U[i][j] += A[i][k] * V[k][j];
+                    }
+                    U[i][j] /= S[j];
+                }
+            }
+        }
+    }
+
+    // Compute the singular values of a matrix.
+    template <class T>
+    numcpp::array<T> svdvals(const numcpp::matrix<T> &A) {
+        numcpp::array<T> S;
+        if (A.rows() < A.columns()) {
+            S = eigenvals_symm(numcpp::dot(A, A.transpose()));
+        }
+        else {
+            S = eigenvals_symm(numcpp::dot(A.transpose(), A));
+        }
+        for (size_t i = 0; i < S.size(); ++i) {
+            size_t piv = i;
+            for (size_t j = i + 1; j < S.size(); ++j) {
+                if (S[piv] < S[j]) {
+                    piv = j;
+                }
+            }
+            std::swap(S[i], S[piv]);
+            S[i] = (S[i] >= T(0)) ? numcpp::sqrt(S[i]) : T(0);
+        }
+        return S;
+    }
 }
 
 #endif // LINALG_H_INCLUDED
