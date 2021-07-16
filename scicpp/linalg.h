@@ -222,9 +222,9 @@ namespace scicpp {
         if (A.rows() != A.columns()) {
             throw std::runtime_error("solve: Expected square matrix.");
         }
-        if (A.columns() != b.size()) {
+        if (A.rows() != b.size()) {
             std::ostringstream error;
-            error << "solve: Number of columns in left operand does not match "
+            error << "solve: Number of rows in left operand does not match "
                   << "number of rows in right operand: (" << A.rows() << ","
                   << A.columns() << ") (" << b.size() << ",)";
             throw std::runtime_error(error.str());
@@ -279,9 +279,9 @@ namespace scicpp {
         if (A.rows() != A.columns()) {
             throw std::runtime_error("solve: Expected square matrix.");
         }
-        if (A.columns() != b.rows()) {
+        if (A.rows() != b.rows()) {
             std::ostringstream error;
-            error << "solve: Number of columns in left operand does not match "
+            error << "solve: Number of rows in left operand does not match "
                   << "number of rows in right operand: (" << A.rows() << ","
                   << A.columns() << ") (" << b.rows() << "," << b.columns()
                   << ")";
@@ -896,6 +896,116 @@ namespace scicpp {
             S[i] = (S[i] >= T(0)) ? numcpp::sqrt(S[i]) : T(0);
         }
         return S;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Linear least squares                                                   //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Compute the least squares solution to the equation Ax = b.
+    template <class T>
+    numcpp::array<T> lstsq(
+        const numcpp::matrix<T> &A,
+        const numcpp::array<T> &b,
+        const std::string &method = "svd",
+        const T cond = 1e-8
+    ) {
+        if (A.rows() != b.size()) {
+            std::ostringstream error;
+            error << "lstsq: Number of rows in left operand does not match "
+                  << "number of rows in right operand: (" << A.rows() << ","
+                  << A.columns() << ") (" << b.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+
+        if (method == "svd") {
+            numcpp::matrix<T> U, V;
+            numcpp::array<T> S;
+            svd(A, U, S, V, false);
+
+            numcpp::array<T> x = numcpp::zeros<T>(S.size());
+            for (size_t i = 0; i < S.size(); ++i) {
+                if (S[i] <= cond*S[0]) {
+                    continue;
+                }
+                for (size_t j = 0; j < U.rows(); ++j) {
+                    x[i] += U[j][i] * b[j];
+                }
+                x[i] /= S[i];
+            }
+            x = numcpp::dot(V, x);
+
+            return x;
+        }
+        else if (method == "qr") {
+            numcpp::matrix<T> Q, R;
+            qr(A, Q, R, false);
+            numcpp::array<T> x = numcpp::dot(Q.transpose(), b);
+            x = solve_triangular(R, x, false, false, false);
+            return x;
+        }
+        else {
+            throw std::invalid_argument(
+                "method must be one of \"qr\" or \"svd\"."
+            );
+        }
+    }
+
+    template <class T>
+    numcpp::matrix<T> lstsq(
+        const numcpp::matrix<T> &A,
+        const numcpp::matrix<T> &b,
+        const std::string &method = "svd",
+        const T cond = 1e-8
+    ) {
+        if (A.rows() != b.rows()) {
+            std::ostringstream error;
+            error << "lstsq: Number of rows in left operand does not match "
+                  << "number of rows in right operand: (" << A.rows() << ","
+                  << A.columns() << ") (" << b.rows() << "," << b.columns()
+                  << ")";
+            throw std::runtime_error(error.str());
+        }
+
+        if (method == "svd") {
+            numcpp::matrix<T> U, V;
+            numcpp::array<T> S;
+            svd(A, U, S, V, false);
+
+            numcpp::matrix<T> x = numcpp::zeros<T>(S.size(), b.columns());
+            for (size_t i = 0; i < S.size(); ++i) {
+                if (S[i] <= cond*S[0]) {
+                    continue;
+                }
+                for (size_t j = 0; j < b.columns(); ++j) {
+                    for (size_t k = 0; k < U.rows(); ++k) {
+                        x[i][j] += U[k][i] * b[k][j];
+                    }
+                    x[i][j] /= S[i];
+                }
+            }
+            x = numcpp::dot(V, x);
+
+            return x;
+        }
+        else if (method == "qr") {
+            numcpp::matrix<T> Q, R;
+            qr(A, Q, R, false);
+            numcpp::matrix<T> x = numcpp::dot(Q.transpose(), b);
+            x = solve_triangular(R, x, false, false, false);
+            return x;
+        }
+        else {
+            throw std::invalid_argument(
+                "method must be one of \"qr\" or \"svd\"."
+            );
+        }
+    }
+
+    // Compute the Moore-Penrose pseudo-inverse of a matrix.
+    template <class T>
+    numcpp::matrix<T> pinv(const numcpp::matrix<T> &A, const T &cond = 1e-8) {
+        return lstsq(A, numcpp::eye<T>(A.rows(), A.rows()), "svd", cond);
     }
 }
 
