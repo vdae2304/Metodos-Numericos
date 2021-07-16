@@ -3,6 +3,7 @@
 ## Contenido
 
 - [Funciones básicas](#Funciones-básicas)
+- [Sistemas de ecuaciones lineales](#Sistemas-de-ecuaciones-lineales)
 - [Descomposición LU](#Descomposición-LU)
 - [Descomposición LDL](#Descomposición-LDL)
 - [Descomposición de Cholesky](#Descomposición-de-Cholesky)
@@ -17,21 +18,13 @@
 Calcula la norma de un vector. Esta función es capaz de devolver alguna de las 
 siguientes normas:
 
-- `p = 1` 
+- `p = 1`: ![$\|v\|_1 = \sum_{i = 1}^{n}|v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_1%20%3D%20%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C) 
 
-![$\|v\|_1 = \sum_{i = 1}^{n}|v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_1%20%3D%20%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C) 
+- `p = 2` (por defecto): ![$\|v\|_2 = \sqrt{\sum_{i = 1}^{n}v_i^2}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_2%20%3D%20%5Csqrt%7B%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7Dv_i%5E2%7D) 
 
-- `p = 2` (por defecto)
+- `p = inf`: ![$\|v\|_{\infty} = \underset{i}{\max \,} |v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_%7B%5Cinfty%7D%20%3D%20%5Cunderset%7Bi%7D%7B%5Cmax%20%5C%2C%7D%20%7Cv_i%7C) 
 
-![$\|v\|_2 = \sqrt{\sum_{i = 1}^{n}v_i^2}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_2%20%3D%20%5Csqrt%7B%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7Dv_i%5E2%7D) 
-
-- `p = inf`
-
-![$\|v\|_{\infty} = \underset{i}{\max \,} |v_i|$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_%7B%5Cinfty%7D%20%3D%20%5Cunderset%7Bi%7D%7B%5Cmax%20%5C%2C%7D%20%7Cv_i%7C) 
-
-- Cualquier otro valor de `p`
-
-![$\|v\|_p = \left(\sum_{i = 1}^{n}|v_i|^p\right)^{1/p}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_p%20%3D%20%5Cleft(%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C%5Ep%5Cright)%5E%7B1%2Fp%7D)
+- Cualquier otro valor de `p`: ![$\|v\|_p = \left(\sum_{i = 1}^{n}|v_i|^p\right)^{1/p}$](https://render.githubusercontent.com/render/math?math=%5C%7Cv%5C%7C_p%20%3D%20%5Cleft(%5Csum_%7Bi%20%3D%201%7D%5E%7Bn%7D%7Cv_i%7C%5Ep%5Cright)%5E%7B1%2Fp%7D)
 
 ```cpp
 template <class T>
@@ -62,6 +55,119 @@ int main() {
       p = inf: 5
       p = 3: 5.82848
 ```
+
+### `det`
+
+Calcula el determinante de una matriz.
+```cpp
+template <class T>
+T det(const numcpp::matrix<T> &A);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, 1,  5},
+                            { 1, 5, 2,  2},
+                            {-2, 1, 0, -1},
+                            { 5, 2, 4,  0}};
+    cout << scicpp::det(A) << "\n";
+    return 0;
+}
+
+```
+
+```
+[Out] 63
+```
+
+### `inv`
+
+Calcula la inversa de una matriz.
+```cpp
+template <class T>
+numcpp::matrix<T> inv(const numcpp::matrix<T> &A);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, 1,  5},
+                            { 1, 5, 2,  2},
+                            {-2, 1, 0, -1},
+                            { 5, 2, 4,  0}};
+    np::matrix<double> B = scicpp::inv(A);
+    np::matrix<double> I = np::eye<double>(4, 4);
+    cout << boolalpha;
+    cout << "A A^-1 == I: " << np::allclose(A.dot(B), I) << "\n";
+    cout << "A^-1 A == I: " << np::allclose(B.dot(A), I) << "\n";
+    cout << "A^-1:\n" << B << "\n";
+    return 0;
+}
+```
+
+```
+[Out] A A^-1 == I: true
+      A^-1 A == I: true
+      A^-1:
+      [[ 0.38095238, -0.47619048, 0.95238095,  0.14285714]
+       [ 0.34920635, -0.26984127,  1.2063492, 0.047619048]
+       [-0.65079365,  0.73015873, -1.7936508, 0.047619048]
+       [-0.41269841,  0.68253968, -1.6984127, -0.23809524]]
+```
+
+### `pinv`
+
+Calcula la pseudo-inversa de Moore-Penrose de una matriz.
+```cpp
+template <class T>
+numcpp::matrix<T> pinv(const numcpp::matrix<T> &A, const T &cond = 1e-8);
+```
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, -2},
+                            { 3, 5,  1},
+                            {-2, 1,  0},
+                            { 5, 0,  2}};
+    np::matrix<double> B = scicpp::pinv(A);
+    cout << boolalpha;
+    cout << "A A^+ A == A: " << np::allclose(A.dot(B).dot(A), A) << "\n";
+    cout << "A^+ A A^+ == A^+: " << np::allclose(B.dot(A).dot(B), B) << "\n";
+    cout << "A^+:\n" << B << "\n";
+    return 0;
+}
+```
+
+```
+[Out] A A^+ A == A: true
+      A^+ A A^+ == A^+: true
+      A^+:
+      [[   0.0755886, -0.034342361, -0.055053992,   0.09275978]
+       [0.0061957869,   0.17985484,  0.082138432, -0.083731634]
+       [ -0.21313507,   0.12727916, 0.0030093822,   0.22322535]]
+```
+
+## Sistemas de ecuaciones lineales
 
 ### `solve_triangular`
 
@@ -190,13 +296,40 @@ int main() {
       x = [-0.21405604, 0.17409279, 0.023886082, 0.50620119]
 ```
 
-### `inv`
+### `lstsq`
 
-Calcula la inversa de una matriz.
+Resuelve por mínimos cuadrados la ecuación ![$Ax = b$](https://render.githubusercontent.com/render/math?math=Ax%20%3D%20b) 
+para *x*. 
+
+Calcula el *x* tal que la norma ![$\|Ax - b\|$](https://render.githubusercontent.com/render/math?math=%5C%7CAx%20-%20b%5C%7C) 
+es mínima.
+
 ```cpp
 template <class T>
-numcpp::matrix<T> inv(const numcpp::matrix<T> &A);
+numcpp::array<T> lstsq(
+    const numcpp::matrix<T> &A,
+    const numcpp::array<T> &b,
+    const std::string &method = "svd",
+    const T cond = 1e-8
+);
+
+template <class T>
+numcpp::matrix<T> lstsq(
+    const numcpp::matrix<T> &A,
+    const numcpp::matrix<T> &b,
+    const std::string &method = "svd",
+    const T cond = 1e-8
+);
 ```
+Si `method = "svd"`, calcula la solución utilizando la descomposición en 
+valores singulares de *A*. En tal caso, valores singulares menores o iguales 
+que `cond*max(S)` son considerados cero. Si `method = "qr"`, calcula la 
+solución utilizando la descomposición QR de *A*. El método `"qr"` es más 
+rápido pero funciona solamente en sistemas sobredeterminados (más 
+ecuaciones que incógnitas), mientras que el método `"svd"` es más lento pero
+funciona tanto en sistemas sobredeterminados como subdeterminados. Por 
+defecto, `method = "svd"`. La función arroja una excepción del tipo 
+`LinAlgError` si la factorización falla.
 
 #### Ejemplo
 
@@ -207,59 +340,25 @@ numcpp::matrix<T> inv(const numcpp::matrix<T> &A);
 using namespace std;
 namespace np = numcpp;
 int main() {
-    np::matrix<double> A = {{ 7, 3, 1,  5},
-                            { 1, 5, 2,  2},
-                            {-2, 1, 0, -1},
-                            { 5, 2, 4,  0}};
-    np::matrix<double> B = scicpp::inv(A);
-    np::matrix<double> I = np::eye<double>(4, 4);
-    cout << boolalpha;
-    cout << "A A^-1 == I: " << np::allclose(A.dot(B), I) << "\n";
-    cout << "A^-1 A == I: " << np::allclose(B.dot(A), I) << "\n";
-    cout << "A^-1:\n" << B << "\n";
+    np::matrix<double> A = {{ 7, 3, -2},
+                            { 3, 5,  1},
+                            {-2, 1,  0},
+                            { 5, 0,  2},
+                            {-1, -1, 5}};
+    np::array<double> b = {1, 0, 3, -2, 5};
+    np::array<double> x = scicpp::lstsq(A, b, "svd");
+    np::array<double> y = scicpp::lstsq(A, b, "qr");
+    cout << "x = " << x << "\n";
+    cout << "y = " << y << "\n";
+    cout << "|Ax - b|: " << scicpp::norm(A.dot(x) - b) << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] A A^-1 == I: true
-      A^-1 A == I: true
-      A^-1:
-      [[ 0.38095238, -0.47619048, 0.95238095,  0.14285714]
-       [ 0.34920635, -0.26984127,  1.2063492, 0.047619048]
-       [-0.65079365,  0.73015873, -1.7936508, 0.047619048]
-       [-0.41269841,  0.68253968, -1.6984127, -0.23809524]]
-```
-
-### `det`
-
-Calcula el determinante de una matriz.
-```cpp
-template <class T>
-T det(const numcpp::matrix<T> &A);
-```
-
-#### Ejemplo
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-#include "scicpp/linalg.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::matrix<double> A = {{ 7, 3, 1,  5},
-                            { 1, 5, 2,  2},
-                            {-2, 1, 0, -1},
-                            { 5, 2, 4,  0}};
-    cout << scicpp::det(A) << "\n";
-    return 0;
-}
-
-```
-
-```
-[Out] 63
+[Out] x = [-0.27561683, 0.39230793, 0.57941608]
+      y = [-0.27561683, 0.39230793, 0.57941608]
+      |Ax - b|: 4.8723866
 ```
 
 ## Descomposición LU
