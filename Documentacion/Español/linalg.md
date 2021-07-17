@@ -8,6 +8,7 @@
 - [Descomposición LDL](#Descomposición-LDL)
 - [Descomposición de Cholesky](#Descomposición-de-Cholesky)
 - [Descomposición QR](#Descomposición-QR)
+- [Descomposición de Hessenberg](#Descomposición-de-Hessenberg)
 - [Valores y vectores propios](#Valores-y-vectores-propios)
 - [Descomposición en valores singulares](#Descomposición-en-valores-singulares)
 
@@ -850,6 +851,60 @@ int main() {
        [        -2,  1.9077498,  3.0172912, -0.94829152]
        [         3, 0.63837528,  3.0015962,   1.1338934]]
 ```
+
+## Descomposición de Hessenberg
+
+Calcula la forma de Hessenberg de una matriz. La descomposición es
+
+![$A = QHQ^T$](https://render.githubusercontent.com/render/math?math=A%20%3D%20QHQ%5ET)
+
+donde *Q* es una matriz ortonormal (i.e., ![$Q^T Q = Q Q^T = I$](https://render.githubusercontent.com/render/math?math=Q%5ET%20Q%20%3D%20Q%20Q%5ET%20%3D%20I))
+y *H* tiene ceros debajo de la primera subdiagonal.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{2,  5,  8, 7},
+                            {5,  2, -2, 8},
+                            {0,  5,  4, 1},
+                            {7, -1,  6, 6}};
+    np::matrix<double> I = np::eye<double>(4, 4);
+
+    np::matrix<double> Q, H;
+    scicpp::hessenberg(A, Q, H);
+
+    cout << boolalpha;
+    cout << "Q Q^T == I: " << np::allclose(np::dot(Q, Q.transpose()), I) << "\n";
+    cout << "Q^T Q == I: " << np::allclose(np::dot(Q.transpose(), Q), I) << "\n";
+    cout << "A == Q H Q^T: "
+         << np::allclose(A, Q.dot(H).dot(Q.transpose())) << "\n";
+    cout << "Q:\n" << Q << "\nH:\n" << H << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] Q Q^T == I: true
+      Q^T Q == I: true
+      A == Q H Q^T: true
+      Q:
+      [[1,           0,           0,           0]
+       [0, -0.58123819, -0.57719147,  0.57359582]
+       [0,           0, -0.70489397, -0.70931269]
+       [0, -0.81373347,  0.41227962,  -0.4097113]]
+      H:
+      [[         2, -8.6023253, -5.6391518, -5.6745015]
+       [-8.6023253,  7.9594595, -1.1065319,  6.3440458]
+       [         0,  5.2772822,  1.1941814, -2.3265566]
+       [         0,          0,  6.2757687,  2.8463591]]
+ ```
 
 ## Valores y vectores propios
 
