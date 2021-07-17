@@ -592,8 +592,8 @@ namespace scicpp {
             for (size_t i = k; i < Q.rows(); ++i) {
                 for (size_t j = k; j < Q.columns(); ++j) {
                     for (size_t l = k; l < Q.rows(); ++l) {
-                        Q[i][j] -= Q_copy[l - k][j - k] *
-                                   (2.0*v[i - k]*v[l - k] / squared_norm);
+                        Q[i][j] -= (2.0*v[i - k]*v[l - k] / squared_norm) *
+                                   Q_copy[l - k][j - k];
                     }
                 }
             }
@@ -601,6 +601,105 @@ namespace scicpp {
 
         if (!full_matrices) {
             R.resize(R.columns(), R.columns());
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Hessenberg decomposition                                               //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Computes the Hessenberg form of a matrix.
+    template <class T>
+    void hessenberg(
+        const numcpp::matrix<T> &A,
+        numcpp::matrix<T> &Q,
+        numcpp::matrix<T> &H
+    ) {
+        if (A.rows() != A.columns()) {
+            throw std::runtime_error("hessenberg: Expected square matrix.");
+        }
+
+        T tol = std::numeric_limits<T>::epsilon();
+        numcpp::array<T> tau(A.rows());
+        Q = numcpp::eye<T>(A.rows(), A.columns());
+        H = A;
+
+        for (size_t k = 0; k < H.columns() - 1; ++k) {
+            numcpp::array<T> v(H.rows() - k);
+            v[0] = T(0);
+            for (size_t i = k + 1; i < H.rows(); ++i) {
+                v[i - k] = H[i][k];
+            }
+            v[1] += (v[1] >= T(0)) ? numcpp::sqrt(v.dot(v))
+                                   : -numcpp::sqrt(v.dot(v));
+
+            T squared_norm = v.dot(v);
+            if (squared_norm <= tol) {
+                continue;
+            }
+
+            numcpp::matrix<T> H_copy(H.rows(), H.columns());
+            for (size_t i = k + 1; i < H.rows(); ++i) {
+                for (size_t j = k; j < H.columns(); ++j) {
+                    H_copy[i][j] = H[i][j];
+                }
+            }
+            for (size_t i = k + 1; i < H.rows(); ++i) {
+                for (size_t j = k; j < H.columns(); ++j) {
+                    for (size_t l = k + 1; l < H.rows(); ++l) {
+                        H[i][j] -= (2.0*v[i - k]*v[l - k] / squared_norm) *
+                                   H_copy[l][j];
+                    }
+                }
+            }
+            for (size_t i = 0; i < H.rows(); ++i) {
+                for (size_t j = k + 1; j < H.columns(); ++j) {
+                    H_copy[i][j] = H[i][j];
+                }
+            }
+            for (size_t i = 0; i < H.rows(); ++i) {
+                for (size_t j = k + 1; j < H.columns(); ++j) {
+                    for (size_t l = k + 1; l < H.rows(); ++l) {
+                        H[i][j] -= H_copy[i][l] *
+                                   (2.0*v[l - k]*v[j - k] / squared_norm);
+                    }
+                }
+            }
+
+            tau[k] = v[1];
+            for (size_t i = k + 2; i < H.rows(); ++i) {
+                H[i][k] = v[i - k];
+            }
+        }
+
+        for (size_t k = H.columns() - 2; k != -1; --k) {
+            numcpp::array<T> v(H.rows() - k);
+            v[0] = T(0);
+            v[1] = tau[k];
+            for (size_t i = k + 2; i < H.rows(); ++i) {
+                v[i - k] = H[i][k];
+                H[i][k] = T(0);
+            }
+
+            T squared_norm = v.dot(v);
+            if (squared_norm <= tol) {
+                continue;
+            }
+
+            numcpp::matrix<T> Q_copy(Q.rows() - k, Q.columns() - k);
+            for (size_t i = k; i < Q.rows(); ++i) {
+                for (size_t j = k; j < Q.columns(); ++j) {
+                    Q_copy[i - k][j - k] = Q[i][j];
+                }
+            }
+            for (size_t i = k; i < Q.rows(); ++i) {
+                for (size_t j = k; j < Q.columns(); ++j) {
+                    for (size_t l = k; l < Q.rows(); ++l) {
+                        Q[i][j] -= (2.0*v[i - k]*v[l - k] / squared_norm) *
+                                   Q_copy[l - k][j - k];
+                    }
+                }
+            }
         }
     }
 
