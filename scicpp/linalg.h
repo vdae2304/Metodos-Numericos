@@ -610,9 +610,9 @@ namespace scicpp {
 
     // Computes the Hessenberg form of a matrix.
     template <class T>
-    void hessenberg(
+    void hessenberg_raw(
         const numcpp::matrix<T> &A,
-        numcpp::matrix<T> &Q,
+        numcpp::array<T> &tau,
         numcpp::matrix<T> &H
     ) {
         if (A.rows() != A.columns()) {
@@ -620,8 +620,7 @@ namespace scicpp {
         }
 
         T tol = std::numeric_limits<T>::epsilon();
-        numcpp::array<T> tau(A.rows());
-        Q = numcpp::eye<T>(A.rows(), A.columns());
+        tau.resize(A.rows() - 1);
         H = A;
 
         for (size_t k = 0; k < H.columns() - 1; ++k) {
@@ -671,6 +670,18 @@ namespace scicpp {
                 H[i][k] = v[i - k];
             }
         }
+    }
+
+    template <class T>
+    void hessenberg(
+        const numcpp::matrix<T> &A,
+        numcpp::matrix<T> &Q,
+        numcpp::matrix<T> &H
+    ) {
+        T tol = std::numeric_limits<T>::epsilon();
+        numcpp::array<T> tau;
+        Q = numcpp::eye<T>(A.rows(), A.columns());
+        hessenberg_raw(A, tau, H);
 
         for (size_t k = H.columns() - 2; k != -1; --k) {
             numcpp::array<T> v(H.rows() - k);
@@ -1105,6 +1116,58 @@ namespace scicpp {
     template <class T>
     numcpp::matrix<T> pinv(const numcpp::matrix<T> &A, const T &cond = 1e-8) {
         return lstsq(A, numcpp::eye<T>(A.rows(), A.rows()), "svd", cond);
+    }
+
+    // Constructs an orthonormal basis for the range of A using SVD.
+    template <class T>
+    numcpp::matrix<T> orth(
+        const numcpp::matrix<T> &A,
+        const T &cond = 1e-8
+    ) {
+        numcpp::matrix<T> U, V;
+        numcpp::array<T> S;
+        svd(A, U, S, V, false);
+
+        size_t k;
+        for (k = 0; k < S.size(); ++k) {
+            if (S[k] <= cond*S[0]) {
+                break;
+            }
+        }
+
+        numcpp::matrix<T> out(U.rows(), k);
+        for (size_t i = 0; i < U.rows(); ++i) {
+            for (size_t j = 0; j < k; ++j) {
+                out[i][j] = U[i][j];
+            }
+        }
+        return out;
+    }
+
+    // Constructs an orthonormal basis for the null space of A using SVD.
+    template <class T>
+    numcpp::matrix<T> null_space(
+        const numcpp::matrix<T> &A,
+        const T &cond = 1e-8
+    ) {
+        numcpp::matrix<T> U, V;
+        numcpp::array<T> S;
+        svd(A, U, S, V, true);
+
+        size_t k;
+        for (k = 0; k < S.size(); ++k) {
+            if (S[k] <= cond*S[0]) {
+                break;
+            }
+        }
+
+        numcpp::matrix<T> out(V.rows(), V.columns() - k);
+        for (size_t i = 0; i < V.rows(); ++i) {
+            for (size_t j = k; j < V.columns(); ++j) {
+                out[i][j - k] = V[i][j];
+            }
+        }
+        return out;
     }
 }
 
