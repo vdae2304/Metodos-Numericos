@@ -827,6 +827,14 @@ Computes the Hessenberg form of a matrix. The decomposition is
 
 where *Q* is an orthonormal matrix (i.e., ![$Q^T Q = Q Q^T = I$](https://render.githubusercontent.com/render/math?math=Q%5ET%20Q%20%3D%20Q%20Q%5ET%20%3D%20I))
 and *H* has zero elements below the first subdiagonal.
+```cpp
+template <class T>
+void hessenberg(
+    const numcpp::matrix<T> &A,
+    numcpp::matrix<T> &Q,
+    numcpp::matrix<T> &H
+);
+```
 
 #### Example
 
