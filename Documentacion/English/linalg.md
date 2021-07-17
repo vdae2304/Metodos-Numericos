@@ -169,6 +169,84 @@ int main() {
        [ -0.21313507,   0.12727916, 0.0030093822,   0.22322535]]
 ```
 
+### `orth`
+
+Constructs an orthonormal basis for the range of *A* using the singular value 
+decomposition. Singular values smaller or equal than `cond*max(S)` are 
+considered zero.
+```cpp
+template <class T>
+numcpp::matrix<T> orth(
+    const numcpp::matrix<T> &A,
+    const T &cond = 1e-8
+);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 1,  5,  0, 7, 0,  1},
+                            { 5,  2, -2, 1, 3,  5},
+                            { 3, -1,  4, 1, 5, -3},
+                            {-1,  0,  7, 0, 1,  0}};
+    cout << scicpp::orth(A) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[  0.69852612, 0.23114369, -0.66015729, -0.15108346]
+       [   0.6660913, 0.05481745,  0.63553528,  0.38653892]
+       [-0.055496906, 0.75542912,   0.3341438, -0.56088756]
+       [ -0.25554594, 0.61065087, -0.22053386,  0.71635648]]
+ ```
+
+ ### `null_space`
+
+Constructs an orthonormal basis for the null space of *A* using the singular 
+value decomposition. Singular values smaller or equal than `cond*max(S)` are 
+considered zero.
+```cpp
+template <class T>
+numcpp::matrix<T> null_space(
+    const numcpp::matrix<T> &A,
+    const T &cond = 1e-8
+);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 1,  5,  0, 7, 0,  1},
+                            { 5,  2, -2, 1, 3,  5},
+                            { 3, -1,  4, 1, 5, -3},
+                            {-1,  0,  7, 0, 1,  0}};
+    cout << scicpp::null_space(A) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [[  0.030745532, -0.68637995]
+       [   0.79282785, 0.049312197]
+       [-0.0065748728, -0.19454266]
+       [  -0.52916418, 0.037681198]
+       [  0.076769642,  0.67541864]
+       [  -0.29073557,  0.17605058]]
+ ```
+
 ## Systems of linear equations
 
 ### `solve_triangular`
@@ -821,6 +899,8 @@ int main() {
 
 ## Hessenberg decomposition
 
+### `hessenberg`
+
 Computes the Hessenberg form of a matrix. The decomposition is
 
 ![$A = QHQ^T$](https://render.githubusercontent.com/render/math?math=A%20%3D%20QHQ%5ET)
@@ -880,6 +960,51 @@ int main() {
        [         0,  5.2772822,  1.1941814, -2.3265566]
        [         0,          0,  6.2757687,  2.8463591]]
  ```
+
+### `hessenberg_raw`
+
+Computes the Hessenberg form of a matrix. The matrix *Q* is encoded in the 
+elements below the first subdiagonal of `H` and in `tau`. The decomposition is 
+computed using Householder transformations.
+```cpp
+template <class T>
+void hessenberg_raw(
+    const numcpp::matrix<T> &A,
+    numcpp::array<T> &tau,
+    numcpp::matrix<T> &H
+);
+```
+
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{2,  5,  8, 7},
+                            {5,  2, -2, 8},
+                            {0,  5,  4, 1},
+                            {7, -1,  6, 6}};
+    np::array<double> tau;
+    np::matrix<double> H;
+    scicpp::hessenberg_raw(A, tau, H);
+    cout << "tau:\n" << tau << "\nH:\n" << H << "\n";
+    return 0;
+}
+```
+
+```
+[Out] tau:
+      [13.602325, -8.9972067, -12.551537]
+      H:
+      [[         2, -8.6023253, -5.6391518, -5.6745015]
+       [-8.6023253,  7.9594595, -1.1065319,  6.3440458]
+       [         0,  5.2772822,  1.1941814, -2.3265566]
+       [         7,  3.7432432,  6.2757687,  2.8463591]]
+```
 
 ## Eigenvalues and eigenvectors
 
