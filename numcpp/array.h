@@ -1,2405 +1,376 @@
 #ifndef ARRAY_H_INCLUDED
 #define ARRAY_H_INCLUDED
 
+#include <cstddef>
+#include <initializer_list>
+
+// Arrays are fixed-size sequence containers: they hold a specific number of
+// elements ordered in a strict linear sequence.
+
 namespace numcpp {
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Slice class                                                            //
-    ////////////////////////////////////////////////////////////////////////////
-
-    slice::slice() {
-    }
-
-    slice::slice(size_t stop) {
-        this->start = 0;
-        this->stop = stop;
-        this->step = 1;
-    }
-
-    slice::slice(size_t start, size_t stop, int step) {
-        this->start = start;
-        this->stop = stop;
-        this->step = step;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Constructors and destructor                                            //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Default constructor. Constructs an empty array with no elements.
     template <class T>
-    array<T>::array() {
-        this->length = 0;
-        this->values = nullptr;
-    }
+    class array {
+    protected:
+        size_t length;
+        T *values;
 
-    // Size constructor. Constructs an array with n elements.
-    template <class T>
-    array<T>::array(size_t n) {
-        this->length = n;
-        this->values = new T[n];
-    }
+    public:
+        typedef size_t size_type;
+        typedef T value_type;
 
-    // Fill constructor. Constructs an array with n elements, each initialized
-    // to val.
-    template <class T>
-    array<T>::array(size_t n, const T &val) {
-        this->length = n;
-        this->values = new T[n];
-        for (size_t i = 0; i < n; ++i) {
-            this->values[i] = val;
-        }
-    }
+        // Default constructor. Constructs an empty array with no elements.
+        array();
 
-    // Range constructor. Constructs an array with as many elements as the
-    // range [first, last), with each element constructed from its
-    // corresponding element in that range, in the same order.
-    template <class T>
-    template <class InputIterator>
-    array<T>::array(InputIterator first, InputIterator last) {
-        size_t n = 0;
-        for (InputIterator it = first; it != last; ++it) {
-            ++n;
-        }
-        this->length = n;
-        this->values = new T[n];
-        for (size_t i = 0; i < n; ++i) {
-            this->values[i] = *first;
-            ++first;
-        }
-    }
+        // Size constructor. Constructs an array with n elements.
+        array(size_t n);
 
-    // Copy constructor. Constructs an array with a copy of each of the
-    // elements in v, in the same order.
-    template <class T>
-    array<T>::array(const array<T> &v) {
-        this->length = v.length;
-        this->values = new T[this->length];
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = v.values[i];
-        }
-    }
+        // Fill constructor. Constructs an array with n elements, each
+        // initialized to val.
+        array(size_t n, const T &val);
 
-    // Move constructor. Constructs an array that acquires the elements of v.
-    template <class T>
-    array<T>::array(array<T> &&v) {
-        this->length = v.length;
-        this->values = v.values;
-        v.length = 0;
-        v.values = nullptr;
-    }
+        // Range constructor. Constructs an array with as many elements as the
+        // range [first, last), with each element constructed from its
+        // corresponding element in that range, in the same order.
+        template <class InputIterator>
+        array(InputIterator first, InputIterator last);
 
-    // Initializer list. Constructs an array with a copy of each of the
-    // elements in il, in the same order.
-    template <class T>
-    array<T>::array(std::initializer_list<T> il) {
-        this->length = il.size();
-        this->values = new T[this->length];
-        size_t n = 0;
-        for (const T &val : il) {
-            this->values[n++] = val;
-        }
-    }
+        // Copy constructor. Constructs an array with a copy of each of the
+        // elements in v, in the same order.
+        array(const array &v);
 
-    // Destructor. Destroys the array.
-    template <class T>
-    array<T>::~array() {
-        delete[] this->values;
-        this->length = 0;
-        this->values = nullptr;
-    }
+        // Move constructor. Constructs an array that acquires the elements of
+        // v.
+        array(array &&v);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Array creation routines                                                //
-    ////////////////////////////////////////////////////////////////////////////
+        // Initializer list. Constructs an array with a copy of each of the
+        // elements in il, in the same order.
+        array(std::initializer_list<T> il);
 
-    // Return a new uninitialized array.
-    template <class T>
-    array<T> empty(size_t n) {
-        return array<T>(n);
-    }
+        // Destructor. Destroys the array.
+        ~array();
 
-    // Return a new array setting values to zero.
-    template <class T>
-    array<T> zeros(size_t n) {
-        return array<T>(n, T(0));
-    }
+        // Copy assignment. Assigns the contents of v to *this after resizing
+        // the object (if necessary).
+        array& operator= (const array &v);
 
-    // Return a new array setting values to one.
-    template <class T>
-    array<T> ones(size_t n) {
-        return array<T>(n, T(1));
-    }
+        // Move assignment. Acquires the contents of v.
+        array& operator= (array &&v);
 
-    // Return a new array of given length filled with value.
-    template <class T>
-    array<T> full(size_t n, const T &val) {
-        return array<T>(n, val);
-    }
+        // Fill assignment. Assigns val to every element.
+        array& operator= (const T &val);
 
-    // Return a new array from a binary file.
-    template <class T>
-    array<T> load(const char *file) {
-        FILE *pfile = fopen(file, "rb");
-        if (pfile != NULL) {
-            size_t n;
-            fread(&n, sizeof(size_t), 1, pfile);
-            array<T> out(n);
-            fread(out.data(), sizeof(T), n, pfile);
-            fclose(pfile);
-            return out;
-        }
-        else {
-            std::ostringstream error;
-            error << "No such file or directory: " << file;
-            throw std::runtime_error(error.str());
-        }
-    }
+        // Compound assignments.
+        array& operator+= (const array &v);
 
-    // Save an array to a binary file.
-    template <class T>
-    void save(const char *file, const array<T> &v) {
-        FILE *pfile = fopen(file, "wb");
-        if (pfile != NULL) {
-            size_t n = v.size();
-            fwrite(&n, sizeof(size_t), 1, pfile);
-            fwrite(v.data(), sizeof(T), n, pfile);
-            fclose(pfile);
-        }
-        else {
-            std::ostringstream error;
-            error << "Can not modify: " << file;
-            throw std::runtime_error(error.str());
-        }
-    }
+        array& operator-= (const array &v);
 
-    // Return evenly spaced values within a given interval. Values are
-    // generated within the half-open interval [start, stop) (in other words,
-    // the interval including start but excluding stop).
-    template <class T>
-    array<T> arange(const T &stop) {
-        size_t n = ceil(stop);
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = T(i);
-        }
-        return out;
-    }
+        array& operator*= (const array &v);
 
-    template <class T>
-    array<T> arange(const T &start, const T &stop, const T &step) {
-        size_t n = ceil((stop - start) / (double)step);
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = start + i*step;
-        }
-        return out;
-    }
+        array& operator/= (const array &v);
 
-    // Return evenly spaced numbers over a specified interval. Returns num
-    // evenly spaced samples, calculated over the interval [start, stop].
-    // The endpoint of the interval can optionally be excluded.
-    template <class T>
-    array<T> linspace(
-        const T &start, const T &stop, size_t num, bool endpoint
-    ) {
-        array<T> out(num);
-        T step = (stop - start) / (num - endpoint);
-        for (size_t i = 0; i < num; ++i) {
-            out[i] = start + i*step;
-        }
-        return out;
-    }
+        array& operator%= (const array &v);
 
-    // Return numbers spaced evenly on a log scale. In linear space, the
-    // sequence starts at pow(base, start) (base to the power of start) and
-    // ends with pow(base, stop).
-    template <class T>
-    array<T> logspace(
-        const T &start, const T &stop, size_t num, bool endpoint, const T &base
-    ) {
-        array<T> out(num);
-        T step = (stop - start) / (num - endpoint);
-        for (size_t i = 0; i < num; ++i) {
-            out[i] = pow(base, start + i*step);
-        }
-        return out;
-    }
+        array& operator&= (const array &v);
 
-    // Return numbers spaced evenly on a log scale (a geometric progression).
-    // This is similar to logspace, but with endpoints specified directly. Each
-    // output sample is a constant multiple of the previous.
-    template <class T>
-    array<T> geomspace(
-        const T &start, const T &stop, size_t num, bool endpoint
-    ) {
-        array<T> out(num);
-        T base = pow(stop/start, 1.0/(num - endpoint));
-        for (size_t i = 0; i < num; ++i) {
-            out[i] = start * pow(base, i);
-        }
-        return out;
-    }
+        array& operator|= (const array &v);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Assignment operators                                                   //
-    ////////////////////////////////////////////////////////////////////////////
+        array& operator^= (const array &v);
 
-    // Copy assignment. Assigns the contents of v to *this after resizing the
-    // object (if necessary).
-    template <class T>
-    array<T>& array<T>::operator= (const array<T> &v) {
-        if (this->length != v.length) {
-            delete[] this->values;
-            this->length = v.length;
-            this->values = new T[this->length];
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = v.values[i];
-        }
-        return *this;
-    }
+        array& operator<<= (const array &v);
 
-    // Move assignment. Acquires the contents of v.
-    template <class T>
-    array<T>& array<T>::operator= (array<T> &&v) {
-        if (this != &v) {
-            delete[] this->values;
-            this->length = v.length;
-            this->values = v.values;
-            v.length = 0;
-            v.values = nullptr;
-        }
-        return *this;
-    }
+        array& operator>>= (const array &v);
 
-    // Fill assignment. Assigns val to every element.
-    template <class T>
-    array<T>& array<T>::operator= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = val;
-        }
-        return *this;
-    }
+        array& operator+= (const T &val);
 
-    // Compound assignments.
-    template <class T>
-    array<T>& array<T>::operator+= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] += v.values[i];
-        }
-        return *this;
-    }
+        array& operator-= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator-= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] -= v.values[i];
-        }
-        return *this;
-    }
+        array& operator*= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator*= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] *= v.values[i];
-        }
-        return *this;
-    }
+        array& operator/= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator/= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] /= v.values[i];
-        }
-        return *this;
-    }
+        array& operator%= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator%= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] %= v.values[i];
-        }
-        return *this;
-    }
+        array& operator&= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator&= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] &= v.values[i];
-        }
-        return *this;
-    }
+        array& operator|= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator|= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] |= v.values[i];
-        }
-        return *this;
-    }
+        array& operator^= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator^= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] ^= v.values[i];
-        }
-        return *this;
-    }
+        array& operator<<= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator<<= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] <<= v.values[i];
-        }
-        return *this;
-    }
+        array& operator>>= (const T &val);
 
-    template <class T>
-    array<T>& array<T>::operator>>= (const array<T> &v) {
-        if (this->length != v.length) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->length << ",) (" << v.length << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] >>= v.values[i];
-        }
-        return *this;
-    }
+        // Array subscript. Returns a reference to the element at position i in
+        // the array.
+        T& operator[] (size_t i);
 
-    template <class T>
-    array<T>& array<T>::operator+= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] += val;
-        }
-        return *this;
-    }
+        const T& operator[] (size_t i) const;
 
-    template <class T>
-    array<T>& array<T>::operator-= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] -= val;
-        }
-        return *this;
-    }
+        // Slice indexing: Return a sub-array object that selects the elements
+        // specified by its argument.
+        slice_subarray<T> operator[] (slice slc);
 
-    template <class T>
-    array<T>& array<T>::operator*= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] *= val;
-        }
-        return *this;
-    }
+        const slice_subarray<T> operator[] (slice slc) const;
 
-    template <class T>
-    array<T>& array<T>::operator/= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] /= val;
-        }
-        return *this;
-    }
+        // Integer array indexing: Return a sub-array object that selects the
+        // elements specified by its argument.
+        index_subarray<T> operator[] (const array<size_t> &index);
 
-    template <class T>
-    array<T>& array<T>::operator%= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] %= val;
-        }
-        return *this;
-    }
+        const index_subarray<T> operator[] (const array<size_t> &index) const;
 
-    template <class T>
-    array<T>& array<T>::operator&= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] &= val;
-        }
-        return *this;
-    }
+        // Boolean array indexing: Return a sub-array object that selects the
+        // elements specified by its argument.
+        mask_subarray<T> operator[] (const array<bool> &mask);
 
-    template <class T>
-    array<T>& array<T>::operator|= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] |= val;
-        }
-        return *this;
-    }
+        const mask_subarray<T> operator[] (const array<bool> &mask) const;
 
-    template <class T>
-    array<T>& array<T>::operator^= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] ^= val;
-        }
-        return *this;
-    }
+        // Apply a function to each of the elements in *this.
+        template <class Function = T(T)>
+        void apply(Function f);
 
-    template <class T>
-    array<T>& array<T>::operator<<= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] <<= val;
-        }
-        return *this;
-    }
+        // Return the index of the maximum value.
+        size_t argmax() const;
 
-    template <class T>
-    array<T>& array<T>::operator>>= (const T &val) {
-        for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] >>= val;
-        }
-        return *this;
-    }
+        // Return the index of the minimum value.
+        size_t argmin() const;
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Operator overloading                                                   //
-    ////////////////////////////////////////////////////////////////////////////
+        // Returns the indices that would sort this array.
+        array<size_t> argsort() const;
+
+        // Copy of the array, cast to a specified type.
+        template <class U>
+        array<U> astype() const;
+
+        // Clip (limit) the values in the array. Given an interval, values
+        // outside the interval are clipped to the interval edges.
+        void clip(const T &a_min, const T &a_max);
+
+        // Return the cumulative product of the elements.
+        array cumprod() const;
+
+        // Return the cumulative sum of the elements.
+        array cumsum() const;
+
+        // Returns a pointer to the memory array used internally by the array.
+        T* data();
+
+        const T* data() const;
+
+        // Return the dot product of two arrays.
+        T dot(const array &v) const;
+
+        // Return the matrix multiplication of a row vector and a matrix.
+        array dot(const matrix<T> &A) const;
+
+        // Returns the maximum value contained in the array.
+        T max() const;
+
+        // Returns the average of the array elements.
+        T mean() const;
+
+        // Returns the minimum value contained in the array.
+        T min() const;
+
+        // Return the product of the array elements.
+        T prod() const;
+
+        // Resizes the array, changing its size to n elements.
+        // If n is smaller than the current size, the content is reduced to its
+        // first n elements, removing those beyond.
+        // If n is greater than the current size, the content is expanded by
+        // inserting at the end as many elements as needed to reach a size of n.
+        void resize(size_t n, const T &val = T());
+
+        // Returns the number of elements in the array.
+        size_t size() const;
+
+        // Sort an array in-place.
+        void sort();
+
+        // Returns the standard deviation of the array elements.
+        T stddev(size_t ddof = 0) const;
+
+        // Return the sum of the array elements.
+        T sum() const;
+
+        // Swap contents with v.
+        void swap(array &v);
+
+        // Returns the variance of the array elements.
+        T var(size_t ddof = 0) const;
+    };
 
     // Unary operators.
     template <class T>
-    array<T> operator+ (const array<T> &v) {
-        return v;
-    }
+    array<T> operator+ (const array<T> &v);
 
     template <class T>
-    array<T> operator- (const array<T> &v) {
-        array<T> out(v.size());
-        for (size_t i = 0; i < v.size(); ++i) {
-            out[i] = -v[i];
-        }
-        return out;
-    }
+    array<T> operator- (const array<T> &v);
 
     template <class T>
-    array<T> operator~ (const array<T> &v) {
-        array<T> out(v.size());
-        for (size_t i = 0; i < v.size(); ++i) {
-            out[i] = ~v[i];
-        }
-        return out;
-    }
+    array<T> operator~ (const array<T> &v);
 
-    array<bool> operator! (const array<bool> &v) {
-        array<bool> out(v.size());
-        for (size_t i = 0; i < v.size(); ++i) {
-            out[i] = !v[i];
-        }
-        return out;
-    }
+    array<bool> operator! (const array<bool> &v);
 
     // Arithmetic operators.
-    template<class T>
-    array<T> operator+ (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out += w;
-    }
+    template <class T>
+    array<T> operator+ (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator+ (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out += val;
-    }
+    template <class T>
+    array<T> operator+ (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator+ (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out += v;
-    }
+    template <class T>
+    array<T> operator+ (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator- (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out -= w;
-    }
+    template <class T>
+    array<T> operator- (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator- (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out -= val;
-    }
+    template <class T>
+    array<T> operator- (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator- (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out -= v;
-    }
+    template <class T>
+    array<T> operator- (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator* (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out *= w;
-    }
+    template <class T>
+    array<T> operator* (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator* (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out *= val;
-    }
+    template <class T>
+    array<T> operator* (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator* (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out *= v;
-    }
+    template <class T>
+    array<T> operator* (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator/ (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out /= w;
-    }
+    template <class T>
+    array<T> operator/ (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator/ (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out /= val;
-    }
+    template <class T>
+    array<T> operator/ (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator/ (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out /= v;
-    }
+    template <class T>
+    array<T> operator/ (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator% (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out %= w;
-    }
+    template <class T>
+    array<T> operator% (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator% (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out %= val;
-    }
+    template <class T>
+    array<T> operator% (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator% (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out %= v;
-    }
+    template <class T>
+    array<T> operator% (const T &val, const array<T> &v);
 
     // Bitwise operators.
-    template<class T>
-    array<T> operator& (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out &= w;
-    }
+    template <class T>
+    array<T> operator& (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator& (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out &= val;
-    }
+    template <class T>
+    array<T> operator& (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator& (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out &= v;
-    }
+    template <class T>
+    array<T> operator& (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator| (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out |= w;
-    }
+    template <class T>
+    array<T> operator| (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator| (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out |= val;
-    }
+    template <class T>
+    array<T> operator| (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator| (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out |= v;
-    }
+    template <class T>
+    array<T> operator| (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator^ (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out ^= w;
-    }
+    template <class T>
+    array<T> operator^ (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator^ (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out ^= val;
-    }
+    template <class T>
+    array<T> operator^ (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator^ (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out ^= v;
-    }
+    template <class T>
+    array<T> operator^ (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator<< (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out <<= w;
-    }
+    template <class T>
+    array<T> operator<< (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator<< (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out <<= val;
-    }
+    template <class T>
+    array<T> operator<< (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator<< (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out <<= v;
-    }
+    template <class T>
+    array<T> operator<< (const T &val, const array<T> &v);
 
-    template<class T>
-    array<T> operator>> (const array<T> &v, const array<T> &w) {
-        array<T> out(v);
-        return out >>= w;
-    }
+    template <class T>
+    array<T> operator>> (const array<T> &v, const array<T> &w);
 
-    template<class T>
-    array<T> operator>> (const array<T> &v, const T &val) {
-        array<T> out(v);
-        return out >>= val;
-    }
+    template <class T>
+    array<T> operator>> (const array<T> &v, const T &val);
 
-    template<class T>
-    array<T> operator>> (const T &val, const array<T> &v) {
-        array<T> out(v.size(), val);
-        return out >>= v;
-    }
+    template <class T>
+    array<T> operator>> (const T &val, const array<T> &v);
+
+    // Logical operators.
+    array<bool> operator&& (const array<bool> &v, const array<bool> &w);
+
+    array<bool> operator&& (const array<bool> &v, bool val);
+
+    array<bool> operator&& (bool val, const array<bool> &v);
+
+    array<bool> operator|| (const array<bool> &v, const array<bool> &w);
+
+    array<bool> operator|| (const array<bool> &v, bool val);
+
+    array<bool> operator|| (bool val, const array<bool> &v);
 
     // Relational operators.
-    template<class T>
-    array<bool> operator== (const array<T> &v, const array<T> &w) {
-        if (v.size() != w.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << v.size() << ",) (" << w.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        array<bool> out(v.size());
-        for (size_t i = 0; i < out.size(); ++i) {
-            out[i] = (v[i] == w[i]);
-        }
-        return out;
-    }
-
-    template<class T>
-    array<bool> operator== (const array<T> &v, const T &val) {
-        array<T> w(v.size(), val);
-        return (v == w);
-    }
-
-    template<class T>
-    array<bool> operator== (const T &val, const array<T> &v) {
-        array<T> w(v.size(), val);
-        return (w == v);
-    }
-
-    template<class T>
-    array<bool> operator!= (const array<T> &v, const array<T> &w) {
-        return !(v == w);
-    }
-
-    template<class T>
-    array<bool> operator!= (const array<T> &v, const T &val) {
-        return !(v == val);
-    }
-
-    template<class T>
-    array<bool> operator!= (const T &val, const array<T> &v) {
-        return !(val == v);
-    }
-
-    template<class T>
-    array<bool> operator< (const array<T> &v, const array<T> &w) {
-        if (v.size() != w.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << v.size() << ",) (" << w.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        array<bool> out(v.size());
-        for (size_t i = 0; i < out.size(); ++i) {
-            out[i] = (v[i] < w[i]);
-        }
-        return out;
-    }
-
-    template<class T>
-    array<bool> operator< (const array<T> &v, const T &val) {
-        array<T> w(v.size(), val);
-        return (v < w);
-    }
-
-    template<class T>
-    array<bool> operator< (const T &val, const array<T> &v) {
-        array<T> w(v.size(), val);
-        return (w < v);
-    }
-
-    template<class T>
-    array<bool> operator> (const array<T> &v, const array<T> &w) {
-        return (w < v);
-    }
-
-    template<class T>
-    array<bool> operator> (const array<T> &v, const T &val) {
-        return (val < v);
-    }
-
-    template<class T>
-    array<bool> operator> (const T &val, const array<T> &v) {
-        return (v < val);
-    }
-
-    template<class T>
-    array<bool> operator<= (const array<T> &v, const array<T> &w) {
-        return !(w < v);
-    }
-
-    template<class T>
-    array<bool> operator<= (const array<T> &v, const T &val) {
-        return !(val < v);
-    }
-
-    template<class T>
-    array<bool> operator<= (const T &val, const array<T> &v) {
-        return !(v < val);
-    }
-
-    template<class T>
-    array<bool> operator>= (const array<T> &v, const array<T> &w) {
-        return !(v < w);
-    }
-
-    template<class T>
-    array<bool> operator>= (const array<T> &v, const T &val) {
-        return !(v < val);
-    }
-
-    template<class T>
-    array<bool> operator>= (const T &val, const array<T> &v) {
-        return !(val < v);
-    }
-
-    // Standard output.
-    template <class T>
-    std::ostream& operator<< (std::ostream &ostr, const array<T> &v) {
-        std::ios_base::fmtflags default_flags(ostr.flags());
-        ostr << std::boolalpha << std::setprecision(printoptions::precision);
-
-        if (printoptions::sign) {
-            ostr << std::showpos;
-        }
-        else {
-            ostr << std::noshowpos;
-        }
-
-        if (printoptions::floatmode == "default") {
-            ostr << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            ostr << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            ostr << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
-        }
-
-        ostr << "[";
-        if (
-            v.size() < printoptions::threshold ||
-            v.size() <= 2*printoptions::edgeitems
-        ) {
-            std::string sep = "";
-            for (size_t i = 0; i < v.size(); ++i) {
-                ostr << sep << v[i];
-                sep = ", ";
-            }
-        }
-        else {
-            std::string sep = "";
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << sep << v[i];
-                sep = ", ";
-            }
-            sep = ", ..., ";
-            for (size_t i = 0; i < printoptions::edgeitems; ++i) {
-                ostr << sep << v[v.size() - printoptions::edgeitems + i];
-                sep = ", ";
-            }
-        }
-        ostr << "]";
-
-        ostr.setf(default_flags);
-        return ostr;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Array indexing                                                         //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Returns a reference to the element at position i in the array.
-    template <class T>
-    T& array<T>::operator[] (size_t i) {
-        return this->values[i];
-    }
-
-    template <class T>
-    const T& array<T>::operator[] (size_t i) const {
-        return this->values[i];
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Slice indexing                                                         //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Return a sub-array object that selects the elements specified by the
-    // slice.
-    template <class T>
-    slice_subarray<T> array<T>::operator[] (slice slc) {
-        slice_subarray<T> view;
-        view.values = this->values;
-        view.slc = slc;
-        return view;
-    }
-
-    template <class T>
-    const slice_subarray<T> array<T>::operator[] (slice slc) const {
-        slice_subarray<T> view;
-        view.values = this->values;
-        view.slc = slc;
-        return view;
-    }
-
-    // Assignment operators.
-    template <class T>
-    void slice_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    // Compound assignment.
-    template <class T>
-    void slice_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator+= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator-= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator*= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator/= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator%= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator&= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator|= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator^= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator<<= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator>>= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    // Returns a reference to the element at position i in the sub-array.
-    template <class T>
-    T& slice_subarray<T>::operator[] (size_t i) {
-        return this->values[this->slc.start + i*this->slc.step];
-    }
-
-    template <class T>
-    const T& slice_subarray<T>::operator[] (size_t i) const {
-        return this->values[this->slc.start + i*this->slc.step];
-    }
-
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> slice_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = (*this)[i];
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
-    template <class T>
-    size_t slice_subarray<T>::size() const {
-        return ceil(
-            ((double)this->slc.stop - (double)this->slc.start) / this->slc.step
-        );
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Integer array indexing                                                 //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Return a sub-array object that selects the elements specified by the
-    // integer array.
-    template <class T>
-    index_subarray<T> array<T>::operator[] (const array<size_t> &index) {
-        index_subarray<T> view;
-        view.values = this->values;
-        view.index = index;
-        return view;
-    }
-
-    template <class T>
-    const index_subarray<T>
-    array<T>::operator[] (const array<size_t> &index) const {
-        index_subarray<T> view;
-        view.values = this->values;
-        view.index = index;
-        return view;
-    }
-
-    // Assignment operators.
-    template <class T>
-    void index_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    // Compound assignment.
-    template <class T>
-    void index_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator+= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator-= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator*= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator/= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator%= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator&= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator|= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator^= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator<<= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator>>= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= val;
-        }
-    }
-
-    // Returns a reference to the element at position i in the sub-array.
-    template <class T>
-    T& index_subarray<T>::operator[] (size_t i) {
-        return this->values[this->index[i]];
-    }
-
-    template <class T>
-    const T& index_subarray<T>::operator[] (size_t i) const {
-        return this->values[this->index[i]];
-    }
-
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> index_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = (*this)[i];
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
-    template <class T>
-    size_t index_subarray<T>::size() const {
-        return this->index.size();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Boolean array indexing                                                 //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Return a sub-array object that selects the elements specified by the
-    // boolean array.
-    template <class T>
-    mask_subarray<T> array<T>::operator[] (const array<bool> &mask) {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask;
-        return view;
-    }
-
-    template <class T>
-    const mask_subarray<T>
-    array<T>::operator[] (const array<bool> &mask) const {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask;
-        return view;
-    }
-
-    // Assignment operators.
-    template <class T>
-    void mask_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] = v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] = val;
-            }
-        }
-    }
-
-    // Compound assignment.
-    template <class T>
-    void mask_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] += v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] -= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] *= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] /= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] %= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] &= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] |= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] ^= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] <<= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] >>= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator+= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] += val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator-= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] -= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator*= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] *= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator/= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] /= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator%= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] %= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator&= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] &= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator|= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] |= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator^= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] ^= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator<<= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] <<= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator>>= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] >>= val;
-            }
-        }
-    }
-
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> mask_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                out[n++] = this->values[i];
-            }
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
-    template <class T>
-    size_t mask_subarray<T>::size() const {
-        size_t n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            n += this->mask[i];
-        }
-        return n;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Methods                                                                //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Apply a function to each of the elements in *this.
-    template <class T>
-    template <class Function>
-    void array<T>::apply(Function f) {
-        for (size_t i = 0; i < this->size(); ++i) {
-            (*this)[i] = f((*this)[i]);
-        }
-    }
-
-    // Return the index of the maximum value.
-    template <class T>
-    size_t array<T>::argmax() const {
-        size_t index = 0;
-        for (size_t i = 1; i < this->size(); ++i) {
-            if ((*this)[index] < (*this)[i]) {
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    // Return the index of the minimum value.
-    template <class T>
-    size_t array<T>::argmin() const {
-        size_t index = 0;
-        for (size_t i = 1; i < this->size(); ++i) {
-            if ((*this)[i] < (*this)[index]) {
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    // Returns the indices that would sort this array.
-    template <class T>
-    array<size_t> array<T>::argsort() const {
-        array<size_t> indices(this->size());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            indices[i] = i;
-        }
-        std::sort(
-            indices.data(),
-            indices.data() + indices.size(),
-            [&](size_t i, size_t j) {
-                  if ((*this)[i] == (*this)[j]) {
-                    return i < j;
-                  }
-                  return (*this)[i] < (*this)[j];
-            }
-        );
-        return indices;
-    }
-
-    // Copy of the array, cast to a specified type.
-    template <class T>
-    template <class U>
-    array<U> array<T>::astype() const {
-        array<U> out(this->size());
-        for (size_t i = 0; i < out.size(); ++i) {
-            out[i] = U((*this)[i]);
-        }
-        return out;
-    }
-
-    // Clip (limit) the values in the array. Given an interval, values outside
-    // the interval are clipped to the interval edges.
-    template <class T>
-    void array<T>::clip(const T &a_min, const T &a_max) {
-        for (size_t i = 0; i < this->size(); ++i) {
-            if ((*this)[i] < a_min) {
-                (*this)[i] = a_min;
-            }
-            else if (a_max < (*this)[i]) {
-                (*this)[i] = a_max;
-            }
-        }
-    }
-
-    // Return the cumulative product of the elements.
-    template <class T>
-    array<T> array<T>::cumprod() const {
-        array<T> out(this->size());
-        out[0] = (*this)[0];
-        for (size_t i = 1; i < this->size(); ++i) {
-            out[i] = out[i - 1] * (*this)[i];
-        }
-        return out;
-    }
-
-    // Return the cumulative sum of the elements.
-    template <class T>
-    array<T> array<T>::cumsum() const {
-        array<T> out(this->size());
-        out[0] = (*this)[0];
-        for (size_t i = 1; i < this->size(); ++i) {
-            out[i] = out[i - 1] + (*this)[i];
-        }
-        return out;
-    }
-
-    // Returns a pointer to the memory array used internally by the array.
-    template <class T>
-    T* array<T>::data() {
-        return this->values;
-    }
-
-    template <class T>
-    const T* array<T>::data() const {
-        return this->values;
-    }
-
-    // Return the dot product of two arrays.
-    template <class T>
-    T array<T>::dot(const array<T> &v) const {
-        if (this->size() != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << this->size() << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        T out = T(0);
-        for (size_t i = 0; i < this->size(); ++i) {
-            out += (*this)[i] * v[i];
-        }
-        return out;
-    }
-
-    // Returns the vector-matrix multiplication between *this and A.
-    template <class T>
-    array<T> array<T>::dot(const matrix<T> &A) const {
-        if (this->size() != A.rows()) {
-            std::ostringstream error;
-            error << "matmul: Number of columns in left operand does not match "
-                  << "number of rows in right operand: (," << this->size()
-                  << ") (" << A.rows() << "," << A.columns() << ")";
-            throw std::runtime_error(error.str());
-        }
-        array<T> out(A.columns(), T(0));
-        for (size_t i = 0; i < A.rows(); ++i) {
-            for (size_t j = 0; j < A.columns(); ++j) {
-                out[j] += (*this)[i] * A.at(i, j);
-            }
-        }
-        return out;
-    }
-
-    // Returns the maximum value contained in the array.
-    template <class T>
-    T array<T>::max() const {
-        return (*this)[this->argmax()];
-    }
-
-    // Returns the average of the array elements.
-    template <class T>
-    T array<T>::mean() const {
-        return this->sum() / this->size();
-    }
-
-    // Returns the minimum value contained in the array.
-    template <class T>
-    T array<T>::min() const {
-        return (*this)[this->argmin()];
-    }
-
-    // Return the product of the array elements.
-    template <class T>
-    T array<T>::prod() const {
-        T out = T(1);
-        for (size_t i = 0; i < this->size(); ++i) {
-            out *= (*this)[i];
-        }
-        return out;
-    }
-
-    // Resizes the array, changing its size to n elements.
-    // If n is smaller than the current size, the content is reduced to its
-    // first n elements, removing those beyond.
-    // If n is greater than the current size, the content is expanded by
-    // inserting at the end as many elements as needed to reach a size of n.
-    template <class T>
-    void array<T>::resize(size_t n, const T &val) {
-        if (this->length != n) {
-            array<T> tmp_copy(*this);
-            delete[] this->values;
-            this->length = n;
-            this->values = new T[n];
-            for (size_t i = 0; i < n && i < tmp_copy.length; ++i) {
-                this->values[i] = tmp_copy.values[i];
-            }
-            for (size_t i = tmp_copy.length; i < n; ++i) {
-                this->values[i] = val;
-            }
-        }
-    }
-
-    // Returns the number of elements in the array.
     template <class T>
-    size_t array<T>::size() const {
-        return this->length;
-    }
+    array<bool> operator== (const array<T> &v, const array<T> &w);
 
-    // Sort an array in-place.
     template <class T>
-    void array<T>::sort() {
-        std::sort(this->data(), this->data() + this->size());
-    }
+    array<bool> operator== (const array<T> &v, const T &val);
 
-    // Returns the standard deviation of the array elements.
     template <class T>
-    T array<T>::stddev(size_t ddof) const {
-        return std::sqrt(this->var(ddof));
-    }
+    array<bool> operator== (const T &val, const array<T> &v);
 
-    // Return the sum of the array elements.
     template <class T>
-    T array<T>::sum() const {
-        T out = T(0);
-        for (size_t i = 0; i < this->size(); ++i) {
-            out += (*this)[i];
-        }
-        return out;
-    }
+    array<bool> operator!= (const array<T> &v, const array<T> &w);
 
-    // Swap contents with v.
     template <class T>
-    void array<T>::swap(array<T> &v) {
-        size_t tmp_length = this->length;
-        T *tmp_values = this->values;
-        this->length = v.length;
-        this->values = v.values;
-        v.length = tmp_length;
-        v.values = tmp_values;
-    }
+    array<bool> operator!= (const array<T> &v, const T &val);
 
-    // Returns the variance of the array elements.
     template <class T>
-    T array<T>::var(size_t ddof) const {
-        T array_mean = this->mean();
-        T out = T(0);
-        for (size_t i = 0; i < this->size(); ++i) {
-            T deviation = (*this)[i] - array_mean;
-            out += deviation*deviation;
-        }
-        out /= (this->size() - ddof);
-        return out;
-    }
+    array<bool> operator!= (const T &val, const array<T> &v);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Global functions                                                       //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Returns true if all elements evaluate to true.
-    bool all(const array<bool> &v) {
-        for (size_t i = 0; i < v.size(); ++i) {
-            if (!v[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Returns true if two arrays are element-wise equal within a tolerance.
-    template <class T>
-    bool allclose(
-        const array<T> &v, const array<T> &w, const T &atol, const T &rtol
-    ) {
-        if (v.size() != w.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << v.size() << ",) (" << w.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < v.size(); ++i) {
-            if (std::abs(v[i] - w[i]) > atol + rtol*std::abs(w[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Returns true if any of the elements evaluate to true.
-    bool any(const array<bool> &v) {
-        for (size_t i = 0; i < v.size(); ++i) {
-            if (v[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Returns an array with each of its elements initialized to the result of
-    // applying f to the corresponding element in v.
-    template <class T, class Function>
-    array<T> apply(Function f, const array<T> &v) {
-        array<T> out(v);
-        out.apply(f);
-        return out;
-    }
-
-    // Returns an array with each of its elements initialized to the result of
-    // applying f to the corresponding element in v and w.
-    template <class T, class Function>
-    array<T> apply(Function f, const array<T> &v, const array<T> &w) {
-        if (v.size() != w.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << v.size() << ",) (" << w.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        array<T> out(v.size());
-        for (size_t i = 0; i < v.size(); ++i) {
-            out[i] = f(v[i], w[i]);
-        }
-        return out;
-    }
-
-    template <class T, class Function>
-    array<T> apply(Function f, const array<T> &v, const T &val) {
-        array<T> w(v.size(), val);
-        return apply(f, v, w);
-    }
-
-    template <class T, class Function>
-    array<T> apply(Function f, const T &val, const array<T> &v) {
-        array<T> w(v.size(), val);
-        return apply(f, w, v);
-    }
-
-    // Return the index of the maximum value.
-    template <class T>
-    size_t argmax(const array<T> &v) {
-        return v.argmax();
-    }
-
-    // Return the index of the minimum value.
-    template <class T>
-    size_t argmin(const array<T> &v) {
-        return v.argmin();
-    }
-
-    // Returns the indices that would sort this array.
-    template <class T>
-    size_t argsort(const array<T> &v) {
-        return v.argsort();
-    }
-
-    // Return an array whose values are limited to [a_min, a_max].
-    // Given an interval, values outside the interval are clipped to the
-    // interval edges.
-    template <class T>
-    array<T> clip(const array<T> &v, const T &a_min, const T &a_max) {
-        array<T> clipped(v);
-        clipped.clip(a_min, a_max);
-        return clipped;
-    }
-
-    // Concatenate (join) two arrays.
     template <class T>
-    array<T> concatenate(const array<T> &v, const array<T> &w) {
-        array<T> out(v.size() + w.size());
-        for (size_t i = 0; i < v.size(); ++i) {
-            out[i] = v[i];
-        }
-        for (size_t i = 0; i < w.size(); ++i) {
-            out[v.size() + i] = w[i];
-        }
-        return out;
-    }
+    array<bool> operator< (const array<T> &v, const array<T> &w);
 
-    // Return the cumulative product of the elements.
     template <class T>
-    array<T> cumprod(const array<T> &v) {
-        return v.cumprod();
-    }
+    array<bool> operator< (const array<T> &v, const T &val);
 
-    // Return the cumulative sum of the elements.
     template <class T>
-    array<T> cumsum(const array<T> &v) {
-        return v.cumsum();
-    }
+    array<bool> operator< (const T &val, const array<T> &v);
 
-    // Return the dot product of two arrays.
     template <class T>
-    T dot(const array<T> &v, const array<T> &w) {
-        return v.dot(w);
-    }
+    array<bool> operator> (const array<T> &v, const array<T> &w);
 
-    // Return the dot product of a row vector and a matrix.
     template <class T>
-    array<T> dot(const array<T> &v, const matrix<T> &A) {
-        return v.dot(A);
-    }
+    array<bool> operator> (const array<T> &v, const T &val);
 
-    // Delete values from an array.
     template <class T>
-    array<T> erase(const array<T> &v, size_t index) {
-        array<T> out(v.size() - 1);
-        for (size_t i = 0; i < index; ++i) {
-            out[i] = v[i];
-        }
-        for (size_t i = index + 1; i < v.size(); ++i) {
-            out[i - 1] = v[i];
-        }
-        return out;
-    }
+    array<bool> operator> (const T &val, const array<T> &v);
 
     template <class T>
-    array<T> erase(const array<T> &v, const array<size_t> indices) {
-        array<bool> keep(v.size(), true);
-        for (size_t i = 0; i < indices.size(); ++i) {
-            keep[indices[i]] = false;
-        }
-        array<T> out(v.size() - indices.size());
-        size_t n = 0;
-        for (size_t i = 0; i < v.size(); ++i) {
-            if (keep[i]) {
-                out[n++] = v[i];
-            }
-        }
-        return out;
-    }
+    array<bool> operator<= (const array<T> &v, const array<T> &w);
 
-    // Insert values before the given indices.
     template <class T>
-    array<T> insert(const array<T> &v, size_t index, const T &value) {
-        array<T> out(v.size() + 1);
-        for (size_t i = 0; i < index; ++i) {
-            out[i] = v[i];
-        }
-        out[index] = value;
-        for (size_t i = index + 1; i < out.size(); ++i) {
-            out[i] = v[i - 1];
-        }
-        return out;
-    }
+    array<bool> operator<= (const array<T> &v, const T &val);
 
     template <class T>
-    array<T> insert(
-        const array<T> &v, const array<size_t> &indices, const array<T> &values
-    ) {
-        if (indices.size() != values.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << indices.size() << ",) (" << values.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        array<T> out(v.size() + indices.size());
-        array<size_t> sorted = indices.argsort();
-        size_t n = 0, j = 0;
-        for (size_t i = 0; i < v.size(); ++i) {
-            while (j < indices.size() && indices[sorted[j]] == i) {
-                out[n++] = values[sorted[j++]];
-            }
-            out[n++] = v[i];
-        }
-        while (j < indices.size()) {
-            out[n++] = values[sorted[j++]];
-        }
-        return out;
-    }
+    array<bool> operator<= (const T &val, const array<T> &v);
 
-    // Returns the maximum value contained in the array.
     template <class T>
-    T max(const array<T> &v) {
-        return v.max();
-    }
-
-    // Returns the average of the array elements.
-    template <class T>
-    T mean(const array<T> &v) {
-        return v.mean();
-    }
-
-    // Returns the minimum value contained in the array.
-    template <class T>
-    T min(const array<T> &v) {
-        return v.min();
-    }
-
-    // Return the product of the array elements.
-    template <class T>
-    T prod(const array<T> &v) {
-        return v.prod();
-    }
-
-    // Return a sorted copy of an array.
-    template <class T>
-    array<T> sort(const array<T> &v) {
-        array<T> sorted(v);
-        sorted.sort();
-        return sorted;
-    }
-
-    // Returns the standard deviation of the array elements.
-    template <class T>
-    T stddev(const array<T> &v, size_t ddof) {
-        return v.stddev(ddof);
-    }
-
-    // Return the sum of the array elements.
-    template <class T>
-    T sum(const array<T> &v) {
-        return v.sum();
-    }
-
-    // Swap contents between two arrays.
-    template <class T>
-    void swap(array<T> &v, array<T> &w) {
-        v.swap(w);
-    }
-
-    // Returns the variance of the array elements.
-    template <class T>
-    T var(const array<T> &v, size_t ddof) {
-        return v.var(ddof);
-    }
-
-    // Return the indices of the elements that evaluate to true.
-    array<size_t> where(const array<bool> &condition) {
-        size_t n = 0;
-        for (size_t i = 0; i < condition.size(); ++i) {
-            n += condition[i];
-        }
-        array<size_t> out(n);
-        n = 0;
-        for (size_t i = 0; i < condition.size(); ++i) {
-            if (condition[i]) {
-                out[n++] = i;
-            }
-        }
-        return out;
-    }
+    array<bool> operator>= (const array<T> &v, const array<T> &w);
 
-    // Return elements chosen from v or w depending on condition.
     template <class T>
-    array<T> where(const array<bool> &condition, const array<T> &expr_true) {
-        size_t n = 0;
-        for (size_t i = 0; i < condition.size(); ++i) {
-            n += condition[i];
-        }
-        array<T> out(n);
-        n = 0;
-        for (size_t i = 0; i < condition.size(); ++i) {
-            if (condition[i]) {
-                out[n++] = expr_true[i];
-            }
-        }
-        return out;
-    }
+    array<bool> operator>= (const array<T> &v, const T &val);
 
     template <class T>
-    array<T> where(
-       const array<bool> &condition,
-       const array<T> &expr_true, const array<T> &expr_false
-    ) {
-        array<T> out(condition.size());
-        for (size_t i = 0; i < condition.size(); ++i) {
-            out[i] = condition[i] ? expr_true[i] : expr_false[i];
-        }
-        return out;
-    }
+    array<bool> operator>= (const T &val, const array<T> &v);
 }
 
 #endif // ARRAY_H_INCLUDED
