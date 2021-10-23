@@ -63,6 +63,16 @@ namespace numcpp {
         }
     }
 
+    template <class T>
+    template <class U>
+    array<T>::array(const array<U> &v) {
+        this->length = v.size();
+        this->values = new T[this->length];
+        for (size_t i = 0; i < this->length; ++i) {
+            this->values[i] = U(v[i]);
+        }
+    }
+
     // Move constructor. Constructs an array that acquires the elements of v.
     template <class T>
     array<T>::array(array<T> &&v) {
@@ -70,6 +80,17 @@ namespace numcpp {
         this->values = v.values;
         v.length = 0;
         v.values = nullptr;
+    }
+
+    // Subarray constructor. Constructs an array with a copy of each of the
+    // elements in v, in the same order.
+    template <class T>
+    array<T>::array(const subarray<T> &v) {
+        this->length = v.size();
+        this->values = new T[this->length];
+        for (size_t i = 0; i < this->length; ++i) {
+            this->values[i] = v[i];
+        }
     }
 
     // Initializer list. Constructs an array with a copy of each of the
@@ -107,6 +128,20 @@ namespace numcpp {
         }
         for (size_t i = 0; i < this->length; ++i) {
             this->values[i] = v.values[i];
+        }
+        return *this;
+    }
+
+    template <class T>
+    template <class U>
+    array<T>& array<T>::operator= (const array<U> &v) {
+        if (this->length != v.size()) {
+            delete[] this->values;
+            this->length = v.size();
+            this->values = new T[this->length];
+        }
+        for (size_t i = 0; i < this->length; ++i) {
+            this->values[i] = U(v[i]);
         }
         return *this;
     }
@@ -789,17 +824,6 @@ namespace numcpp {
             }
         );
         return indices;
-    }
-
-    // Copy of the array, cast to a specified type.
-    template <class T>
-    template <class U>
-    array<U> array<T>::astype() const {
-        array<U> out(this->size());
-        for (size_t i = 0; i < out.size(); ++i) {
-            out[i] = U((*this)[i]);
-        }
-        return out;
     }
 
     // Clip (limit) the values in the array. Given an interval, values outside

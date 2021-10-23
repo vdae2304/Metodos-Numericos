@@ -125,12 +125,6 @@ namespace numcpp {
         const index_subarray<T>
         at(const array<size_t> &i, const array<size_t> &j) const;
 
-        // Boolean matrix indexing: Return a sub-array object that selects the
-        // elements specified by its argument.
-        mask_subarray<T> at(const matrix<bool> &mask);
-
-        const mask_subarray<T> at(const matrix<bool> &mask) const;
-
         // Apply a function to each of the elements in *this.
         template <class Function = T(T)>
         void apply(Function f);

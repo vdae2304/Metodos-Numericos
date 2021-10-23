@@ -38,9 +38,16 @@ namespace numcpp {
         // elements in v, in the same order.
         array(const array &v);
 
+        template <class U>
+        array(const array<U> &v);
+
         // Move constructor. Constructs an array that acquires the elements of
         // v.
         array(array &&v);
+
+        // Subarray constructor. Constructs an array with a copy of each of the 
+        // elements in v, in the same order.
+        array(const subarray<T> &v);
 
         // Initializer list. Constructs an array with a copy of each of the
         // elements in il, in the same order.
@@ -52,6 +59,9 @@ namespace numcpp {
         // Copy assignment. Assigns the contents of v to *this after resizing
         // the object (if necessary).
         array& operator= (const array &v);
+
+        template <class U>
+        array& operator= (const array<U> &v);
 
         // Move assignment. Acquires the contents of v.
         array& operator= (array &&v);
@@ -118,12 +128,6 @@ namespace numcpp {
 
         const index_subarray<T> operator[] (const array<size_t> &index) const;
 
-        // Boolean array indexing: Return a sub-array object that selects the
-        // elements specified by its argument.
-        mask_subarray<T> operator[] (const array<bool> &mask);
-
-        const mask_subarray<T> operator[] (const array<bool> &mask) const;
-
         // Apply a function to each of the elements in *this.
         template <class Function = T(T)>
         void apply(Function f);
@@ -136,10 +140,6 @@ namespace numcpp {
 
         // Returns the indices that would sort this array.
         array<size_t> argsort() const;
-
-        // Copy of the array, cast to a specified type.
-        template <class U>
-        array<U> astype() const;
 
         // Clip (limit) the values in the array. Given an interval, values
         // outside the interval are clipped to the interval edges.

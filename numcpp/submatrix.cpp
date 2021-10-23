@@ -397,26 +397,4 @@ namespace numcpp {
         }
         return view;
     }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Boolean array indexing                                                 //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Return a sub-array object that selects the elements specified by the
-    // boolean array.
-    template <class T>
-    mask_subarray<T> matrix<T>::at(const matrix<bool> &mask) {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask.flatten();
-        return view;
-    }
-
-    template <class T>
-    const mask_subarray<T> matrix<T>::at(const matrix<bool> &mask) const {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask.flatten();
-        return view;
-    }
 }

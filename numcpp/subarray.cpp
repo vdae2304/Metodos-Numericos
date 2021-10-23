@@ -3,10 +3,276 @@
 
 namespace numcpp {
     ////////////////////////////////////////////////////////////////////////////
+    // Subarray base class                                                    //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Assignment operators.
+    template <class T>
+    void subarray<T>::operator= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] = v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] = val;
+        }
+    }
+
+    // Compound assignment (subarray - array).
+    template <class T>
+    void subarray<T>::operator+= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] += v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator-= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] -= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator*= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] *= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator/= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] /= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator%= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] %= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator&= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] &= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator|= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] |= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator^= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] ^= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator<<= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] <<= v[i];
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator>>= (const array<T> &v) {
+        size_t n = this->size();
+        if (n != v.size()) {
+            std::ostringstream error;
+            error << "operands could not be broadcast together with shapes ("
+                  << n << ",) (" << v.size() << ",)";
+            throw std::runtime_error(error.str());
+        }
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] >>= v[i];
+        }
+    }
+
+    // Compound assignment (subarray - scalar).
+    template <class T>
+    void subarray<T>::operator+= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] += val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator-= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] -= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator*= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] *= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator/= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] /= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator%= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] %= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator&= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] &= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator|= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] |= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator^= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] ^= val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator<<= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] = val;
+        }
+    }
+
+    template <class T>
+    void subarray<T>::operator>>= (const T &val) {
+        size_t n = this->size();
+        for (size_t i = 0; i < n; ++i) {
+            (*this)[i] = val;
+        }
+    }
+
+    // Returns a reference to the element at position i in the subarray.
+    template <class T>
+    T& subarray<T>::operator[] (size_t i) {
+        return this->values[i];
+    }
+
+    template <class T>
+    const T& subarray<T>::operator[] (size_t i) const {
+        return this->values[i];
+    }
+
+    // Returns the number of elements selected by the subarray.
+    template <class T>
+    size_t subarray<T>::size() const {
+        return 0;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
     // Slice indexing                                                         //
     ////////////////////////////////////////////////////////////////////////////
 
-    // Return a sub-array object that selects the elements specified by the
+    // Return a slice_subarray object that selects the elements specified by the
     // slice.
     template <class T>
     slice_subarray<T> array<T>::operator[] (slice slc) {
@@ -27,248 +293,15 @@ namespace numcpp {
     // Assignment operators.
     template <class T>
     void slice_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = v[i];
-        }
+        subarray<T>::operator= (v);
     }
 
     template <class T>
     void slice_subarray<T>::operator= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
+        subarray<T>::operator= (val);
     }
 
-    // Compound assignment.
-    template <class T>
-    void slice_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= v[i];
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator+= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator-= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator*= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator/= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator%= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator&= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator|= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator^= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator<<= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    template <class T>
-    void slice_subarray<T>::operator>>= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
-    }
-
-    // Returns a reference to the element at position i in the sub-array.
+    // Returns a reference to the element at position i in the subarray.
     template <class T>
     T& slice_subarray<T>::operator[] (size_t i) {
         return this->values[this->slc.start + i*this->slc.step];
@@ -279,18 +312,7 @@ namespace numcpp {
         return this->values[this->slc.start + i*this->slc.step];
     }
 
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> slice_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = (*this)[i];
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
+    // Returns the number of elements selected by the subarray.
     template <class T>
     size_t slice_subarray<T>::size() const {
         return ceil(
@@ -302,7 +324,7 @@ namespace numcpp {
     // Integer array indexing                                                 //
     ////////////////////////////////////////////////////////////////////////////
 
-    // Return a sub-array object that selects the elements specified by the
+    // Return a index_subarray object that selects the elements specified by the
     // integer array.
     template <class T>
     index_subarray<T> array<T>::operator[] (const array<size_t> &index) {
@@ -313,8 +335,8 @@ namespace numcpp {
     }
 
     template <class T>
-    const index_subarray<T>
-    array<T>::operator[] (const array<size_t> &index) const {
+    const index_subarray<T> array<T>::operator[] (const array<size_t> &index) 
+    const {
         index_subarray<T> view;
         view.values = this->values;
         view.index = index;
@@ -324,248 +346,15 @@ namespace numcpp {
     // Assignment operators.
     template <class T>
     void index_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = v[i];
-        }
+        subarray<T>::operator= (v);
     }
 
     template <class T>
     void index_subarray<T>::operator= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] = val;
-        }
+        subarray<T>::operator= (val);
     }
 
-    // Compound assignment.
-    template <class T>
-    void index_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= v[i];
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator+= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] += val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator-= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] -= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator*= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] *= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator/= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] /= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator%= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] %= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator&= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] &= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator|= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] |= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator^= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] ^= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator<<= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] <<= val;
-        }
-    }
-
-    template <class T>
-    void index_subarray<T>::operator>>= (const T &val) {
-        size_t n = this->size();
-        for (size_t i = 0; i < n; ++i) {
-            (*this)[i] >>= val;
-        }
-    }
-
-    // Returns a reference to the element at position i in the sub-array.
+    // Returns a reference to the element at position i in the subarray.
     template <class T>
     T& index_subarray<T>::operator[] (size_t i) {
         return this->values[this->index[i]];
@@ -576,355 +365,9 @@ namespace numcpp {
         return this->values[this->index[i]];
     }
 
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> index_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        for (size_t i = 0; i < n; ++i) {
-            out[i] = (*this)[i];
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
+    // Returns the number of elements selected by the subarray.
     template <class T>
     size_t index_subarray<T>::size() const {
         return this->index.size();
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Boolean array indexing                                                 //
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Return a sub-array object that selects the elements specified by the
-    // boolean array.
-    template <class T>
-    mask_subarray<T> array<T>::operator[] (const array<bool> &mask) {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask;
-        return view;
-    }
-
-    template <class T>
-    const mask_subarray<T>
-    array<T>::operator[] (const array<bool> &mask) const {
-        mask_subarray<T> view;
-        view.values = this->values;
-        view.mask = mask;
-        return view;
-    }
-
-    // Assignment operators.
-    template <class T>
-    void mask_subarray<T>::operator= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] = v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] = val;
-            }
-        }
-    }
-
-    // Compound assignment.
-    template <class T>
-    void mask_subarray<T>::operator+= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] += v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator-= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] -= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator*= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] *= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator/= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] /= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator%= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] %= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator&= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] &= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator|= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] |= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator^= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] ^= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator<<= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] <<= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator>>= (const array<T> &v) {
-        size_t n = this->size();
-        if (n != v.size()) {
-            std::ostringstream error;
-            error << "operands could not be broadcast together with shapes ("
-                  << n << ",) (" << v.size() << ",)";
-            throw std::runtime_error(error.str());
-        }
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] >>= v[n++];
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator+= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] += val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator-= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] -= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator*= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] *= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator/= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] /= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator%= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] %= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator&= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] &= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator|= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] |= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator^= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] ^= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator<<= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] <<= val;
-            }
-        }
-    }
-
-    template <class T>
-    void mask_subarray<T>::operator>>= (const T &val) {
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                this->values[i] >>= val;
-            }
-        }
-    }
-
-    // Return a copy of the elements selected by the sub-array.
-    template <class T>
-    array<T> mask_subarray<T>::copy() const {
-        size_t n = this->size();
-        array<T> out(n);
-        n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            if (this->mask[i]) {
-                out[n++] = this->values[i];
-            }
-        }
-        return out;
-    }
-
-    // Returns the number of elements selected by the sub-array.
-    template <class T>
-    size_t mask_subarray<T>::size() const {
-        size_t n = 0;
-        for (size_t i = 0; i < this->mask.size(); ++i) {
-            n += this->mask[i];
-        }
-        return n;
     }
 }

@@ -6,9 +6,10 @@ namespace numcpp {
     template <class T> class matrix;
 
     class slice;
+    template <class T> class subarray;
     template <class T> class slice_subarray;
     template <class T> class index_subarray;
-    template <class T> class mask_subarray;
+    
     template <class T> class submatrix;
 }
 

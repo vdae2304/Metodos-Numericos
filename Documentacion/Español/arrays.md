@@ -77,6 +77,7 @@ array(InputIterator first, InputIterator last);
 de `v`, en el mismo orden.
 ```cpp
 array(const array &v);
+template <class U> array(const array<U> &v);
 ```
 
 6. Constructor por movimiento. Construye un arreglo que adquiere los elementos 
@@ -297,6 +298,7 @@ int main() {
 cambiar el tamaño del arreglo (en caso de ser necesario).
 ```cpp
 array& operator= (const array &v);
+template <class U> array& operator= (const array<U> &v);
 ```
 
 2. Asignación por movimiento. Adquiere el contenido de `v`.
@@ -477,19 +479,14 @@ int main() {
 
 ### Sub-arreglos
 
-Un sub-arreglo es una clase intermedia devuelta por el operador `[]` de un 
-arreglo. Hace referencia a los elementos en el arreglo que son seleccionados 
-por el sub-índice, y sobrecarga los operadores de asignación y asignación 
-compuesta, permitiendo acceder directamente a los elementos en la selección. 
-El objeto puede ser convertido en un arreglo, generando un nuevo objeto con 
-copias de los elementos referenciados.
-
-Existen tres tipos de sub-arreglos dependiendo de la manera en que se 
-seleccionen los sub-índices: `slice_subarray`, `index_subarray` y 
-`mask_subarray`.
+Un sub-arreglo (`subarray`) es una clase intermedia devuelta por el operador 
+`[]` de un arreglo. Hace referencia a los elementos en el arreglo que son 
+seleccionados por el sub-índice, y sobrecarga los operadores de asignación y 
+asignación compuesta, permitiendo acceder directamente a los elementos en la 
+selección. 
 ```cpp
 template <class T>
-class slice_subarray {
+class subarray {
 public:
     void operator= (const array<T> &v);
     void operator= (const T &val);
@@ -516,83 +513,17 @@ public:
     void operator<<= (const T &val);
     void operator>>= (const T &val);
 
-    T& operator[] (size_t i);
-    const T& operator[] (size_t i) const;
+    virtual T& operator[] (size_t i);
+    virtual const T& operator[] (size_t i) const;
 
-    array<T> copy() const;
-    size_t size() const;
+    virtual size_t size() const;
 };
 ```
 
+El objeto puede ser convertido en un arreglo (a través de un constructor), 
+generando un nuevo objeto con copias de los elementos referenciados.
 ```cpp
-template <class T>
-class index_subarray {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    T& operator[] (size_t i);
-    const T& operator[] (size_t i) const;
-
-    array<T> copy() const;
-    size_t size() const;
-};
-```
-
-```cpp
-template <class T>
-class mask_subarray {
-public:
-    void operator= (const array<T> &v);
-    void operator= (const T &val);
-
-    void operator+= (const array<T> &v);
-    void operator-= (const array<T> &v);
-    void operator*= (const array<T> &v);
-    void operator/= (const array<T> &v);
-    void operator%= (const array<T> &v);
-    void operator&= (const array<T> &v);
-    void operator|= (const array<T> &v);
-    void operator^= (const array<T> &v);
-    void operator<<= (const array<T> &v);
-    void operator>>= (const array<T> &v);
-
-    void operator+= (const T &val);
-    void operator-= (const T &val);
-    void operator*= (const T &val);
-    void operator/= (const T &val);
-    void operator%= (const T &val);
-    void operator&= (const T &val);
-    void operator|= (const T &val);
-    void operator^= (const T &val);
-    void operator<<= (const T &val);
-    void operator>>= (const T &val);
-
-    array<T> copy() const;
-    size_t size() const;
-};
+array(const subarray<T> &v);
 ```
 
 ### Slices
@@ -604,10 +535,10 @@ un índice de fin (`stop`) y un tamaño de paso (`step`). Por ejemplo,
 Por defecto, el valor de inicio es 0 y el tamaño de paso es 1.
 ```cpp
 slice(size_t stop);
-slice(size_t start, size_t stop, int step = 1);
+slice(size_t start, size_t stop, long step = 1);
 ```
-Al indexar un arreglo mediante un slice, el operador devuelve un objeto de 
-tipo  `slice_subarray<T>` representando un subarreglo con los elementos seleccionados 
+Al indexar un arreglo mediante un slice el operador devuelve un objeto de tipo  
+`slice_subarray` representando un subarreglo con los elementos seleccionados 
 por el slice.
 ```cpp
 slice_subarray<T> operator[] (slice slc);
@@ -622,11 +553,11 @@ using namespace std;
 namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
-    np::slice_subarray<int> sub = v[np::slice(3, 10, 2)];
+    np::array<int> copia = v[np::slice(3, 10, 2)];
     cout << "Los elementos de v son: " << v << "\n";
-    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
-    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
-    sub = 0;
+    cout << "El subarreglo tiene " << copia.size() << " elementos.\n";
+    cout << "Los elementos del subarreglo son: " << copia << "\n";
+    v[np::slice(3, 10, 2)] = 0;
     cout << "Los elementos de v son ahora: " << v << "\n";
     return 0;
 }
@@ -641,8 +572,8 @@ int main() {
 
 ### Arreglos de índices
 
-Al indexar un arreglo mediante un arreglo de índices (de tipo `size_t`), el 
-operador devuelve un objeto de tipo  `index_subarray<T>` representando un 
+Al indexar un arreglo mediante un arreglo de índices (de tipo `size_t`) el 
+operador devuelve un objeto de tipo  `index_subarray` representando un 
 subarreglo con los elementos especificados por el arreglo de índices.
 ```cpp
 index_subarray<T> operator[] (const array<size_t> &index);
@@ -659,11 +590,11 @@ namespace np = numcpp;
 int main() {
     np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
     np::array<size_t> indices = {1, 5, 6, 8, 2};
-    np::index_subarray<int> sub = v[indices];
+    np::array<int> copia = v[indices];
     cout << "Los elementos de v son: " << v << "\n";
-    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
-    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
-    sub = 0;
+    cout << "El subarreglo tiene " << copia.size() << " elementos.\n";
+    cout << "Los elementos del subarreglo son: " << copia << "\n";
+    v[indices] = 0;
     cout << "Los elementos de v son ahora: " << v << "\n";
     return 0;
 }
@@ -674,43 +605,6 @@ int main() {
       El subarreglo tiene 5 elementos.
       Los elementos del subarreglo son: [-3, -1, 1, -5, 7]
       Los elementos de v son ahora: [8, 0, 0, 5, 10, 0, 0, 3, 0, 14]
-```
-
-### Arreglos booleanos
-
-Al indexar un arreglo mediante un arreglo booleano, el operador devuelve un 
-objeto de tipo  `mask_subarray<T>` representando un subarreglo con los 
-elementos seleccionados por la máscara booleana.
-```cpp
-mask_subarray<T> operator[] (const array<bool> &mask);
-const mask_subarray<T> operator[] (const array<bool> &mask) const;
-```
-
-#### Ejemplo
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::array<int> v = {8, -3, 7, 5, 10, -1, 1, 3, -5, 14};
-    np::array<bool> mascara = {1, 1, 0, 0, 1, 0, 1, 0, 1, 0};
-    np::mask_subarray<int> sub = v[mascara];
-    cout << "Los elementos de v son: " << v << "\n";
-    cout << "El subarreglo tiene " << sub.size() << " elementos.\n";
-    cout << "Los elementos del subarreglo son: " << sub.copy() << "\n";
-    sub = 0;
-    cout << "Los elementos de v son ahora: " << v << "\n";
-    return 0;
-}
-```
-
-```
-[Out] Los elementos de v son: [8, -3, 7, 5, 10, -1, 1, 3, -5, 14]
-      El subarreglo tiene 5 elementos.
-      Los elementos del subarreglo son: [8, -3, 10, 1, -5]
-      Los elementos de v son ahora: [0, 0, 7, 5, 0, -1, 0, 3, 0, 14]
 ```
 
 ## Lista de métodos
@@ -821,33 +715,6 @@ int main() {
 
 ```
 [Out] [1, 3, 0, 2, 4]
-```
-
-### `astype` 
-
-Crea una copia del arreglo, haciendo la conversión al tipo de dato 
-especificado.
-```cpp
-template <class U> array<U> astype() const;
-```
-
-#### Ejemplo
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::array<double> v = {1., 2.5, 3., -4.1, 0.};
-    np::array<int> w = v.astype<int>();
-    cout << w << "\n";
-    return 0;
-}
-```
-
-```
-[Out] [1, 2, 3, -4, 0]
 ```
 
 ### `clip` 
