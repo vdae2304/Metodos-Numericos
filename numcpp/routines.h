@@ -89,7 +89,7 @@ namespace numcpp {
 
     // Returns the indices that would sort the array.
     template <class T>
-    size_t argsort(const array<T> &v);
+    array<size_t> argsort(const array<T> &v);
 
     // Return an array whose values are limited to [a_min, a_max].
     // Given an interval, values outside the interval are clipped to the

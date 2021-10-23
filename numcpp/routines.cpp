@@ -403,7 +403,7 @@ namespace numcpp {
 
     // Returns the indices that would sort the array.
     template <class T>
-    size_t argsort(const array<T> &v) {
+    array<size_t> argsort(const array<T> &v) {
         return v.argsort();
     }
 
