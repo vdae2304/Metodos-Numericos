@@ -1,0 +1,6 @@
+# Folders
+Tests/
+old/
+# Files
+*.o
+main.*
