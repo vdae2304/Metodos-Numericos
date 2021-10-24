@@ -60,6 +60,7 @@ namespace numcpp {
     protected:
         slice slc;
         friend class array<T>;
+        friend class matrix<T>;
 
     public:
         // Assignment operators.
@@ -69,7 +70,6 @@ namespace numcpp {
         // Subarray subscript. Returns a reference to the element at position 
         // i in the subarray.
         T& operator[] (size_t i);
-
         const T& operator[] (size_t i) const;
 
         // Methods.
@@ -91,7 +91,6 @@ namespace numcpp {
         // Subarray subscript. Returns a reference to the element at position 
         // i in the subarray.
         T& operator[] (size_t i);
-
         const T& operator[] (size_t i) const;
 
         // Methods.

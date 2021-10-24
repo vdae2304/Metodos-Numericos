@@ -146,6 +146,21 @@ namespace numcpp {
         return *this;
     }
 
+    // Subarray assignment. Assigns the contents of v to *this after resizing 
+    // the object (if necessary).
+    template <class T>
+    array<T>& array<T>::operator= (const subarray<T> &v) {
+        if (this->length != v.size()) {
+            delete[] this->values;
+            this->length = v.size();
+            this->values = new T[this->length];
+        }
+        for (size_t i = 0; i < this->length; ++i) {
+            this->values[i] = v[i];
+        }
+        return *this;
+    }
+
     // Move assignment. Acquires the contents of v.
     template <class T>
     array<T>& array<T>::operator= (array<T> &&v) {

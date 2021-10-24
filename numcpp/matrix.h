@@ -39,9 +39,16 @@ namespace numcpp {
         // elements in A, in the same order.
         matrix(const matrix &A);
 
+        template <class U>
+        matrix(const matrix<U> &A);
+
         // Move constructor. Constructs a matrix that acquires the elements of
         // A.
         matrix(matrix &&A);
+
+        // Submatrix constructor. Constructs a matrix with a copy of each of the
+        // elements in A, in the same order.
+        matrix(const submatrix<T> &A);
 
         // Initializer list of lists. Constructs a matrix with a copy of each
         // of the elements in ill, in the same order.
@@ -54,8 +61,15 @@ namespace numcpp {
         // the object (if necessary).
         matrix& operator= (const matrix &A);
 
+        template <class U>
+        matrix& operator= (const matrix<U> &A);
+
         // Move assignment. Acquires the contents of A.
         matrix& operator= (matrix &&A);
+
+        // Submatrix assignment. Assigns the contents of A to *this after 
+        // resizing the object (if necessary).
+        matrix& operator= (const submatrix<T> &A);
 
         // Fill assignment. Assigns val to every element.
         matrix& operator= (const T &val);
@@ -112,18 +126,52 @@ namespace numcpp {
 
         const T& at(size_t i, size_t j) const;
 
-        // Slice indexing: Return a sub-matrix object that selects the elements
-        // specified by its argument.
-        submatrix<T> at(slice i, slice j);
+        // Slice/Integer array indexing: Return a sub-matrix object that selects 
+        // the elements specified by its argument.
+        slice_slice_submatrix<T> at(slice i, slice j);
 
-        const submatrix<T> at(slice i, slice j) const;
+        const slice_slice_submatrix<T> at(slice i, slice j) const;
 
-        // Integer array indexing: Return a sub-array object that selects the
+        slice_index_submatrix<T> at(slice i, const array<size_t> &j);
+
+        const slice_index_submatrix<T> 
+        at(slice i, const array<size_t> &j) const;
+
+        index_slice_submatrix<T> at(const array<size_t> &i, slice j);
+
+        const index_slice_submatrix<T> 
+        at(const array<size_t> &i, slice j) const;
+
+        index_index_submatrix<T> 
+        at(const array<size_t> &i, const array<size_t> &j);
+
+        const index_index_submatrix<T> 
+        at(const array<size_t> &i, const array<size_t> &j) const;
+
+        // Row/Column indexing: Return a sub-array object that selects the 
         // elements specified by its argument.
-        index_subarray<T> at(const array<size_t> &i, const array<size_t> &j);
+        slice_subarray<T> at(size_t i, slice j);
+
+        const slice_subarray<T> at(size_t i, slice j) const;
+
+        slice_subarray<T> at(slice i, size_t j);
+
+        const slice_subarray<T> at(slice i, size_t j) const;
+
+        index_subarray<T> at(size_t i, const array<size_t> &j);
+
+        const index_subarray<T> at(size_t i, const array<size_t> &j) const;
+
+        index_subarray<T> at(const array<size_t> &i, size_t j);
+
+        const index_subarray<T> at(const array<size_t> &i, size_t j) const;
+
+        // Coordinate array indexing: Return a sub-array object that selects the
+        // elements specified by its argument.
+        index_subarray<T> at(const array< std::pair<size_t, size_t> > &index);
 
         const index_subarray<T>
-        at(const array<size_t> &i, const array<size_t> &j) const;
+        at(const array< std::pair<size_t, size_t> > &index) const;
 
         // Apply a function to each of the elements in *this.
         template <class Function = T(T)>
@@ -138,9 +186,6 @@ namespace numcpp {
         std::pair<size_t, size_t> argmin() const;
 
         array<size_t> argmin(size_t axis) const;
-
-        // Copy of the matrix, cast to a specified type.
-        template <class U> matrix<U> astype() const;
 
         // Clip (limit) the values in the matrix. Given an interval, values
         // outside the interval are clipped to the interval edges.

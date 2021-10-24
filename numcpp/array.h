@@ -66,6 +66,10 @@ namespace numcpp {
         // Move assignment. Acquires the contents of v.
         array& operator= (array &&v);
 
+        // Subarray assignment. Assigns the contents of v to *this after 
+        // resizing the object (if necessary).
+        array& operator= (const subarray<T> &v);
+
         // Fill assignment. Assigns val to every element.
         array& operator= (const T &val);
 

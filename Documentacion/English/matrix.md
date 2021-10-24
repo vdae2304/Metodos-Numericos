@@ -22,18 +22,25 @@ program. Matrices will be represented by the `matrix` class.
 
 #### Example
 
+Compute an affine transformation.
 ```cpp
 #include <iostream>
 #include "numcpp.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
+    np::matrix<int> A = {{5, 1, 3}, 
+                         {8, 0, 2},
+                         {7, 5, 1}};
+    np::array<int> x = {2, 0, -1};
+    np::array<int> b = {5, 2, 7};
+    cout << A.dot(x) + b << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] 
+[Out] [12, 16, 20]
 ```
 
 ## Constructors
@@ -66,6 +73,7 @@ matrix(size_t m, size_t n, InputIterator first);
 `A`, in the same order.
 ```cpp
 matrix(const matrix &A);
+template <class U> matrix(const matrix<U> &A);
 ```
 
 6. Move constructor. Constructs a matrix that acquires the elements of  `A`.
@@ -282,6 +290,7 @@ int main() {
 matrix (if necessary).
 ```cpp
 matrix& operator= (const matrix &A);
+template <class U> matrix& operator= (const matrix<U> &A);
 ```
 
 2. Move assignment. Acquires the contents of `A`.
@@ -480,19 +489,12 @@ int main() {
 
 ## Advanced indexing
 
-### Slices and sub-matrices
+### Sub-matrices
 
-A sub-matrix is an intermediate class returned by the matrix's `at` method when 
-using slices. It references the elements in the matrix that are selected by the 
+A sub-matrix (`submatrix`) is an intermediate class returned by the matrix's 
+`at` method. It references the elements in the matrix that are selected by the 
 subscripts, and overloads the assignment and compound assignment operators, 
-allowing direct access to the elements in the selection. The object is 
-convertible to a matrix, producing a new object with copies of the referred 
-elements.
-```cpp
-submatrix<T> at(slice i, slice j);
-const submatrix<T> at(slice i, slice j) const;
-```
-
+allowing direct access to the elements in the selection. 
 ```cpp
 template <class T>
 class submatrix {
@@ -522,15 +524,40 @@ public:
     void operator<<= (const T &val);
     void operator>>= (const T &val);
 
-    T& at(size_t i, size_t j);
-    const T& at(size_t i, size_t j) const;
+    virtual T& at(size_t i, size_t j);
+    virtual const T& at(size_t i, size_t j) const;
 
-    size_t columns() const;
-    matrix<T> copy() const;
-    size_t rows() const;
+    virtual size_t columns() const;
+    virtual size_t rows() const;
 };
 ```
 
+The object is convertible to a matrix (via constructor), producing a new object 
+with copies of the referred elements.
+```cpp
+matrix(const submatrix<T> &A);
+```
+
+### Slices and integer array indexing
+
+By indexing a matrix using slices or integer arrays on each axis, the method
+returns a `slice_slice_submatrix`, `slice_index_submatrix`, 
+`index_slice_submatrix` or `index_index_submatrix` object, depending on the 
+case, representing a submatrix with the elements selected on each axis.
+```cpp
+slice_slice_submatrix<T> at(slice i, slice j);
+const slice_slice_submatrix<T> at(slice i, slice j) const;
+
+slice_index_submatrix<T> at(slice i, const array<size_t> &j);
+const slice_index_submatrix<T> at(slice i, const array<size_t> &j) const;
+
+index_slice_submatrix<T> at(const array<size_t> &i, slice j);
+const index_slice_submatrix<T> at(const array<size_t> &i, slice j) const;
+
+index_index_submatrix<T> at(const array<size_t> &i, const array<size_t> &j);
+const index_index_submatrix<T> at(const array<size_t> &i, const array<size_t> &j) const;
+```
+
 #### Example
 ```cpp
 #include <iostream>
@@ -544,17 +571,25 @@ int main() {
                          {1, 5, 0, 0, -2, 9}};
     cout << "A's elements are:\n" << A << "\n";
 
-    // Select rows 0, 1, 2, 3 and columns 1, 3, 5.
-    np::submatrix<int> sub = A.at(np::slice(4), np::slice(1, 6, 2));
-    cout << "The submatrix has " << sub.rows() << " rows";
-    cout << " and " << sub.columns() << " columns.\n";
-    cout << "The submatrix elements are:\n" << sub.copy() << "\n";
-    sub = 0;
-    cout << "A's elements are now:\n" << A << "\n";
+    np::slice i = np::slice(2);       // Rows 0 and 1.
+    np::slice j = np::slice(0, 5, 2); // Columns 0, 2 and 4.
+    np::array<size_t> r = {2, 3};     // Rows 2 and 3.
+    np::array<size_t> c = {1, 3, 5};  // Columns 1, 3 and 5.
 
+    np::matrix<int> B = A.at(i, j);
+    np::matrix<int> C = A.at(i, c);
+    np::matrix<int> D = A.at(r, j);
+    np::matrix<int> E = A.at(r, c);
+    cout << "B's elements are:\n" << B << "\n";
+    cout << "C's elements are:\n" << C << "\n";
+    cout << "D's elements are:\n" << D << "\n";
+    cout << "E's elements are:\n" << E << "\n";
+
+    A.at(i, c) = 0;
+    A.at(r, j) = 10;
+    cout << "A's elements are now:\n" << A << "\n";
     return 0;
 }
-
 ```
 
 ```
@@ -563,27 +598,43 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      The submatrix has 4 rows and 3 columns.
-      The submatrix elements are:
+      B's elements are:
+      [[7, -1, 3]
+       [5, 10, 0]]
+      C's elements are:
       [[0, 14,  0]
-       [3,  2, -1]
-       [1, -5,  3]
-       [5,  0,  9]]
+       [3,  2, -1]]
+      D's elements are:
+      [[0, 7,  9]
+       [1, 0, -2]]
+      E's elements are:
+      [[1, -5, 3]
+       [5,  0, 9]]
       A's elements are now:
-      [[7, 0, -1, 0,  3, 0]
-       [5, 0, 10, 0,  0, 0]
-       [0, 0,  7, 0,  9, 0]
-       [1, 0,  0, 0, -2, 0]]
+      [[ 7, 0, -1,  0,  3, 0]
+       [ 5, 0, 10,  0,  0, 0]
+       [10, 1, 10, -5, 10, 3]
+       [10, 5, 10,  0, 10, 9]]
 ```
 
-### Integer array indexing
+### Row and column indexing
 
-Indexing a matrix using integer arrays (of `size_t` data type) on each axis, 
-the operator will return a `index_subarray<T>` object representing a subarray 
-with the elements selected by the integer arrays.
+By indexing a matrix using an integer on one of the axis and a slice or integer 
+array on the other axis, the method returns a `slice_subarray` or 
+`index_subarray` object representing a subarray with the elements selected 
+along a row or column.
 ```cpp
-index_subarray<T> at(const array<size_t> &i, const array<size_t> &j);
-const index_subarray<T> at(const array<size_t> &i, const array<size_t> &j) const;
+slice_subarray<T> at(size_t i, slice j);
+const slice_subarray<T> at(size_t i, slice j) const;
+
+slice_subarray<T> at(slice i, size_t j);
+const slice_subarray<T> at(slice i, size_t j) const;
+
+index_subarray<T> at(size_t i, const array<size_t> &j);
+const index_subarray<T> at(size_t i, const array<size_t> &j) const;
+
+index_subarray<T> at(const array<size_t> &i, size_t j);
+const index_subarray<T> at(const array<size_t> &i, size_t j) const;
 ```
 
 #### Example
@@ -599,15 +650,15 @@ int main() {
                          {0, 1, 7, -5, 9, 3},
                          {1, 5, 0, 0, -2, 9}};
     cout << "A's elements are:\n" << A << "\n";
-
-    // Select positions (0, 0), (0, 2), (0, 5), (2, 1), (3, 0), (3, 4)
-    np::array<size_t> i = {0, 0, 0, 2, 3, 3};
-    np::array<size_t> j = {0, 2, 5, 1, 0, 4};
-    np::index_subarray<int> sub = A.at(i, j);
-    cout << "The selected elements are:\n" << sub.copy() << "\n";
-    sub = 0;
+    // Prints the second row.
+    np::array<int> v = A.at(1, np::slice(A.columns()));
+    cout << "2nd row: " << v << "\n";
+    // Prints the fourth column.
+    np::array<int> w = A.at(np::slice(A.rows()), 3);
+    cout << "4th column: " << w << "\n";
+    // Modifies positions (0, 0), (0, 1), (0, 2) and (0, 5).
+    A.at(0, np::array<size_t>{0, 1, 2, 5}) = 100;
     cout << "A's elements are now:\n" << A << "\n";
-
     return 0;
 }
 ```
@@ -618,23 +669,23 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      The selected elements are:
-      [7, -1, 0, 1, 1, -2]
+      2nd row: [5, 3, 10, 2, 0, -1]
+      4th column: [14, 2, -5, 0]
       A's elements are now:
-      [[0, 0,  0, 14, 3,  0]
-       [5, 3, 10,  2, 0, -1]
-       [0, 0,  7, -5, 9,  3]
-       [0, 5,  0,  0, 0,  9]]
-```
+      [[100, 100, 100, 14,  3, 100]
+       [  5,   3,  10,  2,  0,  -1]
+       [  0,   1,   7, -5,  9,   3]
+       [  1,   5,   0,  0, -2,   9]]
+ ```
 
-### Boolean matrix indexing
+### Coordinate array indexing
 
-Indexing a matrix using boolean matrices, the operator will return a 
-`mask_subarray<T>` object representing a subarray with the elements selected by 
-the boolean mask.
+By indexing a matrix using coordinate arrays (of `pair<size_t, size_t>` data 
+type), the method returns an `index_subarray` object representing a subarray 
+with the elements selected by the coordinate array.
 ```cpp
-mask_subarray<T> at(const matrix<bool> &mask);
-const mask_subarray<T> at(const matrix<bool> &mask) const;
+index_subarray<T> at(const array< std::pair<size_t, size_t> > &index);
+const index_subarray<T> at(const array< std::pair<size_t, size_t> > &index) const;
 ```
 
 #### Example
@@ -650,14 +701,12 @@ int main() {
                          {0, 1, 7, -5, 9, 3},
                          {1, 5, 0, 0, -2, 9}};
     cout << "A's elements are:\n" << A << "\n";
-
-    // Select the positions with negative values.
-    np::matrix<bool> mask = A < 0;
-    np::mask_subarray<int> sub = A.at(mask);
-    cout << "The selected elements are:\n" << sub.copy() << "\n";
-    sub = 0;
+    // Selects the elements on the main diagonal.
+    np::array< pair<size_t, size_t> > indices = {{0, 0}, {1, 1}, {2, 2}, {3, 3}};
+    np::array<int> v = A.at(indices);
+    cout << "The elements on the diagonal are:\n" << v << "\n";
+    A.at(indices) = 0;
     cout << "A's elements are now:\n" << A << "\n";
-
     return 0;
 }
 ```
@@ -668,13 +717,13 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      The selected elements are:
-      [-1, -1, -5, -2]
+      The elements on the diagonal are:
+      [7, 3, 7, 0]
       A's elements are now:
-      [[7, 0,  0, 14, 3, 0]
-       [5, 3, 10,  2, 0, 0]
-       [0, 1,  7,  0, 9, 3]
-       [1, 5,  0,  0, 0, 9]]
+      [[0, 0, -1, 14,  3,  0]
+       [5, 0, 10,  2,  0, -1]
+       [0, 1,  0, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
 ```
 
 ## Methods list
@@ -777,33 +826,6 @@ int main() {
 [Out] (1, 0)
       [1, 0, 1]
       [1, 0]
-```
-
-### `astype` 
-
-Returns a copy of the matrix, cast to a specified type.
-```cpp
-template <class U> matrix<U> astype() const;
-```
-
-#### Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::matrix<double> A = {{1., 2.5, 3.}, {-4.1, 0., 5.1}};
-    np::matrix<int> B = A.astype<int>();
-    cout << B << "\n";
-    return 0;
-}
-```
-
-```
-[Out] [[ 1, 2, 3]
-       [-4, 0, 5]]
 ```
 
 ### `clip` 

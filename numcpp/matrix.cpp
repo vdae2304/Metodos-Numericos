@@ -64,6 +64,20 @@ namespace numcpp {
         }
     }
 
+    template <class T>
+    template <class U>
+    matrix<T>::matrix(const matrix<U> &A) {
+        this->nrows = A.rows();
+        this->ncols = A.columns();
+        this->values = new T[this->nrows * this->ncols];
+        size_t n = 0;
+        for (size_t i = 0; i < this->nrows; ++i) {
+            for (size_t j = 0; j < this->ncols; ++j) {
+                this->values[n++] = U(A.at(i, j));
+            }
+        }
+    }
+
     // Move constructor. Constructs a matrix that acquires the elements of A.
     template <class T>
     matrix<T>::matrix(matrix &&A) {
@@ -73,6 +87,21 @@ namespace numcpp {
         A.nrows = 0;
         A.ncols = 0;
         A.values = nullptr;
+    }
+
+    // Submatrix constructor. Constructs a matrix with a copy of each of the
+    // elements in A, in the same order.
+    template <class T>
+    matrix<T>::matrix(const submatrix<T> &A) {
+        this->nrows = A.rows();
+        this->ncols = A.columns();
+        this->values = new T[this->nrows * this->ncols];
+        size_t n = 0;
+        for (size_t i = 0; i < this->nrows; ++i) {
+            for (size_t j = 0; j < this->ncols; ++j) {
+                this->values[n++] = A.at(i, j);
+            }
+        }
     }
 
     // Initializer list of lists. Constructs a matrix with a copy of each of the
@@ -125,6 +154,24 @@ namespace numcpp {
         return *this;
     }
 
+    template <class T>
+    template <class U>
+    matrix<T>& matrix<T>::operator= (const matrix<U> &A) {
+        if (this->nrows * this->ncols != A.rows() * A.columns()) {
+            delete[] this->values;
+            this->values = new T[A.rows() * A.columns()];
+        }
+        this->nrows = A.rows();
+        this->ncols = A.columns();
+        size_t n = 0;
+        for (size_t i = 0; i < this->nrows; ++i) {
+            for (size_t j = 0; j < this->ncols; ++j) {
+                this->values[n++] = U(A.at(i, j));
+            }
+        }
+        return *this;
+    }
+
     // Move assignment. Acquires the contents of A.
     template <class T>
     matrix<T>& matrix<T>::operator= (matrix<T> &&A) {
@@ -136,6 +183,25 @@ namespace numcpp {
             A.nrows = 0;
             A.ncols = 0;
             A.values = nullptr;
+        }
+        return *this;
+    }
+
+    // Submatrix assignment. Assigns the contents of A to *this after resizing 
+    // the object (if necessary).
+    template <class T>
+    matrix<T>& matrix<T>::operator= (const submatrix<T> &A) {
+        if (this->nrows * this->ncols != A.rows() * A.columns()) {
+            delete[] this->values;
+            this->values = new T[A.rows() * A.columns()];
+        }
+        this->nrows = A.rows();
+        this->ncols = A.columns();
+        size_t n = 0;
+        for (size_t i = 0; i < this->nrows; ++i) {
+            for (size_t j = 0; j < this->ncols; ++j) {
+                this->values[n++] = A.at(i, j);
+            }
         }
         return *this;
     }
@@ -894,19 +960,6 @@ namespace numcpp {
         else {
             throw std::invalid_argument("axis must be either 0 or 1");
         }
-    }
-
-    // Copy of the matrix, cast to a specified type.
-    template <class T>
-    template <class U>
-    matrix<U> matrix<T>::astype() const {
-        matrix<U> out(this->rows(), this->columns());
-        for (size_t i = 0; i < out.rows(); ++i) {
-            for (size_t j = 0; j < out.columns(); ++j) {
-                out.at(i, j) = U(this->at(i, j));
-            }
-        }
-        return out;
     }
 
     // Clip (limit) the values in the matrix. Given an interval, values outside

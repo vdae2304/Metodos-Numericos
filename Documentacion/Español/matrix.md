@@ -22,18 +22,25 @@ programa. Las matrices están representadas mediante la clase `matrix`.
 
 #### Ejemplo
 
+Calcula una transformación afín.
 ```cpp
 #include <iostream>
 #include "numcpp.h"
 using namespace std;
 namespace np = numcpp;
 int main() {
+    np::matrix<int> A = {{5, 1, 3}, 
+                         {8, 0, 2},
+                         {7, 5, 1}};
+    np::array<int> x = {2, 0, -1};
+    np::array<int> b = {5, 2, 7};
+    cout << A.dot(x) + b << "\n";
     return 0;
 }
 ```
 
 ```
-[Out] 
+[Out] [12, 16, 20]
 ```
 
 ## Constructores
@@ -67,6 +74,7 @@ matrix(size_t m, size_t n, InputIterator first);
 de `A`, en el mismo orden.
 ```cpp
 matrix(const matrix &A);
+template <class U> matrix(const matrix<U> &A);
 ```
 
 6. Constructor por movimiento. Construye una matriz que adquiere los elementos 
@@ -289,6 +297,7 @@ int main() {
 cambiar el tamaño de la matriz (en caso de ser necesario).
 ```cpp
 matrix& operator= (const matrix &A);
+template <class U> matrix& operator= (const matrix<U> &A);
 ```
 
 2. Asignación por movimiento. Adquiere el contenido de `A`.
@@ -489,19 +498,13 @@ int main() {
 
 ## Indexado avanzado
 
-### Slices y sub-matrices
+### Sub-matrices
 
-Una sub-matriz es una clase intermedia devuelta por el método `at` de una 
-matriz cuando se utilizan slices. Hace referencia a los elementos en la matriz 
-que son seleccionados por los sub-índices, y sobrecarga los operadores de 
-asignación y asignación compuesta, permitiendo acceder directamente a los 
-elementos en la selección. El objeto puede ser convertido en una matriz, 
-generando un nuevo objeto con copias de los elementos referenciados.
-```cpp
-submatrix<T> at(slice i, slice j);
-const submatrix<T> at(slice i, slice j) const;
-```
-
+Una sub-matriz (`submatrix`) es una clase intermedia devuelta por el método `at` 
+de una matriz. Hace referencia a los elementos en la matriz que son 
+seleccionados por los sub-índices, y sobrecarga los operadores de asignación y 
+asignación compuesta, permitiendo acceder directamente a los elementos en la 
+selección. 
 ```cpp
 template <class T>
 class submatrix {
@@ -531,15 +534,39 @@ public:
     void operator<<= (const T &val);
     void operator>>= (const T &val);
 
-    T& at(size_t i, size_t j);
-    const T& at(size_t i, size_t j) const;
+    virtual T& at(size_t i, size_t j);
+    virtual const T& at(size_t i, size_t j) const;
 
-    size_t columns() const;
-    matrix<T> copy() const;
-    size_t rows() const;
+    virtual size_t columns() const;
+    virtual size_t rows() const;
 };
 ```
 
+El objeto puede ser convertido en una matriz (a través del constructor), 
+generando un nuevo objeto con copias de los elementos referenciados.
+```cpp
+matrix(const submatrix<T> &A);
+```
+### Slices y arreglos de índices
+
+Al indexar una matriz mediante slices o arreglos de índices en cada eje, el 
+método devuelve un objeto de tipo `slice_slice_submatrix`, 
+`slice_index_submatrix`, `index_slice_submatrix` o `index_index_submatrix`, 
+según sea el caso, representando una submatriz con los elementos seleccionados
+en cada eje.
+```cpp
+slice_slice_submatrix<T> at(slice i, slice j);
+const slice_slice_submatrix<T> at(slice i, slice j) const;
+
+slice_index_submatrix<T> at(slice i, const array<size_t> &j);
+const slice_index_submatrix<T> at(slice i, const array<size_t> &j) const;
+
+index_slice_submatrix<T> at(const array<size_t> &i, slice j);
+const index_slice_submatrix<T> at(const array<size_t> &i, slice j) const;
+
+index_index_submatrix<T> at(const array<size_t> &i, const array<size_t> &j);
+const index_index_submatrix<T> at(const array<size_t> &i, const array<size_t> &j) const;
+```
 #### Ejemplo
 
 ```cpp
@@ -554,14 +581,23 @@ int main() {
                          {1, 5, 0, 0, -2, 9}};
     cout << "Los elementos de A son:\n" << A << "\n";
 
-    // Selecciona los renglones 0, 1, 2, 3 y las columnas 1, 3, 5.
-    np::submatrix<int> sub = A.at(np::slice(4), np::slice(1, 6, 2));
-    cout << "La submatriz tiene " << sub.rows() << " renglones";
-    cout << " y " << sub.columns() << " columnas.\n";
-    cout << "Los elementos de la submatriz son:\n" << sub.copy() << "\n";
-    sub = 0;
-    cout << "Los elementos de A son ahora:\n" << A << "\n";
+    np::slice i = np::slice(2);       // Renglones 0 y 1.
+    np::slice j = np::slice(0, 5, 2); // Columnas 0, 2 y 4.
+    np::array<size_t> r = {2, 3};     // Renglones 2 y 3.
+    np::array<size_t> c = {1, 3, 5};  // Columnas 1, 3 y 5.
 
+    np::matrix<int> B = A.at(i, j);
+    np::matrix<int> C = A.at(i, c);
+    np::matrix<int> D = A.at(r, j);
+    np::matrix<int> E = A.at(r, c);
+    cout << "Los elementos de B son:\n" << B << "\n";
+    cout << "Los elementos de C son:\n" << C << "\n";
+    cout << "Los elementos de D son:\n" << D << "\n";
+    cout << "Los elementos de E son:\n" << E << "\n";
+
+    A.at(i, c) = 0;
+    A.at(r, j) = 10;
+    cout << "Los elementos de A son ahora:\n" << A << "\n";
     return 0;
 }
 ```
@@ -572,27 +608,43 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      La submatriz tiene 4 renglones y 3 columnas.
-      Los elementos de la submatriz son:
+      Los elementos de B son:
+      [[7, -1, 3]
+       [5, 10, 0]]
+      Los elementos de C son:
       [[0, 14,  0]
-       [3,  2, -1]
-       [1, -5,  3]
-       [5,  0,  9]]
+       [3,  2, -1]]
+      Los elementos de D son:
+      [[0, 7,  9]
+       [1, 0, -2]]
+      Los elementos de E son:
+      [[1, -5, 3]
+       [5,  0, 9]]
       Los elementos de A son ahora:
-      [[7, 0, -1, 0,  3, 0]
-       [5, 0, 10, 0,  0, 0]
-       [0, 0,  7, 0,  9, 0]
-       [1, 0,  0, 0, -2, 0]]
+      [[ 7, 0, -1,  0,  3, 0]
+       [ 5, 0, 10,  0,  0, 0]
+       [10, 1, 10, -5, 10, 3]
+       [10, 5, 10,  0, 10, 9]]
 ```
 
-### Arreglos de índices
+### Renglones y columnas
 
-Al indexar una matriz mediante un arreglo de índices (de tipo `size_t`) en cada 
-eje, el operador devuelve un objeto de tipo  `index_subarray<T>` representando 
-un subarreglo con los elementos especificados por los arreglos de índices.
+Al indexar una matriz mediante un entero en uno de los ejes y un slice o arreglo 
+de índices en el otro eje, el método devuelve un objeto de tipo `slice_subarray` 
+o `index_subarray` representando un subarreglo con los elementos seleccionados 
+sobre un renglón o columna.
 ```cpp
-index_subarray<T> at(const array<size_t> &i, const array<size_t> &j);
-const index_subarray<T> at(const array<size_t> &i, const array<size_t> &j) const;
+slice_subarray<T> at(size_t i, slice j);
+const slice_subarray<T> at(size_t i, slice j) const;
+
+slice_subarray<T> at(slice i, size_t j);
+const slice_subarray<T> at(slice i, size_t j) const;
+
+index_subarray<T> at(size_t i, const array<size_t> &j);
+const index_subarray<T> at(size_t i, const array<size_t> &j) const;
+
+index_subarray<T> at(const array<size_t> &i, size_t j);
+const index_subarray<T> at(const array<size_t> &i, size_t j) const;
 ```
 
 #### Ejemplo
@@ -608,15 +660,15 @@ int main() {
                          {0, 1, 7, -5, 9, 3},
                          {1, 5, 0, 0, -2, 9}};
     cout << "Los elementos de A son:\n" << A << "\n";
-
-    // Selecciona las posiciones (0, 0), (0, 2), (0, 5), (2, 1), (3, 0), (3, 4)
-    np::array<size_t> i = {0, 0, 0, 2, 3, 3};
-    np::array<size_t> j = {0, 2, 5, 1, 0, 4};
-    np::index_subarray<int> sub = A.at(i, j);
-    cout << "Los elementos seleccionados son:\n" << sub.copy() << "\n";
-    sub = 0;
+    // Imprime el segundo renglón.
+    np::array<int> v = A.at(1, np::slice(A.columns()));
+    cout << "2do renglon: " << v << "\n";
+    // Imprime la cuarta columna.
+    np::array<int> w = A.at(np::slice(A.rows()), 3);
+    cout << "4ta columna: " << w << "\n";
+    // Modifica las posiciones (0, 0), (0, 1), (0, 2) y (0, 5).
+    A.at(0, np::array<size_t>{0, 1, 2, 5}) = 100;
     cout << "Los elementos de A son ahora:\n" << A << "\n";
-
     return 0;
 }
 ```
@@ -627,23 +679,24 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      Los elementos seleccionados son:
-      [7, -1, 0, 1, 1, -2]
+      2do renglon:[5, 3, 10, 2, 0, -1]
+      4ta columna: [14, 2, -5, 0]
       Los elementos de A son ahora:
-      [[0, 0,  0, 14, 3,  0]
-       [5, 3, 10,  2, 0, -1]
-       [0, 0,  7, -5, 9,  3]
-       [0, 5,  0,  0, 0,  9]]
-```
+      [[100, 100, 100, 14,  3, 100]
+       [  5,   3,  10,  2,  0,  -1]
+       [  0,   1,   7, -5,  9,   3]
+       [  1,   5,   0,  0, -2,   9]]
+ ```
 
-### Matriz booleana
+### Arreglo de coordenadas
 
-Al indexar una matriz mediante una matriz booleana, el operador devuelve un 
-objeto de tipo  `mask_subarray<T>` representando un subarreglo con los 
-elementos seleccionados por la máscara booleana.
+Al indexar una matriz mediante un arreglo de coordenadas (de tipo 
+`pair<size_t, size_t>`), el método devuelve un objeto de tipo `index_subarray` 
+representando un subarreglo con los elementos especificados por el arreglo de 
+coordenadas.
 ```cpp
-mask_subarray<T> at(const matrix<bool> &mask);
-const mask_subarray<T> at(const matrix<bool> &mask) const;
+index_subarray<T> at(const array< std::pair<size_t, size_t> > &index);
+const index_subarray<T> at(const array< std::pair<size_t, size_t> > &index) const;
 ```
 
 #### Ejemplo
@@ -659,14 +712,12 @@ int main() {
                          {0, 1, 7, -5, 9, 3},
                          {1, 5, 0, 0, -2, 9}};
     cout << "Los elementos de A son:\n" << A << "\n";
-
-    // Selecciona las posiciones con valores negativos.
-    np::matrix<bool> mascara = A < 0;
-    np::mask_subarray<int> sub = A.at(mascara);
-    cout << "Los elementos seleccionados son:\n" << sub.copy() << "\n";
-    sub = 0;
+    // Selecciona los elementos en la diagonal principal.
+    np::array< pair<size_t, size_t> > indices = {{0, 0}, {1, 1}, {2, 2}, {3, 3}};
+    np::array<int> v = A.at(indices);
+    cout << "Los elementos en la diagonal son:\n" << v << "\n";
+    A.at(indices) = 0;
     cout << "Los elementos de A son ahora:\n" << A << "\n";
-
     return 0;
 }
 ```
@@ -677,13 +728,13 @@ int main() {
        [5, 3, 10,  2,  0, -1]
        [0, 1,  7, -5,  9,  3]
        [1, 5,  0,  0, -2,  9]]
-      Los elementos seleccionados son:
-      [-1, -1, -5, -2]
+      Los elementos en la diagonal son:
+      [7, 3, 7, 0]
       Los elementos de A son ahora:
-      [[7, 0,  0, 14, 3, 0]
-       [5, 3, 10,  2, 0, 0]
-       [0, 1,  7,  0, 9, 3]
-       [1, 5,  0,  0, 0, 9]]
+      [[0, 0, -1, 14,  3,  0]
+       [5, 0, 10,  2,  0, -1]
+       [0, 1,  0, -5,  9,  3]
+       [1, 5,  0,  0, -2,  9]]
 ```
 
 ## Lista de métodos
@@ -786,34 +837,6 @@ int main() {
 [Out] (1, 0)
       [1, 0, 1]
       [1, 0]
-```
-
-### `astype` 
-
-Crea una copia de la matriz, haciendo la conversión al tipo de dato 
-especificado.
-```cpp
-template <class U> matrix<U> astype() const;
-```
-
-#### Ejemplo
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-using namespace std;
-namespace np = numcpp;
-int main() {
-    np::matrix<double> A = {{1., 2.5, 3.}, {-4.1, 0., 5.1}};
-    np::matrix<int> B = A.astype<int>();
-    cout << B << "\n";
-    return 0;
-}
-```
-
-```
-[Out] [[ 1, 2, 3]
-       [-4, 0, 5]]
 ```
 
 ### `clip` 

@@ -11,6 +11,10 @@ namespace numcpp {
     template <class T> class index_subarray;
     
     template <class T> class submatrix;
+    template <class T> class slice_slice_submatrix;
+    template <class T> class slice_index_submatrix;
+    template <class T> class index_slice_submatrix;
+    template <class T> class index_index_submatrix;
 }
 
 #include "numcpp/array.h"
