@@ -41,7 +41,7 @@ namespace numcpp {
         }
         else {
             std::ostringstream error;
-            error << "Can not modify: " << file;
+            error << "Unable to overwrite file: " << file;
             throw std::runtime_error(error.str());
         }
     }
@@ -79,7 +79,7 @@ namespace numcpp {
         }
         else {
             std::ostringstream error;
-            error << "Can not modify: " << file;
+            error << "Unable to overwrite file: " << file;
             throw std::runtime_error(error.str());
         }
     }
@@ -190,7 +190,7 @@ namespace numcpp {
         std::ofstream out(file);
         if (!out.is_open()) {
             std::ostringstream error;
-            error << "Can not modify: " << file;
+            error << "Unable to overwrite file: " << file;
             throw std::runtime_error(error.str());
         }
 
@@ -201,20 +201,16 @@ namespace numcpp {
         else {
             out << std::noshowpos;
         }
-        if (printoptions::floatmode == "default") {
-            out << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            out << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            out << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
+        switch (printoptions::floatmode) {
+            case printoptions::floatmode_t::defaultmode:
+                out << std::defaultfloat;
+                break;
+            case printoptions::floatmode_t::fixed:
+                out << std::fixed;
+                break;
+            case printoptions::floatmode_t::scientific:
+                out << std::scientific;
+                break;
         }
 
         for (size_t i = 0; i < A.rows(); ++i) {
@@ -247,20 +243,16 @@ namespace numcpp {
         else {
             out << std::noshowpos;
         }
-        if (printoptions::floatmode == "default") {
-            out << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            out << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            out << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
+        switch (printoptions::floatmode) {
+            case printoptions::floatmode_t::defaultmode:
+                out << std::defaultfloat;
+                break;
+            case printoptions::floatmode_t::fixed:
+                out << std::fixed;
+                break;
+            case printoptions::floatmode_t::scientific:
+                out << std::scientific;
+                break;
         }
 
         std::string sep = "";
@@ -296,21 +288,16 @@ namespace numcpp {
         else {
             ostr << std::noshowpos;
         }
-
-        if (printoptions::floatmode == "default") {
-            ostr << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            ostr << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            ostr << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
+        switch (printoptions::floatmode) {
+            case printoptions::floatmode_t::defaultmode:
+                ostr << std::defaultfloat;
+                break;
+            case printoptions::floatmode_t::fixed:
+                ostr << std::fixed;
+                break;
+            case printoptions::floatmode_t::scientific:
+                ostr << std::scientific;
+                break;
         }
 
         ostr << "[";
@@ -354,21 +341,16 @@ namespace numcpp {
         else {
             ostr << std::noshowpos;
         }
-
-        if (printoptions::floatmode == "default") {
-            ostr << std::defaultfloat;
-        }
-        else if (printoptions::floatmode == "fixed") {
-            ostr << std::fixed;
-        }
-        else if (printoptions::floatmode == "scientific") {
-            ostr << std::scientific;
-        }
-        else {
-            throw std::invalid_argument(
-                "printoptions::floatmode must be one of \"default\", "
-                "\"fixed\" or \"scientific\""
-            );
+        switch (printoptions::floatmode) {
+            case printoptions::floatmode_t::defaultmode:
+                ostr << std::defaultfloat;
+                break;
+            case printoptions::floatmode_t::fixed:
+                ostr << std::fixed;
+                break;
+            case printoptions::floatmode_t::scientific:
+                ostr << std::scientific;
+                break;
         }
 
         array<size_t> width(A.columns(), 0);

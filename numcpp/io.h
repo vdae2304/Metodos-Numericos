@@ -28,10 +28,11 @@ namespace numcpp {
 
         // Controls the interpretation of the precision option for
         // floating-point types. Can take the following values:
-        // - "default":    write floating-point values in default notation.
-        // - "fixed":      write floating-point values in fixed-point notation.
-        // - "scientific": write floating-point values in scientific notation.
-        std::string floatmode = "default";
+        // - "defaultmode": write floating-point values in default notation.
+        // - "fixed":       write floating-point values in fixed-point notation.
+        // - "scientific":  write floating-point values in scientific notation.
+        enum class floatmode_t {defaultmode, fixed, scientific};
+        floatmode_t floatmode = floatmode_t::defaultmode;
     };
 
     // Return a new array from a binary file.
