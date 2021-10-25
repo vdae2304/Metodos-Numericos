@@ -10,19 +10,47 @@
 - [Redondeo](#Redondeo)
 - [Misceláneo](#Misceláneo)
 
+<hr>
+
+La biblioteca `numcpp` define un conjunto de funciones matemáticas, 
+sobrecargándolas para ser usadas en arreglos y matrices.
+
+#### Ejemplo
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::array<double> x = np::linspace(0.0, np::pi, 10);
+    np::array<double> y = x * np::cos(np::sqrt(2.0)*x + 1.0);
+    cout << y << "\n";
+    return 0;
+}
+```
+
+```
+[Out] [0, 0.026901171, -0.28244468, -0.8268722, -1.3768435, -1.6530264, -1.4283364, -0.62063839, 0.655217, 2.0961889]
+```
+
 ## Constantes
 
-### `constants::inf`, `constants::infty`, `constants::infinity`
+### `inf`, `infty`, `infinity`
 
 Representación de punto flotante de infinito (positivo).
 
-### `constants::e`
+### `e`
 
 *e = 2.71828182846...*.
 
-### `constants::pi`
+### `pi`
 
 *pi = 3.14159265359...*
+
+### `golden`
+
+*golden = 1.61803398875...*
 
 ## Funciones trigonométricas
 
@@ -39,6 +67,9 @@ double cos(T x);
 
 template <class T>
 array<T> cos(const array<T> &x);
+
+template <class T>
+matrix<T> cos(const matrix<T> &x);
 ```
 
 ### `sin`
@@ -54,6 +85,9 @@ double sin(T x);
 
 template <class T>
 array<T> sin(const array<T> &x);
+
+template <class T>
+matrix<T> sin(const matrix<T> &x);
 ```
 
 ### `tan`
@@ -69,6 +103,9 @@ double tan(T x);
 
 template <class T>
 array<T> tan(const array<T> &x);
+
+template <class T>
+matrix<T> tan(const matrix<T> &x);
 ```
 
 ### `hypot`
@@ -84,6 +121,21 @@ double hypot(T1 x, T2 y);
 
 template <class T>
 array<T> hypot(const array<T> &x, const array<T> &y);
+
+template <class T>
+array<T> hypot(const array<T> &x, const T &y);
+
+template <class T>
+array<T> hypot(const T &x, const array<T> &y);
+
+template <class T>
+matrix<T> hypot(const matrix<T> &x, const matrix<T> &y);
+
+template <class T>
+matrix<T> hypot(const matrix<T> &x, const T &y);
+
+template <class T>
+matrix<T> hypot(const T &x, const matrix<T> &y);
 ```
 
 ### `acos`
@@ -99,6 +151,9 @@ double acos(T x);
 
 template <class T>
 array<T> acos(const array<T> &x);
+
+template <class T>
+matrix<T> acos(const matrix<T> &x);
 ```
 
 ### `asin`
@@ -114,6 +169,9 @@ double asin(T x);
 
 template <class T>
 array<T> asin(const array<T> &x);
+
+template <class T>
+matrix<T> asin(const matrix<T> &x);
 ```
 
 ### `atan`
@@ -129,6 +187,9 @@ double atan(T x);
 
 template <class T>
 array<T> atan(const array<T> &x);
+
+template <class T>
+matrix<T> atan(const matrix<T> &x);
 ```
 
 ### `atan2`
@@ -152,6 +213,15 @@ array<T> atan2(const array<T> &y, const T &x);
 
 template <class T>
 array<T> atan2(const T &y, const array<T> &x);
+
+template <class T>
+matrix<T> atan2(const matrix<T> &y, const matrix<T> &x); 
+
+template <class T>
+matrix<T> atan2(const matrix<T> &y, const T &x);
+
+template <class T>
+matrix<T> atan2(const T &y, const matrix<T> &x);
 ```
 
 ### `degrees`
@@ -167,6 +237,9 @@ double degrees(T x);
 
 template <class T>
 array<T> degrees(const array<T> &x);
+
+template <class T>
+matrix<T> degrees(const matrix<T> &x);
 ```
 
 ### `radians`
@@ -182,6 +255,9 @@ double radians(T x);
 
 template <class T>
 array<T> radians(const array<T> &x);
+
+template <class T>
+matrix<T> radians(const matrix<T> &x);
 ```
 
 ## Funciones hiperbólicas
@@ -199,6 +275,9 @@ double cosh(T x);
 
 template <class T>
 array<T> cosh(const array<T> &x);
+
+template <class T>
+matrix<T> cosh(const matrix<T> &x);
 ```
 
 ### `sinh`
@@ -214,6 +293,9 @@ double sinh(T x);
 
 template <class T>
 array<T> sinh(const array<T> &x);
+
+template <class T>
+matrix<T> sinh(const matrix<T> &x);
 ```
 
 ### `tanh`
@@ -229,6 +311,9 @@ double tanh(T x);
 
 template <class T>
 array<T> tanh(const array<T> &x);
+
+template <class T>
+matrix<T> tanh(const matrix<T> &x);
 ```
 
 ### `acosh`
@@ -244,6 +329,9 @@ double acosh(T x);
 
 template <class T>
 array<T> acosh(const array<T> &x);
+
+template <class T>
+matrix<T> acosh(const matrix<T> &x);
 ```
 
 ### `asinh`
@@ -259,6 +347,9 @@ double asinh(T x);
 
 template <class T>
 array<T> asinh(const array<T> &x);
+
+template <class T>
+matrix<T> asinh(const matrix<T> &x);
 ```
 
 ### `atanh`
@@ -274,6 +365,9 @@ double atanh(T x);
 
 template <class T>
 array<T> atanh(const array<T> &x);
+
+template <class T>
+matrix<T> atanh(const matrix<T> &x);
 ```
 
 ## Exponenciales y logaritmos
@@ -291,6 +385,9 @@ double exp(T x);
 
 template <class T>
 array<T> exp(const array<T> &x);
+
+template <class T>
+matrix<T> exp(const matrix<T> &x);
 ```
 
 ### `exp2`
@@ -306,6 +403,9 @@ double exp2(T x);
 
 template <class T>
 array<T> exp2(const array<T> &x);
+
+template <class T>
+matrix<T> exp2(const matrix<T> &x);
 ```
 
 ### `log`
@@ -321,6 +421,9 @@ double log(T x);
 
 template <class T>
 array<T> log(const array<T> &x);
+
+template <class T>
+matrix<T> log(const matrix<T> &x);
 ```
 
 ### `log2`
@@ -336,6 +439,9 @@ double log2(T x);
 
 template <class T>
 array<T> log2(const array<T> &x);
+
+template <class T>
+matrix<T> log2(const matrix<T> &x);
 ```
 
 ### `log10`
@@ -351,6 +457,9 @@ double log10(T x);
 
 template <class T>
 array<T> log10(const array<T> &x);
+
+template <class T>
+matrix<T> log10(const matrix<T> &x);
 ```
 
 ## Funciones potencia
@@ -374,6 +483,15 @@ array<T> pow(const array<T> &x, const T &y);
 
 template <class T>
 array<T> pow(const T &x, const array<T> &y);
+
+template <class T>
+matrix<T> pow(const matrix<T> &x, const matrix<T> &y);
+
+template <class T>
+matrix<T> pow(const matrix<T> &x, const T &y);
+
+template <class T>
+matrix<T> pow(const T &x, const matrix<T> &y);
 ```
 
 ### `square`
@@ -385,6 +503,9 @@ T square(T x);
 
 template <class T>
 array<T> square(const array<T> &x);
+
+template <class T>
+matrix<T> square(const matrix<T> &x);
 ```
 
 ### `sqrt`
@@ -400,6 +521,9 @@ double sqrt(T x);
 
 template <class T>
 array<T> sqrt(const array<T> &x);
+
+template <class T>
+matrix<T> sqrt(const matrix<T> &x);
 ```
 
 ### `cbrt`
@@ -414,7 +538,10 @@ template <class T>
 double cbrt(T x);
 
 template <class T>
-array<T> sqrt(const array<T> &x);
+array<T> cbrt(const array<T> &x);
+
+template <class T>
+matrix<T> cbrt(const matrix<T> &x);
 ```
 
 ## Redondeo
@@ -432,6 +559,9 @@ double ceil(T x);
 
 template <class T>
 array<T> ceil(const array<T> &x);
+
+template <class T>
+matrix<T> ceil(const matrix<T> &x);
 ```
 
 ### `floor`
@@ -447,6 +577,9 @@ double floor(T x);
 
 template <class T>
 array<T> floor(const array<T> &x);
+
+template <class T>
+matrix<T> floor(const matrix<T> &x);
 ```
 
 ### `round`
@@ -462,6 +595,22 @@ double round(T x);
 
 template <class T>
 array<T> round(const array<T> &x);
+
+template <class T>
+matrix<T> round(const matrix<T> &x);
+```
+
+Redondea *x* al número de decimales dados.
+```cpp
+double round(double x, size_t decimals);
+float round(float x, size_t decimals);
+long double round(long double x, size_t decimals);
+
+template <class T>
+array<T> round(const array<T> &x, size_t decimals);
+
+template <class T>
+matrix<T> round(const matrix<T> &x, size_t decimals);
 ```
 
 ### `trunc`
@@ -478,6 +627,9 @@ double trunc(T x);
 
 template <class T>
 array<T> trunc(const array<T> &x);
+
+template <class T>
+matrix<T> trunc(const matrix<T> &x);
 ```
 
 ## Misceláneo
@@ -495,6 +647,9 @@ double abs(T x);
 
 template <class T>
 array<T> abs(const array<T> &x);
+
+template <class T>
+matrix<T> abs(const matrix<T> &x);
 ```
 
 ### `sign`
@@ -503,50 +658,117 @@ La función signo devuelve -1 si *x* es menor que cero, 1 si *x* es mayor que
 cero y *0* si *x* es igual a cero.
 ```cpp
 template <class T>
-T sign(T x);
+int sign(T x)
 
 template <class T>
-array<T> sign(const array<T> &x);
+array<int> sign(const array<T> &x);
+
+template <class T>
+matrix<int> sign(const matrix<T> &x);
 ``` 
 
 ### `gcd`
 
 Devuelve el máximo común divisor de los enteros *m* y *n*.
 ```cpp
-template <class T>
-T gcd(T m, T n);
+int gcd(int m, int n);
+long gcd(long m, long n);
+long long gcd(long long m, long long n);
+unsigned gcd(unsigned m, unsigned n);
+unsigned long gcd(unsigned long m, unsigned long n);
+unsigned long long gcd(unsigned long long m, unsigned long long n);
 
 template <class T>
 array<T> gcd(const array<T> &m, const array<T> &n);
+
+template <class T>
+array<T> gcd(const array<T> &m, const T &n);
+
+template <class T>
+array<T> gcd(const T &m, const array<T> &n);
+
+template <class T>
+matrix<T> gcd(const matrix<T> &m, const matrix<T> &n);
+
+template <class T>
+matrix<T> gcd(const matrix<T> &m, const T &n);
+
+template <class T>
+matrix<T> gcd(const T &m, const matrix<T> &n);
 ```
 
 ### `lcm`
 
 Devuelve el mínimo común múltiplo de los enteros *m* y *n*.
 ```cpp
-template <class T>
-T lcm(T m, T n);
+int lcm(int m, int n);
+long lcm(long m, long n);
+long long lcm(long long m, long long n);
+unsigned lcm(unsigned m, unsigned n);
+unsigned long lcm(unsigned long m, unsigned long n);
+unsigned long long lcm(unsigned long long m, unsigned long long n);
 
 template <class T>
 array<T> lcm(const array<T> &m, const array<T> &n);
+
+template <class T>
+array<T> lcm(const array<T> &m, const T &n);
+
+template <class T>
+array<T> lcm(const T &m, const array<T> &n);
+
+template <class T>
+matrix<T> lcm(const matrix<T> &m, const matrix<T> &n);
+
+template <class T>
+matrix<T> lcm(const matrix<T> &m, const T &n);
+
+template <class T>
+matrix<T> lcm(const T &m, const matrix<T> &n);
 ```
 
 ### `maximum`
 
-Devuelve un arreglo donde cada uno de sus elementos es inicializado con el 
-máximo entre el elemento correspondiente de `x` y el elemento correspondiente 
-de `y`.
+Devuelve el máximo elemento a elemento de dos arreglos o matrices.
 ```cpp
 template <class T>
 array<T> maximum(const array<T> &x, const array<T> &y);
+
+template <class T>
+array<T> maximum(const array<T> &x, const T &y);
+
+template <class T>
+array<T> maximum(const T &x, const array<T> &y);
+
+template <class T>
+matrix<T> maximum(const matrix<T> &x, const matrix<T> &y);
+
+template <class T>
+matrix<T> maximum(const matrix<T> &x, const T &y);
+
+template <class T>
+matrix<T> maximum(const T &x, const matrix<T> &y);
 ```
 
 ### `minimum`
 
-Devuelve un arreglo donde cada uno de sus elementos es inicializado con el 
-mínimo entre el elemento correspondiente de `x` y el elemento correspondiente 
-de `y`.
+Devuelve el mínimo elemento a elemento de dos arreglos o matrices.
 ```cpp
 template <class T>
 array<T> minimum(const array<T> &x, const array<T> &y);
+
+template <class T>
+array<T> minimum(const array<T> &x, const T &y);
+
+template <class T>
+array<T> minimum(const T &x, const array<T> &y);
+
+template <class T>
+matrix<T> minimum(const matrix<T> &x, const matrix<T> &y);
+
+template <class T>
+matrix<T> minimum(const matrix<T> &x, const T &y);
+
+template <class T>
+matrix<T> minimum(const T &x, const matrix<T> &y);
 ```

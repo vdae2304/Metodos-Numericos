@@ -37,5 +37,6 @@ namespace numcpp {
 
 #include "numcpp/io.cpp"
 #include "numcpp/routines.cpp"
+#include "numcpp/math.cpp"
 
 #endif // NUMCPP_H_INCLUDED
