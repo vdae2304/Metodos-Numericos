@@ -2,7 +2,7 @@
 
 ## Content
 
-- [Root finding (Scalar functions)](#Root-finding-(Scalar-functions))
+- [Root finding (Scalar functions)](#Root-finding-Scalar-functions)
 
 ## Root finding (Scalar functions)
 

@@ -2,7 +2,7 @@
 
 ## Contenido
 
-- [Búsqueda de raíces (Funciones escalares)](#Búsqueda-de-raíces-(Funciones-escalares))
+- [Búsqueda de raíces (Funciones escalares)](#Búsqueda-de-raíces-Funciones-escalares)
 
 ## Búsqueda de raíces (Funciones escalares)
 
