@@ -12,16 +12,16 @@ namespace scicpp {
     ////////////////////////////////////////////////////////////////////////////
 
     class LinAlgError : public std::exception {
-        public:
-            std::string what_arg;
+    public:
+        std::string what_arg;
 
-            LinAlgError(const std::string &what_arg) {
-                this->what_arg = what_arg;
-            }
+        LinAlgError(const std::string &what_arg) {
+            this->what_arg = what_arg;
+        }
 
-            const char* what() const throw() {
-                return this->what_arg.c_str();
-            }
+        const char* what() const throw() {
+            return this->what_arg.c_str();
+        }
     };
 
     ////////////////////////////////////////////////////////////////////////////

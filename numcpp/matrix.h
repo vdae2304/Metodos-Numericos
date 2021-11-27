@@ -14,6 +14,7 @@ namespace numcpp {
     protected:
         size_t nrows, ncols;
         T *values;
+        template <class U> friend class matrix;
 
     public:
         typedef size_t size_type;

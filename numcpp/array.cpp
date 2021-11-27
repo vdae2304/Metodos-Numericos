@@ -66,10 +66,10 @@ namespace numcpp {
     template <class T>
     template <class U>
     array<T>::array(const array<U> &v) {
-        this->length = v.size();
+        this->length = v.length;
         this->values = new T[this->length];
         for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = U(v[i]);
+            this->values[i] = U(v.values[i]);
         }
     }
 
@@ -135,13 +135,13 @@ namespace numcpp {
     template <class T>
     template <class U>
     array<T>& array<T>::operator= (const array<U> &v) {
-        if (this->length != v.size()) {
+        if (this->length != v.length) {
             delete[] this->values;
-            this->length = v.size();
+            this->length = v.length;
             this->values = new T[this->length];
         }
         for (size_t i = 0; i < this->length; ++i) {
-            this->values[i] = U(v[i]);
+            this->values[i] = U(v.values[i]);
         }
         return *this;
     }

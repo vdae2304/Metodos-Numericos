@@ -13,6 +13,7 @@ namespace numcpp {
     protected:
         size_t length;
         T *values;
+        template <class U> friend class array;
 
     public:
         typedef size_t size_type;

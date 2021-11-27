@@ -67,14 +67,11 @@ namespace numcpp {
     template <class T>
     template <class U>
     matrix<T>::matrix(const matrix<U> &A) {
-        this->nrows = A.rows();
-        this->ncols = A.columns();
+        this->nrows = A.nrows;
+        this->ncols = A.ncols;
         this->values = new T[this->nrows * this->ncols];
-        size_t n = 0;
-        for (size_t i = 0; i < this->nrows; ++i) {
-            for (size_t j = 0; j < this->ncols; ++j) {
-                this->values[n++] = U(A.at(i, j));
-            }
+        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
+            this->values[i] = U(A.values[i]);
         }
     }
 
@@ -157,17 +154,14 @@ namespace numcpp {
     template <class T>
     template <class U>
     matrix<T>& matrix<T>::operator= (const matrix<U> &A) {
-        if (this->nrows * this->ncols != A.rows() * A.columns()) {
+        if (this->nrows * this->ncols != A.nrows * A.ncols) {
             delete[] this->values;
-            this->values = new T[A.rows() * A.columns()];
+            this->values = new T[A.nrows * A.ncols];
         }
-        this->nrows = A.rows();
-        this->ncols = A.columns();
-        size_t n = 0;
-        for (size_t i = 0; i < this->nrows; ++i) {
-            for (size_t j = 0; j < this->ncols; ++j) {
-                this->values[n++] = U(A.at(i, j));
-            }
+        this->nrows = A.nrows;
+        this->ncols = A.ncols;
+        for (size_t i = 0; i < this->nrows * this->ncols; ++i) {
+            this->values[i] = U(A.values[i]);
         }
         return *this;
     }
