@@ -51,7 +51,7 @@ namespace scicpp {
                        << " iterations, value is " << output.root;
                 break;
             }
-            else if (fa < 0 && fm > 0) {
+            else if ((fa < 0 && fm > 0) || (fa > 0 && fm < 0)) {
                 b = output.root;
                 fb = fm;
             }
