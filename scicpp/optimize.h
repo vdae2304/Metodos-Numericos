@@ -2,6 +2,7 @@
 #define OPTIMIZE_H_INCLUDED
 
 #include <cmath>
+#include "numcpp.h"
 #include <sstream>
 #include <stdexcept>
 
