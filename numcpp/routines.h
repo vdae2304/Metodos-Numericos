@@ -212,6 +212,12 @@ namespace numcpp {
         const array<T> &v, const array<size_t> &indices, const array<T> &values
     );
 
+    // Returns true if two values are equal within a tolerance.
+    template <class T>
+    bool isclose(
+        const T &a, const T &b, const T &atol = 1e-8, const T &rtol = 1e-5
+    );
+
     // Return evenly spaced numbers over a specified interval. Returns num
     // evenly spaced samples, calculated over the interval [start, stop].
     // The endpoint of the interval can optionally be excluded.
