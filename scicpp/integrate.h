@@ -10,6 +10,10 @@
 
 namespace scicpp {
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Integration                                                            //
+    ////////////////////////////////////////////////////////////////////////////
+
     // Compute the sample points and weights for Gauss-Legendre quadrature.
     template <class T>
     void leggauss(
@@ -165,6 +169,111 @@ namespace scicpp {
             }
         }
         weights = scicpp::solve(A, b);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Multiple integral                                                      //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Compute a double (definite) integral.
+    template <
+        class T, class Function = T(T, T),
+        class LowerLimit = T(T), class UpperLimit = T(T)
+    >
+    T dblquad(
+        Function f, T ax, T bx, LowerLimit ay, UpperLimit by,
+        bool show = false,
+        T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
+    ) {
+        T value;
+        for (size_t iter = 2; iter <= maxiter; ++iter) {
+            numcpp::array<T> points, weights;
+            leggauss(iter, points, weights);
+
+            T integral = 0.0;
+            for (size_t i = 0; i < iter; ++i) {
+                T integral_y_axis = 0.0;
+                T x = (bx - ax)/2 * points[i] + (ax + bx)/2;
+                T ay_ = ay(x), by_ = by(x);
+                for (size_t j = 0; j < iter; ++j) {
+                    T y = (by_ - ay_)/2 * points[j] + (ay_ + by_)/2;
+                    integral_y_axis += weights[j] * f(x, y);
+                }
+                integral_y_axis = (by_ - ay_)/2 * integral_y_axis;
+                integral += weights[i] * integral_y_axis;
+            }
+            integral = (bx - ax)/2 * integral;
+
+            if (iter > 2 && numcpp::isclose(integral, value, tol, rtol)) {
+                if (show) {
+                    std::cout << "Converged after " << iter
+                              << " iterations, value is " << integral << "\n";
+                }
+                return integral;
+            }
+            value = integral;
+        }
+        if (show) {
+            std::cout << "Failed to converge after " << maxiter
+                      << " iterations, value is " << value << "\n";
+        }
+        return value;
+    }
+
+    // Compute a triple (definite) integral.
+    template <
+        class T, class Function = T(T, T, T),
+        class LowerLimit1 = T(T), class UpperLimit1 = T(T),
+        class LowerLimit2 = T(T, T), class UpperLimit2 = T(T, T)
+    >
+    T tplquad(
+        Function f,
+        T ax, T bx,
+        LowerLimit1 ay, UpperLimit1 by,
+        LowerLimit2 az, UpperLimit2 bz,
+        bool show = false,
+        T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
+    ) {
+        T value;
+        for (size_t iter = 2; iter <= maxiter; ++iter) {
+            numcpp::array<T> points, weights;
+            leggauss(iter, points, weights);
+
+            T integral = 0.0;
+            for (size_t i = 0; i < iter; ++i) {
+                T integral_y_axis = 0.0;
+                T x = (bx - ax)/2 * points[i] + (ax + bx)/2;
+                T ay_ = ay(x), by_ = by(x);
+                for (size_t j = 0; j < iter; ++j) {
+                    T integral_z_axis = 0.0;
+                    T y = (by_ - ay_)/2 * points[j] + (ay_ + by_)/2;
+                    T az_ = az(x, y), bz_ = bz(x, y);
+                    for (size_t k = 0; k < iter; ++k) {
+                        T z = (bz_ - az_)/2 * points[k] + (az_ + bz_)/2;
+                        integral_z_axis += weights[k] * f(x, y, z);
+                    }
+                    integral_z_axis = (bz_ - az_)/2 * integral_z_axis;
+                    integral_y_axis += weights[j] * integral_z_axis;
+                }
+                integral_y_axis = (by_ - ay_)/2 * integral_y_axis;
+                integral += weights[i] * integral_y_axis;
+            }
+            integral = (bx - ax)/2 * integral;
+
+            if (iter > 2 && numcpp::isclose(integral, value, tol, rtol)) {
+                if (show) {
+                    std::cout << "Converged after " << iter
+                              << " iterations, value is " << integral << "\n";
+                }
+                return integral;
+            }
+            value = integral;
+        }
+        if (show) {
+            std::cout << "Failed to converge after " << maxiter
+                      << " iterations, value is " << value << "\n";
+        }
+        return value;
     }
 }
 

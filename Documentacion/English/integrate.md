@@ -3,6 +3,7 @@
 ## Content
 
 - [Integration](#Integration)
+- [Multiple integral](#Multiple-integral)
 - [Ordinary differential equations](#Ordinary-differential-equations)
 
 ## Integration
@@ -235,4 +236,127 @@ int main() {
 [Out] Trapezoidal rule: 5.57742
       Simpson's rule: 4.50786
       Simpson's 3/8 rule: 4.50351
+```
+
+## Multiple integral
+
+### `dblquad`
+
+Compute a double integral. Return the double (definite) integral of 
+![$f(x, y)$](https://render.githubusercontent.com/render/math?math=f(x%2C%20y))
+over the rectangle ![$a_x \leq x \leq b_x$](https://render.githubusercontent.com/render/math?math=a_x%20%5Cleq%20x%20%5Cleq%20b_x), ![$a_y(x) \leq y \leq b_y(x)$](https://render.githubusercontent.com/render/math?math=a_y(x)%20%5Cleq%20y%20%5Cleq%20b_y(x)).
+```cpp
+template <
+    class T, class Function = T(T, T),
+    class LowerLimit = T(T), class UpperLimit = T(T)
+>
+T dblquad(
+    Function f, T ax, T bx, LowerLimit ay, UpperLimit by,
+    bool show = false,
+    T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
+);
+```
+
+Arguments:
+- `f`: Function to integrate.
+- `ax`, `bx`: Lower and upper limits of integration for *x*.
+- `ay`, `by`: Lower and upper limits of integration for *y*.
+- `show`: If `true`, prints a short description of the cause of termination. 
+Default is `false`.
+- `tol`: The desired absolute tolerance.
+- `rtol`: The desired relative tolerance.
+- `maxiter`: Maximum order of quadrature.
+
+#### Example
+
+Calculate ![$\int_0^1 \int_0^x (3xy^2 - x^2 + y)dydx$](https://render.githubusercontent.com/render/math?math=%5Cint_0%5E1%20%5Cint_0%5Ex%20(3xy%5E2%20-%20x%5E2%20%2B%20y)dydx).
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/integrate.h"
+using namespace std;
+namespace np = numcpp;
+
+double f(double x, double y) {
+    return 3.0*x*y*y - x*x + y;
+}
+
+int main() {
+    double ax = 0.0, bx = 1.0;
+    auto ay = [](double x) { return 0.0; };
+    auto by = [](double x) { return x; };
+    double integral = scicpp::dblquad(f, ax, bx, ay, by, true);
+    cout << "Integral: " << integral << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Converged after 4 iterations, value is 0.116667
+      Integral: 0.116667
+```
+
+### `tplquad`
+
+Compute a triple integral. Return the triple (definite) integral of 
+![$f(x, y, z)$](https://render.githubusercontent.com/render/math?math=f(x%2C%20y%2C%20z))
+over the solid ![$a_x \leq x \leq b_x$](https://render.githubusercontent.com/render/math?math=a_x%20%5Cleq%20x%20%5Cleq%20b_x), ![$a_y(x) \leq y \leq b_y(x)$](https://render.githubusercontent.com/render/math?math=a_y(x)%20%5Cleq%20y%20%5Cleq%20b_y(x)), ![$a_z(x, y) \leq z \leq b_z(x, y)$](https://render.githubusercontent.com/render/math?math=a_z(x%2C%20y)%20%5Cleq%20z%20%5Cleq%20b_z(x%2C%20y)).
+```cpp
+template <
+    class T, class Function = T(T, T, T),
+    class LowerLimit1 = T(T), class UpperLimit1 = T(T),
+    class LowerLimit2 = T(T, T), class UpperLimit2 = T(T, T)
+>
+T tplquad(
+    Function f,
+    T ax, T bx,
+    LowerLimit1 ay, UpperLimit1 by,
+    LowerLimit2 az, UpperLimit2 bz,
+    bool show = false,
+    T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
+);
+```
+
+Arguments:
+- `f`: Function to integrate.
+- `ax`, `bx`: Lower and upper limits of integration for *x*.
+- `ay`, `by`: Lower and upper limits of integration for *y*.
+- `az`, `bz`: Lower and upper limits of integration for *z*.
+- `show`: If `true`, prints a short description of the cause of termination. 
+Default is `false`.
+- `tol`: The desired absolute tolerance.
+- `rtol`: The desired relative tolerance.
+- `maxiter`: Maximum order of quadrature.
+
+#### Example
+
+Calculate ![$\int_0^1 \int_0^x \int_0^{x + y} \left(3xy^2 - \frac{z^2}{2} + 5xyz\right)dzdydx$](https://render.githubusercontent.com/render/math?math=%5Cint_0%5E1%20%5Cint_0%5Ex%20%5Cint_0%5E%7Bx%20%2B%20y%7D%20%5Cleft(3xy%5E2%20-%20%5Cfrac%7Bz%5E2%7D%7B2%7D%20%2B%205xyz%5Cright)dzdydx).
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/integrate.h"
+using namespace std;
+namespace np = numcpp;
+
+double f(double x, double y, double z) {
+    return 3.0*x*y*y - z*z/2.0 + 5*x*y*z;
+}
+
+int main() {
+    double ax = 0.0, bx = 1.0;
+    auto ay = [](double x) { return 0.0; };
+    auto by = [](double x) { return x; };
+    auto az = [](double x, double y) { return 0.0; };
+    auto bz = [](double x, double y) { return x + y; };
+    double integral = scicpp::tplquad(f, ax, bx, ay, by, az, bz, true);
+    cout << "Integral: " << integral << "\n";
+    return 0;
+}
+```
+
+```
+[Out] Converged after 4 iterations, value is 0.756944
+      Integral: 0.756944
 ```
