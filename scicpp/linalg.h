@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <limits>
+#include "numcpp.h"
 #include <stdexcept>
 
 namespace scicpp {
@@ -43,7 +44,7 @@ namespace scicpp {
         else if (p == 2) {
             out = numcpp::sqrt(v.dot(v));
         }
-        else if (p == numcpp::constants::inf) {
+        else if (p == numcpp::inf) {
             for (size_t i = 0; i < v.size(); ++i) {
                 out = numcpp::max(out, numcpp::abs(v[i]));
             }
