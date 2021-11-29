@@ -730,7 +730,7 @@ namespace scicpp {
             throw std::runtime_error("eigen_symm: Expected square matrix.");
         }
 
-        size_t max_iter = 1000000;
+        size_t max_iter = 100*A.rows()*A.columns();
         T tol = std::numeric_limits<T>::epsilon();
         V = numcpp::eye<T>(A.rows(), A.columns());
         numcpp::matrix<T> S = A;
@@ -814,7 +814,7 @@ namespace scicpp {
             throw std::runtime_error("eigenvals_symm: Expected square matrix.");
         }
 
-        size_t max_iter = 1000000;
+        size_t max_iter = 100*A.rows()*A.columns();
         T tol = std::numeric_limits<T>::epsilon();
         numcpp::matrix<T> S = A;
 
