@@ -379,7 +379,7 @@ int main() {
 
 ## Ordinary differential equations
 
-`OdeResult`
+### `OdeResult`
 
 Class returned by `solve_ivp`.
 ```cpp
@@ -399,7 +399,7 @@ public:
 the solution at a fixed time.
 - `nfev`: Number of evaluations of the system’s right-hand side.
 
-`solve_ivp`
+### `solve_ivp`
 
 Solve an initial value problem for a system of ordinary differential equations.
 

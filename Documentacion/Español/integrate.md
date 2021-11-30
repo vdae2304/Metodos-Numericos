@@ -380,7 +380,7 @@ int main() {
 
 ## Ecuaciones diferenciales ordinarias
 
-`OdeResult`
+### `OdeResult`
 
 Clase devuelta por `solve_ivp`.
 ```cpp
@@ -400,7 +400,7 @@ public:
 de la solución en un tiempo fijo.
 - `nfev`: Número de evaluaciones del lado derecho del sistema.
 
-`solve_ivp`
+### `solve_ivp`
 
 Resuelve un problema de valor inicial para un sistema de ecuaciones diferenciales 
 ordinarias.
