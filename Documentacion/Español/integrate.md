@@ -20,7 +20,8 @@ T quad(
 );
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `f`: Función a integrar.
 - `a`: Límite inferior de integración.
 - `b`: Límite superior de integración.
@@ -42,7 +43,7 @@ using namespace std;
 namespace np = numcpp;
 
 double f(double x) {
-    return np::exp(-x) * np::cos(2.0*x*x + 1.0);
+    return np::exp(-x) * np::cos(2*x*x + 1);
 }
 
 int main() {
@@ -66,7 +67,8 @@ template <class T, class Function = T(T)>
 T fixed_quad(Function f, T a, T b, size_t n);
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `f`: Función a integrar.
 - `a`: Límite inferior de integración.
 - `b`: Límite superior de integración.
@@ -82,7 +84,7 @@ using namespace std;
 namespace np = numcpp;
 
 double f(double x) {
-    return np::exp(-x) * np::cos(2.0*x*x + 1.0);
+    return np::exp(-x) * np::cos(2*x*x + 1);
 }
 
 int main() {
@@ -110,7 +112,8 @@ void leggauss(
 );
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `n`: Número de puntos y pesos. Debe ser mayor a 1.
 - `points`: Arreglo que contendrá la muestra de puntos.
 - `weights`: Arreglo que contendrá los pesos.
@@ -150,7 +153,8 @@ T romberg(
 );
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `f`: Función a integrar.
 - `a`: Límite inferior de integración.
 - `b`: Límite superior de integración.
@@ -172,7 +176,7 @@ using namespace std;
 namespace np = numcpp;
 
 double f(double x) {
-    return np::exp(-x) * np::cos(2.0*x*x + 1.0);
+    return np::exp(-x) * np::cos(2*x*x + 1);
 }
 
 int main() {
@@ -204,6 +208,16 @@ Newton-Cotes para la integral es
 
 ![$\int_a^b f(x)dx \approx \frac{b - a}{n}\sum_{i = 0}^{n} w_i f(x_i)$](https://render.githubusercontent.com/render/math?math=%5Cint_a%5Eb%20f(x)dx%20%5Capprox%20%5Cfrac%7Bb%20-%20a%7D%7Bn%7D%5Csum_%7Bi%20%3D%200%7D%5E%7Bn%7D%20w_i%20f(x_i))
 
+```cpp
+template <class T>
+void newton_cotes(size_t n, numcpp::array<T> &weights);
+```
+
+#### Argumentos:
+
+- `n`: Número de sub-intervalos.
+- `weights`:  Arreglo que contendrá los pesos.
+
 #### Ejemplo
 
 Calcula ![$\int_0^1 (3xe^x + 5x - 1)dx$](https://render.githubusercontent.com/render/math?math=%5Cint_0%5E1%20(3xe%5Ex%20%2B%205x%20-%201)dx). El resultado 
@@ -220,9 +234,9 @@ int main() {
     for (int n = 1; n <= 3; ++n) {
         np::array<double> x = numcpp::linspace(0.0, 1.0, n + 1);
         np::array<double> y = 3.0*x*np::exp(x) + 5.0*x - 1.0;
-        np::array<double> weights;
-        scicpp::newton_cotes(n, weights);
-        integral[n - 1] = np::sum(weights * y) / n;
+        np::array<double> pesos;
+        scicpp::newton_cotes(n, pesos);
+        integral[n - 1] = np::sum(pesos * y) / n;
     }
 
     cout << "Regla del trapecio: " << integral[0] << "\n";
@@ -258,7 +272,8 @@ T dblquad(
 );
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `f`: Función a integrar.
 - `ax`, `bx`: Límites inferior y superior de integración para *x*.
 - `ay`, `by`: Límites inferior y superior de integración para *y*.
@@ -280,12 +295,12 @@ using namespace std;
 namespace np = numcpp;
 
 double f(double x, double y) {
-    return 3.0*x*y*y - x*x + y;
+    return 3*x*y*y - x*x + y;
 }
 
 int main() {
-    double ax = 0.0, bx = 1.0;
-    auto ay = [](double x) { return 0.0; };
+    double ax = 0, bx = 1;
+    auto ay = [](double x) { return 0; };
     auto by = [](double x) { return x; };
     double integral = scicpp::dblquad(f, ax, bx, ay, by, true);
     cout << "Integral: " << integral << "\n";
@@ -319,7 +334,8 @@ T tplquad(
 );
 ```
 
-Argumentos:
+#### Argumentos:
+
 - `f`: Función a integrar.
 - `ax`, `bx`: Límites inferior y superior de integración para *x*.
 - `ay`, `by`: Límites inferior y superior de integración para *y*.
@@ -342,14 +358,14 @@ using namespace std;
 namespace np = numcpp;
 
 double f(double x, double y, double z) {
-    return 3.0*x*y*y - z*z/2.0 + 5*x*y*z;
+    return 3*x*y*y - z*z/2 + 5*x*y*z;
 }
 
 int main() {
-    double ax = 0.0, bx = 1.0;
-    auto ay = [](double x) { return 0.0; };
+    double ax = 0, bx = 1;
+    auto ay = [](double x) { return 0; };
     auto by = [](double x) { return x; };
-    auto az = [](double x, double y) { return 0.0; };
+    auto az = [](double x, double y) { return 0; };
     auto bz = [](double x, double y) { return x + y; };
     double integral = scicpp::tplquad(f, ax, bx, ay, by, az, bz, true);
     cout << "Integral: " << integral << "\n";
@@ -360,4 +376,215 @@ int main() {
 ```
 [Out] Converged after 4 iterations, value is 0.756944
       Integral: 0.756944
+```
+
+## Ecuaciones diferenciales ordinarias
+
+`OdeResult`
+
+Clase devuelta por `solve_ivp`.
+```cpp
+template <class T>
+class OdeResult {
+public:
+    numcpp::array<T> t;
+    numcpp::matrix<T> y;
+    size_t nfev;
+};
+```
+
+#### Atributos:
+
+- `t`: Puntos en el tiempo.
+- `y`: Valores de la solución en `t`. Cada renglón de `y` representa el valor 
+de la solución en un tiempo fijo.
+- `nfev`: Número de evaluaciones del lado derecho del sistema.
+
+`solve_ivp`
+
+Resuelve un problema de valor inicial para un sistema de ecuaciones diferenciales 
+ordinarias.
+
+![$\begin{align*}\frac{dy}{dt} &= f(t, y)\\y(t_0) &= y_0\end{align*}$](https://render.githubusercontent.com/render/math?math=%5Cbegin%7Balign*%7D%5Cfrac%7Bdy%7D%7Bdt%7D%20%26%3D%20f(t%2C%20y)%5C%5Cy(t_0)%20%26%3D%20y_0%5Cend%7Balign*%7D)
+
+```cpp
+template <class T, class Function>
+OdeResult<T> solve_ivp(
+    Function f, T t0, T tf, const numcpp::array<T> &y0,
+    std::string method = "RK45",
+    T first_step = 1e-3, T max_step = numcpp::inf,
+    T tol = 1e-6, T rtol = 1e-3
+);
+```
+
+#### Argumentos:
+
+- `f`: Lado derecho del sistema.
+- `t0`: Tiempo inicial.
+- `tf`: Tiempo final.
+- `y0`: Estado inicial.
+- `method`: Método a usar. Debe ser alguno de
+    * `"RK23"`: Método explícito de Runge-Kutta de orden 3(2). El error es 
+    controlado utilizando un método de segundo orden de precisión, pero los 
+    pasos son tomados utilizando un método de tercer orden.
+    * `"RK45"` (por defecto): Método explícito de Runge-Kutta de orden 5(4). El 
+    error es controlado utilizando un método de cuarto orden de precisión, pero 
+    los pasos son tomados utilizando un método de quinto orden.
+- `first_step`: Tamaño de paso inicial.
+- `max_step`: Tamaño de paso máximo permitido. Por defecto, el tamaño de paso no 
+está acotado y es determinado enteramente por el método.
+- `tol`: La tolerancia absoluta deseada.
+- `rtol`: La tolerancia relativa deseada.
+
+#### Ejemplo 
+
+Resuelve el problema de valor inicial ![$\frac{dy}{dt} = 0.125y(5 - y), y(0) = 0.1$](https://render.githubusercontent.com/render/math?math=%5Cfrac%7Bdy%7D%7Bdt%7D%20%3D%200.125y(5%20-%20y)%2C%20y(0)%20%3D%200.1) 
+para ![$0 \leq y \leq 15$](https://render.githubusercontent.com/render/math?math=0%20%5Cleq%20y%20%5Cleq%2015). La solución analítica es
+![$y = \frac{5}{1 + 49e^{-0.625t}}$](https://render.githubusercontent.com/render/math?math=y%20%3D%20%5Cfrac%7B5%7D%7B1%20%2B%2049e%5E%7B-0.625t%7D%7D).
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/integrate.h"
+using namespace std;
+namespace np = numcpp;
+
+np::array<double> f(double t, const np::array<double> &y) {
+    return 0.125*y*(5. - y);
+}
+
+int main() {
+    double t0 = 0, tf = 15;
+    np::array<double> y0 = {0.1};
+
+    // Solucion numerica y analitica.
+    scicpp::OdeResult<double> resultado = scicpp::solve_ivp(f, t0, tf, y0);
+    np::array<double> logistica = 5./(1. + 49.*np::exp(-0.625*resultado.t));
+
+    // Exporta el resultado en un archivo .csv.
+    np::matrix<double> df;
+    np::array<string> encabezado = {"t", "y", "logistica"};
+    df = np::column_stack(resultado.t, resultado.y);
+    df = np::column_stack(df, logistica);
+    np::save_txt("solucion.csv", df, ',', encabezado);
+
+    cout << "Evaluaciones del lado derecho: " << resultado.nfev << "\n";
+
+    return 0;
+}
+```
+
+```
+[Out] Evaluaciones del lado derecho: 143
+```
+
+```
+[solucion.csv]
+t,y,logistica
+0,0.1,0.1
+0.001,0.10006127,0.10006127
+0.003,0.10018392,0.10018392
+0.007,0.10042965,0.10042965
+0.015,0.1009229,0.1009229
+0.031,0.10191651,0.10191651
+0.063,0.10393257,0.10393257
+0.127,0.10808245,0.10808245
+0.255,0.1168739,0.1168739
+0.511,0.13659879,0.13659878
+1.023,0.18619589,0.18619559
+2.047,0.34172001,0.34170872
+4.095,1.0443452,1.0437759
+6.143,2.4362453,2.4344584
+8.191,3.8680478,3.8669515
+10.239,4.6249673,4.6233487
+12.287,4.8909706,4.8892539
+15,4.9810645,4.9793055
+```
+
+<img src="../Figuras/ode-plot.png" alt="Logistic function" height="auto" width="500" />
+
+### `OdeSolver`
+
+Clase base para los métodos.
+```cpp
+template <class T, class Function>
+class OdeSolver {
+public:
+    size_t n;
+    Function f;
+    T t;
+    numcpp::array<T> y;
+    T step_size, max_step;
+    T tol, rtol;
+    size_t nfev;
+};
+```
+
+#### Atributos:
+
+- `n`: Número de ecuaciones.
+- `f`: Lado derecho del sistema.
+- `t`: Tiempo actual.
+- `y`: Estado actual.
+- `step_size`: Tamaño del último paso.
+- `max_step`: Tamaño de paso máximo permitido.
+- `tol`: La tolerancia absoluta deseada.
+- `rtol`: La tolerancia relativa deseada.
+- `nfev`: Número de evaluaciones del lado derecho del sistema.
+
+#### Constructor
+
+```cp
+OdeSolver(
+    Function f, T t0, const numcpp::array<T> &y0,
+    T first_step = 1e-3, T max_step = numcpp::inf,
+    T tol = 1e-6, T rtol = 1e-3
+);
+```
+
+#### Métodos
+
+Realiza un paso de integración.
+```cpp
+virtual void step();
+```
+
+### `RK23`
+
+ Método explícito de Runge-Kutta de orden 3(2). 
+ 
+ El error es controlado utilizando un método de segundo orden de precisión, 
+ pero los pasos son tomados utilizando un método de tercer orden.
+```cpp
+template <class T, class Function>
+class RK23 : public OdeSolver<T, Function> {
+public:
+    RK23(
+        Function f, T t0, const numcpp::array<T> &y0,
+        T first_step = 1e-3, T max_step = numcpp::inf,
+        T tol = 1e-6, T rtol = 1e-3
+    );
+
+    void step();
+};
+```
+
+### `RK45`
+
+Método explícito de Runge-Kutta de orden 5(4). 
+
+El error es controlado utilizando un método de cuarto orden de precisión, pero 
+los pasos son tomados utilizando un método de quinto orden.
+```cpp
+template <class T, class Function>
+class RK45 : public OdeSolver<T, Function> {
+public:
+    RK45(
+        Function f, T t0, const numcpp::array<T> &y0,
+        T first_step = 1e-3, T max_step = numcpp::inf,
+        T tol = 1e-6, T rtol = 1e-3
+    );
+
+    void step();
+};
 ```
