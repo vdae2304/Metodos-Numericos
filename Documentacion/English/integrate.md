@@ -23,8 +23,8 @@ T quad(
 #### Arguments:
 
 - `f`: Function to integrate.
-- `a`: Lower limit of integration.
-- `b`: Upper limit of integration.
+- `a`: Lower limit of integration. Use `-numcpp::inf` for *-infinite*.
+- `b`: Upper limit of integration. Use `numcpp::inf` for *+infinite*.
 - `show`: If `true`, prints a short description of the cause of termination. 
 Default is `false`.
 - `tol`: The desired absolute tolerance.
@@ -55,7 +55,8 @@ int main() {
 ```
 
 ```
-[Out] Converged after 7 iterations, value is 0.0508862
+[Out] The final result is 0.0508862 after 28 function evaluations
+      with error 4.77208e-09
       Integral: 0.0508862
 ```
 
@@ -70,8 +71,8 @@ T fixed_quad(Function f, T a, T b, size_t n);
 #### Arguments:
 
 - `f`: Function to integrate.
-- `a`: Lower limit of integration.
-- `b`: Upper limit of integration.
+- `a`: Lower limit of integration. Use `-numcpp::inf` for *-infinite*.
+- `b`: Upper limit of integration. Use `numcpp::inf` for *+infinite*.
 - `n`: Order of quadrature integration.
 
 #### Example
@@ -156,8 +157,8 @@ T romberg(
 #### Arguments:
 
 - `f`: Function to integrate.
-- `a`: Lower limit of integration.
-- `b`: Upper limit of integration.
+- `a`: Lower limit of integration. Must be finite.
+- `b`: Upper limit of integration. Must be finite.
 - `show`: If `true`, prints the triangular matrix showing the Richardson 
 extrapolations. Default is `false`.
 - `tol`: The desired absolute tolerance.
@@ -196,7 +197,8 @@ int main() {
          16   0.0625 0.0511131 0.0508857 0.0508861 0.0508862 0.0508862
          32  0.03125 0.0509429 0.0508861 0.0508862 0.0508862 0.0508862 0.0508862
          64 0.015625 0.0509003 0.0508862 0.0508862 0.0508862 0.0508862 0.0508862 0.0508862
-      Converged after 7 iterations, value is 0.0508862
+      The final result is 0.0508862 after 65 function evaluations
+      with error 1.61381e-11
       Integral: 0.0508862
 ```
 
@@ -308,7 +310,8 @@ int main() {
 ```
 
 ```
-[Out] Converged after 4 iterations, value is 0.116667
+[Out] The final result is 0.116667 after 29 function evaluations
+      with error 1.66533e-16
       Integral: 0.116667
 ```
 
@@ -373,7 +376,8 @@ int main() {
 ```
 
 ```
-[Out] Converged after 4 iterations, value is 0.756944
+[Out] The final result is 0.756944 after 99 function evaluations
+      with error 7.77156e-16
       Integral: 0.756944
 ```
 

@@ -41,13 +41,23 @@ namespace scicpp {
     // Compute a definite integral using fixed-order Gaussian quadrature.
     template <class T, class Function = T(T)>
     T fixed_quad(Function f, T a, T b, size_t n) {
-        T integral = 0.0;
+        T integral = 0;
+        bool isfinite = numcpp::isfinite(a) && numcpp::isfinite(b);
+        if (!isfinite) {
+            a = numcpp::atan(a);
+            b = numcpp::atan(b);
+        }
+
         numcpp::array<T> points, weights;
         leggauss(n, points, weights);
         for (size_t i = 0; i < n; ++i) {
-            integral += weights[i] * f((b - a)/2 * points[i] + (a + b)/2);
+            T x = (b - a)/2 * points[i] + (a + b)/2;
+            T y = isfinite ? f(x)
+                           : f(numcpp::tan(x))/numcpp::square(numcpp::cos(x));
+            integral += weights[i] * y;
         }
         integral = (b - a)/2 * integral;
+
         return integral;
     }
 
@@ -59,21 +69,26 @@ namespace scicpp {
         T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
     ) {
         T value = (b - a) * f((a + b) / 2);
-        for (size_t iter = 2; iter <= maxiter; ++iter) {
-            T new_value = fixed_quad(f, a, b, iter);
-            if (numcpp::isclose(new_value, value, tol, rtol)) {
+        size_t neval = 1;
+
+        for (size_t n = 2; n <= maxiter; ++n) {
+            T integral = fixed_quad(f, a, b, n);
+            neval += n;
+            if (numcpp::isclose(value, integral, tol, rtol)) {
                 if (show) {
-                    std::cout << "Converged after " << iter
-                              << " iterations, value is " << new_value << "\n";
+                    std::cout << "The final result is " << integral << " after "
+                              << neval << " function evaluations\nwith error "
+                              << numcpp::abs(integral - value) << "\n";
                 }
-                return new_value;
+                return integral;
             }
-            value = new_value;
+            value = integral;
         }
         if (show) {
-            std::cout << "Failed to converge after " << maxiter
-                      << " iterations, value is " << value << "\n";
+            std::cout << "Failed to converge after " << neval
+                      << " function evaluations, value is " << value << "\n";
         }
+
         return value;
     }
 
@@ -85,18 +100,19 @@ namespace scicpp {
         T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 10
     ) {
         numcpp::matrix<T> R(maxiter, maxiter);
-        size_t iter = 0;
-        bool converged = false;
-
         R[0][0] = (b - a) * (f(a) + f(b)) / 2;
+
+        size_t iter = 0, neval = 2;
+        bool converged = false;
         for (iter = 1; iter < maxiter; ++iter) {
             size_t n = 1 << iter;
             T h = (b - a) / n;
             R[iter][0] = 0;
             for (size_t k = 1; k < n; k += 2) {
                 R[iter][0] += f(a + k*h);
+                ++neval;
             }
-            R[iter][0] = 0.5*R[iter - 1][0] + h*R[iter][0];
+            R[iter][0] = R[iter - 1][0]/2 + h*R[iter][0];
 
             for (size_t i = 1; i <= iter; ++i) {
                 T q = 1 << (2*i);
@@ -143,13 +159,16 @@ namespace scicpp {
                 std::cout << "\n";
             }
             if (converged) {
-                std::cout << "Converged after " << iter << " iterations, ";
+                T error = numcpp::abs(R[iter-1][iter-1] - R[iter-2][iter-2]);
+                std::cout << "The final result is " << R[iter - 1][iter - 1]
+                          << " after " << neval << " function evaluations\n"
+                          << "with error " << error << "\n";
             }
             else {
-                std::cout << "Failed to converged after "
-                          << maxiter << "iterations, ";
+                std::cout << "Failed to converge after " << neval
+                          << " function evaluations, value is "
+                          << R[iter - 1][iter - 1] << "\n";
             }
-            std::cout << "value is " << R[iter - 1][iter - 1] << "\n";
         }
 
         return R[iter - 1][iter - 1];
@@ -187,16 +206,18 @@ namespace scicpp {
         T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
     ) {
         T value;
-        for (size_t iter = 2; iter <= maxiter; ++iter) {
+        size_t neval = 0;
+
+        for (size_t n = 2; n <= maxiter; ++n) {
             numcpp::array<T> points, weights;
-            leggauss(iter, points, weights);
+            leggauss(n, points, weights);
 
             T integral = 0;
-            for (size_t i = 0; i < iter; ++i) {
-                T integral_y_axis = 0;
+            for (size_t i = 0; i < n; ++i) {
                 T x = (bx - ax)/2 * points[i] + (ax + bx)/2;
                 T ay_ = ay(x), by_ = by(x);
-                for (size_t j = 0; j < iter; ++j) {
+                T integral_y_axis = 0;
+                for (size_t j = 0; j < n; ++j) {
                     T y = (by_ - ay_)/2 * points[j] + (ay_ + by_)/2;
                     integral_y_axis += weights[j] * f(x, y);
                 }
@@ -204,20 +225,23 @@ namespace scicpp {
                 integral += weights[i] * integral_y_axis;
             }
             integral = (bx - ax)/2 * integral;
+            neval += n*n;
 
-            if (iter > 2 && numcpp::isclose(integral, value, tol, rtol)) {
+            if (n > 2 && numcpp::isclose(value, integral, tol, rtol)) {
                 if (show) {
-                    std::cout << "Converged after " << iter
-                              << " iterations, value is " << integral << "\n";
+                    std::cout << "The final result is " << integral << " after "
+                              << neval << " function evaluations\nwith error "
+                              << numcpp::abs(integral - value) << "\n";
                 }
                 return integral;
             }
             value = integral;
         }
         if (show) {
-            std::cout << "Failed to converge after " << maxiter
-                      << " iterations, value is " << value << "\n";
+            std::cout << "Failed to converge after " << neval
+                      << " function evaluations, value is " << value << "\n";
         }
+
         return value;
     }
 
@@ -236,20 +260,22 @@ namespace scicpp {
         T tol = 1e-8, T rtol = 1e-8, size_t maxiter = 50
     ) {
         T value;
-        for (size_t iter = 2; iter <= maxiter; ++iter) {
+        size_t neval = 0;
+
+        for (size_t n = 2; n <= maxiter; ++n) {
             numcpp::array<T> points, weights;
-            leggauss(iter, points, weights);
+            leggauss(n, points, weights);
 
             T integral = 0;
-            for (size_t i = 0; i < iter; ++i) {
-                T integral_y_axis = 0;
+            for (size_t i = 0; i < n; ++i) {
                 T x = (bx - ax)/2 * points[i] + (ax + bx)/2;
                 T ay_ = ay(x), by_ = by(x);
-                for (size_t j = 0; j < iter; ++j) {
-                    T integral_z_axis = 0;
+                T integral_y_axis = 0;
+                for (size_t j = 0; j < n; ++j) {
                     T y = (by_ - ay_)/2 * points[j] + (ay_ + by_)/2;
                     T az_ = az(x, y), bz_ = bz(x, y);
-                    for (size_t k = 0; k < iter; ++k) {
+                    T integral_z_axis = 0;
+                    for (size_t k = 0; k < n; ++k) {
                         T z = (bz_ - az_)/2 * points[k] + (az_ + bz_)/2;
                         integral_z_axis += weights[k] * f(x, y, z);
                     }
@@ -260,19 +286,21 @@ namespace scicpp {
                 integral += weights[i] * integral_y_axis;
             }
             integral = (bx - ax)/2 * integral;
+            neval += n*n*n;
 
-            if (iter > 2 && numcpp::isclose(integral, value, tol, rtol)) {
+            if (n > 2 && numcpp::isclose(value, integral, tol, rtol)) {
                 if (show) {
-                    std::cout << "Converged after " << iter
-                              << " iterations, value is " << integral << "\n";
+                    std::cout << "The final result is " << integral << " after "
+                              << neval << " function evaluations\nwith error "
+                              << numcpp::abs(integral - value) << "\n";
                 }
                 return integral;
             }
             value = integral;
         }
         if (show) {
-            std::cout << "Failed to converge after " << maxiter
-                      << " iterations, value is " << value << "\n";
+            std::cout << "Failed to converge after " << neval
+                      << " function evaluations, value is " << value << "\n";
         }
         return value;
     }
