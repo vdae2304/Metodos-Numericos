@@ -184,7 +184,7 @@ namespace numcpp {
     // Returns true if two values are equal within a tolerance.
     template <class T>
     bool isclose(const T &a, const T &b, const T &atol, const T &rtol) {
-        return abs(a - b) <= atol + rtol*b;
+        return abs(a - b) <= atol + rtol*abs(b);
     }
 
 
