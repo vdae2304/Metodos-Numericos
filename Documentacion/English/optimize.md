@@ -9,7 +9,6 @@
 ### `RootResults`
 
 Class returned by the root finding methods.
-
 ```cpp
 template <class T>
 class RootResults {
@@ -22,19 +21,32 @@ public:
 };
 ```
 
+#### Attributes
+
+- `root`: Estimated root location.
+- `iterations`: Number of iterations needed to find the root.
+- `function_calls`: Number of times the function was called.
+- `converged`: `true` if the routine converged.
+- `status`: Description of the cause of termination.
+
 ### `bisect`
 
 Find root of a function within an interval using bisection. 
 ```cpp
 template <class T, class Function = T(T)>
 RootResults<T> bisect(
-    Function f,
-    T a,
-    T b,
-    T tol = 1e-9,
-    size_t maxiter = 100
+    Function f, T a, T b, T tol = 1e-9, size_t maxiter = 100
 );
 ```
+
+#### Arguments
+
+- `f`: The function whose root is wanted. Must be continuous and `f(a)` and 
+`f(b)` must have opposite signs.
+- `a`: One end of the bracketing interval *[a, b]*.
+- `b`: The other end of the bracketing interval *[a, b]*.
+- `tol`: The desired tolerance.
+- `maxiter`: Maximum number of iterations.
 
 #### Example 
 
@@ -55,7 +67,7 @@ int main() {
 ```
 
 ```
-[Out] Converged after 32 iterations, value is 1.25992
+[Out] Converged after 30 iterations, value is 1.25992
 ```
 
 ### `newton`
@@ -64,13 +76,18 @@ Find a root of a function using the Newton-Raphson method.
 ```cpp
 template <class T, class Function = T(T), class Derivative = T(T)>
 RootResults<T> newton(
-    Function f,
-    T x0,
-    Derivative df,
-    T tol = 1e-9,
-    size_t maxiter = 50
+    Function f, T x0, Derivative df, T tol = 1e-9, size_t maxiter = 50
 );
 ```
+
+#### Arguments:
+
+- `f`: The function whose root is wanted.
+- `x0`: An initial estimate of the root that should be somewhere near the 
+actual root.
+- `df`: The derivative of the function.
+- `tol`: The desired tolerance.
+- `maxiter`: Maximum number of iterations.
 
 #### Example
 
@@ -104,13 +121,19 @@ Find a root of a function using the secant method.
 ```cpp
 template <class T, class Function = T(T)>
 RootResults<T> secant(
-    Function f,
-    T x0,
-    T x1,
-    T tol = 1e-9,
-    size_t maxiter = 50
+    Function f, T x0, T x1, T tol = 1e-9, size_t maxiter = 50
 );
 ```
+
+#### Arguments:
+
+- `f`: The function whose root is wanted.
+- `x0`: An initial estimate of the root that should be somewhere near the 
+actual root.
+- `x1`: Another estimate of the root that should be somewhere near the actual 
+root.
+- `tol`: The desired tolerance.
+- `maxiter`: Maximum number of iterations.
 
 #### Example
 
@@ -131,7 +154,7 @@ int main() {
 ```
 
 ```
-[Out] Converged after 10 iterations, value is 1.25992
+[Out] Converged after 9 iterations, value is 1.25992
 ```
 
 ### `halley`
@@ -139,20 +162,24 @@ int main() {
 Find a root of a function using the Halley's method.
 ```cpp
 template <
-    class T,
-    class Function = T(T),
-    class Derivative = T(T),
-    class Derivative2 = T(T)
+    class T, class Function = T(T),
+    class Derivative = T(T), class Derivative2 = T(T)
 >
 RootResults<T> halley(
-    Function f,
-    T x0,
-    Derivative df,
-    Derivative2 df2,
-    T tol = 1e-9,
-    size_t maxiter = 50
+    Function f, T x0, Derivative df, Derivative2 df2,
+    T tol = 1e-9, size_t maxiter = 50
 );
 ```
+
+#### Arguments:
+
+- `f`: The function whose root is wanted.
+- `x0`: An initial estimate of the root that should be somewhere near the 
+actual root.
+- `df`: The first derivative of the function.
+- `df2`: The second derivative of the function.
+- `tol`: The desired tolerance.
+- `maxiter`: Maximum number of iterations.
 
 #### Example
 
