@@ -146,7 +146,7 @@ namespace numcpp {
         return *this;
     }
 
-    // Subarray assignment. Assigns the contents of v to *this after resizing 
+    // Subarray assignment. Assigns the contents of v to *this after resizing
     // the object (if necessary).
     template <class T>
     array<T>& array<T>::operator= (const subarray<T> &v) {
@@ -417,7 +417,7 @@ namespace numcpp {
     template <class T>
     array<T> operator- (const array<T> &v) {
         array<T> out(v);
-        return v *= -1;
+        return out *= -1;
     }
 
     template <class T>
