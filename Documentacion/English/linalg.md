@@ -409,6 +409,36 @@ works on overdetermined systems (more equations than unknowns), while the
 underdetermined systems. By default, `method = "svd"`. The function throws a 
 `LinAlgError` exception if the decomposition fails.
 
+#### Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/linalg.h"
+using namespace std;
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A = {{ 7, 3, -2},
+                            { 3, 5,  1},
+                            {-2, 1,  0},
+                            { 5, 0,  2},
+                            {-1, -1, 5}};
+    np::array<double> b = {1, 0, 3, -2, 5};
+    np::array<double> x = scicpp::lstsq(A, b, "svd");
+    np::array<double> y = scicpp::lstsq(A, b, "qr");
+    cout << "x = " << x << "\n";
+    cout << "y = " << y << "\n";
+    cout << "|Ax - b|: " << scicpp::norm(A.dot(x) - b) << "\n";
+    return 0;
+}
+```
+
+```
+[Out] x = [-0.27561683, 0.39230793, 0.57941608]
+      y = [-0.27561683, 0.39230793, 0.57941608]
+      |Ax - b|: 4.8723866
+```
+
 ## LU decomposition
 
 ### `lu`
