@@ -207,6 +207,9 @@ namespace scicpp {
         if (result.hess.rows()*result.hess.columns() != 0) {
             ostr << "hess:\n" << result.hess << "\n";
         }
+        if (result.hess_inv.rows()*result.hess_inv.columns() != 0) {
+            ostr << "hess_inv:\n" << result.hess_inv << "\n";
+        }
         ostr << "success: " << result.success << "\n";
         ostr << "status: " << result.status << "\n";
         ostr << "niter: " << result.niter << "\n";
@@ -318,6 +321,69 @@ namespace scicpp {
             result.nfev += step_selector.function_calls + 1;
             result.njev += step_selector.derivative_calls + 1;
             ++result.nhev;
+        }
+        if (!result.success) {
+            result.status = "Maximum number of iterations has been exceeded.";
+        }
+
+        return result;
+    }
+
+    // Minimize a function using the quasi-Newton method of Broyden, Fletcher,
+    // Goldfarb, and Shanno (BFGS).
+    template <class T, class Function, class Jacobian>
+    OptimizeResult<T> minimize_bfgs(
+        Function f, const numcpp::array<T> &x0, Jacobian jac,
+        const numcpp::matrix<T> &B0,
+        T gtol, double ordnorm, size_t maxiter
+    ) {
+        OptimizeResult<T> result;
+        result.x = x0;
+        result.fun = f(x0);
+        result.jac = jac(x0);
+        result.hess_inv = B0;
+        result.success = false;
+        result.nfev = 1;
+        result.njev = 1;
+        result.nhev = 0;
+
+        for (result.niter = 1; result.niter < maxiter; ++result.niter) {
+            if (norm(result.jac, ordnorm) <= gtol) {
+                result.success = true;
+                result.status = "Optimization terminated successfully.";
+                break;
+            }
+
+            numcpp::array<T> pk = (result.hess_inv).dot(-result.jac);
+            RootResults<T> step_selector = line_search(
+                f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.9, 1.0, 50
+            );
+            T alpha = step_selector.root;
+            numcpp::array<T> sk = alpha*pk;
+            result.x += sk;
+            result.fun = f(result.x);
+            numcpp::array<T> yk = result.jac;
+            result.jac = jac(result.x);
+            yk = result.jac - yk;
+
+            numcpp::matrix<T> Bk = result.hess_inv;
+            T skTyk = sk.dot(yk);
+            T ykTBkyk = yk.dot(Bk).dot(yk);
+            for (size_t i = 0; i < Bk.rows(); ++i) {
+                for (size_t j = 0; j < Bk.columns(); ++j) {
+                    result.hess_inv[i][j] = 0;
+                    for (size_t k = 0; k < Bk.rows(); ++k) {
+                        result.hess_inv[i][j] += Bk[i][k]*yk[k]*sk[j] +
+                                                 sk[i]*yk[k]*Bk[k][j];
+                    }
+                    result.hess_inv[i][j] = Bk[i][j] +
+                    ((skTyk + ykTBkyk)*sk[i]*sk[j]) / (skTyk*skTyk) -
+                    result.hess_inv[i][j] / skTyk;
+                }
+            }
+
+            result.nfev += step_selector.function_calls + 1;
+            result.njev += step_selector.derivative_calls + 1;
         }
         if (!result.success) {
             result.status = "Maximum number of iterations has been exceeded.";

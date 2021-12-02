@@ -225,7 +225,7 @@ public:
     T fun;
     numcpp::array<T> x;
     numcpp::array<T> jac;
-    numcpp::matrix<T> hess;
+    numcpp::matrix<T> hess, hess_inv;
     bool success;
     std::string status;
     size_t niter;
@@ -239,6 +239,8 @@ public:
 - `x`: La solución de la optimización.
 - `jac`: Valor del gradiente de la función objetivo.
 - `hess`: Valor del Hessiano de la función objetivo.
+- `hess_inv`: Inversa del Hessiano de la función objetivo; puede ser una 
+aproximación.
 - `success`: Si el optimizador terminó exitosamente o no.
 - `status`: Descripción de la causa de terminación.
 - `niter`: Número de iteraciones realizadas por el optimizador.
@@ -257,7 +259,7 @@ OptimizeResult<T> minimize_cg(
 );
 ```
 
-#### Atributos
+#### Argumentos
 
 - `f`: Función objetivo a minimizar.
 - `x0`: Una estimación inicial para el valor óptimo de `x`.
@@ -335,7 +337,7 @@ OptimizeResult<T> minimize_ncg(
 );
 ```
 
-#### Atributos
+#### Argumentos
 
 - `f`: Función objetivo a minimizar.
 - `x0`: Una estimación inicial para el valor óptimo de `x`.
@@ -412,6 +414,87 @@ int main() {
       nfev: 290
       njev: 186
       nhev: 89
+```
+
+### `minimize_bfgs`
+
+Minimiza una función utilizando el algoritmo de Broyden, Fletcher, Goldfarb, y 
+Shanno (BFGS).
+```cpp
+template <class T, class Function, class Jacobian>
+OptimizeResult<T> minimize_bfgs(
+    Function f, const numcpp::array<T> &x0, Jacobian jac,
+    const numcpp::matrix<T> &B0,
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+);
+```
+
+#### Argumentos
+
+- `f`: Función objetivo a minimizar.
+- `x0`: Una estimación inicial para el valor óptimo de `x`.
+- `jac`: Una función que devuelve el vector gradiente de `f` en `x`.
+- `B0`: Una estimación inicial para la inversa de la matriz Hessiana de `f` en 
+`x0`.
+- `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
+`gtol`.
+- `ordnorm`: Orden a usar para la norma del gradiente.
+- `maxiter`: Máximo número de iteraciones a realizar.
+
+#### Ejemplo
+
+Calcula un mínimo local de la función de Rosenbrock.
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/optimize.h"
+using namespace std;
+namespace np = numcpp;
+
+// Rosenbrock function.
+double rosen(const np::array<double> &x) {
+    double f = 0;
+    for (int i = 0; i < x.size() - 1; ++i) {
+        f += 100*(x[i + 1] - x[i]*x[i])*(x[i + 1] - x[i]*x[i]) +
+             (1 - x[i])*(1 - x[i]);
+    }
+    return f;
+}
+
+// Derivative (gradient) of Rosenbrock function.
+np::array<double> rosen_der(const np::array<double> &x) {
+    np::array<double> jac = np::zeros<double>(x.size());
+    for (int i = 0; i < x.size() - 1; ++i) {
+        jac[i] += -400*x[i]*(x[i + 1] - x[i]*x[i]) - 2*(1 - x[i]);
+        jac[i + 1] += 200*(x[i + 1] - x[i]*x[i]);
+    }
+    return jac;
+}
+
+int main() {
+    np::array<double> x0 = {-1.2, 1., -1.2, 1.};
+    np::matrix<double> B0 = np::eye<double>(4, 4);
+    scicpp::OptimizeResult<double> result;
+    result = scicpp::minimize_bfgs(rosen, x0, rosen_der, B0);
+    cout << result;
+    return 0;
+}
+```
+
+```
+[Out] fun: 2.75892e-13
+      x: [0.9999999, 0.9999998, 0.99999959, 0.99999915]
+      jac: [4.5691454e-07, 1.7022435e-06, 6.768782e-06, -4.4084408e-06]
+      hess_inv:
+      [[0.026480784, 0.050239632, 0.099123274, 0.19728892]
+       [0.050239632,  0.10058458,  0.19838138, 0.39491722]
+       [0.099123274,  0.19838138,  0.39714857,  0.7905933]
+       [ 0.19728892,  0.39491722,   0.7905933,  1.5796873]]
+      success: true
+      status: Optimization terminated successfully.
+      niter: 65
+      nfev: 230
+      njev: 132
 ```
 
 ### `line_search`

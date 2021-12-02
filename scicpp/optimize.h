@@ -61,7 +61,7 @@ namespace scicpp {
         T fun;
         numcpp::array<T> x;
         numcpp::array<T> jac;
-        numcpp::matrix<T> hess;
+        numcpp::matrix<T> hess, hess_inv;
         bool success;
         std::string status;
         size_t niter;
@@ -83,6 +83,15 @@ namespace scicpp {
     template <class T, class Function, class Jacobian, class Hessian>
     OptimizeResult<T> minimize_ncg(
         Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    );
+
+    // Minimize a function using the quasi-Newton method of Broyden, Fletcher,
+    // Goldfarb, and Shanno (BFGS).
+    template <class T, class Function, class Jacobian>
+    OptimizeResult<T> minimize_bfgs(
+        Function f, const numcpp::array<T> &x0, Jacobian jac,
+        const numcpp::matrix<T> &B0,
         T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
     );
 
