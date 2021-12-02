@@ -78,12 +78,6 @@ namespace scicpp {
     template <class T, class Function, class Jacobian>
     RootResults<T> line_search(
         Function f, Jacobian jac,
-        const numcpp::array<T> &xk, const numcpp::array<T> &pk
-    );
-
-    template <class T, class Function, class Jacobian>
-    RootResults<T> line_search(
-        Function f, Jacobian jac,
         const numcpp::array<T> &xk, const numcpp::array<T> &pk,
         const numcpp::array<T> &gfk, T fk,
         T c1 = 0.0001, T c2 = 0.9, T amax = 1.0, size_t maxiter = 20
