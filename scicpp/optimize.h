@@ -68,6 +68,10 @@ namespace scicpp {
         size_t nfev, njev, nhev;
     };
 
+    template <class T>
+    std::ostream&
+    operator<< (std::ostream &ostr, const OptimizeResult<T> &result);
+
     // Minimize a function using a nonlinear conjugate gradient algorithm.
     template <class T, class Function, class Jacobian>
     OptimizeResult<T> minimize_cg(
@@ -75,6 +79,14 @@ namespace scicpp {
         T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
     );
 
+    // Minimize a function using the Newton-CG algorithm.
+    template <class T, class Function, class Jacobian, class Hessian>
+    OptimizeResult<T> minimize_ncg(
+        Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    );
+
+    // Find alpha that satisfies Wolfe conditions.
     template <class T, class Function, class Jacobian>
     RootResults<T> line_search(
         Function f, Jacobian jac,

@@ -242,20 +242,17 @@ namespace scicpp {
                 result.status = "Optimization terminated successfully.";
                 break;
             }
-
             RootResults<T> step_selector = line_search(
                 f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.1, 1.0, 50
             );
             T alpha = step_selector.root;
-            numcpp::array<T> x = result.x + alpha*pk;
-            numcpp::array<T> g = jac(x);
-            T beta = numcpp::dot(g, g - result.jac) /
-                     numcpp::dot(result.jac, result.jac);
-            pk = beta*pk - g;
-
-            result.x = x;
+            result.x += alpha*pk;
             result.fun = f(result.x);
-            result.jac = g;
+            numcpp::array<T> jac_old = result.jac;
+            result.jac = jac(result.x);
+            T beta = (result.jac).dot(result.jac - jac_old) /
+                     (jac_old).dot(jac_old);
+            pk = beta*pk - result.jac;
             result.nfev += step_selector.function_calls + 1;
             result.njev += step_selector.derivative_calls + 1;
         }
@@ -266,6 +263,70 @@ namespace scicpp {
         return result;
     }
 
+    // Minimize a function using the Newton-CG algorithm.
+    template <class T, class Function, class Jacobian, class Hessian>
+    OptimizeResult<T> minimize_ncg(
+        Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+        T gtol, double ordnorm, size_t maxiter
+    ) {
+        OptimizeResult<T> result;
+        result.x = x0;
+        result.fun = f(x0);
+        result.jac = jac(x0);
+        result.hess = hess(x0);
+        result.success = false;
+        result.nfev = 1;
+        result.njev = 1;
+        result.nhev = 1;
+
+        for (result.niter = 1; result.niter < maxiter; ++result.niter) {
+            T error = norm(result.jac, ordnorm);
+            if (error <= gtol) {
+                result.success = true;
+                result.status = "Optimization terminated successfully.";
+                break;
+            }
+
+            numcpp::array<T> pk = numcpp::zeros<T>(result.x.size());
+            numcpp::array<T> r = result.jac;
+            numcpp::array<T> d = -r;
+            T tol = numcpp::min(0.5, numcpp::sqrt(error))*error;
+            for (size_t i = 0; i < pk.size(); ++i) {
+                numcpp::array<T> hess_d = (result.hess).dot(d);
+                if (norm(r) <= tol || d.dot(hess_d) <= 0) {
+                    if (i == 0) {
+                        pk = -result.jac;
+                    }
+                    break;
+                }
+                T alpha = r.dot(r) / d.dot(hess_d);
+                pk += alpha*d;
+                numcpp::array<T> r_old = r;
+                r += alpha*hess_d;
+                T beta = r.dot(r) / r_old.dot(r_old);
+                d = beta*d - r;
+            }
+
+            RootResults<T> step_selector = line_search(
+                f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.9, 1.0, 50
+            );
+            T alpha = step_selector.root;
+            result.x += alpha*pk;
+            result.fun = f(result.x);
+            result.jac = jac(result.x);
+            result.hess = hess(result.x);
+            result.nfev += step_selector.function_calls + 1;
+            result.njev += step_selector.derivative_calls + 1;
+            ++result.nhev;
+        }
+        if (!result.success) {
+            result.status = "Maximum number of iterations has been exceeded.";
+        }
+
+        return result;
+    }
+
+    // Find alpha that satisfies Wolfe conditions.
     template <class T, class Function, class Jacobian>
     RootResults<T> line_search(
         Function f, Jacobian jac,

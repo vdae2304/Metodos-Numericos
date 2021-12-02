@@ -297,9 +297,7 @@ np::array<double> rosen_der(const np::array<double> &x) {
     np::array<double> jac = np::zeros<double>(x.size());
     for (int i = 0; i < x.size() - 1; ++i) {
         jac[i] += -400*x[i]*(x[i + 1] - x[i]*x[i]) - 2*(1 - x[i]);
-    }
-    for (int i = 1; i < x.size(); ++i) {
-        jac[i] += 200*(x[i] - x[i - 1]*x[i - 1]);
+        jac[i + 1] += 200*(x[i + 1] - x[i]*x[i]);
     }
     return jac;
 }
@@ -322,6 +320,98 @@ int main() {
       niter: 95
       nfev: 1228
       njev: 337
+```
+
+### `minimize_ncg`
+
+Minimiza una función utilizando el algoritmo de Newton-CG (también conocido como 
+método de Newton truncado). Utiliza un método de gradiente conjugado para 
+calcular la dirección de búsqueda.
+```cpp
+template <class T, class Function, class Jacobian, class Hessian>
+OptimizeResult<T> minimize_ncg(
+    Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+);
+```
+
+#### Atributos
+
+- `f`: Función objetivo a minimizar.
+- `x0`: Una estimación inicial para el valor óptimo de `x`.
+- `jac`: Una función que devuelve el vector gradiente de `f` en `x`.
+- `hess`: Una función que devuelve la matriz Hessiana de `f` en `x`.
+- `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
+`gtol`.
+- `ordnorm`: Orden a usar para la norma del gradiente.
+- `maxiter`: Máximo número de iteraciones a realizar.
+
+#### Ejemplo
+
+Calcula un mínimo local de la función de Rosenbrock.
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/optimize.h"
+using namespace std;
+namespace np = numcpp;
+
+// Rosenbrock function.
+double rosen(const np::array<double> &x) {
+    double f = 0;
+    for (int i = 0; i < x.size() - 1; ++i) {
+        f += 100*(x[i + 1] - x[i]*x[i])*(x[i + 1] - x[i]*x[i]) +
+             (1 - x[i])*(1 - x[i]);
+    }
+    return f;
+}
+
+// Derivative (gradient) of Rosenbrock function.
+np::array<double> rosen_der(const np::array<double> &x) {
+    np::array<double> jac = np::zeros<double>(x.size());
+    for (int i = 0; i < x.size() - 1; ++i) {
+        jac[i] += -400*x[i]*(x[i + 1] - x[i]*x[i]) - 2*(1 - x[i]);
+        jac[i + 1] += 200*(x[i + 1] - x[i]*x[i]);
+    }
+    return jac;
+}
+
+// Hessian of Rosenbrock function.
+np::matrix<double> rosen_hess(const np::array<double> &x) {
+    np::matrix<double> hess = np::zeros<double>(x.size(), x.size());
+    for (int i = 0; i < x.size() - 1; ++i) {
+        hess[i][i] += -400*x[i + 1] + 1200*x[i]*x[i] + 2;
+        hess[i][i + 1] += -400*x[i];
+        hess[i + 1][i + 1] += 200;
+        hess[i + 1][i] += -400*x[i];
+    }
+    return hess;
+}
+
+int main() {
+    np::array<double> x0 = {-1.2, 1., -1.2, 1.};
+    scicpp::OptimizeResult<double> result;
+    result = scicpp::minimize_ncg(rosen, x0, rosen_der, rosen_hess);
+    cout << result;
+    return 0;
+}
+```
+
+```
+[Out] fun: 1.37688e-12
+      x: [0.99999975, 0.99999951, 0.999999, 0.99999798]
+      jac: [7.7789427e-07, 1.4612809e-06, 7.4658088e-06, -5.4988463e-06]
+      hess:
+      [[801.99961, -399.9999,         0,         0]
+       [-399.9999, 1001.9992, -399.9998,         0]
+       [        0, -399.9998, 1001.9984, -399.9996]
+       [        0,         0, -399.9996,       200]]
+      success: true
+      status: Optimization terminated successfully.
+      niter: 89
+      nfev: 290
+      njev: 186
+      nhev: 89
 ```
 
 ### `line_search`
@@ -380,9 +470,7 @@ np::array<double> rosen_der(const np::array<double> &x) {
     np::array<double> jac = np::zeros<double>(x.size());
     for (int i = 0; i < x.size() - 1; ++i) {
         jac[i] += -400*x[i]*(x[i + 1] - x[i]*x[i]) - 2*(1 - x[i]);
-    }
-    for (int i = 1; i < x.size(); ++i) {
-        jac[i] += 200*(x[i] - x[i - 1]*x[i - 1]);
+        jac[i + 1] += 200*(x[i + 1] - x[i]*x[i]);
     }
     return jac;
 }
