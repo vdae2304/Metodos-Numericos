@@ -2,8 +2,13 @@
 #define OPTIMIZE_H_INCLUDED
 
 #include "numcpp.h"
+#include <utility>
 
 namespace scicpp {
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Root finding                                                           //
+    ////////////////////////////////////////////////////////////////////////////
 
     // Class returned by the root finding methods.
     template <class T>
@@ -12,6 +17,7 @@ namespace scicpp {
         T root;
         size_t iterations;
         size_t function_calls;
+        size_t derivative_calls;
         bool converged;
         std::string status;
     };
@@ -42,6 +48,45 @@ namespace scicpp {
     RootResults<T> halley(
         Function f, T x0, Derivative df, Derivative2 df2,
         T tol = 1e-9, size_t maxiter = 50
+    );
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Local optimization                                                     //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Class returned by the optimization methods.
+    template <class T>
+    class OptimizeResult {
+    public:
+        T fun;
+        numcpp::array<T> x;
+        numcpp::array<T> jac;
+        numcpp::matrix<T> hess;
+        bool success;
+        std::string status;
+        size_t niter;
+        size_t nfev, njev, nhev;
+    };
+
+    // Minimize a function using a nonlinear conjugate gradient algorithm.
+    template <class T, class Function, class Jacobian>
+    OptimizeResult<T> minimize_cg(
+        Function f, const numcpp::array<T> x0, Jacobian jac,
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    );
+
+    template <class T, class Function, class Jacobian>
+    RootResults<T> line_search(
+        Function f, Jacobian jac,
+        const numcpp::array<T> &xk, const numcpp::array<T> &pk
+    );
+
+    template <class T, class Function, class Jacobian>
+    RootResults<T> line_search(
+        Function f, Jacobian jac,
+        const numcpp::array<T> &xk, const numcpp::array<T> &pk,
+        const numcpp::array<T> &gfk, T fk,
+        T c1 = 0.0001, T c2 = 0.9, T amax = 1.0, size_t maxiter = 20
     );
 }
 
