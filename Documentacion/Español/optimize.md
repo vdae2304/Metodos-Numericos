@@ -356,7 +356,7 @@ Calcula un mínimo local de la función de Rosenbrock.
 using namespace std;
 namespace np = numcpp;
 
-// Rosenbrock function.
+// Función de Rosenbrock.
 double rosen(const np::array<double> &x) {
     double f = 0;
     for (int i = 0; i < x.size() - 1; ++i) {
@@ -366,7 +366,7 @@ double rosen(const np::array<double> &x) {
     return f;
 }
 
-// Derivative (gradient) of Rosenbrock function.
+// Derivada (gradiente) de la función de Rosenbrock.
 np::array<double> rosen_der(const np::array<double> &x) {
     np::array<double> jac = np::zeros<double>(x.size());
     for (int i = 0; i < x.size() - 1; ++i) {
@@ -376,7 +376,7 @@ np::array<double> rosen_der(const np::array<double> &x) {
     return jac;
 }
 
-// Hessian of Rosenbrock function.
+// Hessiano de la función de Rosenbrock.
 np::matrix<double> rosen_hess(const np::array<double> &x) {
     np::matrix<double> hess = np::zeros<double>(x.size(), x.size());
     for (int i = 0; i < x.size() - 1; ++i) {
