@@ -43,6 +43,7 @@ namespace numcpp {
     using std::isfinite;
     using std::isinf;
     using std::isnan;
+    using std::nan;
 
     // This namespace contains several constants.
     const double inf = HUGE_VAL;
@@ -53,15 +54,15 @@ namespace numcpp {
     const double pi = acos(-1.0);
     const double golden = (1.0 + sqrt(5.0)) / 2.0;
 
-    // Returns an array/matrix containing the absolute values of all the 
+    // Returns an array/matrix containing the absolute values of all the
     // elements of x, in the same order.
     template <class T>
     array<T> abs(const array<T> &x);
 
     template <class T>
     matrix<T> abs(const matrix<T> &x);
-    
-    // Returns an array/matrix containing the principal values of the arc cosine 
+
+    // Returns an array/matrix containing the principal values of the arc cosine
     // of all the elements of x, expressed in radians, in the same order.
     template <class T>
     array<T> acos(const array<T> &x);
@@ -77,7 +78,7 @@ namespace numcpp {
     template <class T>
     matrix<T> acosh(const matrix<T> &x);
 
-    // Returns an array/matrix containing the principal values of the arc sine 
+    // Returns an array/matrix containing the principal values of the arc sine
     // of all the elements of x, expressed in radians, in the same order.
     template <class T>
     array<T> asin(const array<T> &x);
@@ -93,8 +94,8 @@ namespace numcpp {
     template <class T>
     matrix<T> asinh(const matrix<T> &x);
 
-    // Returns an array/matrix containing the principal values of the arc 
-    // tangent of all the elements of x, expressed in radians, in the same 
+    // Returns an array/matrix containing the principal values of the arc
+    // tangent of all the elements of x, expressed in radians, in the same
     // order.
     template <class T>
     array<T> atan(const array<T> &x);
@@ -102,8 +103,8 @@ namespace numcpp {
     template <class T>
     matrix<T> atan(const matrix<T> &x);
 
-    // Returns an array/matrix containing the principal value of the arc 
-    // tangent of all the elements, in the same order. The tangent for which it 
+    // Returns an array/matrix containing the principal value of the arc
+    // tangent of all the elements, in the same order. The tangent for which it
     // is calculated is the quotient of coordinates y/x, using their sign to
     // determine the appropriate quadrant.
     template <class T>
@@ -124,7 +125,7 @@ namespace numcpp {
     template <class T>
     matrix<T> atan2(const T &y, const matrix<T> &x);
 
-    // Returns an array/matrix containing the area hyperbolic tangents of all 
+    // Returns an array/matrix containing the area hyperbolic tangents of all
     // the elements of x, in the same order.
     template <class T>
     array<T> atanh(const array<T> &x);
@@ -132,7 +133,7 @@ namespace numcpp {
     template <class T>
     matrix<T> atanh(const matrix<T> &x);
 
-    // Returns an array/matrix containing the cubic root of all the elements of 
+    // Returns an array/matrix containing the cubic root of all the elements of
     // x, in the same order.
     template <class T>
     array<T> cbrt(const array<T> &x);
@@ -148,7 +149,7 @@ namespace numcpp {
     template <class T>
     matrix<T> ceil(const matrix<T> &x);
 
-    // Returns an array/matrix containing the cosines of all the elements of x, 
+    // Returns an array/matrix containing the cosines of all the elements of x,
     // in the same order.
     template <class T>
     array<T> cos(const array<T> &x);
@@ -156,7 +157,7 @@ namespace numcpp {
     template <class T>
     matrix<T> cos(const matrix<T> &x);
 
-    // Returns an array/matrix containing the hyperbolic cosines of all the 
+    // Returns an array/matrix containing the hyperbolic cosines of all the
     // elements of x, in the same order.
     template <class T>
     array<T> cosh(const array<T> &x);
@@ -181,7 +182,7 @@ namespace numcpp {
     template <class T>
     matrix<T> degrees(const matrix<T> &x);
 
-    // Returns an array/matrix containing the exponential function values of all 
+    // Returns an array/matrix containing the exponential function values of all
     // the elements of x, in the same order.
     template <class T>
     array<T> exp(const array<T> &x);
@@ -189,7 +190,7 @@ namespace numcpp {
     template <class T>
     matrix<T> exp(const matrix<T> &x);
 
-    // Returns an array/matrix containing the base-2 exponential function values 
+    // Returns an array/matrix containing the base-2 exponential function values
     // of all the elements of x, in the same order.
     template <class T>
     array<T> exp2(const array<T> &x);
@@ -197,7 +198,7 @@ namespace numcpp {
     template <class T>
     matrix<T> exp2(const matrix<T> &x);
 
-    // Returns an array/matrix containing the results of rounding downward all 
+    // Returns an array/matrix containing the results of rounding downward all
     // the elements of x, in the same order.
     template <class T>
     array<T> floor(const array<T> &x);
@@ -288,7 +289,7 @@ namespace numcpp {
     template <class T>
     matrix<T> lcm(const T &m, const matrix<T> &n);
 
-    // Returns an array/matrix containing the natural logarithm (base-e 
+    // Returns an array/matrix containing the natural logarithm (base-e
     // logarithm) of all the elements of x, in the same order.
     template <class T>
     array<T> log(const array<T> &x);
@@ -296,7 +297,7 @@ namespace numcpp {
     template <class T>
     matrix<T> log(const matrix<T> &x);
 
-    // Returns an array/matrix containing the binary logarithm (base-2 
+    // Returns an array/matrix containing the binary logarithm (base-2
     // logarithm) of all the elements of x, in the same order.
     template <class T>
     array<T> log2(const array<T> &x);
@@ -304,7 +305,7 @@ namespace numcpp {
     template <class T>
     matrix<T> log2(const matrix<T> &x);
 
-    // Returns an array/matrix containing the common logarithm (base-10 
+    // Returns an array/matrix containing the common logarithm (base-10
     // logarithm) of all the elements of x, in the same order.
     template <class T>
     array<T> log10(const array<T> &x);
@@ -350,8 +351,8 @@ namespace numcpp {
     template <class T>
     matrix<T> minimum(const T &x, const matrix<T> &y);
 
-    // Returns an array/matrix containing the results of the power operation on 
-    // all the elements, in the same order. The results calculated are x raised 
+    // Returns an array/matrix containing the results of the power operation on
+    // all the elements, in the same order. The results calculated are x raised
     // to the power y.
     template <class T>
     array<T> pow(const array<T> &x, const array<T> &y);
@@ -388,7 +389,7 @@ namespace numcpp {
     template <class T>
     matrix<T> radians(const matrix<T> &x);
 
-    // Returns an array/matrix containing the results of rounding all the 
+    // Returns an array/matrix containing the results of rounding all the
     // elements of x toward the nearest integer value, in the same order.
     template <class T>
     array<T> round(const array<T> &x);
@@ -403,7 +404,7 @@ namespace numcpp {
 
     long double round(long double x, size_t decimals);
 
-    // Returns an array/matrix containing the results of rounding all the 
+    // Returns an array/matrix containing the results of rounding all the
     // elements of x to the given number of decimal places.
     template <class T>
     array<T> round(const array<T> &x, size_t decimals);
@@ -422,7 +423,7 @@ namespace numcpp {
     template <class T>
     matrix<int> sign(const matrix<T> &x);
 
-    // Returns an array/matrix containing the sines of all the elements of x, 
+    // Returns an array/matrix containing the sines of all the elements of x,
     // in the same order.
     template <class T>
     array<T> sin(const array<T> &x);
@@ -430,7 +431,7 @@ namespace numcpp {
     template <class T>
     matrix<T> sin(const matrix<T> &x);
 
-    // Returns an array/matrix containing the hyperbolic sines of all the 
+    // Returns an array/matrix containing the hyperbolic sines of all the
     // elements of x, in the same order.
     template <class T>
     array<T> sinh(const array<T> &x);
@@ -438,7 +439,7 @@ namespace numcpp {
     template <class T>
     matrix<T> sinh(const matrix<T> &x);
 
-    // Returns an array/matrix containing the square root of all the elements 
+    // Returns an array/matrix containing the square root of all the elements
     // of x, in the same order.
     template <class T>
     array<T> sqrt(const array<T> &x);
@@ -450,7 +451,7 @@ namespace numcpp {
     template <class T>
     T square(T x);
 
-    // Returns an array/matrix containing the squares of all the elements of x, 
+    // Returns an array/matrix containing the squares of all the elements of x,
     // in the same order.
     template <class T>
     array<T> square(const array<T> &x);
@@ -458,7 +459,7 @@ namespace numcpp {
     template <class T>
     matrix<T> square(const matrix<T> &x);
 
-    // Returns an array/matrix containing the tangents of all the elements of x, 
+    // Returns an array/matrix containing the tangents of all the elements of x,
     // in the same order.
     template <class T>
     array<T> tan(const array<T> &x);
@@ -466,7 +467,7 @@ namespace numcpp {
     template <class T>
     matrix<T> tan(const matrix<T> &x);
 
-    // Returns an array/matrix containing the hyperbolic tangents of all the 
+    // Returns an array/matrix containing the hyperbolic tangents of all the
     // elements of x, in the same order.
     template <class T>
     array<T> tanh(const array<T> &x);
@@ -474,7 +475,7 @@ namespace numcpp {
     template <class T>
     matrix<T> tanh(const matrix<T> &x);
 
-    // Returns an array/matrix containing the results of rounding all the 
+    // Returns an array/matrix containing the results of rounding all the
     // elements of x toward zero, in the same order.
     template <class T>
     array<T> trunc(const array<T> &x);
