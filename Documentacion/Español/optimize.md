@@ -597,7 +597,7 @@ de Levenberg-Marquardt.
  Dado los residuos ![$\mathbf{r}(\mathbf{x})$](https://render.githubusercontent.com/render/math?math=%5Cmathbf%7Br%7D(%5Cmathbf%7Bx%7D)) 
  (una función *m*-dimensional de *n* variables), encuentra un mínimo local de la función de costo
 
- ![$f(x) = \frac{1}{2}\sum_{i=1}^{m} r_i(\mathbf{x})^2$](https://render.githubusercontent.com/render/math?math=f(x)%20%3D%20%5Cfrac%7B1%7D%7B2%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20r_i(%5Cmathbf%7Bx%7D)%5E2) 
+ ![$f(\mathbf{x}) = \frac{1}{2}\sum_{i=1}^{m} r_i(\mathbf{x})^2$](https://render.githubusercontent.com/render/math?math=f(%5Cmathbf%7Bx%7D)%20%3D%20%5Cfrac%7B1%7D%7B2%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20r_i(%5Cmathbf%7Bx%7D)%5E2) 
 ```cpp
 template <class T, class Residual, class Jacobian>
 OptimizeResult<T> least_squares(
