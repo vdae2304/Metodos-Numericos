@@ -479,11 +479,10 @@ namespace scicpp {
 
         T mu;
         for (result.niter = 1; result.niter < maxiter; ++result.niter) {
-            size_t m = result.hess.rows(), n = result.hess.columns();
             numcpp::matrix<T> A = result.hess.transpose();
             numcpp::array<T> b = A.dot(result.jac);
             A = A.dot(result.hess);
-            if (norm(result.jac) <= gtol || norm(b) <= gtol) {
+            if (numcpp::sqrt(result.fun) <= gtol || norm(b) <= gtol) {
                 result.success = true;
                 result.status = "\"gtol\" termination condition is satisfied.";
                 break;
@@ -500,7 +499,7 @@ namespace scicpp {
             numcpp::array<T> x_old = result.x;
             T fun_old = result.fun;
             for (size_t ndamps = 0; ndamps < 20; ++ndamps) {
-                for (size_t i = 0; i < n; ++i) {
+                for (size_t i = 0; i < A.rows(); ++i) {
                     A[i][i] = (1 + mu)*diag[i];
                 }
                 pk = solve(A, b, "sym");
