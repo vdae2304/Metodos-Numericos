@@ -465,10 +465,9 @@ int main() {
 
     // Export the result to a .csv file.
     np::matrix<double> df;
-    np::array<string> names = {"t", "y", "logistic"};
     df = np::column_stack(result.t, result.y);
     df = np::column_stack(df, logistic);
-    np::save_txt("solution.csv", df, ',', names);
+    np::save_txt("solution.csv", df, ',', {"t", "y", "logistic"});
 
     cout << "Right-hand side evaluations: " << result.nfev << "\n";
 
