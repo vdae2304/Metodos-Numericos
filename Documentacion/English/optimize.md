@@ -605,7 +605,7 @@ OptimizeResult<T> least_squares(
 
 #### Arguments
 
-- `res`: Function wich computes the vector of residuals.
+- `res`: Function which computes the vector of residuals.
 - `x0`: Initial guess on independent variables.
 - `jac`: Method of computing the Jacobian matrix (an *m* by *n* matrix, where 
 element *(i, j)* is the partial derivative of ![$r_i$](https://render.githubusercontent.com/render/math?math=r_i) 
