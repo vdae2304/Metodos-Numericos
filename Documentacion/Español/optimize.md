@@ -632,7 +632,7 @@ definida implícitamente por los residuos.
 using namespace std;
 namespace np = numcpp;
 
-// Residuos de la función de Rosenbrock function.
+// Residuos de la función de Rosenbrock.
 np::array<double> rosen_res(const np::array<double> &x) {
     np::array<double> r(2*(x.size() - 1));
     for (int i = 0; i < x.size() - 1; ++i) {
