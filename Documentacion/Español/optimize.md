@@ -435,8 +435,7 @@ OptimizeResult<T> minimize_bfgs(
 - `fun`: Función objetivo a minimizar.
 - `x0`: Una estimación inicial para el valor óptimo de *x*.
 - `jac`: Una función que devuelve el vector gradiente de *f* en *x*.
-- `B0`: Una estimación inicial para la inversa de la matriz Hessiana de *f* en 
-`x0`.
+- `B0`: Una estimación para la inversa de la matriz Hessiana de *f* en `x0`.
 - `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
