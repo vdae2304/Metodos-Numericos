@@ -75,14 +75,14 @@ namespace scicpp {
     // Minimize a function using a nonlinear conjugate gradient algorithm.
     template <class T, class Function, class Jacobian>
     OptimizeResult<T> minimize_cg(
-        Function f, const numcpp::array<T> x0, Jacobian jac,
+        Function fun, const numcpp::array<T> x0, Jacobian jac,
         T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
     );
 
     // Minimize a function using the Newton-CG algorithm.
     template <class T, class Function, class Jacobian, class Hessian>
     OptimizeResult<T> minimize_ncg(
-        Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+        Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
         T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
     );
 
@@ -90,7 +90,7 @@ namespace scicpp {
     // Goldfarb, and Shanno (BFGS).
     template <class T, class Function, class Jacobian>
     OptimizeResult<T> minimize_bfgs(
-        Function f, const numcpp::array<T> &x0, Jacobian jac,
+        Function fun, const numcpp::array<T> &x0, Jacobian jac,
         const numcpp::matrix<T> &B0,
         T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
     );
@@ -98,10 +98,31 @@ namespace scicpp {
     // Find alpha that satisfies Wolfe conditions.
     template <class T, class Function, class Jacobian>
     RootResults<T> line_search(
-        Function f, Jacobian jac,
+        Function fun, Jacobian jac,
         const numcpp::array<T> &xk, const numcpp::array<T> &pk,
         const numcpp::array<T> &gfk, T fk,
         T c1 = 0.0001, T c2 = 0.9, T amax = 1.0, size_t maxiter = 20
+    );
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Least-squares and curve fitting                                        //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Solve a nonlinear least-squares problem using Levenberg-Marquardt
+    // algorithm.
+    template <class T, class Residual, class Jacobian>
+    OptimizeResult<T> least_squares(
+        Residual res, const numcpp::array<T> &x0, Jacobian jac,
+        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+    );
+
+    // Use nonlinear least squares to fit a function f to data.
+    template <class T, class Function, class Jacobian>
+    OptimizeResult<T> curve_fit(
+        Function f,
+        const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
+        const numcpp::array<T> &p0, Jacobian jac,
+        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
     );
 }
 

@@ -4,6 +4,7 @@
 
 - [Búsqueda de raíces (Funciones escalares)](#Búsqueda-de-raíces-Funciones-escalares)
 - [Optimización local (multivariada)](#Optimización-local-multivariada)
+- [Mínimos cuadrados](#Mínimos-cuadrados)
 
 ## Búsqueda de raíces (Funciones escalares)
 
@@ -254,16 +255,16 @@ Esta implementación utiliza la fórmula de Polak y Ribier.
 ```cpp
 template <class T, class Function, class Jacobian>
 OptimizeResult<T> minimize_cg(
-    Function f, const numcpp::array<T> x0, Jacobian jac,
+    Function fun, const numcpp::array<T> x0, Jacobian jac,
     T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
 );
 ```
 
 #### Argumentos
 
-- `f`: Función objetivo a minimizar.
-- `x0`: Una estimación inicial para el valor óptimo de `x`.
-- `jac`: Una función que devuelve el vector gradiente de `f` en `x`.
+- `fun`: Función objetivo a minimizar.
+- `x0`: Una estimación inicial para el valor óptimo de *x*.
+- `jac`: Una función que devuelve el vector gradiente de *f* en *x*.
 - `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
@@ -332,17 +333,17 @@ calcular la dirección de búsqueda.
 ```cpp
 template <class T, class Function, class Jacobian, class Hessian>
 OptimizeResult<T> minimize_ncg(
-    Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+    Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
     T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
 );
 ```
 
 #### Argumentos
 
-- `f`: Función objetivo a minimizar.
-- `x0`: Una estimación inicial para el valor óptimo de `x`.
-- `jac`: Una función que devuelve el vector gradiente de `f` en `x`.
-- `hess`: Una función que devuelve la matriz Hessiana de `f` en `x`.
+- `fun`: Función objetivo a minimizar.
+- `x0`: Una estimación inicial para el valor óptimo de *x*.
+- `jac`: Una función que devuelve el vector gradiente de *f* en *x*.
+- `hess`: Una función que devuelve la matriz Hessiana de *f* en *x*.
 - `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
@@ -423,7 +424,7 @@ Shanno (BFGS).
 ```cpp
 template <class T, class Function, class Jacobian>
 OptimizeResult<T> minimize_bfgs(
-    Function f, const numcpp::array<T> &x0, Jacobian jac,
+    Function fun, const numcpp::array<T> &x0, Jacobian jac,
     const numcpp::matrix<T> &B0,
     T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
 );
@@ -431,10 +432,10 @@ OptimizeResult<T> minimize_bfgs(
 
 #### Argumentos
 
-- `f`: Función objetivo a minimizar.
-- `x0`: Una estimación inicial para el valor óptimo de `x`.
-- `jac`: Una función que devuelve el vector gradiente de `f` en `x`.
-- `B0`: Una estimación inicial para la inversa de la matriz Hessiana de `f` en 
+- `fun`: Función objetivo a minimizar.
+- `x0`: Una estimación inicial para el valor óptimo de *x*.
+- `jac`: Una función que devuelve el vector gradiente de *f* en *x*.
+- `B0`: Una estimación inicial para la inversa de la matriz Hessiana de *f* en 
 `x0`.
 - `gtol`: El algoritmo se detiene cuando la norma del gradiente es menor que 
 `gtol`.
@@ -509,7 +510,7 @@ ii) ![$-\mathbf{p}_k^{\top}\nabla f(\mathbf{x}_k + \alpha\mathbf{p}_k) \leq -c_2
  ```cpp
 template <class T, class Function, class Jacobian>
 RootResults<T> line_search(
-    Function f, Jacobian jac,
+    Function fun, Jacobian jac,
     const numcpp::array<T> &xk, const numcpp::array<T> &pk,
     const numcpp::array<T> &gfk, T fk,
     T c1 = 0.0001, T c2 = 0.9, T amax = 1.0, size_t maxiter = 20
@@ -518,7 +519,7 @@ RootResults<T> line_search(
 
 #### Argumentos
 
-- `f`: Función objetivo.
+- `fun`: Función objetivo.
 - `jac`: Gradiente de la función objetivo.
 - `xk`: Punto inicial.
 - `pk`: Dirección de búsqueda.
@@ -579,7 +580,6 @@ int main() {
 
     return 0;
 }
-
  ```
 
  ```
@@ -587,3 +587,208 @@ int main() {
        i) true
        ii) true
  ```
+
+  ## Mínimos cuadrados
+
+ ### `least_squares`
+
+Resuelve un problema de mínimos cuadrados no lineales utilizando el algoritmo 
+de Levenberg-Marquardt.
+
+ Dado los residuos ![$\mathbf{r}(\mathbf{x})$](https://render.githubusercontent.com/render/math?math=%5Cmathbf%7Br%7D(%5Cmathbf%7Bx%7D)) 
+ (una función *m*-dimensional de *n* variables), encuentra un mínimo local de la función de costo
+
+ ![$f(x) = \frac{1}{2}\sum_{i=1}^{m} r_i(\mathbf{x})^2$](https://render.githubusercontent.com/render/math?math=f(x)%20%3D%20%5Cfrac%7B1%7D%7B2%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20r_i(%5Cmathbf%7Bx%7D)%5E2) 
+```cpp
+template <class T, class Residual, class Jacobian>
+OptimizeResult<T> least_squares(
+    Residual res, const numcpp::array<T> &x0, Jacobian jac,
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+);
+```
+
+#### Argumentos
+
+- `res`: Función que calcula el vector de residuos.
+- `x0`: Estimación inicial de las variables independientes.
+- `jac`: Método para calcular la matriz Jacobiana (una matriz de *m* por *n*, 
+donde el elemento *(i, j)* es la derivada parcial de ![$r_i$](https://render.githubusercontent.com/render/math?math=r_i) 
+con respecto a  ![$x_j$](https://render.githubusercontent.com/render/math?math=x_j)).
+- `ftol`: Tolerancia de terminación por el cambio en la función de costo.
+- `xtol`: Tolerancia de terminación por el cambio en las variables 
+independientes.
+- `gtol`: Tolerancia de terminación por la norma del gradiente.
+- `maxiter`: Máximo número de iteraciones a realizar.
+
+#### Ejemplo
+
+Calcula un mínimo local de la función de Rosenbrock. La función de Rosenbrock 
+puede ser reformulada como un problema de mínimos cuadrados. En esta 
+formulación, no necesitamos escribir la función de costo puesto que está 
+definida implicitamente por los residuos.
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "scicpp/optimize.h"
+using namespace std;
+namespace np = numcpp;
+
+// Residuos de la función de Rosenbrock function.
+np::array<double> rosen_res(const np::array<double> &x) {
+    np::array<double> r(2*(x.size() - 1));
+    for (int i = 0; i < x.size() - 1; ++i) {
+        r[2*i] = 10*(x[i + 1] - x[i]*x[i]);
+        r[2*i + 1] = 1 - x[i];
+    }
+    return r;
+}
+
+// Matriz Jacobiana de los residuos de Rosenbrock.
+np::matrix<double> rosen_jac(const np::array<double> &x) {
+    np::matrix<double> J = np::zeros<double>(2*(x.size() - 1), x.size());
+    for (int i = 0; i < x.size() - 1; ++i) {
+        J[2*i][i] = -20*x[i];
+        J[2*i][i + 1] = 10;
+        J[2*i + 1][i] = -1;
+    }
+    return J;
+}
+
+int main() {
+    np::array<double> x0 = {-1.2, 1., -1.2, 1.};
+    scicpp::OptimizeResult<double> result;
+    result = scicpp::least_squares(rosen_res, x0, rosen_jac);
+    cout << result;
+    return 0;
+}
+```
+
+```
+[Out] fun: 9.56782e-17
+      x: [1, 0.99999999, 0.99999999, 0.99999998]
+      jac: [-7.940204e-11, 3.0103722e-09, -1.667888e-10, 6.0286846e-09, -3.6381786e-10, 1.2074048e-08]
+      hess:
+      [[-20,  10,   0,  0]
+       [ -1,   0,   0,  0]
+       [  0, -20,  10,  0]
+       [  0,  -1,   0,  0]
+       [  0,   0, -20, 10]
+       [  0,   0,  -1,  0]]
+      success: true
+      status: "ftol" termination condition is satisfied.
+      niter: 18
+      nfev: 37
+      njev: 37
+      nhev: 19
+```
+
+### `curve_fit`
+
+Utiliza mínimos cuadrados no lineales para ajustar una función *f* sobre datos.
+```cpp
+template <class T, class Function, class Jacobian>
+OptimizeResult<T> curve_fit(
+    Function f,
+    const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
+    const numcpp::array<T> &p0, Jacobian jac,
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+);
+```
+
+#### Argumentos
+
+- `f`: La función modelo. Debe recibir la variable independiente como el 
+primer argumento y los parámetros a ajustar como el segundo argumento.
+- `xdata`: La variable independiente donde los datos se miden.
+- `ydata`: Los datos dependientes.
+- `p0`: Estimación inicial de los parámetros.
+- `jac`: Función que calcula el vector gradiente de *f* con respecto a los 
+parámetros.
+- `ftol`: Tolerancia de terminación por el cambio en la función de costo.
+- `xtol`: Tolerancia de terminación por el cambio en los parámetros.
+- `gtol`: Tolerancia de terminación por la norma del gradiente.
+- `maxiter`: Máximo número de iteraciones a realizar.
+
+#### Ejemplo
+
+Estima los parámetros de la función de Gompertz sobre una muestra de puntos. La 
+función de Gompertz está definida por
+
+![$f(x; \alpha, \beta, k) = \alpha\exp\left(-\beta\exp\left(-kx\right)\right))$](https://render.githubusercontent.com/render/math?math=f(x%3B%20%5Calpha%2C%20%5Cbeta%2C%20k)%20%3D%20%5Calpha%5Cexp%5Cleft(-%5Cbeta%5Cexp%5Cleft(-kx%5Cright)%5Cright))
+```cpp
+#include <iostream>
+#include <random>
+#include "numcpp.h"
+#include "scicpp/optimize.h"
+using namespace std;
+namespace np = numcpp;
+
+// Función de Gompertz.
+double gompertz(double x, const np::array<double> &param) {
+    double a = param[0], b = param[1], k = param[2];
+    return a*np::exp(-b*np::exp(-k*x));
+}
+
+// Derivada (gradiente) de la función de Gompertz.
+np::array<double> gompertz_der(double x, const np::array<double> &param) {
+    double a = param[0], b = param[1], k = param[2];
+    return {
+        np::exp(-b*np::exp(-k*x)),
+        -a*np::exp(-k*x - b*np::exp(-k*x)),
+        a*b*x*np::exp(-k*x - b*np::exp(-k*x))
+    };
+}
+
+int main() {
+    default_random_engine seed(0);
+    normal_distribution<double> error(0., 7.);
+    np::printoptions::threshold = 10;
+
+    // Muestrea n puntos alrededor de la función.
+    size_t n = 30;
+    np::array<double> xdata = np::linspace(0., 10., n);
+    np::array<double> ydata(n);
+    for (int i = 0; i < n; ++i) {
+        ydata[i] = gompertz(xdata[i], {89., 29., 0.9}) + error(seed);
+    }
+
+    // Estima los parámetros por mínimos cuadrados.
+    np::array<double> p0 = {100., 10., 1.};
+    scicpp::OptimizeResult<double> result;
+    result = scicpp::curve_fit(gompertz, xdata, ydata, p0, gompertz_der);
+    cout << result;
+
+    // Guarda los puntos y la función estimada en un archivo .csv para graficar
+    // posteriormente.
+    np::matrix<double> df(n, 3);
+    for (int i = 0; i < n; ++i) {
+        df[i][0] = xdata[i];
+        df[i][1] = ydata[i];
+        df[i][2] = gompertz(xdata[i], result.x);
+    }
+    np::save_txt("gompertz.csv", df, ',', {"x", "y", "f"});
+
+    return 0;
+}
+```
+
+```
+[Out] fun: 510.402
+      x: [85.083976, 20.086788, 0.85627244]
+      jac: [0.85376065, 7.6077536, -4.7887953, ..., 0.84324832, -3.4041356, -9.9317662]
+      hess:
+      [[1.8898132e-09, -1.6079282e-07,             0]
+       [3.2117968e-07, -2.0340578e-05, 0.00014088858]
+       [1.4684405e-05, -0.00069221185,  0.0095891811]
+       ...
+       [   0.99309557,   -0.029144724,     5.4504983]
+       [   0.99485625,   -0.021731849,     4.2147053]
+       [   0.99616881,   -0.016197081,     3.2534732]]
+      success: true
+      status: "ftol" termination condition is satisfied.
+      niter: 11
+      nfev: 12
+      njev: 12
+      nhev: 12
+```
+<img src="../Figuras/gompertz.png" alt="Gompertz function" height="auto" width="500">

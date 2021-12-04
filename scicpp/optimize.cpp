@@ -226,12 +226,12 @@ namespace scicpp {
     // Minimize a function using a nonlinear conjugate gradient algorithm.
     template <class T, class Function, class Jacobian>
     OptimizeResult<T> minimize_cg(
-        Function f, const numcpp::array<T> x0, Jacobian jac,
+        Function fun, const numcpp::array<T> x0, Jacobian jac,
         T gtol, double ordnorm, size_t maxiter
     ) {
         OptimizeResult<T> result;
         result.x = x0;
-        result.fun = f(x0);
+        result.fun = fun(x0);
         result.jac = jac(x0);
         result.success = false;
         result.nfev = 1;
@@ -246,11 +246,12 @@ namespace scicpp {
                 break;
             }
             RootResults<T> step_selector = line_search(
-                f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.1, 1.0, 50
+                fun, jac, result.x, pk, result.jac, result.fun,
+                T(1e-4), T(0.1), T(1.0), 50
             );
             T alpha = step_selector.root;
             result.x += alpha*pk;
-            result.fun = f(result.x);
+            result.fun = fun(result.x);
             numcpp::array<T> jac_old = result.jac;
             result.jac = jac(result.x);
             T beta = (result.jac).dot(result.jac - jac_old) /
@@ -269,12 +270,12 @@ namespace scicpp {
     // Minimize a function using the Newton-CG algorithm.
     template <class T, class Function, class Jacobian, class Hessian>
     OptimizeResult<T> minimize_ncg(
-        Function f, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
+        Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
         T gtol, double ordnorm, size_t maxiter
     ) {
         OptimizeResult<T> result;
         result.x = x0;
-        result.fun = f(x0);
+        result.fun = fun(x0);
         result.jac = jac(x0);
         result.hess = hess(x0);
         result.success = false;
@@ -290,10 +291,10 @@ namespace scicpp {
                 break;
             }
 
-            numcpp::array<T> pk = numcpp::zeros<T>(result.x.size());
+            numcpp::array<T> pk(result.x.size(), T(0));
             numcpp::array<T> r = result.jac;
             numcpp::array<T> d = -r;
-            T tol = numcpp::min(0.5, numcpp::sqrt(error))*error;
+            T tol = numcpp::min(T(0.5), numcpp::sqrt(error))*error;
             for (size_t i = 0; i < pk.size(); ++i) {
                 numcpp::array<T> hess_d = (result.hess).dot(d);
                 if (norm(r) <= tol || d.dot(hess_d) <= 0) {
@@ -311,11 +312,12 @@ namespace scicpp {
             }
 
             RootResults<T> step_selector = line_search(
-                f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.9, 1.0, 50
+                fun, jac, result.x, pk, result.jac, result.fun,
+                T(1e-4), T(0.9), T(1.0), 50
             );
             T alpha = step_selector.root;
             result.x += alpha*pk;
-            result.fun = f(result.x);
+            result.fun = fun(result.x);
             result.jac = jac(result.x);
             result.hess = hess(result.x);
             result.nfev += step_selector.function_calls + 1;
@@ -333,13 +335,13 @@ namespace scicpp {
     // Goldfarb, and Shanno (BFGS).
     template <class T, class Function, class Jacobian>
     OptimizeResult<T> minimize_bfgs(
-        Function f, const numcpp::array<T> &x0, Jacobian jac,
+        Function fun, const numcpp::array<T> &x0, Jacobian jac,
         const numcpp::matrix<T> &B0,
         T gtol, double ordnorm, size_t maxiter
     ) {
         OptimizeResult<T> result;
         result.x = x0;
-        result.fun = f(x0);
+        result.fun = fun(x0);
         result.jac = jac(x0);
         result.hess_inv = B0;
         result.success = false;
@@ -356,12 +358,13 @@ namespace scicpp {
 
             numcpp::array<T> pk = (result.hess_inv).dot(-result.jac);
             RootResults<T> step_selector = line_search(
-                f, jac, result.x, pk, result.jac, result.fun, 1e-4, 0.9, 1.0, 50
+                fun, jac, result.x, pk, result.jac, result.fun,
+                T(1e-4), T(0.9), T(1.0), 50
             );
             T alpha = step_selector.root;
             numcpp::array<T> sk = alpha*pk;
             result.x += sk;
-            result.fun = f(result.x);
+            result.fun = fun(result.x);
             numcpp::array<T> yk = result.jac;
             result.jac = jac(result.x);
             yk = result.jac - yk;
@@ -395,7 +398,7 @@ namespace scicpp {
     // Find alpha that satisfies Wolfe conditions.
     template <class T, class Function, class Jacobian>
     RootResults<T> line_search(
-        Function f, Jacobian jac,
+        Function fun, Jacobian jac,
         const numcpp::array<T> &xk, const numcpp::array<T> &pk,
         const numcpp::array<T> &gfk, T fk,
         T c1, T c2, T amax, size_t maxiter
@@ -409,12 +412,12 @@ namespace scicpp {
 
         T mk = gfk.dot(pk);
         T a_lo = 0, phi_lo = fk;
-        T a_hi = amax, phi_hi = f(xk + a_hi*pk);
+        T a_hi = amax, phi_hi = fun(xk + a_hi*pk);
 
         bool stage1 = true;
         while (result.iterations < maxiter) {
             T a = (a_lo + a_hi)/2;
-            T phi = f(xk + a*pk);
+            T phi = fun(xk + a*pk);
             result.root = a;
             ++result.iterations;
             ++result.function_calls;
@@ -451,5 +454,126 @@ namespace scicpp {
         result.status = status.str();
 
         return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Least-squares and curve fitting                                        //
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Solve a nonlinear least-squares problem using Levenberg-Marquardt
+    // algorithm.
+    template <class T, class Residual, class Jacobian>
+    OptimizeResult<T> least_squares(
+        Residual res, const numcpp::array<T> &x0, Jacobian jac,
+        T ftol, T xtol, T gtol, size_t maxiter
+    ) {
+        OptimizeResult<T> result;
+        result.x = x0;
+        result.jac = res(x0);
+        result.hess = jac(x0);
+        result.fun = 0.5*(result.jac).dot(result.jac);
+        result.success = false;
+        result.nfev = 1;
+        result.njev = 1;
+        result.nhev = 1;
+
+        T mu = 3e-3;
+        for (result.niter = 1; result.niter < maxiter; ++result.niter) {
+            size_t m = result.hess.rows(), n = result.hess.columns();
+            numcpp::matrix<T> A(n, n, T(0));
+            numcpp::array<T> b(n, T(0));
+            for (size_t i = 0; i < n; ++i) {
+                for (size_t j = 0; j < n; ++j) {
+                    for (size_t k = 0; k < m; ++k) {
+                        A[i][j] += result.hess[k][i] * result.hess[k][j];
+                    }
+                }
+                A[i][i] *= 1 + mu;
+                for (size_t k = 0; k < m; ++k) {
+                    b[i] -= result.hess[k][i] * result.jac[k];
+                }
+            }
+            if (norm(result.jac) <= gtol || norm(b) <= gtol) {
+                result.success = true;
+                result.status = "\"gtol\" termination condition is satisfied.";
+                break;
+            }
+
+            mu /= 3;
+            numcpp::array<T> pk;
+            numcpp::array<T> x_old = result.x;
+            T fun_old = result.fun;
+            for (size_t ndamps = 0; ndamps < 20; ++ndamps) {
+                pk = solve(A, b, "sym");
+                result.x = x_old + pk;
+                result.jac = res(result.x);
+                result.fun = 0.5*(result.jac).dot(result.jac);
+                ++result.njev;
+                ++result.nfev;
+                if (result.fun < fun_old) {
+                    break;
+                }
+                else {
+                    for (size_t i = 0; i < n; ++i) {
+                        A[i][i] = (1 + 2*mu)*(A[i][i]/(1 + mu));
+                    }
+                    mu *= 2;
+                }
+            }
+            result.hess = jac(result.x);
+            ++result.nhev;
+            if (result.fun <= fun_old && fun_old - result.fun < ftol) {
+                result.success = true;
+                result.status = "\"ftol\" termination condition is satisfied.";
+                break;
+            }
+            if (norm(pk) <= xtol) {
+                result.success = true;
+                result.status = "\"xtol\" termination condition is satisfied.";
+                break;
+            }
+        }
+        if (!result.success) {
+            result.status = "Maximum number of iterations has been exceeded.";
+        }
+
+        return result;
+    }
+
+    // Use non-linear least squares to fit a function f to data.
+    template <class T, class Function, class Jacobian>
+    OptimizeResult<T> curve_fit(
+        Function f,
+        const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
+        const numcpp::array<T> &p0, Jacobian jac,
+        T ftol, T xtol, T gtol, size_t maxiter
+    ) {
+        if (xdata.size() != ydata.size()) {
+            std::ostringstream error;
+            error << "x and y must have same dimension, but have shapes ("
+                  << xdata.size() << ",) and (" << ydata.size() << ",)";
+            throw std::invalid_argument(error.str());
+        }
+        return least_squares(
+            [&](const numcpp::array<T> &param) {
+                numcpp::array<T> r(xdata.size());
+                for (size_t i = 0; i < xdata.size(); ++i) {
+                    r[i] = f(xdata[i], param) - ydata[i];
+                }
+                return r;
+            },
+            p0,
+            [&](const numcpp::array<T> &param) {
+                numcpp::matrix<T> J(xdata.size(), param.size());
+                for (size_t i = 0; i < xdata.size(); ++i) {
+                    numcpp::array<T> Ji = jac(xdata[i], param);
+                    for (size_t j = 0; j < param.size(); ++j) {
+                        J[i][j] = Ji[j];
+                    }
+                }
+                return J;
+            },
+            ftol, xtol, gtol, maxiter
+        );
     }
 }
