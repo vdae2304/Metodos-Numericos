@@ -624,7 +624,7 @@ independientes.
 Calcula un mínimo local de la función de Rosenbrock. La función de Rosenbrock 
 puede ser reformulada como un problema de mínimos cuadrados. En esta 
 formulación, no necesitamos escribir la función de costo puesto que está 
-definida implicitamente por los residuos.
+definida implícitamente por los residuos.
 ```cpp
 #include <iostream>
 #include "numcpp.h"
