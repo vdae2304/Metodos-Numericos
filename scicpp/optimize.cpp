@@ -554,7 +554,7 @@ namespace scicpp {
                   << xdata.size() << ",) and (" << ydata.size() << ",)";
             throw std::invalid_argument(error.str());
         }
-        return least_squares(
+        OptimizeResult<T> result = least_squares(
             [&](const numcpp::array<T> &param) {
                 numcpp::array<T> r(xdata.size());
                 for (size_t i = 0; i < xdata.size(); ++i) {
@@ -575,5 +575,9 @@ namespace scicpp {
             },
             ftol, xtol, gtol, maxiter
         );
+        result.nfev *= xdata.size();
+        result.njev *= xdata.size();
+        result.nhev *= xdata.size();
+        return result;
     }
 }

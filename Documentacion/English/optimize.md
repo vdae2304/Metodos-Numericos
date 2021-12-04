@@ -752,7 +752,7 @@ int main() {
     result = scicpp::curve_fit(gompertz, xdata, ydata, p0, gompertz_der);
     cout << result;
 
-    // Save points and estimated function into a .csv file for later plotting.
+    // Save points and estimated function to a .csv file for later plotting.
     np::matrix<double> df(n, 3);
     for (int i = 0; i < n; ++i) {
         df[i][0] = xdata[i];
@@ -780,8 +780,8 @@ int main() {
       success: true
       status: "ftol" termination condition is satisfied.
       niter: 10
-      nfev: 11
-      njev: 11
-      nhev: 11
+      nfev: 330
+      njev: 330
+      nhev: 330
 ```
 <img src="../Figuras/gompertz.png" alt="Gompertz function" height="auto" width="500">
