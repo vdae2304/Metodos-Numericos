@@ -6,6 +6,8 @@
 - [Integral múltiple](Integral-múltiple)
 - [Ecuaciones diferenciales ordinarias](#Ecuaciones-diferenciales-ordinarias)
 
+Biblioteca: `"scicpp/integrate.h"`
+
 ## Integración
 
 ### `quad`

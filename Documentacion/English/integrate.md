@@ -6,6 +6,8 @@
 - [Multiple integral](#Multiple-integral)
 - [Ordinary differential equations](#Ordinary-differential-equations)
 
+Header: `"scicpp/integrate.h"`
+
 ## Integration
 
 ### `quad`
