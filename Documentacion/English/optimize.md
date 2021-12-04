@@ -6,6 +6,8 @@
 - [Local (multivariate) optimization](#Local-multivariate-optimization)
 - [Least squares](#Least-squares)
 
+Header: `"scicpp/optimize.h"`
+
 ## Root finding (Scalar functions)
 
 ### `RootResults`

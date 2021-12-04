@@ -6,6 +6,8 @@
 - [Optimización local (multivariada)](#Optimización-local-multivariada)
 - [Mínimos cuadrados](#Mínimos-cuadrados)
 
+Biblioteca: `"scicpp/optimize.h"`
+
 ## Búsqueda de raíces (Funciones escalares)
 
 ### `RootResults`
@@ -790,4 +792,4 @@ int main() {
       njev: 330
       nhev: 330
 ```
-<img src="../Figuras/gompertz.png" alt="Gompertz function" height="auto" width="500">
+<img src="../Figuras/gompertz.png" alt="Funcion de Gompertz" height="auto" width="500">
