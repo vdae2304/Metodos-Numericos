@@ -477,35 +477,34 @@ namespace scicpp {
         result.njev = 1;
         result.nhev = 1;
 
-        T mu = 3e-3;
+        T mu;
         for (result.niter = 1; result.niter < maxiter; ++result.niter) {
             size_t m = result.hess.rows(), n = result.hess.columns();
-            numcpp::matrix<T> A(n, n, T(0));
-            numcpp::array<T> b(n, T(0));
-            for (size_t i = 0; i < n; ++i) {
-                for (size_t j = 0; j < n; ++j) {
-                    for (size_t k = 0; k < m; ++k) {
-                        A[i][j] += result.hess[k][i] * result.hess[k][j];
-                    }
-                }
-                A[i][i] *= 1 + mu;
-                for (size_t k = 0; k < m; ++k) {
-                    b[i] -= result.hess[k][i] * result.jac[k];
-                }
-            }
+            numcpp::matrix<T> A = result.hess.transpose();
+            numcpp::array<T> b = A.dot(result.jac);
+            A = A.dot(result.hess);
             if (norm(result.jac) <= gtol || norm(b) <= gtol) {
                 result.success = true;
                 result.status = "\"gtol\" termination condition is satisfied.";
                 break;
             }
+            numcpp::array<T> diag = numcpp::diagonal(A);
+            if (result.niter == 1) {
+                mu = 1e-3*diag.max();
+            }
+            else {
+                mu /= 3;
+            }
 
-            mu /= 3;
             numcpp::array<T> pk;
             numcpp::array<T> x_old = result.x;
             T fun_old = result.fun;
             for (size_t ndamps = 0; ndamps < 20; ++ndamps) {
+                for (size_t i = 0; i < n; ++i) {
+                    A[i][i] = (1 + mu)*diag[i];
+                }
                 pk = solve(A, b, "sym");
-                result.x = x_old + pk;
+                result.x = x_old - pk;
                 result.jac = res(result.x);
                 result.fun = 0.5*(result.jac).dot(result.jac);
                 ++result.njev;
@@ -513,12 +512,7 @@ namespace scicpp {
                 if (result.fun < fun_old) {
                     break;
                 }
-                else {
-                    for (size_t i = 0; i < n; ++i) {
-                        A[i][i] = (1 + 2*mu)*(A[i][i]/(1 + mu));
-                    }
-                    mu *= 2;
-                }
+                mu *= 2;
             }
             result.hess = jac(result.x);
             ++result.nhev;
