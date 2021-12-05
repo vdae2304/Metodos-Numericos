@@ -254,10 +254,14 @@ of its gradient and Hessian.
 Minimize a function using a nonlinear conjugate gradient algorithm. This 
 implementation uses Polak and Ribiere formula.
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_cg(
     Function fun, const numcpp::array<T> x0, Jacobian jac,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -269,6 +273,9 @@ OptimizeResult<T> minimize_cg(
 - `gtol`: Stop when the norm of the gradient is less than `gtol`.
 - `ordnorm`: Order to use for the norm of the gradient. 
 - `maxiter`: Maximum number of iterations to perform.
+- `callback`: Called after each iteration. It must take the current state of 
+the optimizer (of type `OptimizeResult`) as an argument and return a boolean. 
+If `callback` returns true, the algorithm execution is terminated.
 
 #### Example
 
@@ -331,10 +338,14 @@ Minimize a function using the Newton-CG algorithm (also known as the truncated
 Newton method). It uses a conjugate gradient method to compute the search 
 direction.
 ```cpp
-template <class T, class Function, class Jacobian, class Hessian>
+template <
+    class T, class Function, class Jacobian, class Hessian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_ncg(
     Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -347,6 +358,9 @@ OptimizeResult<T> minimize_ncg(
 - `gtol`: Stop when the norm of the gradient is less than `gtol`.
 - `ordnorm`: Order to use for the norm of the gradient. 
 - `maxiter`: Maximum number of iterations to perform.
+- `callback`: Called after each iteration. It must take the current state of 
+the optimizer (of type `OptimizeResult`) as an argument and return a boolean. 
+If `callback` returns true, the algorithm execution is terminated.
 
 #### Example
 
@@ -421,11 +435,15 @@ int main() {
 Minimize a function using the quasi-Newton method of Broyden, Fletcher, 
 Goldfarb, and Shanno (BFGS).
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_bfgs(
     Function fun, const numcpp::array<T> &x0, Jacobian jac,
     const numcpp::matrix<T> &B0,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -438,7 +456,9 @@ OptimizeResult<T> minimize_bfgs(
 - `gtol`: Stop when the norm of the gradient is less than `gtol`.
 - `ordnorm`: Order to use for the norm of the gradient. 
 - `maxiter`: Maximum number of iterations to perform.
-
+- `callback`: Called after each iteration. It must take the current state of 
+the optimizer (of type `OptimizeResult`) as an argument and return a boolean. 
+If `callback` returns true, the algorithm execution is terminated.
 
 #### Example
 
@@ -598,10 +618,14 @@ int main() {
 
  ![$f(\mathbf{x}) = \frac{1}{2}\sum_{i=1}^{m} r_i(\mathbf{x})^2$](https://render.githubusercontent.com/render/math?math=f(%5Cmathbf%7Bx%7D)%20%3D%20%5Cfrac%7B1%7D%7B2%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20r_i(%5Cmathbf%7Bx%7D)%5E2) 
 ```cpp
-template <class T, class Residual, class Jacobian>
+template <
+    class T, class Residual, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> least_squares(
     Residual res, const numcpp::array<T> &x0, Jacobian jac,
-    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -616,6 +640,9 @@ with respect to  ![$x_j$](https://render.githubusercontent.com/render/math?math=
 - `xtol`: Tolerance for termination by the change of the independent variables.
 - `gtol`: Tolerance for termination by the norm of the gradient.
 - `maxiter`: Maximum number of iterations to perform.
+- `callback`: Called after each iteration. It must take the current state of 
+the optimizer (of type `OptimizeResult`) as an argument and return a boolean. 
+If `callback` returns true, the algorithm execution is terminated.
 
 #### Example
 
@@ -682,12 +709,16 @@ int main() {
 
 Use nonlinear least squares to fit a function *f* to data.
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> curve_fit(
     Function f,
     const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
     const numcpp::array<T> &p0, Jacobian jac,
-    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -704,6 +735,9 @@ parameters.
 - `xtol`: Tolerance for termination by the change of the parameters.
 - `gtol`: Tolerance for termination by the norm of the gradient.
 - `maxiter`: Maximum number of iterations to perform.
+- `callback`: Called after each iteration. It must take the current state of 
+the optimizer (of type `OptimizeResult`) as an argument and return a boolean. 
+If `callback` returns true, the algorithm execution is terminated.
 
 #### Example
 

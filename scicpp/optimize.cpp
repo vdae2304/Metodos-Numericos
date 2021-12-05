@@ -196,6 +196,7 @@ namespace scicpp {
     // Local optimization                                                     //
     ////////////////////////////////////////////////////////////////////////////
 
+    // Outputs results from optimizer.
     template <class T>
     std::ostream&
     operator<< (std::ostream &ostr, const OptimizeResult<T> &result) {
@@ -223,11 +224,18 @@ namespace scicpp {
         return ostr;
     }
 
+    // No callback function.
+    template <class T>
+    bool no_callback::operator()(const OptimizeResult<T> &state) {
+        return false;
+    }
+
     // Minimize a function using a nonlinear conjugate gradient algorithm.
-    template <class T, class Function, class Jacobian>
+    template <class T, class Function, class Jacobian, class Callable>
     OptimizeResult<T> minimize_cg(
         Function fun, const numcpp::array<T> x0, Jacobian jac,
-        T gtol, double ordnorm, size_t maxiter
+        T gtol, double ordnorm, size_t maxiter,
+        Callable callback
     ) {
         OptimizeResult<T> result;
         result.x = x0;
@@ -245,6 +253,7 @@ namespace scicpp {
                 result.status = "Optimization terminated successfully.";
                 break;
             }
+
             RootResults<T> step_selector = line_search(
                 fun, jac, result.x, pk, result.jac, result.fun,
                 T(1e-4), T(0.1), T(1.0), 50
@@ -259,6 +268,11 @@ namespace scicpp {
             pk = beta*pk - result.jac;
             result.nfev += step_selector.function_calls + 1;
             result.njev += step_selector.derivative_calls + 1;
+
+            if (callback(result)) {
+                result.status = "Optimization terminated due to callback.";
+                return result;
+            }
         }
         if (!result.success) {
             result.status = "Maximum number of iterations has been exceeded.";
@@ -268,10 +282,14 @@ namespace scicpp {
     }
 
     // Minimize a function using the Newton-CG algorithm.
-    template <class T, class Function, class Jacobian, class Hessian>
+    template <
+        class T, class Function, class Jacobian, class Hessian,
+        class Callable
+    >
     OptimizeResult<T> minimize_ncg(
         Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
-        T gtol, double ordnorm, size_t maxiter
+        T gtol, double ordnorm, size_t maxiter,
+        Callable callback
     ) {
         OptimizeResult<T> result;
         result.x = x0;
@@ -323,6 +341,11 @@ namespace scicpp {
             result.nfev += step_selector.function_calls + 1;
             result.njev += step_selector.derivative_calls + 1;
             ++result.nhev;
+
+            if (callback(result)) {
+                result.status = "Optimization terminated due to callback.";
+                return result;
+            }
         }
         if (!result.success) {
             result.status = "Maximum number of iterations has been exceeded.";
@@ -333,11 +356,12 @@ namespace scicpp {
 
     // Minimize a function using the quasi-Newton method of Broyden, Fletcher,
     // Goldfarb, and Shanno (BFGS).
-    template <class T, class Function, class Jacobian>
+    template <class T, class Function, class Jacobian, class Callable>
     OptimizeResult<T> minimize_bfgs(
         Function fun, const numcpp::array<T> &x0, Jacobian jac,
         const numcpp::matrix<T> &B0,
-        T gtol, double ordnorm, size_t maxiter
+        T gtol, double ordnorm, size_t maxiter,
+        Callable callback
     ) {
         OptimizeResult<T> result;
         result.x = x0;
@@ -356,7 +380,7 @@ namespace scicpp {
                 break;
             }
 
-            numcpp::array<T> pk = (result.hess_inv).dot(-result.jac);
+            numcpp::array<T> pk = -(result.hess_inv).dot(result.jac);
             RootResults<T> step_selector = line_search(
                 fun, jac, result.x, pk, result.jac, result.fun,
                 T(1e-4), T(0.9), T(1.0), 50
@@ -368,6 +392,8 @@ namespace scicpp {
             numcpp::array<T> yk = result.jac;
             result.jac = jac(result.x);
             yk = result.jac - yk;
+            result.nfev += step_selector.function_calls + 1;
+            result.njev += step_selector.derivative_calls + 1;
 
             numcpp::matrix<T> Bk = result.hess_inv;
             T skTyk = sk.dot(yk);
@@ -385,8 +411,10 @@ namespace scicpp {
                 }
             }
 
-            result.nfev += step_selector.function_calls + 1;
-            result.njev += step_selector.derivative_calls + 1;
+            if (callback(result)) {
+                result.status = "Optimization terminated due to callback.";
+                return result;
+            }
         }
         if (!result.success) {
             result.status = "Maximum number of iterations has been exceeded.";
@@ -462,10 +490,11 @@ namespace scicpp {
 
     // Solve a nonlinear least-squares problem using Levenberg-Marquardt
     // algorithm.
-    template <class T, class Residual, class Jacobian>
+    template <class T, class Residual, class Jacobian, class Callable>
     OptimizeResult<T> least_squares(
         Residual res, const numcpp::array<T> &x0, Jacobian jac,
-        T ftol, T xtol, T gtol, size_t maxiter
+        T ftol, T xtol, T gtol, size_t maxiter,
+        Callable callback
     ) {
         OptimizeResult<T> result;
         result.x = x0;
@@ -525,6 +554,11 @@ namespace scicpp {
                 result.status = "\"xtol\" termination condition is satisfied.";
                 break;
             }
+
+            if (callback(result)) {
+                result.status = "Optimization terminated due to callback.";
+                return result;
+            }
         }
         if (!result.success) {
             result.status = "Maximum number of iterations has been exceeded.";
@@ -534,12 +568,13 @@ namespace scicpp {
     }
 
     // Use non-linear least squares to fit a function f to data.
-    template <class T, class Function, class Jacobian>
+    template <class T, class Function, class Jacobian, class Callable>
     OptimizeResult<T> curve_fit(
         Function f,
         const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
         const numcpp::array<T> &p0, Jacobian jac,
-        T ftol, T xtol, T gtol, size_t maxiter
+        T ftol, T xtol, T gtol, size_t maxiter,
+        Callable callback
     ) {
         if (xdata.size() != ydata.size()) {
             std::ostringstream error;
@@ -566,7 +601,7 @@ namespace scicpp {
                 }
                 return J;
             },
-            ftol, xtol, gtol, maxiter
+            ftol, xtol, gtol, maxiter, callback
         );
         result.nfev *= xdata.size();
         result.njev *= xdata.size();

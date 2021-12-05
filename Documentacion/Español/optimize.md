@@ -255,10 +255,14 @@ su gradiente y Hessiano.
 Minimiza una función utilizando un algoritmo de gradiente conjugado no lineal. 
 Esta implementación utiliza la fórmula de Polak y Ribier.
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_cg(
     Function fun, const numcpp::array<T> x0, Jacobian jac,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -271,6 +275,9 @@ OptimizeResult<T> minimize_cg(
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
 - `maxiter`: Máximo número de iteraciones a realizar.
+- `callback`: Llamado después de cada iteración. Debe recibir el estado actual 
+del optimizador (de tipo `OptimizeResult`) como argumento y devolver un 
+booleano. Si `callback` devuelve true, la ejecución del algoritmo es terminada.
 
 #### Ejemplo
 
@@ -333,10 +340,14 @@ Minimiza una función utilizando el algoritmo de Newton-CG (también conocido co
 método de Newton truncado). Utiliza un método de gradiente conjugado para 
 calcular la dirección de búsqueda.
 ```cpp
-template <class T, class Function, class Jacobian, class Hessian>
+template <
+    class T, class Function, class Jacobian, class Hessian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_ncg(
     Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -350,6 +361,9 @@ OptimizeResult<T> minimize_ncg(
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
 - `maxiter`: Máximo número de iteraciones a realizar.
+- `callback`: Llamado después de cada iteración. Debe recibir el estado actual 
+del optimizador (de tipo `OptimizeResult`) como argumento y devolver un 
+booleano. Si `callback` devuelve true, la ejecución del algoritmo es terminada.
 
 #### Ejemplo
 
@@ -424,11 +438,15 @@ int main() {
 Minimiza una función utilizando el algoritmo de Broyden, Fletcher, Goldfarb, y 
 Shanno (BFGS).
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> minimize_bfgs(
     Function fun, const numcpp::array<T> &x0, Jacobian jac,
     const numcpp::matrix<T> &B0,
-    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+    T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -442,6 +460,9 @@ OptimizeResult<T> minimize_bfgs(
 `gtol`.
 - `ordnorm`: Orden a usar para la norma del gradiente.
 - `maxiter`: Máximo número de iteraciones a realizar.
+- `callback`: Llamado después de cada iteración. Debe recibir el estado actual 
+del optimizador (de tipo `OptimizeResult`) como argumento y devolver un 
+booleano. Si `callback` devuelve true, la ejecución del algoritmo es terminada.
 
 #### Ejemplo
 
@@ -601,10 +622,14 @@ de Levenberg-Marquardt.
 
  ![$f(\mathbf{x}) = \frac{1}{2}\sum_{i=1}^{m} r_i(\mathbf{x})^2$](https://render.githubusercontent.com/render/math?math=f(%5Cmathbf%7Bx%7D)%20%3D%20%5Cfrac%7B1%7D%7B2%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20r_i(%5Cmathbf%7Bx%7D)%5E2) 
 ```cpp
-template <class T, class Residual, class Jacobian>
+template <
+    class T, class Residual, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> least_squares(
     Residual res, const numcpp::array<T> &x0, Jacobian jac,
-    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -620,6 +645,9 @@ con respecto a  ![$x_j$](https://render.githubusercontent.com/render/math?math=x
 independientes.
 - `gtol`: Tolerancia de terminación por la norma del gradiente.
 - `maxiter`: Máximo número de iteraciones a realizar.
+- `callback`: Llamado después de cada iteración. Debe recibir el estado actual 
+del optimizador (de tipo `OptimizeResult`) como argumento y devolver un 
+booleano. Si `callback` devuelve true, la ejecución del algoritmo es terminada.
 
 #### Ejemplo
 
@@ -687,12 +715,16 @@ int main() {
 
 Utiliza mínimos cuadrados no lineales para ajustar una función *f* sobre datos.
 ```cpp
-template <class T, class Function, class Jacobian>
+template <
+    class T, class Function, class Jacobian,
+    class Callable = no_callback
+>
 OptimizeResult<T> curve_fit(
     Function f,
     const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
     const numcpp::array<T> &p0, Jacobian jac,
-    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+    T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+    Callable callback = no_callback()
 );
 ```
 
@@ -709,6 +741,9 @@ parámetros.
 - `xtol`: Tolerancia de terminación por el cambio en los parámetros.
 - `gtol`: Tolerancia de terminación por la norma del gradiente.
 - `maxiter`: Máximo número de iteraciones a realizar.
+- `callback`: Llamado después de cada iteración. Debe recibir el estado actual 
+del optimizador (de tipo `OptimizeResult`) como argumento y devolver un 
+booleano. Si `callback` devuelve true, la ejecución del algoritmo es terminada.
 
 #### Ejemplo
 

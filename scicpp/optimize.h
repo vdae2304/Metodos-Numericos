@@ -68,31 +68,51 @@ namespace scicpp {
         size_t nfev, njev, nhev;
     };
 
+    // Outputs results from optimizer.
     template <class T>
     std::ostream&
     operator<< (std::ostream &ostr, const OptimizeResult<T> &result);
 
+    // No callback type.
+    class no_callback {
+    public:
+        template <class T>
+        bool operator()(const OptimizeResult<T> &state);
+    };
+
     // Minimize a function using a nonlinear conjugate gradient algorithm.
-    template <class T, class Function, class Jacobian>
+    template <
+        class T, class Function, class Jacobian,
+        class Callable = no_callback
+    >
     OptimizeResult<T> minimize_cg(
         Function fun, const numcpp::array<T> x0, Jacobian jac,
-        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+        Callable callback = no_callback()
     );
 
     // Minimize a function using the Newton-CG algorithm.
-    template <class T, class Function, class Jacobian, class Hessian>
+    template <
+        class T, class Function, class Jacobian, class Hessian,
+        class Callable = no_callback
+    >
     OptimizeResult<T> minimize_ncg(
         Function fun, const numcpp::array<T> &x0, Jacobian jac, Hessian hess,
-        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+        Callable callback = no_callback()
     );
 
     // Minimize a function using the quasi-Newton method of Broyden, Fletcher,
     // Goldfarb, and Shanno (BFGS).
-    template <class T, class Function, class Jacobian>
+    template <
+        class T, class Function, class Jacobian,
+        class Callable = no_callback
+    >
     OptimizeResult<T> minimize_bfgs(
         Function fun, const numcpp::array<T> &x0, Jacobian jac,
         const numcpp::matrix<T> &B0,
-        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000
+        T gtol = 1e-5, double ordnorm = numcpp::inf, size_t maxiter = 1000,
+        Callable callback = no_callback()
     );
 
     // Find alpha that satisfies Wolfe conditions.
@@ -110,19 +130,27 @@ namespace scicpp {
 
     // Solve a nonlinear least-squares problem using Levenberg-Marquardt
     // algorithm.
-    template <class T, class Residual, class Jacobian>
+    template <
+        class T, class Residual, class Jacobian,
+        class Callable = no_callback
+    >
     OptimizeResult<T> least_squares(
         Residual res, const numcpp::array<T> &x0, Jacobian jac,
-        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+        Callable callback = no_callback()
     );
 
     // Use nonlinear least squares to fit a function f to data.
-    template <class T, class Function, class Jacobian>
+    template <
+        class T, class Function, class Jacobian,
+        class Callable = no_callback
+    >
     OptimizeResult<T> curve_fit(
         Function f,
         const numcpp::array<T> &xdata, const numcpp::array<T> &ydata,
         const numcpp::array<T> &p0, Jacobian jac,
-        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000
+        T ftol = 1e-8, T xtol = 1e-8, T gtol = 1e-8, size_t maxiter = 1000,
+        Callable callback = no_callback()
     );
 }
 
