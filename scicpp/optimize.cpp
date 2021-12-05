@@ -506,53 +506,56 @@ namespace scicpp {
         result.njev = 1;
         result.nhev = 1;
 
-        T mu;
+        T mu = 0, nu = 2;
+        numcpp::matrix<T> A = result.hess.transpose();
+        numcpp::array<T> b = A.dot(result.jac);
+        A = A.dot(result.hess);
+        numcpp::matrix<T> I = numcpp::eye<T>(A.rows(), A.columns());
+        for (size_t i = 0; i < A.rows(); ++i) {
+            if (A[i][i] > mu) {
+                mu = A[i][i];
+            }
+        }
+        mu *= 1e-3;
+
         for (result.niter = 1; result.niter < maxiter; ++result.niter) {
-            numcpp::matrix<T> A = result.hess.transpose();
-            numcpp::array<T> b = A.dot(result.jac);
-            A = A.dot(result.hess);
-            if (numcpp::sqrt(result.fun) <= gtol || norm(b) <= gtol) {
+            if (norm(b, numcpp::inf) <= gtol) {
                 result.success = true;
                 result.status = "\"gtol\" termination condition is satisfied.";
                 break;
             }
-            numcpp::array<T> diag = numcpp::diagonal(A);
-            if (result.niter == 1) {
-                mu = 1e-3*diag.max();
+            numcpp::array<T> pk = solve(A + mu*I, -b, "sym");
+            if (norm(pk) <= xtol*norm(result.x)) {
+                result.success = true;
+                result.status = "\"xtol\" termination condition is satisfied.";
+                break;
             }
-            else {
-                mu /= 3;
-            }
-
-            numcpp::array<T> pk;
-            numcpp::array<T> x_old = result.x;
-            T fun_old = result.fun;
-            for (size_t ndamps = 0; ndamps < 20; ++ndamps) {
-                for (size_t i = 0; i < A.rows(); ++i) {
-                    A[i][i] = (1 + mu)*diag[i];
-                }
-                pk = solve(A, b, "sym");
-                result.x = x_old - pk;
-                result.jac = res(result.x);
-                result.fun = 0.5*(result.jac).dot(result.jac);
-                ++result.njev;
-                ++result.nfev;
-                if (result.fun < fun_old) {
-                    break;
-                }
-                mu *= 2;
-            }
-            result.hess = jac(result.x);
-            ++result.nhev;
-            if (result.fun <= fun_old && fun_old - result.fun < ftol) {
+            numcpp::array<T> x_new = result.x + pk;
+            numcpp::array<T> jac_new = res(x_new);
+            T fun_new = 0.5*(jac_new).dot(jac_new);
+            ++result.nfev;
+            ++result.njev;
+            if (numcpp::abs(fun_new - result.fun) <= ftol*result.fun) {
                 result.success = true;
                 result.status = "\"ftol\" termination condition is satisfied.";
                 break;
             }
-            if (norm(pk) <= xtol) {
-                result.success = true;
-                result.status = "\"xtol\" termination condition is satisfied.";
-                break;
+
+            if (result.fun - fun_new > 0 && pk.dot(mu*pk - b) > 0) {
+                result.x = x_new;
+                result.jac = jac_new;
+                result.hess = jac(x_new);
+                result.fun = fun_new;
+                ++result.nhev;
+                A = result.hess.transpose();
+                b = A.dot(result.jac);
+                A = A.dot(result.hess);
+                mu /= 3;
+                nu = 2;
+            }
+            else {
+                mu *= nu;
+                nu *= 2;
             }
 
             if (callback(result)) {
