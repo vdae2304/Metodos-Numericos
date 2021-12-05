@@ -12,9 +12,9 @@ namespace scicpp {
     std::ostream&
     operator<< (std::ostream &ostr, const RootResults<T> &result) {
         ostr << "root: " << result.root << "\n";
-        ostr << "niter: " << result.iterations << "\n";
-        ostr << "nfev: " << result.function_calls << "\n";
-        ostr << "njev: " << result.derivative_calls << "\n";
+        ostr << "iteratios: " << result.iterations << "\n";
+        ostr << "function_calls: " << result.function_calls << "\n";
+        ostr << "derivative_calls: " << result.derivative_calls << "\n";
         ostr << "converged: " << result.converged << "\n";
         ostr << "status: " << result.status << "\n";
         return ostr;
@@ -33,6 +33,7 @@ namespace scicpp {
         RootResults<T> output;
         output.iterations = 0;
         output.function_calls = 2;
+        output.derivative_calls = 0;
         output.converged = false;
         std::ostringstream status;
 
@@ -75,6 +76,7 @@ namespace scicpp {
         output.root = x0;
         output.iterations = 0;
         output.function_calls = 0;
+        output.derivative_calls = 0;
         output.converged = false;
         std::ostringstream status;
 
@@ -90,6 +92,7 @@ namespace scicpp {
                 break;
             }
             T dfx = df(output.root);
+            ++output.derivative_calls;
             if (numcpp::abs(dfx) <= tol) {
                 status << "Derivative was zero. Failed to converge after "
                        << output.iterations << " iterations, value is "
@@ -114,6 +117,7 @@ namespace scicpp {
         output.root = x1;
         output.iterations = 0;
         output.function_calls = 1;
+        output.derivative_calls = 0;
         output.converged = false;
         std::ostringstream status;
 
@@ -159,6 +163,7 @@ namespace scicpp {
         output.root = x0;
         output.iterations = 0;
         output.function_calls = 0;
+        output.derivative_calls = 0;
         output.converged = false;
         std::ostringstream status;
 
@@ -175,6 +180,7 @@ namespace scicpp {
             }
             T dfx = df(output.root);
             T df2x = df2(output.root);
+            ++output.derivative_calls;
             if (numcpp::abs(2*dfx*dfx - fx*df2x) <= tol) {
                 status << "Derivative was zero. Failed to converge after "
                        << output.iterations << " iterations, value is "
@@ -256,7 +262,7 @@ namespace scicpp {
 
             RootResults<T> step_selector = line_search(
                 fun, jac, result.x, pk, result.jac, result.fun,
-                T(1e-4), T(0.1), T(1.0), 50
+                T(1e-4), T(0.1), T(1.0), 20
             );
             T alpha = step_selector.root;
             result.x += alpha*pk;
@@ -331,7 +337,7 @@ namespace scicpp {
 
             RootResults<T> step_selector = line_search(
                 fun, jac, result.x, pk, result.jac, result.fun,
-                T(1e-4), T(0.9), T(1.0), 50
+                T(1e-4), T(0.9), T(1.0), 20
             );
             T alpha = step_selector.root;
             result.x += alpha*pk;
@@ -383,7 +389,7 @@ namespace scicpp {
             numcpp::array<T> pk = -(result.hess_inv).dot(result.jac);
             RootResults<T> step_selector = line_search(
                 fun, jac, result.x, pk, result.jac, result.fun,
-                T(1e-4), T(0.9), T(1.0), 50
+                T(1e-4), T(0.9), T(1.0), 20
             );
             T alpha = step_selector.root;
             numcpp::array<T> sk = alpha*pk;
@@ -438,25 +444,19 @@ namespace scicpp {
         result.converged = false;
         std::ostringstream status;
 
-        T mk = gfk.dot(pk);
-        T a_lo = 0, phi_lo = fk;
-        T a_hi = amax, phi_hi = fun(xk + a_hi*pk);
-
-        bool stage1 = true;
+        T a_lo = 0, phi_lo = fk, mk = gfk.dot(pk);
+        T a_hi = amax, phi_hi = fun(xk + amax*pk);
         while (result.iterations < maxiter) {
             T a = (a_lo + a_hi)/2;
             T phi = fun(xk + a*pk);
             result.root = a;
             ++result.iterations;
             ++result.function_calls;
-            if (phi > fk + c1*a*mk || phi >= phi_lo) {
-                if (stage1) {
-                    stage1 = false;
-                }
-                else {
-                    a_hi = a;
-                    phi_hi = phi;
-                }
+            if (
+                phi > fk + c1*a*mk || (phi >= phi_lo && result.iterations > 1)
+            ) {
+                a_hi = a;
+                phi_hi = phi;
             }
             else {
                 T m = jac(xk + a*pk).dot(pk);
@@ -467,7 +467,7 @@ namespace scicpp {
                            << " iterations, value is " << result.root;
                     break;
                 }
-                if ((stage1 && m >= 0) || (!stage1 && m*(a_hi - a_lo) >= 0)) {
+                if (m*(a_hi - a_lo) >= 0) {
                     a_hi = a_lo;
                     phi_hi = phi_lo;
                 }

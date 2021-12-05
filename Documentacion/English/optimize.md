@@ -322,13 +322,13 @@ int main() {
 ```
 
 ```
-[Out] fun: 2.3138263e-11
+[Out] fun: 2.31383e-11
       x: [0.99999896, 0.99999791, 0.99999582, 0.99999159]
       jac: [9.3998262e-07, -2.4901198e-06, 7.1508592e-06, -8.5579434e-06]
       success: true
       status: Optimization terminated successfully.
       niter: 95
-      nfev: 1228
+      nfev: 1134
       njev: 337
 ```
 
@@ -425,7 +425,7 @@ int main() {
       success: true
       status: Optimization terminated successfully.
       niter: 89
-      nfev: 290
+      nfev: 285
       njev: 186
       nhev: 89
 ```
@@ -503,7 +503,7 @@ int main() {
 ```
 [Out] fun: 2.75892e-13
       x: [0.9999999, 0.9999998, 0.99999959, 0.99999915]
-      jac: [4.5691454e-07, 1.7022435e-06, 6.768782e-06, -4.4084408e-06]
+      jac: [4.5691454e-07, 1.7022436e-06, 6.768782e-06, -4.4084408e-06]
       hess_inv:
       [[0.026480784, 0.050239632, 0.099123274, 0.19728892]
        [0.050239632,  0.10058458,  0.19838138, 0.39491722]
@@ -512,7 +512,7 @@ int main() {
       success: true
       status: Optimization terminated successfully.
       niter: 65
-      nfev: 230
+      nfev: 225
       njev: 132
 ```
 
