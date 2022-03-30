@@ -36,7 +36,7 @@ namespace scicpp {
         else if (p == 2) {
             out = numcpp::sqrt(v.dot(v));
         }
-        else if (p == numcpp::inf) {
+        else if (p == numcpp::constants<double>::inf) {
             for (size_t i = 0; i < v.size(); ++i) {
                 out = numcpp::max(out, numcpp::abs(v[i]));
             }

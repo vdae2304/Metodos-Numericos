@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include "linalg.h"
@@ -291,6 +292,41 @@ namespace scicpp {
     // Ordinary differential equations                                        //
     ////////////////////////////////////////////////////////////////////////////
 
+    template <class T>
+    numcpp::array<T> OdeResult<T>::operator()(T t) {
+        size_t m = this->y.rows(), n = this->y.columns();
+        if (t < this->t[0] || t > this->t[m - 1]) {
+            throw std::domain_error("t is outside the solution domain.");
+        }
+        size_t i = std::upper_bound(this->t.data(), this->t.data() + m, t) -
+                   this->t.data();
+
+        T a = this->t[i - 1], b = this->t[i];
+        t = (t - this->t[i - 1]) / (b - a);
+        numcpp::array<T> y(n, T(0));
+        for (size_t k = 0; k < n; ++k) {
+            y[k] += ((2*t - 3)*t*t + 1) * this->y[i - 1][k];
+            y[k] += (((t - 2)*t + 1)*t) * (b - a)*this->f[i - 1][k];
+            y[k] += ((-2*t + 3)*t*t) * this->y[i][k];
+            y[k] += ((t - 1)*t*t) * (b - a)*this->f[i][k];
+        }
+
+        return y;
+    }
+
+    template <class T>
+    numcpp::matrix<T> OdeResult<T>::operator()(const numcpp::array<T> &t) {
+        size_t m = this->y.rows(), n = this->y.columns();
+        numcpp::matrix<T> y(t.size(), n, T(0));
+        for (size_t i = 0; i < t.size(); ++i) {
+            numcpp::array<T> yi = (*this)(t[i]);
+            for (size_t j = 0; j < n; ++j) {
+                y[i][j] = yi[j];
+            }
+        }
+        return y;
+    }
+
     // Base class for ODE solvers.
     template <class T, class Function>
     OdeSolver<T, Function>::OdeSolver(
@@ -404,8 +440,11 @@ namespace scicpp {
         std::string method, T first_step, T max_step, T tol, T rtol
     ) {
         OdeResult<T> result;
+        numcpp::array<T> dy0 = f(t0, y0);
         std::vector<T> t(1, t0);
         std::vector<T> y(y0.data(), y0.data() + y0.size());
+        std::vector<T> dy(dy0.data(), dy0.data() + dy0.size());
+        result.nfev = 1;
 
         if (method == "RK23") {
             RK23<T, Function> solver(f, t0, y0, first_step, max_step, tol, rtol);
@@ -413,11 +452,14 @@ namespace scicpp {
                 solver.max_step = numcpp::min(max_step, tf - solver.t);
                 solver.step();
                 t.push_back(solver.t);
+                dy0 = f(solver.t, solver.y);
+                ++result.nfev;
                 for (size_t i = 0; i < solver.n; ++i) {
                     y.push_back(solver.y[i]);
+                    dy.push_back(dy0[i]);
                 }
             }
-            result.nfev = solver.nfev;
+            result.nfev += solver.nfev;
         }
         else if (method == "RK45") {
             RK45<T, Function> solver(f, t0, y0, first_step, max_step, tol, rtol);
@@ -425,11 +467,14 @@ namespace scicpp {
                 solver.max_step = numcpp::min(max_step, tf - solver.t);
                 solver.step();
                 t.push_back(solver.t);
+                dy0 = f(solver.t, solver.y);
+                ++result.nfev;
                 for (size_t i = 0; i < solver.n; ++i) {
                     y.push_back(solver.y[i]);
+                    dy.push_back(dy0[i]);
                 }
             }
-            result.nfev = solver.nfev;
+            result.nfev += solver.nfev;
         }
         else {
             throw std::invalid_argument(
@@ -439,6 +484,7 @@ namespace scicpp {
 
         result.t = numcpp::array<T>(t.begin(), t.end());
         result.y = numcpp::matrix<T>(t.size(), y0.size(), y.begin());
+        result.f = numcpp::matrix<T>(t.size(), y0.size(), dy.begin());
         return result;
     }
 }

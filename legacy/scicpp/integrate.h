@@ -79,7 +79,12 @@ namespace scicpp {
     public:
         numcpp::array<T> t;
         numcpp::matrix<T> y;
+        numcpp::matrix<T> f;
         size_t nfev;
+
+        numcpp::array<T> operator()(T t);
+
+        numcpp::matrix<T> operator()(const numcpp::array<T> &t);
     };
 
     // Base class for ODE solvers.
