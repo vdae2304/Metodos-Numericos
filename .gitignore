@@ -1,6 +1,7 @@
 # Folders
+.vscode/
+.legacy/
 Tests/
-old/
 # Files
 *.o
 main.*
