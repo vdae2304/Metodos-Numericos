@@ -999,8 +999,22 @@ namespace numcpp {
      * @param arr The array to pad.
      * @param before Number of elements to pad at the beginning of the array.
      * @param after Number of elements to pad at the end of the array.
-     * @param val If provided, all the padding elements are initialized to this 
-     * value. If not provided, the padding elements are left uninitialized.
+     * @param mode One of the following string values:
+     *     "empty" (default) Pads with uninitialized values.
+     *     "constant" Pads with a constant value.
+     *     "edge" Pads with the edge values of the array.
+     *     "linear_ramp" Pads with the linear ramp between the array edge value 
+     *     and an end value.
+     *     "reflect" Pads with the reflection of the array mirrored on the 
+     *     first and last values.
+     *     "symmetric" Pads with the reflection of the array mirrored along the 
+     *     edge.
+     *     "wrap" Pads with the wrap of the array.
+     * @param args An initializer list with additional arguments to be used in 
+     *     "constant" and "linear_ramp" modes. If empty, a 0 will be used as 
+     *     before and after constants. If a single value is passed, it will be 
+     *     used as both before and after constants. If two values are passed, 
+     *     they will be used as before and after constants.
      * 
      * @return The padded array.
      * 
@@ -1008,11 +1022,10 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, class Tag>
-    array<T> pad(const base_array<T, Tag> &arr, size_t before, size_t after);
-
-    template <class T, class Tag>
     array<T> pad(
-        const base_array<T, Tag> &arr, size_t before, size_t after, const T &val
+        const base_array<T, Tag> &arr, size_t before, size_t after, 
+        const std::string &mode = "empty", 
+        std::initializer_list<typename base_array<T, Tag>::value_type> args = {}
     );
 
     /**
@@ -1022,25 +1035,39 @@ namespace numcpp {
      * @param before1 Number of elements to pad at the top of the matrix.
      * @param after1 Number of elements to pad at the bottom of the matrix.
      * @param before2 Number of elements to pad at the left of the matrix.
-     * @param after2 Number of elements to pad at the right of the matrix,
-     * @param val If provided, all the padding elements are initialized to this 
-     * value. If not provided, the padding elements are left uninitialized.
+     * @param after2 Number of elements to pad at the right of the matrix.
+     * @param mode One of the following string values:
+     *     "empty" (default) Pads with uninitialized values.
+     *     "constant" Pads with a constant value.
+     *     "edge" Pads with the edge values along each axis.
+     *     "linear_ramp" Pads with the linear ramp between the edge value and 
+     *     an end value.
+     *     "reflect" Pads with the reflection mirrored on the first and last 
+     *     values along each axis.
+     *     "symmetric" Pads with the reflection mirrored along the edge on 
+     *     each axis.
+     *     "wrap" Pads with the wrap of the matrix.
+     * @param args An initializer list with additional arguments to be used in 
+     *     "constant" and "linear_ramp" modes. If empty, a 0 will be used for 
+     *     all the constants. If a single value is passed, the same value will 
+     *     be used for all the constants. If two values are passed, the first 
+     *     one will be used as before1 and after1 constants and the later oner 
+     *     as before2 and after2 constants. If four values are passed, they 
+     *     will be used as before1, after1, before2 and after2 constants.
      * 
      * @return The padded matrix.
+     * 
+     * @note The matrix is padded first column-wise and then row-wise.
      * 
      * @throw std::bad_alloc If the function fails to allocate storage it may 
      *     throw an exception.
      */
     template <class T, class Tag>
     matrix<T> pad(
-        const base_matrix<T, Tag> &mat, size_t before1, size_t after1, 
-        size_t before2, size_t after2
-    );
-
-    template <class T, class Tag>
-    matrix<T> pad(
-        const base_matrix<T, Tag> &mat, size_t before1, size_t after1, 
-        size_t before2, size_t after2, const T &val
+        const base_matrix<T, Tag> &mat, 
+        size_t before1, size_t after1, size_t before2, size_t after2, 
+        const std::string &mode = "empty", 
+        std::initializer_list<typename base_matrix<T, Tag>::value_type> args={}
     );
 
     /// Insertion-deletion

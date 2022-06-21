@@ -618,45 +618,234 @@ namespace numcpp {
 
     /// Padding
 
-    template <class T, class Tag>
-    array<T> pad(const base_array<T, Tag> &arr, size_t before, size_t after) {
-        size_t n = before + arr.size() + after;
-        array<T> out(n);
-        out[slice(before, arr.size())] = arr;
-        return out;
+    /// Helper function: Pads an array with a constant value.
+    template <class T>
+    void __pad_constant(
+        array_view<T> view, size_t before, size_t after, 
+        const T &const_before, const T &const_after
+    ) {
+        for (size_t i = 0; i < before; ++i) {
+            view[i] = const_before;
+        }
+        for (size_t i = 0; i < after; ++i) {
+            view[view.size() - 1 - i] = const_after;
+        }
+    }
+
+    /// Helper function: Pads an array with the edge values.
+    template <class T>
+    void __pad_edge(array_view<T> view, size_t before, size_t after) {
+        T edge_before = view[before];
+        T edge_after = view[view.size() - 1 - after];
+        __pad_constant(view, before, after, edge_before, edge_after);
+    }
+
+    /// Helper function: Pads an array with the linear ramp between the edge 
+    /// values and an end value.
+    template <class T>
+    void __pad_linear_ramp(
+        array_view<T> view, size_t before, size_t after, 
+        const T &end_before, const T &end_after
+    ) {
+        T edge_before = view[before];
+        T edge_after = view[view.size() - 1 - after];
+        for (size_t i = 0; i < before; ++i) {
+            double t = (double)i/before;
+            view[i] = (1 - t)*end_before + t*edge_before;
+        }
+        for (size_t i = 0; i < after; ++i) {
+            double t = (double)i/after;
+            view[view.size() - 1 - i] = (1 - t)*end_after + t*edge_after;
+        }
+    }
+
+    /// Helper function: Pads an array with the reflection of the array 
+    /// mirrored on the first and last values.
+    template <class T>
+    void __pad_reflect(array_view<T> view, size_t before, size_t after) {
+        size_t size = view.size() - before - after;
+        for (size_t i = 0; i < before; ++i) {
+            size_t idx = (before - 1 - i) % (size - 1);
+            size_t nblock = (before - 1 - i) / (size - 1);
+            size_t sorted = before + size - 2 - idx;
+            size_t reversed = before + 1 + idx;
+            view[i] = (nblock % 2 == 0) ? view[reversed] : view[sorted];
+        }
+        for (size_t i = 0; i < after; ++i) {
+            size_t idx = (after - 1 - i) % (size - 1);
+            size_t nblock = (after - 1 - i) / (size - 1);
+            size_t sorted = before + size - 2 - idx;
+            size_t reversed = before + 1 + idx;
+            view[view.size() - 1 - i] = (nblock % 2 == 0) ? view[sorted] 
+                                                          : view[reversed];
+        }
+    }
+
+    /// Helper function: Pads an array with the reflection of the array 
+    /// mirrored along the edge.
+    template <class T>
+    void __pad_symmetric(array_view<T> view, size_t before, size_t after) {
+        size_t size = view.size() - before - after;
+        for (size_t i = 0; i < before; ++i) {
+            size_t idx = (before - 1 - i) % size ;
+            size_t nblock = (before - 1 - i) / size ;
+            size_t sorted = before + size - 1 - idx;
+            size_t reversed = before + idx;
+            view[i] = (nblock % 2 == 0) ? view[reversed] : view[sorted];
+        }
+        for (size_t i = 0; i < after; ++i) {
+            size_t idx = (after - 1 - i) % size;
+            size_t nblock = (after - 1 - i) / size;
+            size_t sorted = before + size - 1 - idx;
+            size_t reversed = before + idx;
+            view[view.size() - 1 - i] = (nblock % 2 == 0) ? view[sorted] 
+                                                          : view[reversed];
+        }
+    }
+
+    /// Helper function: Pads an array with the wrap of the array.
+    template <class T>
+    void __pad_wrap(array_view<T> view, size_t before, size_t after) {
+        size_t size = view.size() - before - after;
+        for (size_t i = 0; i < before; ++i) {
+            size_t idx = before + size - 1 - (before - 1 - i) % size;
+            view[i] = view[idx];
+        }
+        for (size_t i = 0; i < after; ++i) {
+            size_t idx = before + (after - 1 - i) % size;
+            view[view.size() - 1 - i] = view[idx];
+        }
     }
 
     template <class T, class Tag>
     array<T> pad(
-        const base_array<T, Tag> &arr, size_t before, size_t after, const T &val
+        const base_array<T, Tag> &arr, size_t before, size_t after, 
+        const std::string &mode, 
+        std::initializer_list<typename base_array<T, Tag>::value_type> args
     ) {
         size_t n = before + arr.size() + after;
-        array<T> out(n, val);
+        array<T> out(n);
         out[slice(before, arr.size())] = arr;
+        T val_before = T(), val_after = T();
+        if (args.size() >= 2) {
+            val_before = *args.begin();
+            val_after = *(args.begin() + 1);
+        }
+        else if (args.size() >= 1) {
+            val_before = *args.begin();
+            val_after = *args.begin();
+        }
+        if (mode == "constant") {
+            __pad_constant(out.view(), before, after, val_before, val_after);
+        }
+        else if (mode == "edge") {
+            __pad_edge(out.view(), before, after);
+        }
+        else if (mode == "linear_ramp") {
+            __pad_linear_ramp(out.view(), before, after, val_before, val_after);
+        }
+        else if (mode == "reflect") {
+            __pad_reflect(out.view(), before, after);
+        }
+        else if (mode == "symmetric") {
+            __pad_symmetric(out.view(), before, after);
+        }
+        else if (mode == "wrap") {
+            __pad_wrap(out.view(), before, after);
+        }
+        else if (mode != "empty") {
+            char error[] = "mode must be one of \"empty\", \"constant\", "
+            "\"edge\", \"linear_ramp\", \"reflect\", \"symmetric\" or \"wrap\"";
+            throw std::invalid_argument(error);
+        }
         return out;
     }
 
     template <class T, class Tag>
     matrix<T> pad(
-        const base_matrix<T, Tag> &mat, size_t before1, size_t after1, 
-        size_t before2, size_t after2
+        const base_matrix<T, Tag> &mat, 
+        size_t before1, size_t after1, size_t before2, size_t after2, 
+        const std::string &mode, 
+        std::initializer_list<typename base_matrix<T, Tag>::value_type> args
     ) {
         size_t m = before1 + mat.rows() + after1;
         size_t n = before2 + mat.cols() + after2;
         matrix<T> out(m, n);
         out(slice(before1, mat.rows()), slice(before2, mat.cols())) = mat;
-        return out;
-    }
-
-    template <class T, class Tag>
-    matrix<T> pad(
-        const base_matrix<T, Tag> &mat, size_t before1, size_t after1, 
-        size_t before2, size_t after2, const T &val
-    ) {
-        size_t m = before1 + mat.rows() + after1;
-        size_t n = before2 + mat.cols() + after2;
-        matrix<T> out(m, n, val);
-        out(slice(before1, mat.rows()), slice(before2, mat.cols())) = mat;
+        T val_before1 = T(), val_after1 = T();
+        T val_before2 = T(), val_after2 = T();
+        if (args.size() >= 4) {
+            val_before1 = *args.begin();
+            val_after1 = *(args.begin() + 1);
+            val_before2 = *(args.begin() + 2);
+            val_after2 = *(args.begin() + 3);
+        }
+        else if (args.size() >= 2) {
+            val_before1 = *args.begin();
+            val_after1 = *args.begin();
+            val_before2 = *(args.begin() + 1);
+            val_after2 = *(args.begin() + 1);
+        }
+        else if (args.size() >= 1) {
+            val_before1 = *args.begin();
+            val_after1 = *args.begin();
+            val_before2 = *args.begin();
+            val_after2 = *args.begin();
+        }
+        for (size_t j = before2; j < n - after2; ++j) {
+            array_view<T> column = out(slice(m), j);
+            if (mode == "constant") {
+                __pad_constant(column, before1,after1, val_before1,val_after1);
+            }
+            else if (mode == "edge") {
+                __pad_edge(column, before1, after1);
+            }
+            else if (mode == "linear_ramp") {
+                __pad_linear_ramp(column,before1,after1,val_before1,val_after1);
+            }
+            else if (mode == "reflect") {
+                __pad_reflect(column, before1, after1);
+            }
+            else if (mode == "symmetric") {
+                __pad_symmetric(column, before1, after1);
+            }
+            else if (mode == "wrap") {
+                __pad_wrap(column, before1, after1);
+            }
+            else if (mode != "empty") {
+                char error[] = "mode must be one of \"empty\", \"constant\", "
+                "\"edge\", \"linear_ramp\", \"reflect\", \"symmetric\" or "
+                "\"wrap\"";
+                throw std::invalid_argument(error);
+            }
+        }
+        for (size_t i = 0; i < m; ++i) {
+            array_view<T> row = out(i, slice(n));
+            if (mode == "constant") {
+                __pad_constant(row, before2, after2, val_before2, val_after2);
+            }
+            else if (mode == "edge") {
+                __pad_edge(row, before2, after2);
+            }
+            else if (mode == "linear_ramp") {
+                __pad_linear_ramp(row, before2,after2, val_before2,val_after2);
+            }
+            else if (mode == "reflect") {
+                __pad_reflect(row, before2, after2);
+            }
+            else if (mode == "symmetric") {
+                __pad_symmetric(row, before2, after2);
+            }
+            else if (mode == "wrap") {
+                __pad_wrap(row, before2, after2);
+            }
+            else if (mode != "empty") {
+                char error[] = "mode must be one of \"empty\", \"constant\", "
+                "\"edge\", \"linear_ramp\", \"reflect\", \"symmetric\" or "
+                "\"wrap\"";
+                throw std::invalid_argument(error);
+            }
+        }
         return out;
     }
 
