@@ -250,7 +250,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     void save_txt(
-        const std::string filename, const base_matrix<T, Tag> &mat, 
+        const std::string &filename, const base_matrix<T, Tag> &mat, 
         char delimiter
     ) {
         std::ofstream file(filename);
