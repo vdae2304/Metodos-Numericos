@@ -26,6 +26,7 @@
 #include "numcpp/matrix.h"
 #include "numcpp/math.h"
 #include "numcpp/routines.h"
+#include "numcpp/random.h"
 #include "numcpp/io.h"
 
 #endif // NUMCPP_H_INCLUDED
