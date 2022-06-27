@@ -536,84 +536,48 @@ namespace numcpp {
 
     /// Concatenation
 
-    template <class T, class Tag1, class Tag2>
-    base_array< T, concat_tag<Tag1, Tag2> > concatenate(
-        const base_array<T, Tag1> &lhs, const base_array<T, Tag2> &rhs
+    template <class T, class Tag, class... Arrays>
+    base_array< T, concat_tag<base_array<T, Tag>, Arrays...> > concatenate(
+        const base_array<T, Tag> &arr1, const Arrays&... arr2
     ) {
-        typedef concat_tag<Tag1, Tag2> Closure;
-        return base_array<T, Closure>(lhs, rhs);
+        typedef concat_tag<base_array<T, Tag>, Arrays...> Closure;
+        return base_array<T, Closure>(arr1, arr2...);
     }
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_matrix, Tag1, base_matrix, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, vstack_tag<base_matrix<T, Tag>, Matrices...> > 
     row_stack(
-        const base_matrix<T, Tag1> &top, const base_matrix<T, Tag2> &bottom
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     ) {
-        typedef vstack_tag<base_matrix, Tag1, base_matrix, Tag2> Closure;
-        return base_matrix<T, Closure>(top, bottom);
+        typedef vstack_tag<base_matrix<T, Tag>, Matrices...> Closure;
+        return base_matrix<T, Closure>(mat1, mat2...);
     }
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_matrix, Tag1, base_array, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, vstack_tag<base_array<T, Tag>, Matrices...> > 
     row_stack(
-        const base_matrix<T, Tag1> &top, const base_array<T, Tag2> &bottom
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
     ) {
-        typedef vstack_tag<base_matrix, Tag1, base_array, Tag2> Closure;
-        return base_matrix<T, Closure>(top, bottom);
+        typedef vstack_tag<base_array<T, Tag>, Matrices...> Closure;
+        return base_matrix<T, Closure>(arr1, mat2...);
     }
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_array, Tag1, base_matrix, Tag2> > 
-    row_stack(
-        const base_array<T, Tag1> &top, const base_matrix<T, Tag2> &bottom
-    ) {
-        typedef vstack_tag<base_array, Tag1, base_matrix, Tag2> Closure;
-        return base_matrix<T, Closure>(top, bottom);
-    }
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_array, Tag1, base_array, Tag2> > 
-    row_stack(
-        const base_array<T, Tag1> &top, const base_array<T, Tag2> &bottom
-    ) {
-        typedef vstack_tag<base_array, Tag1, base_array, Tag2> Closure;
-        return base_matrix<T, Closure>(top, bottom);
-    }
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_matrix, Tag1, base_matrix, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, hstack_tag<base_matrix<T, Tag>, Matrices...> > 
     column_stack(
-        const base_matrix<T, Tag1> &left, const base_matrix<T, Tag2> &right
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     ) {
-        typedef hstack_tag<base_matrix, Tag1, base_matrix, Tag2> Closure;
-        return base_matrix<T, Closure>(left, right);
+        typedef hstack_tag<base_matrix<T, Tag>, Matrices...> Closure;
+        return base_matrix<T, Closure>(mat1, mat2...);
     }
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_matrix, Tag1, base_array, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, hstack_tag<base_array<T, Tag>, Matrices...> > 
     column_stack(
-        const base_matrix<T, Tag1> &left, const base_array<T, Tag2> &right
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
     ) {
-        typedef hstack_tag<base_matrix, Tag1, base_array, Tag2> Closure;
-        return base_matrix<T, Closure>(left, right);
-    }
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_array, Tag1, base_matrix, Tag2> > 
-    column_stack(
-        const base_array<T, Tag1> &left, const base_matrix<T, Tag2> &right
-    ) {
-        typedef hstack_tag<base_array, Tag1, base_matrix, Tag2> Closure;
-        return base_matrix<T, Closure>(left, right);
-    }
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_array, Tag1, base_array, Tag2> > 
-    column_stack(
-        const base_array<T, Tag1> &left, const base_array<T, Tag2> &right
-    ) {
-        typedef hstack_tag<base_array, Tag1, base_array, Tag2> Closure;
-        return base_matrix<T, Closure>(left, right);
+        typedef hstack_tag<base_array<T, Tag>, Matrices...> Closure;
+        return base_matrix<T, Closure>(arr1, mat2...);
     }
 
     /// Padding

@@ -905,90 +905,66 @@ namespace numcpp {
     /// Concatenation
 
     /**
-     * @brief Concatenate two arrays.
+     * @brief Concatenate one or more arrays.
      * 
-     * @param lhs An array-like object.
-     * @param rhs An array-like object.
+     * @param arr1, arr2... Arrays to concatenate. All arrays must have same 
+     *     data type.
      * 
      * @return A light-weight object with the array formed by concatenating the 
      *     given arrays. Convertible to an array object.
      */
-    template <class T, class Tag1, class Tag2>
-    base_array< T, concat_tag<Tag1, Tag2> > concatenate(
-        const base_array<T, Tag1> &lhs, const base_array<T, Tag2> &rhs
+    template <class T, class Tag, class... Arrays>
+    base_array< T, concat_tag<base_array<T, Tag>, Arrays...> > concatenate(
+        const base_array<T, Tag> &arr1, const Arrays&... arr2
     );
 
     /**
-     * @brief Concatenate two arrays or matrices vertically.
+     * @brief Concatenate one or more arrays and matrices vertically.
      * 
-     * @param top An array-like or matrix-like object.
-     * @param bottom  An array-like or matrix-like object.
+     * @param mat1, mat2... Matrices to stack. All matrices must have same data 
+     *      type. Arrays are treated as row vectors.
      * 
      * @return A light-weight object with the matrix formed by stacking the 
-     *      given arrays or matrices row-wise. Convertible to a matrix object.
+     *      given arrays and matrices row-wise. Convertible to a matrix object.
      * 
-     * @throw std::invalid_argument Thrown if the top argument and the bottom 
-     *      argument have different number of columns.
+     * @throw std::invalid_argument Thrown if the number of columns is not the 
+     *     same for all the arguments.
      */
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_matrix, Tag1, base_matrix, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, vstack_tag<base_matrix<T, Tag>, Matrices...> > 
     row_stack(
-        const base_matrix<T, Tag1> &top, const base_matrix<T, Tag2> &bottom
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     );
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_matrix, Tag1, base_array, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, vstack_tag<base_array<T, Tag>, Matrices...> > 
     row_stack(
-        const base_matrix<T, Tag1> &top, const base_array<T, Tag2> &bottom
-    );
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_array, Tag1, base_matrix, Tag2> > 
-    row_stack(
-        const base_array<T, Tag1> &top, const base_matrix<T, Tag2> &bottom
-    );
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, vstack_tag<base_array, Tag1, base_array, Tag2> > 
-    row_stack(
-        const base_array<T, Tag1> &top, const base_array<T, Tag2> &bottom
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
     );
 
     /**
-     * @brief Concatenate two arrays or matrices horizontally.
+     * @brief Concatenate one or more arrays and matrices horizontally.
      * 
-     * @param left An array-like or matrix-like object.
-     * @param right An array-like or matrix-like object.
+     * @param mat1, mat2... Matrices to stack. All matrices must have same data 
+     *     type. Arrays are treated as column vectors.
      * 
      * @return A light-weight object with the matrix formed by stacking the 
-     *     given arrays or matrices column-wise. Convertible to a matrix 
+     *     given arrays and matrices column-wise. Convertible to a matrix 
      *     object.
      * 
-     * @throw std::invalid_argument Thrown if the left argument and the right 
-     *      argument have different number of rows.
+     * @throw std::invalid_argument Thrown if the number of rows is not the 
+     *     same for all the arguments.
      */
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_matrix, Tag1, base_matrix, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, hstack_tag<base_matrix<T, Tag>, Matrices...> > 
     column_stack(
-        const base_matrix<T, Tag1> &left, const base_matrix<T, Tag2> &right
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     );
 
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_matrix, Tag1, base_array, Tag2> > 
+    template <class T, class Tag, class... Matrices>
+    base_matrix< T, hstack_tag<base_array<T, Tag>, Matrices...> > 
     column_stack(
-        const base_matrix<T, Tag1> &left, const base_array<T, Tag2> &right
-    );
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_array, Tag1, base_matrix, Tag2> > 
-    column_stack(
-        const base_array<T, Tag1> &left, const base_matrix<T, Tag2> &right
-    );
-
-    template <class T, class Tag1, class Tag2>
-    base_matrix< T, hstack_tag<base_array, Tag1, base_array, Tag2> > 
-    column_stack(
-        const base_array<T, Tag1> &left, const base_array<T, Tag2> &right
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
     );
 
     /// Padding

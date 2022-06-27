@@ -24,22 +24,22 @@
 #define NUMCPP_ARRAY_CONCAT_H_INCLUDED
 
 #include "numcpp/array/array_iterator.h"
+#include <tuple>
 
 namespace numcpp {
-    template <class Tag1, class Tag2>
+    template <class... Arrays>
     struct concat_tag;
 
     /**
      * @brief An array_concat is a light-weight object which stores the 
-     * concatenation of two arrays. An array_concat is a readonly array which 
-     * is convertible to an array object.
+     * concatenation of one or more arrays. An array_concat is a readonly array 
+     * which is convertible to an array object.
      *
      * @tparam T Type of the elements contained in the array.
-     * @tparam Tag1 Type of the first array container.
-     * @tparam Tag2 Type of the second array container.
+     * @tparam Arrays... Array containers to concatenate.
      */
-    template <class T, class Tag1, class Tag2>
-    class base_array< T, concat_tag<Tag1, Tag2> > {
+    template <class T, class... Arrays>
+    class base_array< T, concat_tag<Arrays...> > {
     public:
         /// Member types:
         typedef T value_type;
@@ -47,7 +47,7 @@ namespace numcpp {
         typedef const T const_reference;
         typedef void pointer;
         typedef void const_pointer;
-        typedef base_array_const_iterator< T, concat_tag<Tag1, Tag2> > iterator;
+        typedef base_array_const_iterator< T, concat_tag<Arrays...> > iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
@@ -57,12 +57,11 @@ namespace numcpp {
         /**
          * @brief Array concatenation constructor. Constructs an array_concat.
          * 
-         * @param arr1 First array argument.
-         * @param arr2 Second array argument. 
+         * @param arrays Arrays to concatenate. 
          */
-        base_array(
-            const base_array<T, Tag1> &arr1, const base_array<T, Tag2> &arr2
-        ) : m_arr1(arr1), m_arr2(arr2) {}
+        base_array(const Arrays&... arrays) : m_arrays(arrays...) {
+            this->m_size = __sum_sizes();
+        }
 
         /// Destructor.
         ~base_array() {}
@@ -130,12 +129,7 @@ namespace numcpp {
          */
         T operator[](size_t i) const {
             __assert_within_bounds(this->size(), i);
-            if (i < this->m_arr1.size()) {
-                return m_arr1[i];
-            }
-            else {
-                return m_arr2[i - m_arr1.size()];
-            }
+            return __at(i);
         }
 
         /**
@@ -144,7 +138,7 @@ namespace numcpp {
          * @return The number of elements in the array_concat.
          */
         size_t size() const {
-            return this->m_arr1.size() + this->m_arr2.size();
+            return this->m_size;
         }
 
         /**
@@ -157,12 +151,59 @@ namespace numcpp {
             return this->size() == 0;
         }
 
-    protected:
-        /// First array argument.
-        const base_array<T, Tag1> &m_arr1;
+    private:
+        /// Helper function. Return the sum of the sizes of the arrays in the 
+        /// concatenation.
+        template <size_t I = 0>
+        typename std::enable_if<I < sizeof...(Arrays), size_t>::type 
+        __sum_sizes() const {
+            return __array_size(std::get<I>(this->m_arrays)) + 
+                   __sum_sizes<I + 1>();
+        }
 
-        /// Second array argument.
-        const base_array<T, Tag2> &m_arr2;
+        template <size_t I = 0>
+        typename std::enable_if<I == sizeof...(Arrays), size_t>::type 
+        __sum_sizes() const {
+            return 0;
+        }
+
+        /// Helper function. Return the i-th element in the concatenation.
+        template <size_t I = 0>
+        typename std::enable_if<I < sizeof...(Arrays), T>::type 
+        __at(size_t i) const {
+            if (i < __array_size(std::get<I>(this->m_arrays))) {
+                return __array_element(std::get<I>(this->m_arrays), i);
+            }
+            else {
+                i -= __array_size(std::get<I>(this->m_arrays));
+                return __at<I + 1>(i);
+            }
+        }
+
+        template <size_t I = 0>
+        typename std::enable_if<I == sizeof...(Arrays), T>::type 
+        __at(size_t) const {
+            return T();
+        }
+
+        /// Helper function. Return the size of an array.
+        template <class Tag>
+        size_t __array_size(const base_array<T, Tag> &arr) const {
+            return arr.size();
+        }
+
+        /// Helper function. Return an element from an array.
+        template <class Tag>
+        T __array_element(const base_array<T, Tag> &arr, size_t i) const {
+            return arr[i];
+        }
+    
+    protected:
+        /// Number of elements in the concatenation.
+        size_t m_size;
+
+        /// Array arguments.
+        std::tuple<const Arrays&...> m_arrays;
     };
 }
 
