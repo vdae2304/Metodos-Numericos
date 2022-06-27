@@ -223,7 +223,7 @@ namespace numcpp {
         }
 
     private:
-        /// Helper function. Return the sum of the columns of the matrices in 
+        /// Helper function. Return the sum of the rows of the matrices in 
         /// the concatenation.
         template <size_t I = 0>
         typename std::enable_if<I < sizeof...(Matrices), size_t>::type 
