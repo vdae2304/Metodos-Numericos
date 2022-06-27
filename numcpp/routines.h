@@ -419,7 +419,7 @@ namespace numcpp {
      *     Convertible to a matrix object.
      */
     template <class T, class Tag>
-    base_matrix< T, lower_triangle_tag<Tag> >
+    base_matrix< T, triangular_tag<Tag> >
     tril(const base_matrix<T, Tag> &mat, ptrdiff_t offset = 0);
 
     /**
@@ -435,7 +435,7 @@ namespace numcpp {
      *     Convertible to a matrix object.
      */
     template <class T, class Tag>
-    base_matrix< T, upper_triangle_tag<Tag> >
+    base_matrix< T, triangular_tag<Tag> >
     triu(const base_matrix<T, Tag> &mat, ptrdiff_t offset = 0);
 
     /// Maximums and minimums

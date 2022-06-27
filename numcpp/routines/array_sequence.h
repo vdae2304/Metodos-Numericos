@@ -132,7 +132,7 @@ namespace numcpp {
          */
         T operator[](size_t i) const {
             __assert_within_bounds(this->m_size, i);
-            return this->m_start + (T)i*this->m_step;
+            return this->m_start + T(i) * this->m_step;
         }
 
         /**
@@ -269,7 +269,7 @@ namespace numcpp {
          */
         T operator[](size_t i) const {
             __assert_within_bounds(this->m_size, i);
-            return std::pow(this->m_base, this->m_start + (T)i*this->m_step);
+            return std::pow(this->m_base, this->m_start + T(i) * this->m_step);
         }
 
         /**

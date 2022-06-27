@@ -385,8 +385,10 @@ namespace numcpp {
          */
         T operator()(size_t i, size_t j) const {
             __assert_within_bounds(this->rows(), this->cols(), i, j);
-            size_t i1 = i / this->m_mat2.rows(), j1 = j / this->m_mat2.cols();
-            size_t i2 = i % this->m_mat2.rows(), j2 = j % this->m_mat2.cols();
+            size_t i1 = i / this->m_mat2.rows();
+            size_t j1 = j / this->m_mat2.cols();
+            size_t i2 = i % this->m_mat2.rows();
+            size_t j2 = j % this->m_mat2.cols();
             return this->m_mat1(i1, j1) * this->m_mat2(i2, j2);
         }
 

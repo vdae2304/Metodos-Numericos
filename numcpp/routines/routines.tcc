@@ -203,17 +203,17 @@ namespace numcpp {
     }
 
     template <class T, class Tag>
-    base_matrix< T, lower_triangle_tag<Tag> >
+    base_matrix< T, triangular_tag<Tag> >
     tril(const base_matrix<T, Tag> &mat, ptrdiff_t offset) {
-        typedef lower_triangle_tag<Tag> Closure;
-        return base_matrix<T, Closure>(mat, offset);
+        typedef triangular_tag<Tag> Closure;
+        return base_matrix<T, Closure>(mat, true, offset);
     }
 
     template <class T, class Tag>
-    base_matrix< T, upper_triangle_tag<Tag> >
+    base_matrix< T, triangular_tag<Tag> >
     triu(const base_matrix<T, Tag> &mat, ptrdiff_t offset) {
-        typedef upper_triangle_tag<Tag> Closure;
-        return base_matrix<T, Closure>(mat, offset);
+        typedef triangular_tag<Tag> Closure;
+        return base_matrix<T, Closure>(mat, false, offset);
     }
 
     /// Maximums and minimums
@@ -1586,13 +1586,7 @@ namespace numcpp {
     norm(const base_array<T, Tag> &arr, double p) {
         typedef typename complex_traits<T>::value_type value_type;
         if (p == 0) {
-            value_type val = 0;
-            for (size_t i = 0; i < arr.size(); ++i) {
-                if (arr[i] != T(0)) {
-                    val += 1;
-                }
-            }
-            return val;
+            return count_nonzero(arr);
         }
         else if (p == HUGE_VAL) {
             value_type val = std::abs(arr[0]);
