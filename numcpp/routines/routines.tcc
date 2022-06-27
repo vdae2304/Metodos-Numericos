@@ -1549,6 +1549,9 @@ namespace numcpp {
     typename complex_traits<T>::value_type 
     norm(const base_array<T, Tag> &arr, double p) {
         typedef typename complex_traits<T>::value_type value_type;
+        if (arr.empty()) {
+            return value_type(0);
+        }
         if (p == 0) {
             return count_nonzero(arr);
         }
@@ -1571,11 +1574,19 @@ namespace numcpp {
             return val;
         }
         else {
+            value_type max_abs = std::abs(arr[0]);
             value_type val = 0;
-            for (size_t i = 0; i < arr.size(); ++i) {
-                val += std::pow(std::abs(arr[i]), p);
+            for (size_t i = 1; i < arr.size(); ++i) {
+                if (max_abs < std::abs(arr[i])) {
+                    max_abs = std::abs(arr[i]);
+                }
             }
-            val = std::pow(val, 1.0/p);
+            if (max_abs > value_type(0)) {
+                for (size_t i = 0; i < arr.size(); ++i) {
+                    val += std::pow(std::abs(arr[i]) / max_abs, p);
+                }
+                val = max_abs * std::pow(val, 1.0/p);
+            }
             return val;
         }
     }
