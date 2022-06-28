@@ -667,16 +667,23 @@ namespace numcpp {
 
     /**
      * @brief Assigns to every element in the range starting at result the 
-     * cumulative sum of the first elements in the range [first, last).
+     * cumulative operation of the first elements in the range [first, last).
      * 
      * @param first Input iterator to the initial position of the sequence.
      * @param last Input iterator to the final position of the sequence.
      * @param result Output iterator to the initial position of the destination 
-     *     sequence where the cumulative sums are stored.
+     *     sequence where the accumulates are stored.
+     * @param f Binary function taking two elements of the type pointed by the 
+     *     InputIterator as arguments, and returning the result of the 
+     *     accumulated operation.
+     * 
+     * @return An iterator pointing to past the last element of the destination 
+     *     sequence where resulting elements have been stored.
      */
-    template <class InputIterator, class OutputIterator>
-    void __cumsum(
-        InputIterator first, InputIterator last, OutputIterator result
+    template <class InputIterator, class OutputIterator, class Function>
+    OutputIterator __accumulate(
+        InputIterator first, InputIterator last, OutputIterator result, 
+        Function f
     ) {
         typedef typename std::iterator_traits<InputIterator>::value_type T;
         if (first != last) {
@@ -685,40 +692,13 @@ namespace numcpp {
             ++first;
             ++result;
             while (first != last) {
-                val += *first;
+                val = f(val, *first);
                 *result = val;
                 ++first;
                 ++result;
             }
         }
-    }
-
-    /**
-     * @brief Assigns to every element in the range starting at result the 
-     * cumulative product of the first elements in the range [first, last).
-     * 
-     * @param first Input iterator to the initial position of the sequence.
-     * @param last Input iterator to the final position of the sequence.
-     * @param result Output iterator to the initial position of the destination 
-     *     sequence where the cumulative products are stored.
-     */
-    template <class InputIterator, class OutputIterator>
-    void __cumprod(
-        InputIterator first, InputIterator last, OutputIterator result
-    ) {
-        typedef typename std::iterator_traits<InputIterator>::value_type T;
-        if (first != last) {
-            T val = *first;
-            *result = val;
-            ++first;
-            ++result;
-            while (first != last) {
-                val *= *first;
-                *result = val;
-                ++first;
-                ++result;
-            }
-        }
+        return result;
     }
 
     /// Helper function: Throws a std::invalid_argument error if the number of 

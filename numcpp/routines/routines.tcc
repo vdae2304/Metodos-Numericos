@@ -475,30 +475,21 @@ namespace numcpp {
     template <class T, class Tag>
     array<T> cumsum(const base_array<T, Tag> &arr) {
         array<T> out(arr.size());
-        __cumsum(arr.begin(), arr.end(), out.begin());
+        __accumulate(arr.begin(), arr.end(), out.begin(), __plus());
         return out;
     }
 
     template <class T, class Tag>
     matrix<T> cumsum(const base_matrix<T, Tag> &mat, bool rowwise) {
-        typedef base_matrix_const_iterator<T, Tag> input_iterator;
-        typedef base_matrix_iterator<T, matrix_tag> output_iterator;
         matrix<T> out(mat.rows(), mat.cols());
-        if (rowwise) {
-            for (size_t i = 0; i < mat.rows(); ++i) {
-                input_iterator first(&mat, i, 0, true);
-                input_iterator last(&mat, i, mat.cols(), true);
-                output_iterator result(&out, i, 0, true);
-                __cumsum(first, last, result);
-            }
-        }
-        else {
-            for (size_t j = 0; j < mat.cols(); ++j) {
-                input_iterator first(&mat, 0, j, false);
-                input_iterator last(&mat, mat.rows(), j, false);
-                output_iterator result(&out, 0, j, false);
-                __cumsum(first, last, result);
-            }
+        size_t size = rowwise ? mat.rows() : mat.cols();
+        size_t tda = rowwise ? mat.cols() : mat.rows();
+        for (size_t i = 0; i < size; ++i) {
+            __accumulate(
+                mat.begin(rowwise) + i*tda, mat.begin(rowwise) + (i + 1)*tda, 
+                out.begin(rowwise) + i*tda, 
+                __plus()
+            );
         }
         return out;
     }
@@ -506,30 +497,21 @@ namespace numcpp {
     template <class T, class Tag>
     array<T> cumprod(const base_array<T, Tag> &arr) {
         array<T> out(arr.size());
-        __cumprod(arr.begin(), arr.end(), out.begin());
+        __accumulate(arr.begin(), arr.end(), out.begin(), __multiplies());
         return out;
     }
 
     template <class T, class Tag>
     matrix<T> cumprod(const base_matrix<T, Tag> &mat, bool rowwise) {
-        typedef base_matrix_const_iterator<T, Tag> input_iterator;
-        typedef base_matrix_iterator<T, matrix_tag> output_iterator;
         matrix<T> out(mat.rows(), mat.cols());
-        if (rowwise) {
-            for (size_t i = 0; i < mat.rows(); ++i) {
-                input_iterator first(&mat, i, 0, true);
-                input_iterator last(&mat, i, mat.cols(), true);
-                output_iterator result(&out, i, 0, true);
-                __cumprod(first, last, result);
-            }
-        }
-        else {
-            for (size_t j = 0; j < mat.cols(); ++j) {
-                input_iterator first(&mat, 0, j, false);
-                input_iterator last(&mat, mat.rows(), j, false);
-                output_iterator result(&out, 0, j, false);
-                __cumprod(first, last, result);
-            }
+        size_t size = rowwise ? mat.rows() : mat.cols();
+        size_t tda = rowwise ? mat.cols() : mat.rows();
+        for (size_t i = 0; i < size; ++i) {
+            __accumulate(
+                mat.begin(rowwise) + i*tda, mat.begin(rowwise) + (i + 1)*tda, 
+                out.begin(rowwise) + i*tda, 
+                __multiplies()
+            );
         }
         return out;
     }
