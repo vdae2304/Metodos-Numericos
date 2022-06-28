@@ -24,8 +24,6 @@
 #define NUMCPP_MATRIX_VIEW_TCC_INCLUDED
 
 #include <algorithm>
-#include <cstdio>
-#include <stdexcept>
 
 namespace numcpp {
     /// Constructors.
@@ -380,23 +378,6 @@ namespace numcpp {
     }
 
     /// Assignment operator.
-
-    /// Helper function: Throws a std::invalid_argument exception if two 
-    /// matrices have different number of rows or different number of columns.
-    inline void __assert_equal_shape(
-        size_t lhs_shape1, size_t lhs_shape2, 
-        size_t rhs_shape1, size_t rhs_shape2
-    ) {
-        if (lhs_shape1 != rhs_shape1 || lhs_shape2 != rhs_shape2) {
-            char error[160];
-            sprintf(
-                error, "operands could not be broadcast together with shapes "
-                "(%zu, %zu) (%zu, %zu)", lhs_shape1, lhs_shape2, rhs_shape1, 
-                rhs_shape2
-            );
-            throw std::invalid_argument(error);
-        }
-    }
     
     template <class T>
     inline base_matrix<T, matrix_view_tag>& 

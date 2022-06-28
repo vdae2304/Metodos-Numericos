@@ -24,8 +24,6 @@
 #define NUMCPP_INDEX_VIEW_TCC_INCLUDED
 
 #include <algorithm>
-#include <cstdio>
-#include <stdexcept>
 
 namespace numcpp {
     /// Constructors.

@@ -23,20 +23,7 @@
 #ifndef NUMCPP_ARRAY_ITERATOR_TCC_INCLUDED
 #define NUMCPP_ARRAY_ITERATOR_TCC_INCLUDED
 
-#include <cstdio>
-#include <stdexcept>
-
 namespace numcpp {
-    /// Helper function: Throws a std::out_of_range error if an index is out 
-    /// of bounds.
-    inline void __assert_within_bounds(size_t size, size_t i) {
-        if (i >= size) {
-            char error[80];
-            sprintf(error, "index %zu is out of bounds with size %zu", i, size);
-            throw std::out_of_range(error);
-        }
-    }
-
     template <class T, class Tag>
     inline base_array_iterator<T, Tag>::base_array_iterator() {
         this->m_ptr = NULL;

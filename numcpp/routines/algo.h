@@ -26,7 +26,6 @@
 #include <algorithm>
 #include <cmath>
 #include <complex>
-#include <cstdio>
 #include <iterator>
 #include <stdexcept>
 
@@ -699,23 +698,6 @@ namespace numcpp {
             }
         }
         return result;
-    }
-
-    /// Helper function: Throws a std::invalid_argument error if the number of 
-    /// columns in the left-hand side do not match the number of rows in the 
-    /// right-hand side.
-    inline void __assert_matmul_shapes(
-        size_t lhs_rows, size_t lhs_cols, size_t rhs_rows, size_t rhs_cols
-    ) {
-        if (lhs_cols != rhs_rows) {
-            char error[192];
-            sprintf(
-                error, "matmul: Number of columns in left operand do no match "
-                "number of rows in right operand: (%zu, %zu) (%zu, %zu)", 
-                lhs_rows, lhs_cols, rhs_rows, rhs_cols
-            );
-            throw std::invalid_argument(error);
-        }
     }
 }
 

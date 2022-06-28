@@ -24,8 +24,6 @@
 #define NUMCPP_ARRAY_VIEW_TCC_INCLUDED
 
 #include <algorithm>
-#include <cstdio>
-#include <stdexcept>
 
 namespace numcpp {
     /// Constructors.
@@ -206,19 +204,6 @@ namespace numcpp {
     }
 
     /// Assignment operator.
-
-    /// Helper function: Throws a std::invalid_argument exception if two 
-    /// arrays have different lengths.
-    inline void __assert_equal_length(size_t lhs_size, size_t rhs_size) {
-        if (lhs_size != rhs_size) {
-            char error[110];
-            sprintf(
-                error, "operands could not be broadcast together with shapes "
-                "(%zu,) (%zu,)", lhs_size, rhs_size
-            );
-            throw std::invalid_argument(error);
-        }
-    }
 
     template <class T>
     inline base_array<T, array_view_tag>& 

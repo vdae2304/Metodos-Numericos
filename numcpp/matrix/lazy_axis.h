@@ -24,8 +24,6 @@
 #define NUMCPP_LAZY_AXIS_H_INCLUDED
 
 #include "numcpp/array/array_iterator.h"
-#include <cstdio>
-#include <stdexcept>
 
 namespace numcpp {
     /**

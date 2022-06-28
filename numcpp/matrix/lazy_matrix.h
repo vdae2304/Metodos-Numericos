@@ -23,9 +23,6 @@
 #ifndef NUMCPP_LAZY_MATRIX_H_INCLUDED
 #define NUMCPP_LAZY_MATRIX_H_INCLUDED
 
-#include <cstdio>
-#include <stdexcept>
-
 namespace numcpp {
     /**
      * @brief A lazy_matrix is a light-weight object which stores the result of 
@@ -273,15 +270,7 @@ namespace numcpp {
             const base_matrix<T1, Tag1> &lhs, 
             const base_matrix<T2, Tag2> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs) {
-            if (lhs.rows() != rhs.rows() || lhs.cols() != rhs.cols()) {
-                char error[160];
-                sprintf(
-                    error, "operands could not be broadcast together with "
-                    "shapes (%zu, %zu) (%zu, %zu)", lhs.rows(), lhs.cols(), 
-                    rhs.rows(), rhs.cols()
-                );
-                throw std::invalid_argument(error);
-            }
+            __assert_equal_shape(lhs.rows(),lhs.cols(), rhs.rows(),rhs.cols());
         }
 
         /// Destructor.

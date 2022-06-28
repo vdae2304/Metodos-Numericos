@@ -23,9 +23,6 @@
 #ifndef NUMCPP_LAZY_ARRAY_H_INCLUDED
 #define NUMCPP_LAZY_ARRAY_H_INCLUDED
 
-#include <cstdio>
-#include <stdexcept>
-
 namespace numcpp {
     /**
      * @brief A lazy_array is a light-weight object which stores the result of 
@@ -210,14 +207,7 @@ namespace numcpp {
             const base_array<T1, Tag1> &lhs, 
             const base_array<T2, Tag2> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs) {
-            if (lhs.size() != rhs.size()) {
-                char error[110];
-                sprintf(
-                    error, "operands could not be broadcast together with "
-                    "shapes (%zu,) (%zu,)", lhs.size(), rhs.size()
-                );
-                throw std::invalid_argument(error);
-            }
+            __assert_equal_length(lhs.size(), rhs.size());
         }
 
         /// Destructor.

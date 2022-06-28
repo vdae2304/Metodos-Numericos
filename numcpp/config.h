@@ -31,7 +31,9 @@ compiler options.
 
 #include <complex>
 #include <cstddef>
+#include <cstdio>
 #include <iterator>
+#include <stdexcept>
 #include <type_traits>
 
 namespace numcpp {
@@ -89,6 +91,68 @@ namespace numcpp {
     struct complex_traits< std::complex<T> > {
         typedef T value_type;
     };
+
+    /// Asserts two arrays have equal lengths.
+    void __assert_equal_length(size_t size1, size_t size2) {
+        if (size1 != size2) {
+            char error[100];
+            sprintf(
+                error, "operands could not be broadcast together with shapes "
+                "(%zu,) (%zu,)", size1, size2
+            );
+            throw std::invalid_argument(error);
+        }
+    }
+
+    /// Asserts two matrices have equal number of rows and columns.
+    void __assert_equal_shape(
+        size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
+    ) {
+        if (nrows1 != nrows2 || ncols1 != ncols2) {
+            char error[150];
+            sprintf(
+                error, "operands could not be broadcast together with shapes "
+                "(%zu, %zu) (%zu, %zu)", nrows1, ncols1, nrows2, ncols2
+            );
+            throw std::invalid_argument(error);
+        }
+    }
+
+    /// Assert an index is within the bounds of an array.
+    void __assert_within_bounds(size_t size, size_t i) {
+        if (i >= size) {
+            char error[80];
+            sprintf(error, "index %zu is out of bounds with size %zu", i, size);
+            throw std::out_of_range(error);
+        }
+    }
+
+    /// Asserts a pair of indices is within the bounds of a matrix.
+    void __assert_within_bounds(size_t nrows, size_t ncols, size_t i, size_t j){
+        if (i >= nrows || j >= ncols) {
+            char error[130];
+            sprintf(
+                error, "index (%zu, %zu) is out of bounds with shape "
+                "(%zu, %zu)", i, j, nrows, ncols
+            );
+            throw std::out_of_range(error);
+        }
+    }
+
+    /// Asserts two matrices have appropriate shapes for matrix multiplication.
+    void __assert_matmul_shapes(
+        size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
+    ) {
+        if (ncols1 != nrows2) {
+            char error[180];
+            sprintf(
+                error, "matmul: Number of columns in left operand do no match "
+                "number of rows in right operand: (%zu, %zu) (%zu, %zu)", 
+                nrows1, ncols1, nrows2, ncols2
+            );
+            throw std::invalid_argument(error);
+        }
+    }
 
     /// Function object that returns arg unchanged.
     struct __identity {

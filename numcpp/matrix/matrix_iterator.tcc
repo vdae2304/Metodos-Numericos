@@ -23,25 +23,7 @@
 #ifndef NUMCPP_MATRIX_ITERATOR_TCC_INCLUDED
 #define NUMCPP_MATRIX_ITERATOR_TCC_INCLUDED
 
-#include <cstdio>
-#include <stdexcept>
-
 namespace numcpp {
-    /// Helper function: Throws a std::out_of_range error if a pair of indices 
-    /// is out of bounds.
-    inline void __assert_within_bounds(
-        size_t shape1, size_t shape2, size_t i, size_t j
-    ) {
-        if (i >= shape1 || j >= shape2) {
-            char error[132];
-            sprintf(
-                error, "index (%zu, %zu) is out of bounds with shape "
-                "(%zu, %zu)", i, j, shape1, shape2
-            );
-            throw std::out_of_range(error);
-        }
-    }
-    
     template <class T, class Tag>
     inline base_matrix_iterator<T, Tag>::base_matrix_iterator() {
         this->m_ptr = NULL;

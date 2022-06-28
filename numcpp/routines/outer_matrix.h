@@ -186,7 +186,6 @@ namespace numcpp {
          * @throw std::out_of_range Thrown if either i or j is out of bounds.
          */
         R operator()(size_t i, size_t j) const {
-            __assert_within_bounds(this->rows(), this->cols(), i, j);
             return this->m_fun(this->m_arr1[i], this->m_arr2[j]);
         }
 
