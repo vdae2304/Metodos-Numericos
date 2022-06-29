@@ -23,6 +23,7 @@
 #ifndef NUMCPP_DIAGONAL_MATRIX_H_INCLUDED
 #define NUMCPP_DIAGONAL_MATRIX_H_INCLUDED
 
+#include "numcpp/array/array_iterator.h"
 #include "numcpp/matrix/matrix_iterator.h"
 
 namespace numcpp {

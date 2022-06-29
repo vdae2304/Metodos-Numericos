@@ -23,8 +23,8 @@
 #ifndef NUMCPP_MATRIX_TRANSPOSE_H_INCLUDED
 #define NUMCPP_MATRIX_TRANSPOSE_H_INCLUDED
 
-#include <complex>
 #include "numcpp/matrix/matrix_iterator.h"
+#include <complex>
 
 namespace numcpp {
     template <class Tag>
