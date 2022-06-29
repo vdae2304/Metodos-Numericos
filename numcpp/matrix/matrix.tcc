@@ -986,6 +986,19 @@ namespace numcpp {
     }
 
     template <class T>
+    template <class Tag>
+    void base_matrix<T, matrix_tag>::imag(
+        const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
+    ) {
+        __assert_equal_shape(this->rows(),this->cols(), mat.rows(),mat.cols());
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->cols(); ++j) {
+                (*this)(i, j).imag(mat(i, j));
+            }
+        }
+    }
+
+    template <class T>
     T base_matrix<T, matrix_tag>::max() const {
         __range_max pred;
         return pred(this->begin(), this->end());
@@ -1078,6 +1091,19 @@ namespace numcpp {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, matrix_tag> Closure;
         return base_matrix<Rt, Closure>(__real_part(), *this);
+    }
+
+    template <class T>
+    template <class Tag>
+    void base_matrix<T, matrix_tag>::real(
+        const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
+    ) {
+        __assert_equal_shape(this->rows(),this->cols(), mat.rows(),mat.cols());
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->cols(); ++j) {
+                (*this)(i, j).real(mat(i, j));
+            }
+        }
     }
 
     template <class T>

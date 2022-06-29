@@ -776,7 +776,10 @@ namespace numcpp {
         const array_view<T> flatten() const;
 
         /**
-         * @brief Return the imaginary part, element-wise.
+         * @brief Return or set the imaginary part, element-wise.
+         * 
+         * @param mat A matrix-like object with the values to set the imaginary 
+         *     part to.
          * 
          * @return A light-weight object with the imaginary part of each 
          *     element in the matrix. Convertible to a matrix object.
@@ -786,6 +789,11 @@ namespace numcpp {
             lazy_unary_tag<__imag_part, T, matrix_tag> 
         > 
         imag() const;
+
+        template <class Tag>
+        void imag(
+            const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
+        );
 
         /**
          * @brief Return the maximum value contained in the matrix.
@@ -889,7 +897,10 @@ namespace numcpp {
         prod(bool rowwise) const;
 
         /**
-         * @brief Return the real part, element-wise.
+         * @brief Return or set the real part, element-wise.
+         * 
+         * @param mat A matrix-like object with the values to set the real part 
+         *     to.
          * 
          * @return A light-weight object with the real part of each element in 
          *     the matrix. Convertible to a matrix object.
@@ -899,6 +910,11 @@ namespace numcpp {
             lazy_unary_tag<__real_part, T, matrix_tag> 
         > 
         real() const;
+
+        template <class Tag>
+        void real(
+            const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
+        );
 
         /**
          * @brief Reverse the order of the elements in-place along an axis.
