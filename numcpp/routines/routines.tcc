@@ -518,48 +518,231 @@ namespace numcpp {
 
     /// Concatenation
 
+    /// Helper function: Return the size of the concatenation.
     template <class T, class Tag, class... Arrays>
-    base_array< T, concat_tag<base_array<T, Tag>, Arrays...> > concatenate(
+    size_t __concatenate_size(
         const base_array<T, Tag> &arr1, const Arrays&... arr2
     ) {
-        typedef concat_tag<base_array<T, Tag>, Arrays...> Closure;
-        return base_array<T, Closure>(arr1, arr2...);
+        return arr1.size() + __concatenate_size(arr2...);
+    }
+
+    template <class T, class Tag>
+    size_t __concatenate_size(const base_array<T, Tag> &arr) {
+        return arr.size();
+    }
+
+    /// Helper function: Fill an array with the concatenation of the arguments.
+    template <class T, class Tag, class... Arrays>
+    void __concatenate_fill(
+        array<T> &out, size_t offset, 
+        const base_array<T, Tag> &arr1, const Arrays&... arr2
+    ) {
+        out[slice(offset, arr1.size())] = arr1;
+        __concatenate_fill(out, offset + arr1.size(), arr2...);
+    }
+
+    template <class T, class Tag>
+    void __concatenate_fill(
+        array<T> &out, size_t offset, const base_array<T, Tag> &arr
+    ) {
+        out[slice(offset, arr.size())] = arr;
+    }
+
+    template <class T, class Tag, class... Arrays>
+    array<T> concatenate(
+        const base_array<T, Tag> &arr1, const Arrays&... arr2
+    ) {
+        array<T> out(__concatenate_size(arr1, arr2...));
+        __concatenate_fill(out, 0, arr1, arr2...);
+        return out;
+    }
+
+    /// Helper function: Assert number of columns is the same in row_stack.
+    void __vstack_assert_shape(size_t cols1, size_t cols2) {
+        if (cols1 != cols2) {
+            char error[100];
+            sprintf(
+                error, "Number of columns is not the same in row stack: "
+                "(?,%zu) (?,%zu)", cols1, cols2
+            );
+            throw std::invalid_argument(error);
+        }
+    }
+
+    /// Helper function: Return the number of rows in the vertical 
+    /// concatenation.
+    template <class T, class Tag, class... Matrices>
+    size_t __vstack_rows(
+        size_t cols, const base_matrix<T, Tag> &mat1, const Matrices&... mat2
+    ) {
+        __vstack_assert_shape(cols, mat1.cols());
+        return mat1.rows() + __vstack_rows(cols, mat2...);
     }
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, vstack_tag<base_matrix<T, Tag>, Matrices...> > 
-    row_stack(
+    size_t __vstack_rows(
+        size_t cols, const base_array<T, Tag> &arr1, const Matrices&... mat2
+    ) {
+        __vstack_assert_shape(cols, arr1.size());
+        return 1 + __vstack_rows(cols, mat2...);
+    }
+
+    template <class T, class Tag>
+    size_t __vstack_rows(size_t cols, const base_matrix<T, Tag> &mat) {
+        __vstack_assert_shape(cols, mat.cols());
+        return mat.rows();
+    }
+
+    template <class T, class Tag>
+    size_t __vstack_rows(size_t cols, const base_array<T, Tag> &arr) {
+        __vstack_assert_shape(cols, arr.size());
+        return 1;
+    }
+
+    /// Helper function: Fill a matrix with the vertical concatenation of the 
+    /// arguments.
+    template <class T, class Tag, class... Matrices>
+    void __vstack_fill(
+        matrix<T> &out, size_t offset, 
         const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     ) {
-        typedef vstack_tag<base_matrix<T, Tag>, Matrices...> Closure;
-        return base_matrix<T, Closure>(mat1, mat2...);
+        out(slice(offset, mat1.rows()), slice(mat1.cols())) = mat1;
+        __vstack_fill(out, offset + mat1.rows(), mat2...);
     }
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, vstack_tag<base_array<T, Tag>, Matrices...> > 
-    row_stack(
+    void __vstack_fill(
+        matrix<T> &out, size_t offset, 
         const base_array<T, Tag> &arr1, const Matrices&... mat2
     ) {
-        typedef vstack_tag<base_array<T, Tag>, Matrices...> Closure;
-        return base_matrix<T, Closure>(arr1, mat2...);
+        out(offset, slice(arr1.size())) = arr1;
+        __vstack_fill(out, offset + 1, mat2...);
+    }
+
+    template <class T, class Tag>
+    void __vstack_fill(
+        matrix<T> &out, size_t offset, const base_matrix<T, Tag> &mat
+    ) {
+        out(slice(offset, mat.rows()), slice(mat.cols())) = mat;
+    }
+
+    template <class T, class Tag>
+    void __vstack_fill(
+        matrix<T> &out, size_t offset, const base_array<T, Tag> &arr
+    ) {
+        out(offset, slice(arr.size())) = arr;
     }
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, hstack_tag<base_matrix<T, Tag>, Matrices...> > 
-    column_stack(
+    matrix<T> row_stack(
         const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     ) {
-        typedef hstack_tag<base_matrix<T, Tag>, Matrices...> Closure;
-        return base_matrix<T, Closure>(mat1, mat2...);
+        matrix<T> out(__vstack_rows(mat1.cols(), mat1, mat2...), mat1.cols());
+        __vstack_fill(out, 0, mat1, mat2...);
+        return out;
     }
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, hstack_tag<base_array<T, Tag>, Matrices...> > 
-    column_stack(
+    matrix<T> row_stack(
         const base_array<T, Tag> &arr1, const Matrices&... mat2
     ) {
-        typedef hstack_tag<base_array<T, Tag>, Matrices...> Closure;
-        return base_matrix<T, Closure>(arr1, mat2...);
+        matrix<T> out(__vstack_rows(arr1.size(), arr1, mat2...), arr1.size());
+        __vstack_fill(out, 0, arr1, mat2...);
+        return out;
+    }
+
+    /// Helper function: Assert number of rows is the same in column_stack.
+    void __hstack_assert_shape(size_t rows1, size_t rows2) {
+        if (rows1 != rows2) {
+            char error[100];
+            sprintf(
+                error, "Number of rows is not the same in column stack: "
+                "(%zu,?) (%zu,?)", rows1, rows2
+            );
+            throw std::invalid_argument(error);
+        }
+    }
+
+    /// Helper function: Return the number of columns in the horizontal 
+    /// concatenation.
+    template <class T, class Tag, class... Matrices>
+    size_t __hstack_cols(
+        size_t rows, const base_matrix<T, Tag> &mat1, const Matrices&... mat2
+    ) {
+        __hstack_assert_shape(rows, mat1.rows());
+        return mat1.cols() + __hstack_cols(rows, mat2...);
+    }
+
+    template <class T, class Tag, class... Matrices>
+    size_t __hstack_cols(
+        size_t rows, const base_array<T, Tag> &arr1, const Matrices&... mat2
+    ) {
+        __hstack_assert_shape(rows, arr1.size());
+        return 1 + __hstack_cols(rows, mat2...);
+    }
+
+    template <class T, class Tag>
+    size_t __hstack_cols(size_t rows, const base_matrix<T, Tag> &mat) {
+        __hstack_assert_shape(rows, mat.rows());
+        return mat.cols();
+    }
+
+    template <class T, class Tag>
+    size_t __hstack_cols(size_t rows, const base_array<T, Tag> &arr) {
+        __hstack_assert_shape(rows, arr.size());
+        return 1;
+    }
+
+    /// Helper function: Fill a matrix with the horizontal concatenation of the 
+    /// arguments.
+    template <class T, class Tag, class... Matrices>
+    void __hstack_fill(
+        matrix<T> &out, size_t offset, 
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
+    ) {
+        out(slice(mat1.rows()), slice(offset, mat1.cols())) = mat1;
+        __hstack_fill(out, offset + mat1.cols(), mat2...);
+    }
+
+    template <class T, class Tag, class... Matrices>
+    void __hstack_fill(
+        matrix<T> &out, size_t offset, 
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
+    ) {
+        out(slice(arr1.size()), offset) = arr1;
+        __hstack_fill(out, offset + 1, mat2...);
+    }
+
+    template <class T, class Tag>
+    void __hstack_fill(
+        matrix<T> &out, size_t offset, const base_matrix<T, Tag> &mat
+    ) {
+        out(slice(mat.rows()), slice(offset, mat.cols())) = mat;
+    }
+
+    template <class T, class Tag>
+    void __hstack_fill(
+        matrix<T> &out, size_t offset, const base_array<T, Tag> &arr
+    ) {
+        out(slice(arr.size()), offset) = arr;
+    }
+
+    template <class T, class Tag, class... Matrices>
+    matrix<T> column_stack(
+        const base_matrix<T, Tag> &mat1, const Matrices&... mat2
+    ) {
+        matrix<T> out(mat1.rows(), __hstack_cols(mat1.rows(), mat1, mat2...));
+        __hstack_fill(out, 0, mat1, mat2...);
+        return out;
+    }
+
+    template <class T, class Tag, class... Matrices>
+    matrix<T> column_stack(
+        const base_array<T, Tag> &arr1, const Matrices&... mat2
+    ) {
+        matrix<T> out(arr1.size(), __hstack_cols(arr1.size(), arr1, mat2...));
+        __hstack_fill(out, 0, arr1, mat2...);
+        return out;
     }
 
     /// Padding
@@ -1160,12 +1343,6 @@ namespace numcpp {
         array<T> out(arr);
         std::nth_element(out.begin(), out.begin() + kth, out.end(), comp);
         return out;
-    }
-
-    template <class T, class Tag>
-    base_array< T, reverse_tag<Tag> > reverse(const base_array<T, Tag> &arr) {
-        typedef reverse_tag<Tag> Closure;
-        return base_array<T, Closure>(arr);
     }
 
     template <class Tag>

@@ -29,9 +29,6 @@
 #include "numcpp/routines/diagonal_matrix.h"
 #include "numcpp/routines/triangular_matrix.h"
 #include "numcpp/routines/matrix_transpose.h"
-#include "numcpp/routines/array_concat.h"
-#include "numcpp/routines/matrix_stack.h"
-#include "numcpp/routines/array_reverse.h"
 #include "numcpp/routines/outer_matrix.h"
 
 namespace numcpp {
@@ -44,8 +41,8 @@ namespace numcpp {
      * 
      * @return An array of uninitialized data with the given size.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T>
     array<T> empty(size_t n);
@@ -58,8 +55,8 @@ namespace numcpp {
      * 
      * @return A matrix of uninitialized data with the given size.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T>
     matrix<T> empty(size_t m, size_t n);
@@ -849,8 +846,8 @@ namespace numcpp {
      *
      * @return The cumulative sum of the array elements.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<T> cumsum(const base_array<T, Tag> &arr);
@@ -866,8 +863,8 @@ namespace numcpp {
      *
      * @return The cumulative sum along an axis.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     matrix<T> cumsum(const base_matrix<T, Tag> &mat, bool rowwise);
@@ -879,8 +876,8 @@ namespace numcpp {
      *
      * @return The cumulative product of the array elements.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<T> cumprod(const base_array<T, Tag> &arr);
@@ -896,8 +893,8 @@ namespace numcpp {
      *
      * @return The cumulative product along an axis.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     matrix<T> cumprod(const base_matrix<T, Tag> &mat, bool rowwise);
@@ -910,35 +907,35 @@ namespace numcpp {
      * @param arr1, arr2... Arrays to concatenate. All arrays must have same 
      *     data type.
      * 
-     * @return A light-weight object with the array formed by concatenating the 
-     *     given arrays. Convertible to an array object.
+     * @return The array formed by concatenating the array arguments.
+     * 
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag, class... Arrays>
-    base_array< T, concat_tag<base_array<T, Tag>, Arrays...> > concatenate(
-        const base_array<T, Tag> &arr1, const Arrays&... arr2
-    );
+    array<T> concatenate(const base_array<T, Tag> &arr1, const Arrays&... arr2);
 
     /**
      * @brief Concatenate one or more arrays and matrices vertically.
      * 
      * @param mat1, mat2... Matrices to stack. All matrices must have same data 
-     *      type. Arrays are treated as row vectors.
+     *     type. Arrays are treated as row vectors.
      * 
-     * @return A light-weight object with the matrix formed by stacking the 
-     *      given arrays and matrices row-wise. Convertible to a matrix object.
+     * @return The matrix formed by stacking the array and matrix arguments 
+     *     row-wise.
      * 
      * @throw std::invalid_argument Thrown if the number of columns is not the 
      *     same for all the arguments.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, vstack_tag<base_matrix<T, Tag>, Matrices...> > 
-    row_stack(
+    matrix<T> row_stack(
         const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     );
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, vstack_tag<base_array<T, Tag>, Matrices...> > 
-    row_stack(
+    matrix<T> row_stack(
         const base_array<T, Tag> &arr1, const Matrices&... mat2
     );
 
@@ -948,22 +945,21 @@ namespace numcpp {
      * @param mat1, mat2... Matrices to stack. All matrices must have same data 
      *     type. Arrays are treated as column vectors.
      * 
-     * @return A light-weight object with the matrix formed by stacking the 
-     *     given arrays and matrices column-wise. Convertible to a matrix 
-     *     object.
+     * @return The matrix formed by stacking the array and matrix arguments 
+     *     column-wise.
      * 
      * @throw std::invalid_argument Thrown if the number of rows is not the 
      *     same for all the arguments.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, hstack_tag<base_matrix<T, Tag>, Matrices...> > 
-    column_stack(
+    matrix<T> column_stack(
         const base_matrix<T, Tag> &mat1, const Matrices&... mat2
     );
 
     template <class T, class Tag, class... Matrices>
-    base_matrix< T, hstack_tag<base_array<T, Tag>, Matrices...> > 
-    column_stack(
+    matrix<T> column_stack(
         const base_array<T, Tag> &arr1, const Matrices&... mat2
     );
 
@@ -1403,8 +1399,8 @@ namespace numcpp {
      * 
      * @return An array of indices that sort the array.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<size_t> argsort(const base_array<T, Tag> &arr);
@@ -1428,8 +1424,8 @@ namespace numcpp {
      * 
      * @return A sorted copy of the array.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<T> sort(const base_array<T, Tag> &arr);
@@ -1455,8 +1451,8 @@ namespace numcpp {
      * 
      * @return An array of indices that partitions the array.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<size_t> argpartition(const base_array<T, Tag> &arr, size_t kth);
@@ -1482,8 +1478,8 @@ namespace numcpp {
      * 
      * @return A partitioned copy of the array.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<T> partition(const base_array<T, Tag> &arr, size_t kth);
@@ -1493,17 +1489,6 @@ namespace numcpp {
         const base_array<T, Tag> &arr, size_t kth, Compare comp
     );
 
-    /**
-     * @brief Return the elements of an array in reversed order.
-     * 
-     * @param arr An array-like object.
-     * 
-     * @return A light-weight object with the elements in reversed order. 
-     *     Convertible to an array object.
-     */
-    template <class T, class Tag>
-    base_array< T, reverse_tag<Tag> > reverse(const base_array<T, Tag> &arr);
-
     /** 
      * @brief Find the indices of the elements that evaluate to true.
      * 
@@ -1511,8 +1496,8 @@ namespace numcpp {
      * 
      * @return An array of indices of the elements equal to true.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class Tag>
     array<size_t> where(const base_array<bool, Tag> &condition);
@@ -1524,8 +1509,8 @@ namespace numcpp {
      * 
      * @return An array of pairs of indices of the elements equal to true.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class Tag>
     array< std::pair<size_t, size_t> > where(
@@ -1868,8 +1853,8 @@ namespace numcpp {
      * @return The covariance matrix of the variables. The element (i, j) is 
      *     equal to the covariance of the i-th and j-th variables.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     matrix<T> cov(
@@ -1908,8 +1893,8 @@ namespace numcpp {
      * @return The correlation matrix of the variables. The element (i, j) is 
      *     equal to the correlation coefficient of the i-th and j-th variables.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     matrix<T> corrcoef(const base_matrix<T, Tag> &mat, bool rowwise);
@@ -1979,8 +1964,8 @@ namespace numcpp {
      * @throw std::invalid_argument Thrown if the number of columns in the 
      *     first argument do not match the number of rows in the second 
      *     argument.
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     T dot(const base_array<T, Tag1> &lhs, const base_array<T, Tag2> &rhs);
@@ -2108,8 +2093,8 @@ namespace numcpp {
      * 
      * @return A new array with the sorted unique values.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag>
     array<T> unique(const base_array<T, Tag> &arr);
@@ -2151,8 +2136,8 @@ namespace numcpp {
      * 
      * @return An array with the set union of the two arrays.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     array<T> set_union(
@@ -2168,8 +2153,8 @@ namespace numcpp {
      * 
      * @return An array with the set intersection of the two arrays.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     array<T> set_intersection(
@@ -2185,8 +2170,8 @@ namespace numcpp {
      * 
      * @return An array with the set difference of the two arrays.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     array<T> set_difference(
@@ -2202,8 +2187,8 @@ namespace numcpp {
      * 
      * @return An array with the set symmetric difference of the two arrays.
      * 
-     * @throw std::bad_alloc If the function fails to allocate storage it 
-     *     may throw an exception.
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     array<T> set_symmetric_difference(
