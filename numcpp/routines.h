@@ -1436,6 +1436,34 @@ namespace numcpp {
     );
 
     /**
+     * @brief Return a sorted copy of the matrix along an axis.
+     *
+     * @param mat A matrix-like object.
+     * @param rowwise If true, sort the elements along each row. Otherwise, 
+     *     sort the elements along each column.
+     * @param comp Custom comparator. A binary function that accepts two 
+     *     elements of type T as arguments, and returns a value convertible to 
+     *     bool. The value returned indicates whether the element passed as 
+     *     first argument is considered to go before the second.
+     * @param stable If true, preserve the relative order of the elements 
+     *     with equivalent values. Otherwise, equivalent elements are not 
+     *     guaranteed to keep their original relative order.
+     * 
+     * @return A sorted copy of the matrix.
+     * 
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    matrix<T> sort(const base_matrix<T, Tag> &mat, bool rowwise);
+
+    template <class T, class Tag, class Compare>
+    matrix<T> sort(
+        const base_matrix<T, Tag> &mat, bool rowwise, 
+        Compare comp, bool stable = false
+    );
+
+    /**
      * @brief Return the indices that would partition the array.
      * 
      * @param arr An array-like object.
@@ -1487,6 +1515,37 @@ namespace numcpp {
     template <class T, class Tag, class Compare>
     array<T> partition(
         const base_array<T, Tag> &arr, size_t kth, Compare comp
+    );
+
+    /**
+     * @brief Return a partitioned copy of the matrix.
+     * 
+     * @param mat A matrix-like object.
+     * @param kth Element index to partition by. The element at the kth 
+     *     position is the element that would be in that position in the sorted 
+     *     array. The other elements are left without any specific order, 
+     *     except that none of the elements preceding kth are greater than it, 
+     *     and none of the elements following it are less.
+     * @param rowwise If true, partition the elements along each row. 
+     *     Otherwise, partition the elements along each column.
+     * @param comp Custom comparator. A binary function that accepts two 
+     *     elements of type T as arguments, and returns a value convertible to 
+     *     bool. The value returned indicates whether the element passed as 
+     *     first argument is considered to go before the second.
+     * 
+     * @return A partitioned copy of the matrix.
+     * 
+     * @throw std::bad_alloc If the function fails to allocate storage it may 
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    matrix<T> partition(
+        const base_matrix<T, Tag> &mat, size_t kth, bool rowwise
+    );
+
+    template <class T, class Tag, class Compare>
+    matrix<T> partition(
+        const base_matrix<T, Tag> &mat, size_t kth, bool rowwise, Compare comp
     );
 
     /** 

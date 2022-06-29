@@ -849,6 +849,25 @@ namespace numcpp {
         min(bool rowwise) const;
 
         /**
+         * @brief Partition a matrix in-place.
+         * 
+         * @param kth Element index to partition by. The element at the kth 
+         *     position is the element that would be in that position in the 
+         *     sorted array. The other elements are left without any specific 
+         *     order, except that none of the elements preceding kth are 
+         *     greater than it, and none of the elements following it are less.
+         * @param rowwise If true, partition the elements along each row. 
+         *     Otherwise, partition the elements along each column.
+         * @param comp Custom comparator. A binary function that accepts two 
+         *     elements of type T as arguments, and returns a value convertible 
+         *     to bool. The value returned indicates whether the element passed 
+         *     as first argument is considered to go before the second.
+         */
+        void partition(size_t kth, bool rowwise);
+        template <class Compare>
+        void partition(size_t kth, bool rowwise, Compare comp);
+
+        /**
          * @brief Return the product of the matrix elements.
          * 
          * @return The product of the matrix elements.
@@ -880,6 +899,31 @@ namespace numcpp {
             lazy_unary_tag<__real_part, T, matrix_tag> 
         > 
         real() const;
+
+        /**
+         * @brief Reverse the order of the elements in-place along an axis.
+         * 
+         * @param rowwise If true, reverse the elements along each row. 
+         *     Otherwise, reverse the elements along each column.
+         */
+        void reverse(bool rowwise);
+
+        /**
+         * @brief Sort a matrix in-place along an axis.
+         * 
+         * @param rowwise If true, sort the elements along each row. Otherwise, 
+         *     sort the elements along each column.
+         * @param comp Custom comparator. A binary function that accepts two 
+         *     elements of type T as arguments, and returns a value convertible 
+         *     to bool. The value returned indicates whether the element passed 
+         *     as first argument is considered to go before the second.
+         * @param stable If true, preserve the relative order of the elements 
+         *     with equivalent values. Otherwise, equivalent elements are not 
+         *     guaranteed to keep their original relative order.
+         */
+        void sort(bool rowwise);
+        template <class Compare>
+        void sort(bool rowwise, Compare comp, bool stable = false);
 
         /** 
          * @brief Return the standard deviation of the matrix elements. 

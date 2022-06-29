@@ -1025,6 +1025,38 @@ namespace numcpp {
     }
 
     template <class T>
+    void base_matrix<T, matrix_tag>::partition(size_t kth, bool rowwise) {
+        size_t size = rowwise ? this->rows() : this->cols();
+        size_t tda = rowwise ? this->cols() : this->rows();
+        __assert_within_bounds(tda, kth);
+        for (size_t i = 0; i < size; ++i) {
+            std::nth_element(
+                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + i*tda + kth, 
+                this->begin(rowwise) + (i + 1)*tda
+            );
+        }
+    }
+
+    template <class T>
+    template <class Compare>
+    void base_matrix<T, matrix_tag>::partition(
+        size_t kth, bool rowwise, Compare comp
+    ) {
+        size_t size = rowwise ? this->rows() : this->cols();
+        size_t tda = rowwise ? this->cols() : this->rows();
+        __assert_within_bounds(tda, kth);
+        for (size_t i = 0; i < size; ++i) {
+            std::nth_element(
+                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + i*tda + kth, 
+                this->begin(rowwise) + (i + 1)*tda, 
+                comp
+            );
+        }
+    }
+
+    template <class T>
     T base_matrix<T, matrix_tag>::prod() const {
         __range_prod pred;
         return pred(this->begin(), this->end());
@@ -1046,6 +1078,55 @@ namespace numcpp {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, matrix_tag> Closure;
         return base_matrix<Rt, Closure>(__real_part(), *this);
+    }
+
+    template <class T>
+    void base_matrix<T, matrix_tag>::reverse(bool rowwise) {
+        size_t size = rowwise ? this->rows() : this->cols();
+        size_t tda = rowwise ? this->cols() : this->rows();
+        for (size_t i = 0; i < size; ++i) {
+            std::reverse(
+                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + (i + 1)*tda
+            );
+        }
+    }
+
+    template <class T>
+    void base_matrix<T, matrix_tag>::sort(bool rowwise) {
+        size_t size = rowwise ? this->rows() : this->cols();
+        size_t tda = rowwise ? this->cols() : this->rows();
+        for (size_t i = 0; i < size; ++i) {
+            std::sort(
+                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + (i + 1)*tda
+            );
+        }
+    }
+
+    template <class T>
+    template <class Compare>
+    void base_matrix<T, matrix_tag>::sort(
+        bool rowwise, Compare comp, bool stable
+    ) {
+        size_t size = rowwise ? this->rows() : this->cols();
+        size_t tda = rowwise ? this->cols() : this->rows();
+        for (size_t i = 0; i < size; ++i) {
+            if (stable) {
+                std::stable_sort(
+                    this->begin(rowwise) + i*tda, 
+                    this->begin(rowwise) + (i + 1)*tda, 
+                    comp
+                );
+            }
+            else {
+                std::sort(
+                    this->begin(rowwise) + i*tda, 
+                    this->begin(rowwise) + (i + 1)*tda, 
+                    comp
+                );
+            }
+        }
     }
 
     template <class T>

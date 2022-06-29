@@ -1279,7 +1279,7 @@ namespace numcpp {
     template <class T, class Tag>
     array<T> sort(const base_array<T, Tag> &arr) {
         array<T> out(arr);
-        std::sort(out.begin(), out.end());
+        out.sort();
         return out;
     }
 
@@ -1288,12 +1288,23 @@ namespace numcpp {
         const base_array<T, Tag> &arr, Compare comp, bool stable
     ) {
         array<T> out(arr);
-        if (stable) {
-            std::stable_sort(out.begin(), out.end(), comp);
-        }
-        else {
-            std::sort(out.begin(), out.end(), comp);
-        }
+        out.sort(comp, stable);
+        return out;
+    }
+
+    template <class T, class Tag>
+    matrix<T> sort(const base_matrix<T, Tag> &mat, bool rowwise) {
+        matrix<T> out(mat);
+        out.sort(rowwise);
+        return out;
+    }
+
+    template <class T, class Tag, class Compare>
+    matrix<T> sort(
+        const base_matrix<T, Tag> &mat, bool rowwise, Compare comp, bool stable
+    ) {
+        matrix<T> out(mat);
+        out.sort(rowwise, comp, stable);
         return out;
     }
 
@@ -1329,9 +1340,8 @@ namespace numcpp {
 
     template <class T, class Tag>
     array<T> partition(const base_array<T, Tag> &arr, size_t kth) {
-        __assert_within_bounds(arr.size(), kth);
         array<T> out(arr);
-        std::nth_element(out.begin(), out.begin() + kth, out.end());
+        out.partition(kth);
         return out;
     }
 
@@ -1339,9 +1349,26 @@ namespace numcpp {
     array<T> partition(
         const base_array<T, Tag> &arr, size_t kth, Compare comp
     ) {
-        __assert_within_bounds(arr.size(), kth);
         array<T> out(arr);
-        std::nth_element(out.begin(), out.begin() + kth, out.end(), comp);
+        out.partition(kth, comp);
+        return out;
+    }
+
+    template <class T, class Tag>
+    matrix<T> partition(
+        const base_matrix<T, Tag> &mat, size_t kth, bool rowwise
+    ) {
+        matrix<T> out(mat);
+        out.partition(kth, rowwise);
+        return out;
+    }
+
+    template <class T, class Tag, class Compare>
+    matrix<T> partition(
+        const base_matrix<T, Tag> &mat, size_t kth, bool rowwise, Compare comp
+    ) {
+        matrix<T> out(mat);
+        out.partition(kth, rowwise, comp);
         return out;
     }
 
