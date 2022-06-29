@@ -394,7 +394,10 @@ namespace numcpp {
         conj() const;
 
         /**
-         * @brief Return the imaginary part, element-wise.
+         * @brief Return or set the imaginary part, element-wise.
+         * 
+         * @param arr An array-like object with the values to set the imaginary 
+         *     part to.
          * 
          * @return A light-weight object with the imaginary part of each 
          *     element in the array_view. Convertible to an array object.
@@ -404,6 +407,11 @@ namespace numcpp {
             lazy_unary_tag<__imag_part, T, array_view_tag> 
         > 
         imag() const;
+
+        template <class Tag>
+        void imag(
+            const base_array<typename complex_traits<T>::value_type, Tag> &arr
+        );
 
         /**
          * @brief Return the maximum value contained in the array_view.
@@ -451,7 +459,10 @@ namespace numcpp {
         T prod() const;
 
         /**
-         * @brief Return the real part, element-wise.
+         * @brief Return or set the real part, element-wise.
+         * 
+         * @param arr An array-like object with the values to set the real part 
+         *     to.
          * 
          * @return A light-weight object with the real part of each element in 
          *     the array_view. Convertible to an array object.
@@ -461,6 +472,11 @@ namespace numcpp {
             lazy_unary_tag<__real_part, T, array_view_tag> 
         > 
         real() const;
+
+        template <class Tag>
+        void real(
+            const base_array<typename complex_traits<T>::value_type, Tag> &arr
+        );
 
         /**
          * @brief Reverse the order of the elements in-place.

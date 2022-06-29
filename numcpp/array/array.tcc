@@ -724,6 +724,17 @@ namespace numcpp {
     }
 
     template <class T>
+    template <class Tag>
+    void base_array<T, array_tag>::imag(
+        const base_array<typename complex_traits<T>::value_type, Tag> &arr
+    ) {
+        __assert_equal_length(this->size(), arr.size());
+        for (size_t i = 0; i < this->size(); ++i) {
+            (*this)[i].imag(arr[i]);
+        }
+    }
+
+    template <class T>
     T base_array<T, array_tag>::max() const {
         __range_max pred;
         return pred(this->begin(), this->end());
@@ -769,6 +780,17 @@ namespace numcpp {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, array_tag> Closure;
         return base_array<Rt, Closure>(__real_part(), *this);
+    }
+
+    template <class T>
+    template <class Tag>
+    void base_array<T, array_tag>::real(
+        const base_array<typename complex_traits<T>::value_type, Tag> &arr
+    ) {
+        __assert_equal_length(this->size(), arr.size());
+        for (size_t i = 0; i < this->size(); ++i) {
+            (*this)[i].real(arr[i]);
+        }
     }
 
     template <class T>
