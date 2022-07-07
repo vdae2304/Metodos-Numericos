@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -30,31 +30,31 @@ namespace numcpp {
 
     template <class T>
     base_array<T, index_view_tag>::base_array() {
-        this->m_data = NULL;
-        this->m_size = 0;
-        this->m_index = NULL;
-        this->m_owner = false;
+        m_data = NULL;
+        m_size = 0;
+        m_index = NULL;
+        m_owner = false;
     }
 
     template <class T>
     base_array<T, index_view_tag>::base_array(
         size_t n, T *data, const size_t *index, int mode
     ) {
-        this->m_data = data;
-        this->m_size = n;
+        m_data = data;
+        m_size = n;
         if (mode > 0) {
             size_t *index_copy = new size_t[n];
             std::copy(index, index + n, index_copy);
-            this->m_index = index_copy;
-            this->m_owner = true;
+            m_index = index_copy;
+            m_owner = true;
         }
         else if (mode == 0) {
-            this->m_index = index;
-            this->m_owner = false;
+            m_index = index;
+            m_owner = false;
         }
         else {
-            this->m_index = index;
-            this->m_owner = true;
+            m_index = index;
+            m_owner = true;
         }
     }
 
@@ -62,17 +62,17 @@ namespace numcpp {
     base_array<T, index_view_tag>::base_array(
         const base_array<T, index_view_tag> &other
     ) {
-        this->m_data = other.m_data;
-        this->m_size = other.m_size;
+        m_data = other.m_data;
+        m_size = other.m_size;
         if (other.m_owner) {
             size_t *index_copy = new size_t[other.m_size];
             std::copy(other.m_index, other.m_index + other.m_size, index_copy);
-            this->m_index = index_copy;
-            this->m_owner = true;
+            m_index = index_copy;
+            m_owner = true;
         }
         else {
-            this->m_index = other.m_index;
-            this->m_owner = false;
+            m_index = other.m_index;
+            m_owner = false;
         }
     }
 
@@ -80,10 +80,10 @@ namespace numcpp {
     base_array<T, index_view_tag>::base_array(
         base_array<T, index_view_tag> &&other
     ) {
-        this->m_data = other.m_data;
-        this->m_size = other.m_size;
-        this->m_index = other.m_index;
-        this->m_owner = other.m_owner;
+        m_data = other.m_data;
+        m_size = other.m_size;
+        m_index = other.m_index;
+        m_owner = other.m_owner;
         other.m_data = NULL;
         other.m_size = 0;
         other.m_index = NULL;
@@ -94,8 +94,8 @@ namespace numcpp {
 
     template <class T>
     base_array<T, index_view_tag>::~base_array() {
-        if (this->m_owner) {
-            delete[] this->m_index;
+        if (m_owner) {
+            delete[] m_index;
         }
     }
 
@@ -116,17 +116,17 @@ namespace numcpp {
     template <class T>
     inline typename base_array<T, index_view_tag>::iterator
     base_array<T, index_view_tag>::end() {
-        return base_array_iterator<T, index_view_tag>(this, this->m_size);
+        return base_array_iterator<T, index_view_tag>(this, m_size);
     }
 
     template <class T>
     inline typename base_array<T, index_view_tag>::const_iterator
     base_array<T, index_view_tag>::end() const {
-        return base_array_const_iterator<T, index_view_tag>(this, this->m_size);
+        return base_array_const_iterator<T, index_view_tag>(this, m_size);
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::reverse_iterator 
+    inline typename base_array<T, index_view_tag>::reverse_iterator
     base_array<T, index_view_tag>::rbegin() {
         return typename base_array<T, index_view_tag>::reverse_iterator(
             this->end()
@@ -134,7 +134,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::const_reverse_iterator 
+    inline typename base_array<T, index_view_tag>::const_reverse_iterator
     base_array<T, index_view_tag>::rbegin() const {
         return typename base_array<T, index_view_tag>::const_reverse_iterator(
             this->end()
@@ -142,7 +142,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::reverse_iterator 
+    inline typename base_array<T, index_view_tag>::reverse_iterator
     base_array<T, index_view_tag>::rend() {
         return typename base_array<T, index_view_tag>::reverse_iterator(
             this->begin()
@@ -150,7 +150,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::const_reverse_iterator 
+    inline typename base_array<T, index_view_tag>::const_reverse_iterator
     base_array<T, index_view_tag>::rend() const {
         return typename base_array<T, index_view_tag>::const_reverse_iterator(
             this->begin()
@@ -166,11 +166,11 @@ namespace numcpp {
     template <class T>
     inline typename base_array<T, index_view_tag>::const_iterator
     base_array<T, index_view_tag>::cend() const {
-        return base_array_const_iterator<T, index_view_tag>(this, this->m_size);
+        return base_array_const_iterator<T, index_view_tag>(this, m_size);
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::const_reverse_iterator 
+    inline typename base_array<T, index_view_tag>::const_reverse_iterator
     base_array<T, index_view_tag>::crbegin() const {
         return typename base_array<T, index_view_tag>::const_reverse_iterator(
             this->cend()
@@ -178,7 +178,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, index_view_tag>::const_reverse_iterator 
+    inline typename base_array<T, index_view_tag>::const_reverse_iterator
     base_array<T, index_view_tag>::crend() const {
         return typename base_array<T, index_view_tag>::const_reverse_iterator(
             this->cbegin()
@@ -189,45 +189,45 @@ namespace numcpp {
 
     template <class T>
     inline T& base_array<T, index_view_tag>::operator[](size_t i) {
-        __assert_within_bounds(this->m_size, i);
-        return this->m_data[this->m_index[i]];
+        __assert_within_bounds(m_size, i);
+        return m_data[m_index[i]];
     }
 
     template <class T>
     const T& base_array<T, index_view_tag>::operator[](size_t i) const {
-        __assert_within_bounds(this->m_size, i);
-        return this->m_data[this->m_index[i]];
+        __assert_within_bounds(m_size, i);
+        return m_data[m_index[i]];
     }
 
     template <class T>
     inline size_t base_array<T, index_view_tag>::size() const {
-        return this->m_size;
+        return m_size;
     }
 
     template <class T>
     inline bool base_array<T, index_view_tag>::empty() const {
-        return (this->m_size == 0);
+        return (m_size == 0);
     }
 
     template <class T>
     inline T* base_array<T, index_view_tag>::data() {
-        return this->m_data;
+        return m_data;
     }
 
     template <class T>
     inline const T* base_array<T, index_view_tag>::data() const {
-        return this->m_data;
+        return m_data;
     }
 
     template <class T>
     inline const size_t* base_array<T, index_view_tag>::index() const {
-        return this->m_index;
+        return m_index;
     }
 
     /// Assignment operator.
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator=(
         const base_array<T, index_view_tag> &other
     ) {
@@ -238,7 +238,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator=(
         const base_array<T, Tag> &other
     ) {
@@ -248,22 +248,22 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator=(const T &val) {
         std::fill_n(this->begin(), this->size(), val);
         return *this;
     }
-    
+
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator=(
         base_array<T, index_view_tag> &&other
     ) {
         if (this != &other) {
-            this->m_data = other.m_data;
-            this->m_size = other.m_size;
-            this->m_index = other.m_index;
-            this->m_owner = other.m_owner;
+            m_data = other.m_data;
+            m_size = other.m_size;
+            m_index = other.m_index;
+            m_owner = other.m_owner;
             other.m_data = NULL;
             other.m_size = 0;
             other.m_index = NULL;
@@ -275,7 +275,7 @@ namespace numcpp {
     /// Compound assignment operator.
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator+=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -284,7 +284,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator-=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -293,7 +293,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator*=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -302,7 +302,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator/=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -311,7 +311,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator%=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -320,7 +320,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator&=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -329,7 +329,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator|=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -338,7 +338,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator^=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -347,7 +347,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator<<=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -356,7 +356,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator>>=(
         const base_array<T, index_view_tag> &rhs
     ) {
@@ -366,7 +366,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator+=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__plus(), *this, rhs, *this);
         return *this;
@@ -374,7 +374,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator-=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__minus(), *this, rhs, *this);
         return *this;
@@ -382,7 +382,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator*=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__multiplies(), *this, rhs, *this);
         return *this;
@@ -390,7 +390,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator/=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__divides(), *this, rhs, *this);
         return *this;
@@ -398,7 +398,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator%=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__modulus(), *this, rhs, *this);
         return *this;
@@ -406,7 +406,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator&=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_and(), *this, rhs, *this);
         return *this;
@@ -414,7 +414,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator|=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_or(), *this, rhs, *this);
         return *this;
@@ -422,7 +422,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator^=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_xor(), *this, rhs, *this);
         return *this;
@@ -430,7 +430,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator<<=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__left_shift(), *this, rhs, *this);
         return *this;
@@ -438,77 +438,77 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator>>=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__right_shift(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator+=(const T &val) {
         __apply_binary_function(__plus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator-=(const T &val) {
         __apply_binary_function(__minus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator*=(const T &val) {
         __apply_binary_function(__multiplies(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator/=(const T &val) {
         __apply_binary_function(__divides(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator%=(const T &val) {
         __apply_binary_function(__modulus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator&=(const T &val) {
         __apply_binary_function(__bit_and(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator|=(const T &val) {
         __apply_binary_function(__bit_or(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator^=(const T &val) {
         __apply_binary_function(__bit_xor(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator<<=(const T &val) {
         __apply_binary_function(__left_shift(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, index_view_tag>& 
+    inline base_array<T, index_view_tag>&
     base_array<T, index_view_tag>::operator>>=(const T &val) {
         __apply_binary_function(__right_shift(), *this, val, *this);
         return *this;
@@ -546,7 +546,7 @@ namespace numcpp {
 
     template <class T>
     template <class U>
-    base_array< U, lazy_unary_tag<__identity, T, index_view_tag> > 
+    base_array< U, lazy_unary_tag<__identity, T, index_view_tag> >
     base_array<T, index_view_tag>::astype() const {
         typedef lazy_unary_tag<__identity, T, index_view_tag> Closure;
         return base_array<U, Closure>(__identity(), *this);
@@ -558,17 +558,17 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< T, lazy_unary_tag<__conjugate, T, index_view_tag> > 
+    base_array< T, lazy_unary_tag<__conjugate, T, index_view_tag> >
     base_array<T, index_view_tag>::conj() const {
         typedef lazy_unary_tag<__conjugate, T, index_view_tag> Closure;
         return base_array<T, Closure>(__conjugate(), *this);
     }
 
     template <class T>
-    base_array< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__imag_part, T, index_view_tag> 
-    > 
+    base_array<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__imag_part, T, index_view_tag>
+    >
     base_array<T, index_view_tag>::imag() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__imag_part, T, index_view_tag> Closure;
@@ -624,10 +624,10 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__real_part, T, index_view_tag> 
-    > 
+    base_array<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__real_part, T, index_view_tag>
+    >
     base_array<T, index_view_tag>::real() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, index_view_tag> Closure;

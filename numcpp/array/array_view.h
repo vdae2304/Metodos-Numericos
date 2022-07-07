@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -23,15 +23,15 @@
 #ifndef NUMCPP_ARRAY_VIEW_H_INCLUDED
 #define NUMCPP_ARRAY_VIEW_H_INCLUDED
 
-namespace numcpp {    
+namespace numcpp {
     /**
-     * @brief An array_view is just a view of an array object. It references 
-     * the elements in the original array. The view itself does not own the 
-     * data and any changes made to the view will affect the original array, 
+     * @brief An array_view is just a view of an array object. It references
+     * the elements in the original array. The view itself does not own the
+     * data and any changes made to the view will affect the original array,
      * and any changes made to the original array will affect the view.
      *
-     * @tparam T Type of the elements contained in the array_view. This shall 
-     *     be an arithmetic type or a class that behaves like one (such as 
+     * @tparam T Type of the elements contained in the array_view. This shall
+     *     be an arithmetic type or a class that behaves like one (such as
      *     std::complex).
      */
     template <class T>
@@ -53,13 +53,13 @@ namespace numcpp {
         /// Constructors.
 
         /**
-         * @brief Default constructor. Constructs an array_view that does not 
+         * @brief Default constructor. Constructs an array_view that does not
          * reference any object.
          */
         base_array();
 
         /**
-         * @brief Array constructor. Constructs an array_view that references 
+         * @brief Array constructor. Constructs an array_view that references
          * an array.
          *
          * @param n The number of elements in the array_view.
@@ -68,20 +68,20 @@ namespace numcpp {
         base_array(size_t n, T *data);
 
         /**
-         * @brief Slice array constructor. Constructs an array_view that 
+         * @brief Slice array constructor. Constructs an array_view that
          * references a subset of array elements.
          *
          * @param n The number of elements in the array_view.
          * @param data The pointer to the memory array used by the array_view.
-         * @param offset Index of the first element selected into the 
+         * @param offset Index of the first element selected into the
          *     array_view.
-         * @param stride Span that separates the elements selected into the 
+         * @param stride Span that separates the elements selected into the
          *     array_view.
          */
         base_array(size_t n, T *data, size_t offset, size_t stride);
 
         /**
-         * @brief Copy constructor. Constructs an array_view as a copy of 
+         * @brief Copy constructor. Constructs an array_view as a copy of
          * other.
          *
          * @param other An array_view of the same type.
@@ -89,10 +89,10 @@ namespace numcpp {
         base_array(const base_array &other);
 
         /**
-         * @brief Move constructor. Constructs an array_view with the contents 
+         * @brief Move constructor. Constructs an array_view with the contents
          * of other.
          *
-         * @param other An array_view of the same type. other is left in an 
+         * @param other An array_view of the same type. other is left in an
          *     empty state.
          */
         base_array(base_array &&other);
@@ -103,55 +103,55 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * array_view.
          *
-         * @return A random access iterator to the beginning of the array_view. 
-         *     If the array_view is const-qualified, the function returns a 
+         * @return A random access iterator to the beginning of the array_view.
+         *     If the array_view is const-qualified, the function returns a
          *     const_iterator. Otherwise, it returns an iterator.
          */
         iterator begin();
         const_iterator begin() const;
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the array_view. It does not point to any element, and thus shall not 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the array_view. It does not point to any element, and thus shall not
          * be dereferenced.
          *
-         * @return A random access iterator to the element past the end of the 
-         *     array_view. If the array_view is const-qualified, the function 
+         * @return A random access iterator to the element past the end of the
+         *     array_view. If the array_view is const-qualified, the function
          *     returns a const_iterator. Otherwise, it returns an iterator.
          */
         iterator end();
         const_iterator end() const;
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the array_view (i.e., its reverse beginning). Reverse iterators 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the array_view (i.e., its reverse beginning). Reverse iterators
          * iterate backwards.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
-         *     the array_view. If the array_view is const-qualified, the 
-         *     function returns a const_reverse_iterator. Otherwise, it returns 
+         * @return A reverse random access iterator to the reverse beginning of
+         *     the array_view. If the array_view is const-qualified, the
+         *     function returns a const_reverse_iterator. Otherwise, it returns
          *     a reverse_iterator.
          */
         reverse_iterator rbegin();
         const_reverse_iterator rbegin() const;
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the array_view (i.e., its reverse end).
          *
-         * @return A reverse random access iterator to the reverse end of the 
-         *     array_view. If the array_view is const-qualified, the function 
-         *     returns a const_reverse_iterator. Otherwise, it returns a 
+         * @return A reverse random access iterator to the reverse end of the
+         *     array_view. If the array_view is const-qualified, the function
+         *     returns a const_reverse_iterator. Otherwise, it returns a
          *     reverse_iterator.
          */
         reverse_iterator rend();
         const_reverse_iterator rend() const;
 
         /**
-         * @brief Returns a const_iterator pointing to the first element in the 
+         * @brief Returns a const_iterator pointing to the first element in the
          * array_view.
          *
          * @return A const_iterator to the beginning of the array_view.
@@ -159,29 +159,29 @@ namespace numcpp {
         const_iterator cbegin() const;
 
         /**
-         * @brief Returns a const_iterator pointing to the past-the-end element 
+         * @brief Returns a const_iterator pointing to the past-the-end element
          * in the array_view.
          *
-         * @return A const_iterator to the element past the end of the 
+         * @return A const_iterator to the element past the end of the
          *     array_view.
          */
         const_iterator cend() const;
 
         /**
-         * @brief Returns a const_reverse_iterator pointing to the last element 
+         * @brief Returns a const_reverse_iterator pointing to the last element
          * in the array_view (i.e., its reverse beginning).
          *
-         * @return A const_reverse_iterator to the reverse beginning of the 
+         * @return A const_reverse_iterator to the reverse beginning of the
          *     array_view.
          */
         const_reverse_iterator crbegin() const;
 
         /**
-         * @brief Returns a const_reverse_iterator pointing to the element 
-         * preceding the first element in the array_view (i.e., its reverse 
+         * @brief Returns a const_reverse_iterator pointing to the element
+         * preceding the first element in the array_view (i.e., its reverse
          * end).
          *
-         * @return A const_reverse_iterator to the reverse end of the 
+         * @return A const_reverse_iterator to the reverse end of the
          *     array_view.
          */
         const_reverse_iterator crend() const;
@@ -189,15 +189,15 @@ namespace numcpp {
         /// Array indexing.
 
         /**
-         * @brief Subscript operator. Returns a reference to the element at 
-         * position i in the array_view. The element at position i corresponds 
+         * @brief Subscript operator. Returns a reference to the element at
+         * position i in the array_view. The element at position i corresponds
          * to the element at position offset + i*stride in the original array.
          *
-         * @param i Position of an element in the array_view. Must be between 
+         * @param i Position of an element in the array_view. Must be between
          *     0 and size() - 1.
          *
-         * @return The element at the specified position in the array_view. 
-         *     If the array_view is const-qualified, the function returns a 
+         * @return The element at the specified position in the array_view.
+         *     If the array_view is const-qualified, the function returns a
          *     reference to const T. Otherwise, it returns a reference to T.
          *
          * @throw std::out_of_range Thrown if i is out of bounds.
@@ -213,7 +213,7 @@ namespace numcpp {
         size_t size() const;
 
         /**
-         * @brief Returns whether the array_view is empty (i.e., whether its 
+         * @brief Returns whether the array_view is empty (i.e., whether its
          * size is 0).
          *
          * @return true if the array_view size is 0, false otherwise.
@@ -221,11 +221,11 @@ namespace numcpp {
         bool empty() const;
 
         /**
-         * @brief Returns a pointer to the memory array used internally by the 
+         * @brief Returns a pointer to the memory array used internally by the
          * array_view.
          *
-         * @return A pointer to the array used internally by the array_view. 
-         *     If the array_view is const-qualified, the function returns a 
+         * @return A pointer to the array used internally by the array_view.
+         *     If the array_view is const-qualified, the function returns a
          *     pointer to const T. Otherwise, it returns a pointer to T.
          */
         T* data();
@@ -234,11 +234,11 @@ namespace numcpp {
         /// Assignment operator.
 
         /**
-         * @brief Copy assignment. Assigns to each element the value of the 
+         * @brief Copy assignment. Assigns to each element the value of the
          * corresponding element in other.
          *
          * @param other An array-like object of the same type and size.
-         * 
+         *
          * @return *this
          *
          * @throw std::invalid_argument Thrown if array sizes do not match.
@@ -251,17 +251,17 @@ namespace numcpp {
          * @brief Fill assignment. Assigns val to every element.
          *
          * @param val Value assigned to all the elements in the array_view.
-         * 
+         *
          * @return *this
          */
         base_array& operator=(const T &val);
 
         /**
-         * @brief Move assignment. Acquires the contents of other, leaving 
+         * @brief Move assignment. Acquires the contents of other, leaving
          * other in an empty state.
          *
          * @param other An array_view of the same type.
-         * 
+         *
          * @return *this
          */
         base_array& operator=(base_array &&other);
@@ -269,15 +269,15 @@ namespace numcpp {
         /// Compound assignment operator.
 
         /**
-         * @brief Assigns to *this the result of performing the respective 
+         * @brief Assigns to *this the result of performing the respective
          * operation on all the elements in the array_view.
          *
-         * When the right-hand side argument is an array object, the operation 
-         * is performed between the corresponding elements in each object (the 
-         * first element of the left one with the right one, the second with 
+         * When the right-hand side argument is an array object, the operation
+         * is performed between the corresponding elements in each object (the
+         * first element of the left one with the right one, the second with
          * the second, and so on...)
          *
-         * When the right-hand side argument is a value, the operation is 
+         * When the right-hand side argument is a value, the operation is
          * applied to all the elements in the array_view against that value.
          *
          * @param rhs Right-hand side array_view object.
@@ -285,7 +285,7 @@ namespace numcpp {
          *
          * @return *this
          *
-         * @throw std::invalid_argument Thrown if the right-hand side argument 
+         * @throw std::invalid_argument Thrown if the right-hand side argument
          *     is an array_view object with different size to *this.
          */
         base_array& operator+=(const base_array &rhs);
@@ -334,10 +334,10 @@ namespace numcpp {
         /// Public methods.
 
         /**
-         * @brief Assigns to each element the result of applying a function to 
+         * @brief Assigns to each element the result of applying a function to
          * the corresponding elements in *this.
          *
-         * @param f A function that accepts one element of type T as argument, 
+         * @param f A function that accepts one element of type T as argument,
          *     and returns a value convertible to T.
          */
         void apply(T f(T));
@@ -361,21 +361,21 @@ namespace numcpp {
 
         /**
          * @brief Cast each element to a specified type.
-         * 
-         * @return A light-weight object with the elements in the array_view 
+         *
+         * @return A light-weight object with the elements in the array_view
          *     casted to the specified type. Convertible to an array object.
          */
         template <class U>
-        base_array< U, lazy_unary_tag<__identity, T, array_view_tag> > 
+        base_array< U, lazy_unary_tag<__identity, T, array_view_tag> >
         astype() const;
 
         /**
-         * @brief Clamp the values in the array_view. Given an interval 
-         * [a_min, a_max], values smaller than a_min become a_min, and values 
+         * @brief Clamp the values in the array_view. Given an interval
+         * [a_min, a_max], values smaller than a_min become a_min, and values
          * larger than a_max become a_max.
-         * 
-         * If T is a complex type, then real and imaginary parts are clamped 
-         * independently.
+         *
+         * If T is a complex type, then real and imaginary parts are clamped
+         * separately.
          *
          * @param a_min The lower boundary to clamp.
          * @param a_max The upper boundary to clamp.
@@ -385,27 +385,27 @@ namespace numcpp {
         void clamp(const T &a_min, const T &a_max);
 
         /**
-         * @brief Return the complex conjugate, element-wise. 
-         * 
-         * @return A light-weight object with the complex conjugate of each 
+         * @brief Return the complex conjugate, element-wise.
+         *
+         * @return A light-weight object with the complex conjugate of each
          *     element in the array_view. Convertible to an array object.
          */
-        base_array< T, lazy_unary_tag<__conjugate, T, array_view_tag> > 
+        base_array< T, lazy_unary_tag<__conjugate, T, array_view_tag> >
         conj() const;
 
         /**
          * @brief Return or set the imaginary part, element-wise.
-         * 
-         * @param arr An array-like object with the values to set the imaginary 
+         *
+         * @param arr An array-like object with the values to set the imaginary
          *     part to.
-         * 
-         * @return A light-weight object with the imaginary part of each 
+         *
+         * @return A light-weight object with the imaginary part of each
          *     element in the array_view. Convertible to an array object.
          */
-        base_array< 
-            typename complex_traits<T>::value_type, 
-            lazy_unary_tag<__imag_part, T, array_view_tag> 
-        > 
+        base_array<
+            typename complex_traits<T>::value_type,
+            lazy_unary_tag<__imag_part, T, array_view_tag>
+        >
         imag() const;
 
         template <class Tag>
@@ -436,15 +436,15 @@ namespace numcpp {
 
         /**
          * @brief Partition an array_view in-place.
-         * 
-         * @param kth Element index to partition by. The element at the kth 
-         *     position is the element that would be in that position in the 
-         *     sorted array. The other elements are left without any specific 
-         *     order, except that none of the elements preceding kth are 
+         *
+         * @param kth Element index to partition by. The element at the kth
+         *     position is the element that would be in that position in the
+         *     sorted array. The other elements are left without any specific
+         *     order, except that none of the elements preceding kth are
          *     greater than it, and none of the elements following it are less.
-         * @param comp Custom comparator. A binary function that accepts two 
-         *     elements of type T as arguments, and returns a value convertible 
-         *     to bool. The value returned indicates whether the element passed 
+         * @param comp Custom comparator. A binary function that accepts two
+         *     elements of type T as arguments, and returns a value convertible
+         *     to bool. The value returned indicates whether the element passed
          *     as first argument is considered to go before the second.
          */
         void partition(size_t kth);
@@ -460,17 +460,17 @@ namespace numcpp {
 
         /**
          * @brief Return or set the real part, element-wise.
-         * 
-         * @param arr An array-like object with the values to set the real part 
+         *
+         * @param arr An array-like object with the values to set the real part
          *     to.
-         * 
-         * @return A light-weight object with the real part of each element in 
+         *
+         * @return A light-weight object with the real part of each element in
          *     the array_view. Convertible to an array object.
          */
-        base_array< 
-            typename complex_traits<T>::value_type, 
-            lazy_unary_tag<__real_part, T, array_view_tag> 
-        > 
+        base_array<
+            typename complex_traits<T>::value_type,
+            lazy_unary_tag<__real_part, T, array_view_tag>
+        >
         real() const;
 
         template <class Tag>
@@ -485,13 +485,13 @@ namespace numcpp {
 
         /**
          * @brief Sort an array_view in-place.
-         * 
-         * @param comp Custom comparator. A binary function that accepts two 
-         *     elements of type T as arguments, and returns a value convertible 
-         *     to bool. The value returned indicates whether the element passed 
+         *
+         * @param comp Custom comparator. A binary function that accepts two
+         *     elements of type T as arguments, and returns a value convertible
+         *     to bool. The value returned indicates whether the element passed
          *     as first argument is considered to go before the second.
-         * @param stable If true, preserve the relative order of the elements 
-         *     with equivalent values. Otherwise, equivalent elements are not 
+         * @param stable If true, preserve the relative order of the elements
+         *     with equivalent values. Otherwise, equivalent elements are not
          *     guaranteed to keep their original relative order.
          */
         void sort();
@@ -499,9 +499,9 @@ namespace numcpp {
         void sort(Compare comp, bool stable = false);
 
         /**
-         * @brief Return the standard deviation of the array_view elements. 
+         * @brief Return the standard deviation of the array_view elements.
          *
-         * @param ddof Delta degrees of freedom. [See numcpp::stddev for full  
+         * @param ddof Delta degrees of freedom. [See numcpp::stddev for full
          * documentation.]
          *
          * @return The standard deviation of the array_view elements.
@@ -516,9 +516,9 @@ namespace numcpp {
         T sum() const;
 
         /**
-         * @brief Return the variance of the array_view elements. 
+         * @brief Return the variance of the array_view elements.
          *
-         * @param ddof Delta degrees of freedom. [See numcpp::var for full 
+         * @param ddof Delta degrees of freedom. [See numcpp::var for full
          * documentation.]
          *
          * @return The variance of the array_view elements.
@@ -532,7 +532,7 @@ namespace numcpp {
         /// Number of elements in the array_view.
         size_t m_size;
 
-        /// Offset and stride in the array_view with respect to the original 
+        /// Offset and stride in the array_view with respect to the original
         /// array.
         size_t m_offset, m_stride;
     };

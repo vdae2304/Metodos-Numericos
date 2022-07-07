@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -31,21 +31,21 @@ namespace numcpp {
 
     template <class T>
     base_array<T, array_tag>::base_array() {
-        this->m_data = NULL;
-        this->m_size = 0;
+        m_data = NULL;
+        m_size = 0;
     }
 
     template <class T>
     base_array<T, array_tag>::base_array(size_t n) {
-        this->m_data = new T[n];
-        this->m_size = n;
+        m_data = new T[n];
+        m_size = n;
     }
 
     template <class T>
     base_array<T, array_tag>::base_array(size_t n, const T &val) {
-        this->m_data = new T[n];
-        this->m_size = n;
-        std::fill_n(this->m_data, this->m_size, val);
+        m_data = new T[n];
+        m_size = n;
+        std::fill_n(m_data, m_size, val);
     }
 
     template <class T>
@@ -53,48 +53,48 @@ namespace numcpp {
     base_array<T, array_tag>::base_array(
         InputIterator first, InputIterator last
     ) {
-        this->m_size = std::distance(first, last);
-        this->m_data = new T[this->m_size];
-        std::copy(first, last, this->m_data);
+        m_size = std::distance(first, last);
+        m_data = new T[m_size];
+        std::copy(first, last, m_data);
     }
 
     template <class T>
     base_array<T, array_tag>::base_array(
         const base_array<T, array_tag> &other
     ) {
-        this->m_size = other.m_size;
-        this->m_data = new T[this->m_size];
-        std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
+        m_size = other.m_size;
+        m_data = new T[m_size];
+        std::copy(other.m_data, other.m_data + other.m_size, m_data);
     }
 
     template <class T>
     template <class Tag>
     base_array<T, array_tag>::base_array(const base_array<T, Tag> &other) {
-        this->m_size = other.size();
-        this->m_data = new T[this->m_size];
-        std::copy(other.begin(), other.end(), this->m_data);
+        m_size = other.size();
+        m_data = new T[m_size];
+        std::copy(other.begin(), other.end(), m_data);
     }
 
     template <class T>
     base_array<T, array_tag>::base_array(base_array<T, array_tag> &&other) {
-        this->m_data = other.m_data;
-        this->m_size = other.m_size;
+        m_data = other.m_data;
+        m_size = other.m_size;
         other.m_data = NULL;
         other.m_size = 0;
     }
-    
+
     template <class T>
     base_array<T, array_tag>::base_array(std::initializer_list<T> il) {
-        this->m_size = il.size();
-        this->m_data = new T[this->m_size];
-        std::copy(il.begin(), il.end(), this->m_data);
+        m_size = il.size();
+        m_data = new T[m_size];
+        std::copy(il.begin(), il.end(), m_data);
     }
 
     /// Destructor.
 
     template <class T>
     base_array<T, array_tag>::~base_array() {
-        delete[] this->m_data;
+        delete[] m_data;
     }
 
     /// Iterators.
@@ -114,17 +114,17 @@ namespace numcpp {
     template <class T>
     inline typename base_array<T, array_tag>::iterator
     base_array<T, array_tag>::end() {
-        return base_array_iterator<T, array_tag>(this, this->m_size);
+        return base_array_iterator<T, array_tag>(this, m_size);
     }
 
     template <class T>
     inline typename base_array<T, array_tag>::const_iterator
     base_array<T, array_tag>::end() const {
-        return base_array_const_iterator<T, array_tag>(this, this->m_size);
+        return base_array_const_iterator<T, array_tag>(this, m_size);
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::reverse_iterator 
+    inline typename base_array<T, array_tag>::reverse_iterator
     base_array<T, array_tag>::rbegin() {
         return typename base_array<T, array_tag>::reverse_iterator(
             this->end()
@@ -132,7 +132,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::const_reverse_iterator 
+    inline typename base_array<T, array_tag>::const_reverse_iterator
     base_array<T, array_tag>::rbegin() const {
         return typename base_array<T, array_tag>::const_reverse_iterator(
             this->end()
@@ -140,7 +140,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::reverse_iterator 
+    inline typename base_array<T, array_tag>::reverse_iterator
     base_array<T, array_tag>::rend() {
         return typename base_array<T, array_tag>::reverse_iterator(
             this->begin()
@@ -148,7 +148,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::const_reverse_iterator 
+    inline typename base_array<T, array_tag>::const_reverse_iterator
     base_array<T, array_tag>::rend() const {
         return typename base_array<T, array_tag>::const_reverse_iterator(
             this->begin()
@@ -164,11 +164,11 @@ namespace numcpp {
     template <class T>
     inline typename base_array<T, array_tag>::const_iterator
     base_array<T, array_tag>::cend() const {
-        return base_array_const_iterator<T, array_tag>(this, this->m_size);
+        return base_array_const_iterator<T, array_tag>(this, m_size);
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::const_reverse_iterator 
+    inline typename base_array<T, array_tag>::const_reverse_iterator
     base_array<T, array_tag>::crbegin() const {
         return typename base_array<T, array_tag>::const_reverse_iterator(
             this->cend()
@@ -176,7 +176,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_array<T, array_tag>::const_reverse_iterator 
+    inline typename base_array<T, array_tag>::const_reverse_iterator
     base_array<T, array_tag>::crend() const {
         return typename base_array<T, array_tag>::const_reverse_iterator(
             this->cbegin()
@@ -184,59 +184,57 @@ namespace numcpp {
     }
 
     /// Array indexing.
-    
+
     template <class T>
     inline T& base_array<T, array_tag>::operator[](size_t i) {
-        __assert_within_bounds(this->m_size, i);
-        return this->m_data[i];
+        __assert_within_bounds(m_size, i);
+        return m_data[i];
     }
 
     template <class T>
     inline const T& base_array<T, array_tag>::operator[](size_t i) const {
-        __assert_within_bounds(this->m_size, i);
-        return this->m_data[i];
+        __assert_within_bounds(m_size, i);
+        return m_data[i];
     }
 
     template <class T>
-    base_array<T, array_view_tag> 
+    base_array<T, array_view_tag>
     base_array<T, array_tag>::operator[](slice slc) {
         if (slc.size() > 0) {
-            __assert_within_bounds(this->m_size, slc[slc.size() - 1]);
+            __assert_within_bounds(m_size, slc[slc.size() - 1]);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, slc.start(), slc.stride()
+            slc.size(), m_data, slc.start(), slc.stride()
         );
     }
 
     template <class T>
-    const base_array<T, array_view_tag> 
+    const base_array<T, array_view_tag>
     base_array<T, array_tag>::operator[](slice slc) const {
         if (slc.size() > 0) {
-            __assert_within_bounds(this->m_size, slc[slc.size() - 1]);
+            __assert_within_bounds(m_size, slc[slc.size() - 1]);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, slc.start(), slc.stride()
+            slc.size(), m_data, slc.start(), slc.stride()
         );
     }
 
     template <class T>
     template <class Tag>
-    base_array<T, index_view_tag> 
+    base_array<T, index_view_tag>
     base_array<T, array_tag>::operator[](const base_array<size_t, Tag> &index) {
         size_t *m_index = new size_t[index.size()];
         for (size_t i = 0; i < index.size(); ++i) {
             m_index[i] = index[i];
-            __assert_within_bounds(this->size(), m_index[i]);
+            __assert_within_bounds(m_size, m_index[i]);
         }
-        return base_array<T, index_view_tag>(
-            index.size(), this->data(), m_index, -1
-        );
+        return base_array<T, index_view_tag>(index.size(), m_data, m_index, -1);
     }
 
     template <class T>
     template <class Tag>
-    base_array<T, array_tag> 
-    base_array<T, array_tag>::operator[](const base_array<size_t, Tag> &index) 
+    base_array<T, array_tag>
+    base_array<T, array_tag>::operator[](const base_array<size_t, Tag> &index)
     const {
         base_array<T, array_tag> subarray(index.size());
         for (size_t i = 0; i < index.size(); ++i) {
@@ -247,7 +245,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    base_array<T, index_view_tag> 
+    base_array<T, index_view_tag>
     base_array<T, array_tag>::operator[](const base_array<bool, Tag> &mask) {
         __range_count_nonzero pred;
         size_t size = pred(mask.begin(), mask.end());
@@ -255,17 +253,17 @@ namespace numcpp {
         size_t n = 0;
         for (size_t i = 0; i < mask.size(); ++i) {
             if (mask[i]) {
-                __assert_within_bounds(this->size(), i);
+                __assert_within_bounds(m_size, i);
                 m_index[n++] = i;
             }
         }
-        return base_array<T, index_view_tag>(size, this->data(), m_index, -1);
+        return base_array<T, index_view_tag>(size, m_data, m_index, -1);
     }
 
     template <class T>
     template <class Tag>
-    base_array<T, array_tag> 
-    base_array<T, array_tag>::operator[](const base_array<bool, Tag> &mask) 
+    base_array<T, array_tag>
+    base_array<T, array_tag>::operator[](const base_array<bool, Tag> &mask)
     const {
         __range_count_nonzero pred;
         base_array<T, array_tag> subarray(pred(mask.begin(), mask.end()));
@@ -280,31 +278,31 @@ namespace numcpp {
 
     template <class T>
     inline size_t base_array<T, array_tag>::size() const {
-        return this->m_size;
+        return m_size;
     }
 
     template <class T>
     inline void base_array<T, array_tag>::resize(size_t n) {
-        if (this->m_size != n) {
-            delete[] this->m_data;
-            this->m_data = new T[n];
-            this->m_size = n;
+        if (m_size != n) {
+            delete[] m_data;
+            m_data = new T[n];
+            m_size = n;
         }
     }
 
     template <class T>
     inline bool base_array<T, array_tag>::empty() const {
-        return (this->m_size == 0);
+        return (m_size == 0);
     }
 
     template <class T>
     inline T* base_array<T, array_tag>::data() {
-        return this->m_data;
+        return m_data;
     }
 
     template <class T>
     inline const T* base_array<T, array_tag>::data() const {
-        return this->m_data;
+        return m_data;
     }
 
     /// Operator overloading
@@ -314,33 +312,33 @@ namespace numcpp {
         const base_array<T, array_tag> &other
     ) {
         this->resize(other.m_size);
-        std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
+        std::copy(other.m_data, other.m_data + other.m_size, m_data);
         return *this;
     }
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator=(const base_array<T, Tag> &other) {
         this->resize(other.size());
-        std::copy(other.begin(), other.end(), this->m_data);
+        std::copy(other.begin(), other.end(), m_data);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator=(const T &val) {
-        std::fill_n(this->m_data, this->m_size, val);
+        std::fill_n(m_data, m_size, val);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator=(base_array<T, array_tag> &&other) {
         if (this != &other) {
-            delete[] this->m_data;
-            this->m_data = other.m_data;
-            this->m_size = other.m_size;
+            delete[] m_data;
+            m_data = other.m_data;
+            m_size = other.m_size;
             other.m_data = NULL;
             other.m_size = 0;
         }
@@ -348,80 +346,80 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator=(std::initializer_list<T> il) {
         this->resize(il.size());
-        std::copy(il.begin(), il.end(), this->m_data);
+        std::copy(il.begin(), il.end(), m_data);
         return *this;
     }
 
     /// Compound assignment operator.
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator+=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__plus(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator-=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__minus(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator*=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__multiplies(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator/=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__divides(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator%=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__modulus(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator&=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__bit_and(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator|=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__bit_or(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator^=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__bit_xor(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator<<=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__left_shift(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator>>=(const base_array<T, array_tag> &rhs) {
         __apply_binary_function(__right_shift(), *this, rhs, *this);
         return *this;
@@ -429,7 +427,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator+=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__plus(), *this, rhs, *this);
         return *this;
@@ -437,7 +435,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator-=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__minus(), *this, rhs, *this);
         return *this;
@@ -445,7 +443,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator*=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__multiplies(), *this, rhs, *this);
         return *this;
@@ -453,7 +451,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator/=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__divides(), *this, rhs, *this);
         return *this;
@@ -461,7 +459,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator%=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__modulus(), *this, rhs, *this);
         return *this;
@@ -469,7 +467,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator&=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_and(), *this, rhs, *this);
         return *this;
@@ -477,7 +475,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator|=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_or(), *this, rhs, *this);
         return *this;
@@ -485,7 +483,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator^=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__bit_xor(), *this, rhs, *this);
         return *this;
@@ -493,7 +491,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator<<=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__left_shift(), *this, rhs, *this);
         return *this;
@@ -501,77 +499,77 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator>>=(const base_array<T, Tag> &rhs) {
         __apply_binary_function(__right_shift(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator+=(const T &val) {
         __apply_binary_function(__plus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator-=(const T &val) {
         __apply_binary_function(__minus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator*=(const T &val) {
         __apply_binary_function(__multiplies(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator/=(const T &val) {
         __apply_binary_function(__divides(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator%=(const T &val) {
         __apply_binary_function(__modulus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator&=(const T &val) {
         __apply_binary_function(__bit_and(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator|=(const T &val) {
         __apply_binary_function(__bit_or(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator^=(const T &val) {
         __apply_binary_function(__bit_xor(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator<<=(const T &val) {
         __apply_binary_function(__left_shift(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_array<T, array_tag>& 
+    inline base_array<T, array_tag>&
     base_array<T, array_tag>::operator>>=(const T &val) {
         __apply_binary_function(__right_shift(), *this, val, *this);
         return *this;
@@ -608,23 +606,14 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array<size_t, array_tag> 
+    base_array<size_t, array_tag>
     base_array<T, array_tag>::argpartition(size_t kth) const {
-        __assert_within_bounds(this->size(), kth);
-        base_array<size_t, array_tag> index(this->size());
-        __iota(index.begin(), index.end(), 0, 1);
-        auto comparator = [this](size_t i, size_t j) {
-            return (*this)[i] < (*this)[j];
-        };
-        std::nth_element(
-            index.begin(), index.begin() + kth, index.end(), comparator
-        );
-        return index;
+        return this->argpartition(kth, __less());
     }
 
     template <class T>
     template <class Compare>
-    base_array<size_t, array_tag> 
+    base_array<size_t, array_tag>
     base_array<T, array_tag>::argpartition(size_t kth, Compare comp) const {
         __assert_within_bounds(this->size(), kth);
         base_array<size_t, array_tag> index(this->size());
@@ -640,18 +629,12 @@ namespace numcpp {
 
     template <class T>
     base_array<size_t, array_tag> base_array<T, array_tag>::argsort() const {
-        base_array<size_t, array_tag> index(this->size());
-        __iota(index.begin(), index.end(), 0, 1);
-        auto comparator = [this](size_t i, size_t j) {
-            return (*this)[i] < (*this)[j];
-        };
-        std::sort(index.begin(), index.end(), comparator);
-        return index;
+        return this->argsort(__less());
     }
 
     template <class T>
     template <class Compare>
-    base_array<size_t, array_tag> 
+    base_array<size_t, array_tag>
     base_array<T, array_tag>::argsort(Compare comp, bool stable) const {
         base_array<size_t, array_tag> index(this->size());
         __iota(index.begin(), index.end(), 0, 1);
@@ -669,7 +652,7 @@ namespace numcpp {
 
     template <class T>
     template <class U>
-    base_array< U, lazy_unary_tag<__identity, T, array_tag> > 
+    base_array< U, lazy_unary_tag<__identity, T, array_tag> >
     base_array<T, array_tag>::astype() const {
         typedef lazy_unary_tag<__identity, T, array_tag> Closure;
         return base_array<U, Closure>(__identity(), *this);
@@ -681,7 +664,7 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< T, lazy_unary_tag<__conjugate, T, array_tag> > 
+    base_array< T, lazy_unary_tag<__conjugate, T, array_tag> >
     base_array<T, array_tag>::conj() const {
         typedef lazy_unary_tag<__conjugate, T, array_tag> Closure;
         return base_array<T, Closure>(__conjugate(), *this);
@@ -700,7 +683,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    base_array<T, array_tag> 
+    base_array<T, array_tag>
     base_array<T, array_tag>::dot(const base_matrix<T, Tag> &rhs) const {
         __assert_matmul_shapes(1, this->size(), rhs.rows(), rhs.cols());
         base_array<T, array_tag> out(rhs.cols(), T(0));
@@ -713,10 +696,10 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__imag_part, T, array_tag> 
-    > 
+    base_array<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__imag_part, T, array_tag>
+    >
     base_array<T, array_tag>::imag() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__imag_part, T, array_tag> Closure;
@@ -772,10 +755,10 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__real_part, T, array_tag> 
-    > 
+    base_array<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__real_part, T, array_tag>
+    >
     base_array<T, array_tag>::real() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, array_tag> Closure;
@@ -828,8 +811,8 @@ namespace numcpp {
 
     template <class T>
     void base_array<T, array_tag>::swap(base_array<T, array_tag> &other) {
-        std::swap(this->m_data, other.m_data);
-        std::swap(this->m_size, other.m_size);
+        std::swap(m_data, other.m_data);
+        std::swap(m_size, other.m_size);
     }
 
     template <class T>

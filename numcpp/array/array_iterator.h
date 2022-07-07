@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -111,7 +111,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     ptrdiff_t operator-(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
@@ -119,37 +119,37 @@ namespace numcpp {
 
     template <class T, class Tag>
     bool operator==(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator!=(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<=(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>=(
-        const base_array_iterator<T, Tag> &lhs, 
+        const base_array_iterator<T, Tag> &lhs,
         const base_array_iterator<T, Tag> &rhs
     );
 
@@ -163,7 +163,7 @@ namespace numcpp {
     class base_array_const_iterator {
     public:
         /// Member types.
-        
+    
         typedef ptrdiff_t difference_type;
         typedef typename base_array<T, Tag>::value_type value_type;
         typedef typename base_array<T, Tag>::const_pointer pointer;
@@ -184,9 +184,9 @@ namespace numcpp {
 
         /// Assignment operator.
 
-        base_array_const_iterator& 
+        base_array_const_iterator&
         operator=(const base_array_iterator<T, Tag> &other);
-        base_array_const_iterator& 
+        base_array_const_iterator&
         operator=(const base_array_const_iterator &other);
 
         /// Operator overloading.
@@ -218,7 +218,7 @@ namespace numcpp {
         size_t m_index;
     };
 
-    /// Arithmetic operators for base_array_const_iterator (non member 
+    /// Arithmetic operators for base_array_const_iterator (non member
     /// functions).
 
     template <class T, class Tag>
@@ -238,46 +238,46 @@ namespace numcpp {
 
     template <class T, class Tag>
     ptrdiff_t operator-(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
-    /// Relational operators for base_array_const_iterator (non member 
+    /// Relational operators for base_array_const_iterator (non member
     /// functions).
 
     template <class T, class Tag>
     bool operator==(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator!=(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<=(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>=(
-        const base_array_const_iterator<T, Tag> &lhs, 
+        const base_array_const_iterator<T, Tag> &lhs,
         const base_array_const_iterator<T, Tag> &rhs
     );
 }
