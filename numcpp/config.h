@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -35,16 +35,18 @@ compiler options.
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
+#include <utility>
 
 namespace numcpp {
     using std::size_t;
     using std::ptrdiff_t;
     using std::nullptr_t;
+    typedef std::pair<size_t, size_t> index_t;
 
     /// Forward declarations.
     struct scalar_tag;
 
-    template <class T, class Tag> class base_array; 
+    template <class T, class Tag> class base_array;
     struct array_tag;
     struct array_view_tag;
     struct index_view_tag;
@@ -65,7 +67,7 @@ namespace numcpp {
     template <class T>
     using matrix_view = base_matrix<T, matrix_view_tag>;
 
-    template <class Function, class T, class Tag> 
+    template <class Function, class T, class Tag>
     struct lazy_unary_tag;
     template <class Function, class T1, class Tag1, class T2, class Tag2>
     struct lazy_binary_tag;
@@ -93,7 +95,7 @@ namespace numcpp {
     };
 
     /// Asserts two arrays have equal lengths.
-    void __assert_equal_length(size_t size1, size_t size2) {
+    inline void __assert_equal_length(size_t size1, size_t size2) {
         if (size1 != size2) {
             char error[100];
             sprintf(
@@ -105,7 +107,7 @@ namespace numcpp {
     }
 
     /// Asserts two matrices have equal number of rows and columns.
-    void __assert_equal_shape(
+    inline void __assert_equal_shape(
         size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
     ) {
         if (nrows1 != nrows2 || ncols1 != ncols2) {
@@ -119,7 +121,7 @@ namespace numcpp {
     }
 
     /// Assert an index is within the bounds of an array.
-    void __assert_within_bounds(size_t size, size_t i) {
+    inline void __assert_within_bounds(size_t size, size_t i) {
         if (i >= size) {
             char error[80];
             sprintf(error, "index %zu is out of bounds with size %zu", i, size);
@@ -128,7 +130,9 @@ namespace numcpp {
     }
 
     /// Asserts a pair of indices is within the bounds of a matrix.
-    void __assert_within_bounds(size_t nrows, size_t ncols, size_t i, size_t j){
+    inline void __assert_within_bounds(
+        size_t nrows, size_t ncols, size_t i, size_t j
+    ) {
         if (i >= nrows || j >= ncols) {
             char error[130];
             sprintf(
@@ -140,14 +144,14 @@ namespace numcpp {
     }
 
     /// Asserts two matrices have appropriate shapes for matrix multiplication.
-    void __assert_matmul_shapes(
+    inline void __assert_matmul_shapes(
         size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
     ) {
         if (ncols1 != nrows2) {
             char error[180];
             sprintf(
-                error, "matmul: Number of columns in left operand do no match "
-                "number of rows in right operand: (%zu, %zu) (%zu, %zu)", 
+                error, "matmul: Number of columns in left operand is not equal "
+                "to number of rows in right operand: (%zu, %zu) (%zu, %zu)",
                 nrows1, ncols1, nrows2, ncols2
             );
             throw std::invalid_argument(error);
@@ -225,7 +229,7 @@ namespace numcpp {
             return ~arg;
         }
     };
-    
+
     /// Function object implementing lhs & rhs.
     struct __bit_and {
         template <class T>
@@ -273,7 +277,7 @@ namespace numcpp {
             return !arg;
         }
     };
-    
+
     /// Function object implementing lhs && rhs.
     struct __logical_and {
         template <class T>
