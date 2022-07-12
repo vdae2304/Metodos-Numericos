@@ -94,7 +94,7 @@ namespace numcpp {
         typedef T value_type;
     };
 
-    /// Asserts two arrays have equal lengths.
+    /// Asserts whether two arrays have equal lengths.
     inline void __assert_equal_length(size_t size1, size_t size2) {
         if (size1 != size2) {
             char error[100];
@@ -106,7 +106,7 @@ namespace numcpp {
         }
     }
 
-    /// Asserts two matrices have equal number of rows and columns.
+    /// Asserts whether two matrices have equal number of rows and columns.
     inline void __assert_equal_shape(
         size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
     ) {
@@ -120,7 +120,7 @@ namespace numcpp {
         }
     }
 
-    /// Assert an index is within the bounds of an array.
+    /// Assert whether an index is within the bounds of an array.
     inline void __assert_within_bounds(size_t size, size_t i) {
         if (i >= size) {
             char error[80];
@@ -129,7 +129,7 @@ namespace numcpp {
         }
     }
 
-    /// Asserts a pair of indices is within the bounds of a matrix.
+    /// Asserts whether a pair of indices is within the bounds of a matrix.
     inline void __assert_within_bounds(
         size_t nrows, size_t ncols, size_t i, size_t j
     ) {
@@ -143,7 +143,8 @@ namespace numcpp {
         }
     }
 
-    /// Asserts two matrices have appropriate shapes for matrix multiplication.
+    /// Asserts whether two matrices have appropriate shapes for matrix
+    /// multiplication.
     inline void __assert_matmul_shapes(
         size_t nrows1, size_t ncols1, size_t nrows2, size_t ncols2
     ) {
