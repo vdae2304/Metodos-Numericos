@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -33,7 +33,7 @@ namespace numcpp {
     using std::fmod;
     using std::max;
     using std::min;
-    
+
     /// Trigonometric functions
     using std::cos;
     using std::sin;
@@ -176,7 +176,7 @@ namespace numcpp {
 
     /**
      * @brief Convert angles from radians to degrees.
-     * 
+     *
      * @param x Angle in radians.
      *
      * @return The corresponding angle in degrees.
@@ -197,7 +197,7 @@ namespace numcpp {
     }
 
     template <class T>
-    typename std::enable_if<std::is_integral<T>::value, double>::type 
+    typename std::enable_if<std::is_integral<T>::value, double>::type
     degrees(T x) {
         return degrees((double)x);
     }
@@ -212,7 +212,7 @@ namespace numcpp {
 
     /**
      * @brief Convert angles from degrees to radians.
-     * 
+     *
      * @param x Angle in degrees.
      *
      * @return The corresponding angle in radians.
@@ -232,8 +232,8 @@ namespace numcpp {
         return pi*x/180.0L;
     }
 
-    template <class T> 
-    typename std::enable_if<std::is_integral<T>::value, double>::type  
+    template <class T>
+    typename std::enable_if<std::is_integral<T>::value, double>::type
     radians(T x) {
         return radians((double)x);
     }
@@ -406,22 +406,13 @@ namespace numcpp {
         }
     };
 
-    /// Function object implementing std::frexp. Return mantissa only.
-    struct __math_frexp_mantissa {
+    /// Function object implementing std::frexp.
+    struct __math_frexp {
         template <class T>
-        T operator()(const T &x) const {
+        std::pair<T, int> operator()(const T &x) const {
             int exp;
-            return std::frexp(x, &exp);
-        }
-    };
-
-    /// Function object implementing std::frexp. Return exponent only.
-    struct __math_frexp_exponent {
-        template <class T>
-        int operator()(const T &x) const {
-            int exp;
-            std::frexp(x, &exp);
-            return exp;
+            T mantissa = std::frexp(x, &exp);
+            return std::make_pair(mantissa, exp);
         }
     };
 
@@ -451,18 +442,18 @@ namespace numcpp {
 
     /**
      * @brief Return the greatest common divisor of |m| and |n|.
-     * 
+     *
      * @param m An integer value.
      * @param n An integer value.
      *
-     * @return The greatest common divisor of |m| and |n|. If both m and n are 
+     * @return The greatest common divisor of |m| and |n|. If both m and n are
      *     zero, return zero.
      */
     template <class T1, class T2>
     typename std::common_type<
-        typename std::enable_if<std::is_integral<T1>::value, T1>::type, 
+        typename std::enable_if<std::is_integral<T1>::value, T1>::type,
         typename std::enable_if<std::is_integral<T2>::value, T2>::type
-    >::type 
+    >::type
     gcd(T1 m, T2 n) {
         typedef typename std::common_type<T1, T2>::type T;
         while (n != 0) {
@@ -483,18 +474,18 @@ namespace numcpp {
 
     /**
      * @brief Return the least common multiple of |m| and |n|.
-     * 
+     *
      * @param m An integer value.
      * @param n An integer value.
      *
-     * @return The least common multiple of |m| and |n|. If either m or n is 
+     * @return The least common multiple of |m| and |n|. If either m or n is
      *     zero, return zero.
      */
     template <class T1, class T2>
     typename std::common_type<
-        typename std::enable_if<std::is_integral<T1>::value, T1>::type, 
+        typename std::enable_if<std::is_integral<T1>::value, T1>::type,
         typename std::enable_if<std::is_integral<T2>::value, T2>::type
-    >::type 
+    >::type
     lcm(T1 m, T2 n) {
         if (m != 0 && n != 0) {
             return (std::abs(m) / gcd(m, n)) * std::abs(n);
@@ -509,6 +500,45 @@ namespace numcpp {
         template <class T>
         T operator()(const T &m, const T &n) const {
             return lcm(m, n);
+        }
+    };
+
+    /// Function object implementing arg.real().
+    struct __math_real {
+        template <class T>
+        T operator()(const T &arg) const {
+            return arg;
+        }
+
+        template <class T>
+        T operator()(const std::complex<T> &arg) const {
+            return arg.real();
+        }
+    };
+
+    /// Function object implementing arg.imag().
+    struct __math_imag {
+        template <class T>
+        T operator()(const T&) const {
+            return 0;
+        }
+
+        template <class T>
+        T operator()(const std::complex<T> &arg) const {
+            return arg.imag();
+        }
+    };
+
+    /// Function object implementing std::conj.
+    struct __math_conj {
+        template <class T>
+        T operator()(const T &arg) const {
+            return arg;
+        }
+
+        template <class T>
+        std::complex<T> operator()(const std::complex<T> &arg) const {
+            return std::conj(arg);
         }
     };
 
