@@ -342,45 +342,6 @@ namespace numcpp {
             return lhs >= rhs;
         }
     };
-
-    /// Function object implementing std::conj.
-    struct __conjugate {
-        template <class T>
-        T operator()(const T &arg) const {
-            return arg;
-        }
-
-        template <class T>
-        std::complex<T> operator()(const std::complex<T> &arg) const {
-            return std::conj(arg);
-        }
-    };
-
-    /// Function object implementing arg.real().
-    struct __real_part {
-        template <class T>
-        T operator()(const T &arg) const {
-            return arg;
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &arg) const {
-            return arg.real();
-        }
-    };
-
-    /// Function object implementing arg.imag().
-    struct __imag_part {
-        template <class T>
-        T operator()(const T&) const {
-            return 0;
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &arg) const {
-            return arg.imag();
-        }
-    };
 }
 
 #endif // C++11
