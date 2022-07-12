@@ -395,7 +395,7 @@ namespace numcpp {
          * @return A light-weight object with the complex conjugate of each
          *     element in the index_view. Convertible to an array object.
          */
-        base_array< T, lazy_unary_tag<__conjugate, T, index_view_tag> >
+        base_array< T, lazy_unary_tag<__math_conj, T, index_view_tag> >
         conj() const;
 
         /**
@@ -409,7 +409,7 @@ namespace numcpp {
          */
         base_array<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__imag_part, T, index_view_tag>
+            lazy_unary_tag<__math_imag, T, index_view_tag>
         >
         imag() const;
 
@@ -474,7 +474,7 @@ namespace numcpp {
          */
         base_array<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__real_part, T, index_view_tag>
+            lazy_unary_tag<__math_real, T, index_view_tag>
         >
         real() const;
 

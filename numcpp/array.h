@@ -25,6 +25,7 @@
 #include "numcpp/config.h"
 #include "numcpp/slice.h"
 #include "numcpp/routines/algo.h"
+#include "numcpp/math/mathfwd.h"
 
 #include "numcpp/array/array_iterator.h"
 #include "numcpp/array/lazy_array.h"
@@ -581,7 +582,7 @@ namespace numcpp {
          * @return A light-weight object with the complex conjugate of each
          *     element in the array. Convertible to an array object.
          */
-        base_array< T, lazy_unary_tag<__conjugate, T, array_tag> >
+        base_array< T, lazy_unary_tag<__math_conj, T, array_tag> >
         conj() const;
 
         /**
@@ -624,7 +625,7 @@ namespace numcpp {
          */
         base_array<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__imag_part, T, array_tag>
+            lazy_unary_tag<__math_imag, T, array_tag>
         >
         imag() const;
 
@@ -689,7 +690,7 @@ namespace numcpp {
          */
         base_array<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__real_part, T, array_tag>
+            lazy_unary_tag<__math_real, T, array_tag>
         >
         real() const;
 
