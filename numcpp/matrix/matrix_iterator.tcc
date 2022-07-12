@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -26,112 +26,112 @@
 namespace numcpp {
     template <class T, class Tag>
     inline base_matrix_iterator<T, Tag>::base_matrix_iterator() {
-        this->m_ptr = NULL;
-        this->m_index = 0;
-        this->m_order = true;
+        m_ptr = NULL;
+        m_index = 0;
+        m_order = true;
     }
 
     template <class T, class Tag>
     inline base_matrix_iterator<T, Tag>::base_matrix_iterator(
         base_matrix<T, Tag> *mat, size_t index, bool order
     ) {
-        this->m_ptr = mat;
-        this->m_index = index;
-        this->m_order = order;
+        m_ptr = mat;
+        m_index = index;
+        m_order = order;
     }
 
     template <class T, class Tag>
     inline base_matrix_iterator<T, Tag>::base_matrix_iterator(
         base_matrix<T, Tag> *mat, size_t i, size_t j, bool order
     ) {
-        this->m_ptr = mat;
+        m_ptr = mat;
         if (order) {
-            this->m_index = i*mat->cols() + j;
+            m_index = i * mat->cols() + j;
         }
         else {
-            this->m_index = j*mat->rows() + i;
+            m_index = j * mat->rows() + i;
         }
-        this->m_order = order;
+        m_order = order;
     }
 
     template <class T, class Tag>
     inline base_matrix_iterator<T, Tag>::base_matrix_iterator(
         const base_matrix_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.m_ptr;
-        this->m_index = other.m_index;
-        this->m_order = other.m_order;
+        m_ptr = other.m_ptr;
+        m_index = other.m_index;
+        m_order = other.m_order;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag>& 
+    inline base_matrix_iterator<T, Tag>&
     base_matrix_iterator<T, Tag>::operator=(
         const base_matrix_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.m_ptr;
-        this->m_index = other.m_index;
-        this->m_order = other.m_order;
+        m_ptr = other.m_ptr;
+        m_index = other.m_index;
+        m_order = other.m_order;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag>& 
+    inline base_matrix_iterator<T, Tag>&
     base_matrix_iterator<T, Tag>::operator++() {
-        ++this->m_index;
+        ++m_index;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag>& 
+    inline base_matrix_iterator<T, Tag>&
     base_matrix_iterator<T, Tag>::operator--() {
-        --this->m_index;
+        --m_index;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag> 
+    inline base_matrix_iterator<T, Tag>
     base_matrix_iterator<T, Tag>::operator++(int) {
         base_matrix_iterator<T, Tag> it = *this;
-        ++this->m_index;
+        ++m_index;
         return it;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag> 
+    inline base_matrix_iterator<T, Tag>
     base_matrix_iterator<T, Tag>::operator--(int) {
         base_matrix_iterator<T, Tag> it = *this;
-        --this->m_index;
+        --m_index;
         return it;
     }
 
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag>& 
+    inline base_matrix_iterator<T, Tag>&
     base_matrix_iterator<T, Tag>::operator+=(ptrdiff_t rhs) {
-        this->m_index += rhs;
+        m_index += rhs;
         return *this;
     }
-    
+
     template <class T, class Tag>
-    inline base_matrix_iterator<T, Tag>& 
+    inline base_matrix_iterator<T, Tag>&
     base_matrix_iterator<T, Tag>::operator-=(ptrdiff_t rhs) {
-        this->m_index -= rhs;
+        m_index -= rhs;
         return *this;
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_iterator<T, Tag>::reference 
+    inline typename base_matrix_iterator<T, Tag>::reference
     base_matrix_iterator<T, Tag>::operator*() const {
-        return (*this->m_ptr)(this->row(), this->col());
+        return (*m_ptr)(this->row(), this->col());
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_iterator<T, Tag>::pointer 
+    inline typename base_matrix_iterator<T, Tag>::pointer
     base_matrix_iterator<T, Tag>::operator->() const {
-        return &(*this->m_ptr)(this->row(), this->col());
+        return &(*m_ptr)(this->row(), this->col());
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_iterator<T, Tag>::reference 
+    inline typename base_matrix_iterator<T, Tag>::reference
     base_matrix_iterator<T, Tag>::operator[](ptrdiff_t n) const {
         base_matrix_iterator<T, Tag> it = *this + n;
         return *it;
@@ -139,42 +139,42 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline base_matrix<T, Tag>* base_matrix_iterator<T, Tag>::base() const {
-        return this->m_ptr;
+        return m_ptr;
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_iterator<T, Tag>::index() const {
-        return this->m_index;
+        return m_index;
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_iterator<T, Tag>::row() const {
-        if (this->m_order) {
-            return this->m_index / this->m_ptr->cols();
+        if (m_order) {
+            return m_index / m_ptr->cols();
         }
         else {
-            return this->m_index % this->m_ptr->rows();
+            return m_index % m_ptr->rows();
         }
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_iterator<T, Tag>::col() const {
-        if (this->m_order) {
-            return this->m_index % this->m_ptr->cols();
+        if (m_order) {
+            return m_index % m_ptr->cols();
         }
         else {
-            return this->m_index / this->m_ptr->rows();
+            return m_index / m_ptr->rows();
         }
     }
 
     template <class T, class Tag>
     inline bool base_matrix_iterator<T, Tag>::rowmajor() const {
-        return this->m_order;
+        return m_order;
     }
 
     template <class T, class Tag>
     inline bool base_matrix_iterator<T, Tag>::colmajor() const {
-        return !this->m_order;
+        return !m_order;
     }
 
     template <class T, class Tag>
@@ -203,7 +203,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline ptrdiff_t operator-(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return (ptrdiff_t)lhs.index() - (ptrdiff_t)rhs.index();
@@ -211,7 +211,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator==(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() == rhs.index();
@@ -219,7 +219,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator!=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() != rhs.index();
@@ -227,7 +227,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator<(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() < rhs.index();
@@ -235,7 +235,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator>(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() > rhs.index();
@@ -243,7 +243,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator<=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() <= rhs.index();
@@ -251,7 +251,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator>=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     ) {
         return lhs.index() >= rhs.index();
@@ -259,176 +259,176 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline base_matrix_const_iterator<T, Tag>::base_matrix_const_iterator() {
-        this->m_ptr = NULL;
-        this->m_index = 0;
-        this->m_order = true;
+        m_ptr = NULL;
+        m_index = 0;
+        m_order = true;
     }
 
     template <class T, class Tag>
     inline base_matrix_const_iterator<T, Tag>::base_matrix_const_iterator(
         const base_matrix<T, Tag> *mat, size_t index, bool order
     ) {
-        this->m_ptr = mat;
-        this->m_index = index;
-        this->m_order = order;
+        m_ptr = mat;
+        m_index = index;
+        m_order = order;
     }
 
     template <class T, class Tag>
     inline base_matrix_const_iterator<T, Tag>::base_matrix_const_iterator(
         const base_matrix<T, Tag> *mat, size_t i, size_t j, bool order
     ) {
-        this->m_ptr = mat;
+        m_ptr = mat;
         if (order) {
-            this->m_index = i*mat->cols() + j;
+            m_index = i * mat->cols() + j;
         }
         else {
-            this->m_index = j*mat->rows() + i;
+            m_index = j * mat->rows() + i;
         }
-        this->m_order = order;
+        m_order = order;
     }
 
     template <class T, class Tag>
     inline base_matrix_const_iterator<T, Tag>::base_matrix_const_iterator(
         const base_matrix_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.base();
-        this->m_index = other.index();
-        this->m_order = other.order();
+        m_ptr = other.base();
+        m_index = other.index();
+        m_order = other.order();
     }
 
     template <class T, class Tag>
     inline base_matrix_const_iterator<T, Tag>::base_matrix_const_iterator(
         const base_matrix_const_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.m_ptr;
-        this->m_index = other.m_index;
-        this->m_order = other.m_order;
+        m_ptr = other.m_ptr;
+        m_index = other.m_index;
+        m_order = other.m_order;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator=(
         const base_matrix_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.base();
-        this->m_index = other.index();
-        this->m_order = other.order();
+        m_ptr = other.base();
+        m_index = other.index();
+        m_order = other.order();
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator=(
         const base_matrix_const_iterator<T, Tag> &other
     ) {
-        this->m_ptr = other.m_ptr;
-        this->m_index = other.m_index;
-        this->m_order = other.m_order;
+        m_ptr = other.m_ptr;
+        m_index = other.m_index;
+        m_order = other.m_order;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator++() {
-        ++this->m_index;
+        ++m_index;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator--() {
-        --this->m_index;
+        --m_index;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag> 
+    inline base_matrix_const_iterator<T, Tag>
     base_matrix_const_iterator<T, Tag>::operator++(int) {
         base_matrix_const_iterator<T, Tag> it = *this;
-        ++this->m_index;
+        ++m_index;
         return it;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag> 
+    inline base_matrix_const_iterator<T, Tag>
     base_matrix_const_iterator<T, Tag>::operator--(int) {
         base_matrix_const_iterator<T, Tag> it = *this;
-        --this->m_index;
+        --m_index;
         return it;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator+=(ptrdiff_t rhs) {
-        this->m_index += rhs;
+        m_index += rhs;
         return *this;
     }
 
     template <class T, class Tag>
-    inline base_matrix_const_iterator<T, Tag>& 
+    inline base_matrix_const_iterator<T, Tag>&
     base_matrix_const_iterator<T, Tag>::operator-=(ptrdiff_t rhs) {
-        this->m_index -= rhs;
+        m_index -= rhs;
         return *this;
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_const_iterator<T, Tag>::reference 
+    inline typename base_matrix_const_iterator<T, Tag>::reference
     base_matrix_const_iterator<T, Tag>::operator*() const {
-        return (*this->m_ptr)(this->row(), this->col());
+        return (*m_ptr)(this->row(), this->col());
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_const_iterator<T, Tag>::pointer 
+    inline typename base_matrix_const_iterator<T, Tag>::pointer
     base_matrix_const_iterator<T, Tag>::operator->() const {
-        return &(*this->m_ptr)(this->row(), this->col());
+        return &(*m_ptr)(this->row(), this->col());
     }
 
     template <class T, class Tag>
-    inline typename base_matrix_const_iterator<T, Tag>::reference 
+    inline typename base_matrix_const_iterator<T, Tag>::reference
     base_matrix_const_iterator<T, Tag>::operator[](ptrdiff_t n) const {
         base_matrix_const_iterator<T, Tag> it = *this + n;
         return *it;
     }
 
     template <class T, class Tag>
-    inline const base_matrix<T, Tag>* 
+    inline const base_matrix<T, Tag>*
     base_matrix_const_iterator<T, Tag>::base() const {
-        return this->m_ptr;
+        return m_ptr;
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_const_iterator<T, Tag>::index() const {
-        return this->m_index;
+        return m_index;
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_const_iterator<T, Tag>::row() const {
-        if (this->m_order) {
-            return this->m_index / this->m_ptr->cols();
+        if (m_order) {
+            return m_index / m_ptr->cols();
         }
         else {
-            return this->m_index % this->m_ptr->rows();
+            return m_index % m_ptr->rows();
         }
     }
 
     template <class T, class Tag>
     inline size_t base_matrix_const_iterator<T, Tag>::col() const {
-        if (this->m_order) {
-            return this->m_index % this->m_ptr->cols();
+        if (m_order) {
+            return m_index % m_ptr->cols();
         }
         else {
-            return this->m_index / this->m_ptr->rows();
+            return m_index / m_ptr->rows();
         }
     }
 
     template <class T, class Tag>
     inline bool base_matrix_const_iterator<T, Tag>::rowmajor() const {
-        return this->m_order;
+        return m_order;
     }
 
     template <class T, class Tag>
     inline bool base_matrix_const_iterator<T, Tag>::colmajor() const {
-        return !this->m_order;
+        return !m_order;
     }
 
     template <class T, class Tag>
@@ -457,7 +457,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline ptrdiff_t operator-(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return (ptrdiff_t)lhs.index() - (ptrdiff_t)rhs.index();
@@ -465,7 +465,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator==(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() == rhs.index();
@@ -473,7 +473,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator!=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() != rhs.index();
@@ -481,7 +481,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator<(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() < rhs.index();
@@ -489,7 +489,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator>(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() > rhs.index();
@@ -497,7 +497,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator<=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() <= rhs.index();
@@ -505,7 +505,7 @@ namespace numcpp {
 
     template <class T, class Tag>
     inline bool operator>=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     ) {
         return lhs.index() >= rhs.index();

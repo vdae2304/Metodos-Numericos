@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -35,7 +35,7 @@ namespace numcpp {
      * @brief A random access iterator for base_matrix class.
      *
      * @tparam T Type of the elements contained in the base_matrix.
-     * @tparam Tag Type indicating which specialization of base_matrix refers 
+     * @tparam Tag Type indicating which specialization of base_matrix refers
      *     to.
      */
     template <class T, class Tag>
@@ -101,7 +101,7 @@ namespace numcpp {
         /// Returns whether the matrix elements are iterated in row-major order.
         bool rowmajor() const;
 
-        /// Returns whether the matrix elements are iterated in column-major 
+        /// Returns whether the matrix elements are iterated in column-major
         /// order.
         bool colmajor() const;
 
@@ -112,7 +112,7 @@ namespace numcpp {
         /// Flat index associated to the iterator.
         size_t m_index;
 
-        /// Whether the elements are iterated in row-major or column-major 
+        /// Whether the elements are iterated in row-major or column-major
         /// order.
         bool m_order;
     };
@@ -136,44 +136,44 @@ namespace numcpp {
 
     template <class T, class Tag>
     ptrdiff_t operator-(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     /// Relational operators for base_matrix_iterator (non member functions).
     template <class T, class Tag>
     bool operator==(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator!=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>=(
-        const base_matrix_iterator<T, Tag> &lhs, 
+        const base_matrix_iterator<T, Tag> &lhs,
         const base_matrix_iterator<T, Tag> &rhs
     );
 
@@ -181,7 +181,7 @@ namespace numcpp {
      * @brief A random access iterator for const-qualified base_matrix class.
      *
      * @tparam T Type of the elements contained in the base_matrix.
-     * @tparam Tag Type indicating which specialization of base_matrix refers 
+     * @tparam Tag Type indicating which specialization of base_matrix refers
      *     to.
      */
     template <class T, class Tag>
@@ -215,12 +215,12 @@ namespace numcpp {
         base_matrix_const_iterator(const base_matrix_const_iterator &other);
 
         /// Assignment operator.
-        
-        base_matrix_const_iterator& 
+
+        base_matrix_const_iterator&
         operator=(const base_matrix_iterator<T, Tag> &other);
-        base_matrix_const_iterator& 
+        base_matrix_const_iterator&
         operator=(const base_matrix_const_iterator &other);
-        
+
         /// Operator overloading.
 
         base_matrix_const_iterator& operator++();
@@ -251,7 +251,7 @@ namespace numcpp {
         /// Returns whether the matrix elements are iterated in row-major order.
         bool rowmajor() const;
 
-        /// Returns whether the matrix elements are iterated in column-major 
+        /// Returns whether the matrix elements are iterated in column-major
         /// order.
         bool colmajor() const;
 
@@ -262,12 +262,12 @@ namespace numcpp {
         /// Flat index associated to the iterator.
         size_t m_index;
 
-        /// Whether the elements are iterated in row-major or column-major 
+        /// Whether the elements are iterated in row-major or column-major
         /// order.
         bool m_order;
     };
 
-    /// Arithmetic operators for base_matrix_const_iterator (non member 
+    /// Arithmetic operators for base_matrix_const_iterator (non member
     /// functions).
 
     template <class T, class Tag>
@@ -287,46 +287,46 @@ namespace numcpp {
 
     template <class T, class Tag>
     ptrdiff_t operator-(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 
-    /// Relational operators for base_matrix_const_iterator (non member 
+    /// Relational operators for base_matrix_const_iterator (non member
     /// functions).
 
     template <class T, class Tag>
     bool operator==(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator!=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator>(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 
     template <class T, class Tag>
     bool operator<=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
-    
+
     template <class T, class Tag>
     bool operator>=(
-        const base_matrix_const_iterator<T, Tag> &lhs, 
+        const base_matrix_const_iterator<T, Tag> &lhs,
         const base_matrix_const_iterator<T, Tag> &rhs
     );
 }

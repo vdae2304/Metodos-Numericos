@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -25,9 +25,9 @@
 
 namespace numcpp {
     /**
-     * @brief A lazy_matrix is a light-weight object which stores the result of 
-     * applying an unary function on each element in a matrix object. The 
-     * function is evaluated only when required. A lazy_matrix is convertible 
+     * @brief A lazy_matrix is a light-weight object which stores the result of
+     * applying an unary function on each element in a matrix object. The
+     * function is evaluated only when required. A lazy_matrix is convertible
      * to a matrix object.
      *
      * @tparam R Result type of the function.
@@ -42,21 +42,23 @@ namespace numcpp {
         typedef R value_type;
         typedef R reference;
         typedef const R const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            R, lazy_unary_tag<Function, T, Tag> 
+            R, lazy_unary_tag<Function, T, Tag>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
         /// Constructors.
 
         /**
-         * @brief Lazy matrix constructor. Constructs a lazy_matrix which 
+         * @brief Lazy matrix constructor. Constructs a lazy_matrix which
          * stores the result of applying an unary function on a matrix object.
-         * 
+         *
          * @param f The function to apply.
          * @param mat Matrix-like object.
          */
@@ -69,17 +71,17 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * lazy_matrix.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the 
-         *     lazy_matrix. 
+         * @return A random access iterator to the beginning of the
+         *     lazy_matrix.
          */
         iterator begin() const {
             return iterator(this, 0, true);
@@ -90,17 +92,17 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the lazy_matrix. It does not point to any element, and thus shall 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the lazy_matrix. It does not point to any element, and thus shall
          * not be dereferenced.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     lazy_matrix.
          */
         iterator end() const {
@@ -112,38 +114,38 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the lazy_matrix (i.e., its reverse beginning). Reverse iterators 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the lazy_matrix (i.e., its reverse beginning). Reverse iterators
          * iterate backwards.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the lazy_matrix.
          */
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the lazy_matrix (i.e., its reverse end).
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     lazy_matrix.
          */
         reverse_iterator rend() const {
@@ -157,59 +159,76 @@ namespace numcpp {
         /// Matrix indexing.
 
         /**
-         * @brief Call operator. Returns the result of applying the underlying 
+         * @brief Call operator. Returns the result of applying the underlying
          * function to the element at row i and column j.
          *
-         * @param i Row position of an element in the lazy_matrix. Must be 
+         * @param i Row position of an element in the lazy_matrix. Must be
          *     between 0 and rows() - 1.
-         * @param i Column position of an element in the lazy_matrix. Must be 
+         * @param i Column position of an element in the lazy_matrix. Must be
          *     between 0 and cols() - 1.
          *
-         * @return The result of the function evaluation at the specified 
-         *     row and column in the lazy_matrix. 
+         * @return The result of the function evaluation at the specified
+         *     row and column in the lazy_matrix.
          *
          * @throw std::out_of_range Thrown if either i or j is out of bounds.
          */
         R operator()(size_t i, size_t j) const {
-            return this->m_fun(this->m_mat(i, j));
-        }
-
-        /** 
-         * @brief Returns the number of rows in the lazy_matrix. 
-         * 
-         * @return The number of rows in the lazy_matrix.
-         */
-        size_t rows() const {
-            return this->m_mat.rows();
-        }
-
-        /** 
-         * @brief Returns the number of columns in the lazy_matrix.
-         * 
-         * @return The number of columns in the lazy_matrix.
-         */
-        size_t cols() const {
-            return this->m_mat.cols();
+            return m_fun(m_mat(i, j));
         }
 
         /**
-         * @brief Returns the number of elements in the lazy_matrix, i.e., 
+         * @brief Subscript operator. Returns the result of applying the
+         * underlying function to the element at a given row and column.
+         *
+         * @param index An index_t object with the row and column position of
+         *     an element in the lazy_matrix.
+         *
+         * @return The result of the function evaluation at the specified
+         *     row and column in the lazy_matrix.
+         *
+         * @throw std::out_of_range Thrown if either row or column index is out
+         *     of bounds.
+         */
+        R operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
+        }
+
+        /**
+         * @brief Returns the number of rows in the lazy_matrix.
+         *
+         * @return The number of rows in the lazy_matrix.
+         */
+        size_t rows() const {
+            return m_mat.rows();
+        }
+
+        /**
+         * @brief Returns the number of columns in the lazy_matrix.
+         *
+         * @return The number of columns in the lazy_matrix.
+         */
+        size_t cols() const {
+            return m_mat.cols();
+        }
+
+        /**
+         * @brief Returns the number of elements in the lazy_matrix, i.e.,
          * rows()*cols().
          *
          * @return The number of elements in the lazy_matrix.
          */
         size_t size() const {
-            return this->m_mat.size();
+            return m_mat.size();
         }
 
         /**
-         * @brief Returns whether the lazy_matrix is empty (i.e., whether its 
+         * @brief Returns whether the lazy_matrix is empty (i.e., whether its
          * size is 0).
          *
          * @return true if the lazy_matrix size is 0, false otherwise.
          */
         bool empty() const {
-            return this->m_mat.empty();
+            return m_mat.empty();
         }
 
     protected:
@@ -221,9 +240,9 @@ namespace numcpp {
     };
 
     /**
-     * @brief A lazy_matrix is a light-weight object which stores the result of 
-     * applying a binary function over the elements in two matrix objects. The 
-     * function is evaluated only when required. A lazy_matrix is convertible 
+     * @brief A lazy_matrix is a light-weight object which stores the result of
+     * applying a binary function over the elements in two matrix objects. The
+     * function is evaluated only when required. A lazy_matrix is convertible
      * to a matrix object.
      *
      * @tparam R Result type of the function.
@@ -242,32 +261,34 @@ namespace numcpp {
         typedef R value_type;
         typedef R reference;
         typedef const R const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            R, lazy_binary_tag<Function, T1, Tag1, T2, Tag2> 
+            R, lazy_binary_tag<Function, T1, Tag1, T2, Tag2>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
         /// Constructors.
 
         /**
-         * @brief Lazy matrix constructor. Constructs a lazy_matrix which 
-         * stores the result of applying a binary function on two matrix 
+         * @brief Lazy matrix constructor. Constructs a lazy_matrix which
+         * stores the result of applying a binary function on two matrix
          * objects.
-         * 
+         *
          * @param f The function to apply.
          * @param lhs First matrix-like argument.
          * @param rhs Second matrix-like argument.
-         * 
-         * @throw std::invalid_argument Thrown if both matrix arguments have 
-         *     different shapes.
+         *
+         * @throw std::invalid_argument Thrown if both matrix arguments have
+         *     different number of rows or columns.
          */
         base_matrix(
-            Function f, 
-            const base_matrix<T1, Tag1> &lhs, 
+            Function f,
+            const base_matrix<T1, Tag1> &lhs,
             const base_matrix<T2, Tag2> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs) {
             __assert_equal_shape(lhs.rows(),lhs.cols(), rhs.rows(),rhs.cols());
@@ -279,17 +300,17 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * lazy_matrix.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the 
-         *     lazy_matrix. 
+         * @return A random access iterator to the beginning of the
+         *     lazy_matrix.
          */
         iterator begin() const {
             return iterator(this, 0, true);
@@ -300,17 +321,17 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the lazy_matrix. It does not point to any element, and thus shall 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the lazy_matrix. It does not point to any element, and thus shall
          * not be dereferenced.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     lazy_matrix.
          */
         iterator end() const {
@@ -322,38 +343,38 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the lazy_matrix (i.e., its reverse beginning). Reverse iterators 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the lazy_matrix (i.e., its reverse beginning). Reverse iterators
          * iterate backwards.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the lazy_matrix.
          */
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the lazy_matrix (i.e., its reverse end).
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     lazy_matrix.
          */
         reverse_iterator rend() const {
@@ -367,59 +388,76 @@ namespace numcpp {
         /// Matrix indexing.
 
         /**
-         * @brief Call operator. Returns the result of applying the underlying 
+         * @brief Call operator. Returns the result of applying the underlying
          * function to the elements at row i and column j.
          *
-         * @param i Row position of an element in the lazy_matrix. Must be 
+         * @param i Row position of an element in the lazy_matrix. Must be
          *     between 0 and rows() - 1.
-         * @param i Column position of an element in the lazy_matrix. Must be 
+         * @param i Column position of an element in the lazy_matrix. Must be
          *     between 0 and cols() - 1.
          *
-         * @return The result of the function evaluation at the specified 
-         *     row and column in the lazy_matrix. 
+         * @return The result of the function evaluation at the specified
+         *     row and column in the lazy_matrix.
          *
          * @throw std::out_of_range Thrown if either i or j is out of bounds.
          */
         R operator()(size_t i, size_t j) const {
-            return this->m_fun(this->m_lhs(i, j), this->m_rhs(i, j));
-        }
-
-        /** 
-         * @brief Returns the number of rows in the lazy_matrix. 
-         * 
-         * @return The number of rows in the lazy_matrix.
-         */
-        size_t rows() const {
-            return this->m_lhs.rows();
-        }
-
-        /** 
-         * @brief Returns the number of columns in the lazy_matrix.
-         * 
-         * @return The number of columns in the lazy_matrix.
-         */
-        size_t cols() const {
-            return this->m_lhs.cols();
+            return m_fun(m_lhs(i, j), m_rhs(i, j));
         }
 
         /**
-         * @brief Returns the number of elements in the lazy_matrix, i.e., 
+         * @brief Subscript operator. Returns the result of applying the
+         * underlying function to the element at a given row and column.
+         *
+         * @param index An index_t object with the row and column position of
+         *     an element in the lazy_matrix.
+         *
+         * @return The result of the function evaluation at the specified
+         *     row and column in the lazy_matrix.
+         *
+         * @throw std::out_of_range Thrown if either row or column index is out
+         *     of bounds.
+         */
+        R operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
+        }
+
+        /**
+         * @brief Returns the number of rows in the lazy_matrix.
+         *
+         * @return The number of rows in the lazy_matrix.
+         */
+        size_t rows() const {
+            return m_lhs.rows();
+        }
+
+        /**
+         * @brief Returns the number of columns in the lazy_matrix.
+         *
+         * @return The number of columns in the lazy_matrix.
+         */
+        size_t cols() const {
+            return m_lhs.cols();
+        }
+
+        /**
+         * @brief Returns the number of elements in the lazy_matrix, i.e.,
          * rows()*cols().
          *
          * @return The number of elements in the lazy_matrix.
          */
         size_t size() const {
-            return this->m_lhs.size();
+            return m_lhs.size();
         }
 
         /**
-         * @brief Returns whether the lazy_matrix is empty (i.e., whether its 
+         * @brief Returns whether the lazy_matrix is empty (i.e., whether its
          * size is 0).
          *
          * @return true if the lazy_matrix size is 0, false otherwise.
          */
         bool empty() const {
-            return this->m_lhs.empty();
+            return m_lhs.empty();
         }
 
     protected:
@@ -434,26 +472,28 @@ namespace numcpp {
     };
 
     /**
-     * @brief Partial specialization of lazy_matrix class which stores the 
-     * result of applying a binary function over the elements in the left-hand 
-     * side matrix against a value. The function is evaluated only when 
+     * @brief Partial specialization of lazy_matrix class which stores the
+     * result of applying a binary function over the elements in the left-hand
+     * side matrix against a value. The function is evaluated only when
      * required. A lazy_matrix is convertible to a matrix object.
      */
     template <class R, class Function, class T1, class Tag1, class T2>
-    class base_matrix< 
-        R, lazy_binary_tag<Function, T1, Tag1, T2, scalar_tag> 
+    class base_matrix<
+        R, lazy_binary_tag<Function, T1, Tag1, T2, scalar_tag>
     > {
     public:
         /// Member types:
         typedef R value_type;
         typedef R reference;
         typedef const R const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            R, lazy_binary_tag<Function, T1, Tag1, T2, scalar_tag> 
+            R, lazy_binary_tag<Function, T1, Tag1, T2, scalar_tag>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -486,7 +526,7 @@ namespace numcpp {
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
@@ -502,23 +542,27 @@ namespace numcpp {
         /// Matrix indexing.
 
         R operator()(size_t i, size_t j) const {
-            return this->m_fun(this->m_lhs(i, j), this->m_val);
+            return m_fun(m_lhs(i, j), m_val);
+        }
+
+        R operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
         }
 
         size_t rows() const {
-            return this->m_lhs.rows();
+            return m_lhs.rows();
         }
 
         size_t cols() const {
-            return this->m_lhs.cols();
+            return m_lhs.cols();
         }
 
         size_t size() const {
-            return this->m_lhs.size();
+            return m_lhs.size();
         }
 
         bool empty() const {
-            return this->m_lhs.empty();
+            return m_lhs.empty();
         }
 
     protected:
@@ -533,26 +577,28 @@ namespace numcpp {
     };
 
     /**
-     * @brief Partial specialization of lazy_matrix class which stores the 
-     * result of applying a binary function over the elements in the right-hand 
-     * side matrix against a value. The function is evaluated only when 
+     * @brief Partial specialization of lazy_matrix class which stores the
+     * result of applying a binary function over the elements in the right-hand
+     * side matrix against a value. The function is evaluated only when
      * required. A lazy_matrix is convertible to a matrix object.
      */
     template <class R, class Function, class T1, class T2, class Tag2>
-    class base_matrix< 
-        R, lazy_binary_tag<Function, T1, scalar_tag, T2, Tag2> 
+    class base_matrix<
+        R, lazy_binary_tag<Function, T1, scalar_tag, T2, Tag2>
     > {
     public:
         /// Member types:
         typedef R value_type;
         typedef R reference;
         typedef const R const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            R, lazy_binary_tag<Function, T1, scalar_tag, T2, Tag2> 
+            R, lazy_binary_tag<Function, T1, scalar_tag, T2, Tag2>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -585,7 +631,7 @@ namespace numcpp {
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
@@ -601,23 +647,27 @@ namespace numcpp {
         /// Matrix indexing.
 
         R operator()(size_t i, size_t j) const {
-            return this->m_fun(this->m_val, this->m_rhs(i, j));
+            return m_fun(m_val, m_rhs(i, j));
+        }
+
+        R operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
         }
 
         size_t rows() const {
-            return this->m_rhs.rows();
+            return m_rhs.rows();
         }
 
         size_t cols() const {
-            return this->m_rhs.cols();
+            return m_rhs.cols();
         }
 
         size_t size() const {
-            return this->m_rhs.size();
+            return m_rhs.size();
         }
 
         bool empty() const {
-            return this->m_rhs.empty();
+            return m_rhs.empty();
         }
 
     protected:

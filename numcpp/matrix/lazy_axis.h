@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -27,9 +27,9 @@
 
 namespace numcpp {
     /**
-     * @brief A lazy_axis is a light-weight object which stores the result of 
-     * applying a function along each row or column in a matrix object. The 
-     * function is evaluated only when required. A lazy_axis is convertible 
+     * @brief A lazy_axis is a light-weight object which stores the result of
+     * applying a function along each row or column in a matrix object. The
+     * function is evaluated only when required. A lazy_axis is convertible
      * to an array object.
      *
      * @tparam R Result type of the function.
@@ -44,25 +44,27 @@ namespace numcpp {
         typedef R value_type;
         typedef R reference;
         typedef const R const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_array_const_iterator<
-            R, lazy_axis_tag<Function, T, Tag> 
+            R, lazy_axis_tag<Function, T, Tag>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
         /// Constructors.
 
         /**
-         * @brief Lazy axis constructor. Constructs a lazy_axis which 
-         * stores the result of applying a function along each row or column in 
-         * a matrix object.
-         * 
+         * @brief Lazy axis constructor. Constructs a lazy_axis which stores
+         * the result of applying a function along each row or column in a
+         * matrix object.
+         *
          * @param f The function to apply.
          * @param mat Matrix-like object.
-         * @param rowwise If true, apply the function along each row. 
+         * @param rowwise If true, apply the function along each row.
          *     Otherwise, apply the function along each column.
          */
         base_array(Function f, const base_matrix<T, Tag> &mat, bool rowwise)
@@ -74,22 +76,21 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * lazy_axis.
          *
-         * @return A random access iterator to the beginning of the 
-         *     lazy_axis. 
+         * @return A random access iterator to the beginning of the lazy_axis.
          */
         iterator begin() const {
             return iterator(this, 0);
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the lazy_axis. It does not point to any element, and thus shall 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the lazy_axis. It does not point to any element, and thus shall
          * not be dereferenced.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     lazy_axis.
          */
         iterator end() const {
@@ -97,11 +98,11 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the lazy_axis (i.e., its reverse beginning). Reverse iterators 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the lazy_axis (i.e., its reverse beginning). Reverse iterators
          * iterate backwards.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the lazy_axis.
          */
         reverse_iterator rbegin() const {
@@ -109,10 +110,10 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the lazy_axis (i.e., its reverse end).
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     lazy_axis.
          */
         reverse_iterator rend() const {
@@ -122,24 +123,23 @@ namespace numcpp {
         /// Array indexing.
 
         /**
-         * @brief Subscript operator. Returns the result of applying the 
+         * @brief Subscript operator. Returns the result of applying the
          * underlying function along the row/column i.
          *
-         * @param i Position of an element in the lazy_axis. Must be between 
+         * @param i Position of an element in the lazy_axis. Must be between
          *     0 and size() - 1.
          *
-         * @return The result of the function evaluation at the specified 
-         *     position in the lazy_axis. 
+         * @return The result of the function evaluation at the specified
+         *     position in the lazy_axis.
          *
          * @throw std::out_of_range Thrown if i is out of bounds.
          */
         R operator[](size_t i) const {
             __assert_within_bounds(this->size(), i);
-            size_t tda = this->m_order ? this->m_mat.cols() 
-                                       : this->m_mat.rows();
-            return this->m_fun(
-                this->m_mat.begin(this->m_order) + i*tda,
-                this->m_mat.begin(this->m_order) + (i + 1)*tda
+            size_t tda = m_order ? m_mat.cols() : m_mat.rows();
+            return m_fun(
+                m_mat.begin(m_order) + i*tda,
+                m_mat.begin(m_order) + (i + 1)*tda
             );
         }
 
@@ -149,11 +149,11 @@ namespace numcpp {
          * @return The number of elements in the lazy_axis.
          */
         size_t size() const {
-            return this->m_order ? this->m_mat.rows() : this->m_mat.cols();
+            return m_order ? m_mat.rows() : m_mat.cols();
         }
 
         /**
-         * @brief Returns whether the lazy_axis is empty (i.e., whether its 
+         * @brief Returns whether the lazy_axis is empty (i.e., whether its
          * size is 0).
          *
          * @return true if the lazy_axis size is 0, false otherwise.

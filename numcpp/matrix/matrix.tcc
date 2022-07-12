@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -31,24 +31,24 @@ namespace numcpp {
 
     template <class T>
     base_matrix<T, matrix_tag>::base_matrix() {
-        this->m_data = NULL;
-        this->m_shape1 = 0;
-        this->m_shape2 = 0;
+        m_data = NULL;
+        m_shape1 = 0;
+        m_shape2 = 0;
     }
 
     template <class T>
     base_matrix<T, matrix_tag>::base_matrix(size_t m, size_t n) {
-        this->m_data = new T[m * n];
-        this->m_shape1 = m;
-        this->m_shape2 = n;
+        m_data = new T[m * n];
+        m_shape1 = m;
+        m_shape2 = n;
     }
 
     template <class T>
     base_matrix<T, matrix_tag>::base_matrix(size_t m, size_t n, const T &val) {
-        this->m_data = new T[m * n];
-        this->m_shape1 = m;
-        this->m_shape2 = n;
-        std::fill_n(this->m_data, this->m_shape1 * this->m_shape2, val);
+        m_data = new T[m * n];
+        m_shape1 = m;
+        m_shape2 = n;
+        std::fill_n(m_data, m_shape1 * m_shape2, val);
     }
 
     template <class T>
@@ -57,35 +57,35 @@ namespace numcpp {
         InputIterator first, InputIterator last, size_t n
     ) {
         size_t size = std::distance(first, last);
-        this->m_shape1 = size / n;
-        this->m_shape2 = n;
+        m_shape1 = size / n;
+        m_shape2 = n;
         if (size % n != 0) {
-            ++this->m_shape1;
+            ++m_shape1;
         }
-        this->m_data = new T[this->m_shape1 * this->m_shape2];
-        std::copy(first, last, this->m_data);
+        m_data = new T[m_shape1 * m_shape2];
+        std::copy(first, last, m_data);
     }
 
     template <class T>
     base_matrix<T, matrix_tag>::base_matrix(
         const base_matrix<T, matrix_tag> &other
     ) {
-        this->m_shape1 = other.m_shape1;
-        this->m_shape2 = other.m_shape2;
-        this->m_data = new T[this->m_shape1 * this->m_shape2];
+        m_shape1 = other.m_shape1;
+        m_shape2 = other.m_shape2;
+        m_data = new T[m_shape1 * m_shape2];
         std::copy(
-            other.m_data, other.m_data + other.m_shape1*other.m_shape2, 
-            this->m_data
+            other.m_data, other.m_data + other.m_shape1 * other.m_shape2,
+            m_data
         );
     }
 
     template <class T>
     template <class Tag>
     base_matrix<T, matrix_tag>::base_matrix(const base_matrix<T, Tag> &other) {
-        this->m_shape1 = other.rows();
-        this->m_shape2 = other.cols();
-        this->m_data = new T[this->m_shape1 * this->m_shape2];
-        std::copy(other.begin(true), other.end(true), this->m_data);
+        m_shape1 = other.rows();
+        m_shape2 = other.cols();
+        m_data = new T[m_shape1 * m_shape2];
+        std::copy(other.begin(true), other.end(true), m_data);
     }
 
     template <class T>
@@ -93,9 +93,9 @@ namespace numcpp {
         base_matrix<T, matrix_tag> &&other
     ) {
         if (this != &other) {
-            this->m_data = other.m_data;
-            this->m_shape1 = other.m_shape1;
-            this->m_shape2 = other.m_shape2;
+            m_data = other.m_data;
+            m_shape1 = other.m_shape1;
+            m_shape2 = other.m_shape2;
             other.m_data = NULL;
             other.m_shape1 = 0;
             other.m_shape2 = 0;
@@ -106,16 +106,16 @@ namespace numcpp {
     base_matrix<T, matrix_tag>::base_matrix(
         std::initializer_list< std::initializer_list<T> > il
     ) {
-        this->m_shape1 = il.size();
-        this->m_shape2 = 0;
+        m_shape1 = il.size();
+        m_shape2 = 0;
         for (const std::initializer_list<T> &row : il) {
-            this->m_shape2 = std::max(this->m_shape2, row.size());
+            m_shape2 = std::max(m_shape2, row.size());
         }
-        this->m_data = new T[this->m_shape1 * this->m_shape2];
-        T* rowptr = this->m_data;
+        m_data = new T[m_shape1 * m_shape2];
+        T* rowptr = m_data;
         for (const std::initializer_list<T> &row : il) {
             std::copy(row.begin(), row.end(), rowptr);
-            rowptr += this->m_shape2;
+            rowptr += m_shape2;
         }
     }
 
@@ -123,69 +123,69 @@ namespace numcpp {
 
     template <class T>
     base_matrix<T, matrix_tag>::~base_matrix() {
-        delete[] this->m_data;
+        delete[] m_data;
     }
 
     /// Iterators.
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::iterator 
+    inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::begin() {
         return base_matrix_iterator<T, matrix_tag>(this, 0, true);
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::begin() const {
         return base_matrix_const_iterator<T, matrix_tag>(this, 0, true);
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::iterator 
+    inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::begin(bool row_major) {
         return base_matrix_iterator<T, matrix_tag>(this, 0, row_major);
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::begin(bool row_major) const {
         return base_matrix_const_iterator<T, matrix_tag>(this, 0, row_major);
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::iterator 
+    inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::end() {
         return base_matrix_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, true
+            this, m_shape1 * m_shape2, true
         );
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::end() const {
         return base_matrix_const_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, true
+            this, m_shape1 * m_shape2, true
         );
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::iterator 
+    inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::end(bool row_major) {
         return base_matrix_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, row_major
+            this, m_shape1 * m_shape2, row_major
         );
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::end(bool row_major) const {
         return base_matrix_const_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, row_major
+            this, m_shape1 * m_shape2, row_major
         );
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::reverse_iterator
     base_matrix<T, matrix_tag>::rbegin() {
         return typename base_matrix<T, matrix_tag>::reverse_iterator(
             this->end()
@@ -193,7 +193,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator
     base_matrix<T, matrix_tag>::rbegin() const {
         return typename base_matrix<T, matrix_tag>::const_reverse_iterator(
             this->end()
@@ -201,7 +201,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::reverse_iterator
     base_matrix<T, matrix_tag>::rbegin(bool row_major) {
         return typename base_matrix<T, matrix_tag>::reverse_iterator(
             this->end(row_major)
@@ -209,7 +209,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator
     base_matrix<T, matrix_tag>::rbegin(bool row_major) const {
         return typename base_matrix<T, matrix_tag>::const_reverse_iterator(
             this->end(row_major)
@@ -217,7 +217,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::reverse_iterator
     base_matrix<T, matrix_tag>::rend() {
         return typename base_matrix<T, matrix_tag>::reverse_iterator(
             this->begin()
@@ -225,7 +225,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator
     base_matrix<T, matrix_tag>::rend() const {
         return typename base_matrix<T, matrix_tag>::const_reverse_iterator(
             this->begin()
@@ -233,7 +233,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::reverse_iterator
     base_matrix<T, matrix_tag>::rend(bool row_major) {
         return typename base_matrix<T, matrix_tag>::reverse_iterator(
             this->begin(row_major)
@@ -241,7 +241,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator 
+    inline typename base_matrix<T, matrix_tag>::const_reverse_iterator
     base_matrix<T, matrix_tag>::rend(bool row_major) const {
         return typename base_matrix<T, matrix_tag>::const_reverse_iterator(
             this->begin(row_major)
@@ -264,7 +264,7 @@ namespace numcpp {
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::cend() const {
         return base_matrix_const_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, true
+            this, m_shape1 * m_shape2, true
         );
     }
 
@@ -272,7 +272,7 @@ namespace numcpp {
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::cend(bool row_major) const {
         return base_matrix_const_iterator<T, matrix_tag>(
-            this, this->m_shape1 * this->m_shape2, row_major
+            this, m_shape1 * m_shape2, row_major
         );
     }
 
@@ -312,128 +312,127 @@ namespace numcpp {
 
     template <class T>
     inline T& base_matrix<T, matrix_tag>::operator()(size_t i, size_t j) {
-        __assert_within_bounds(this->m_shape1, this->m_shape2, i, j);
-        return this->m_data[i*this->m_shape2 + j];
+        __assert_within_bounds(m_shape1, m_shape2, i, j);
+        return m_data[i * m_shape2 + j];
     }
 
     template <class T>
-    inline const T& 
+    inline const T&
     base_matrix<T, matrix_tag>::operator()(size_t i, size_t j) const {
-        __assert_within_bounds(this->m_shape1, this->m_shape2, i, j);
-        return this->m_data[i*this->m_shape2 + j];
+        __assert_within_bounds(m_shape1, m_shape2, i, j);
+        return m_data[i * m_shape2 + j];
     }
 
     template <class T>
-    base_matrix<T, matrix_view_tag> 
+    inline T&
+    base_matrix<T, matrix_tag>::operator[](const index_t &index) {
+        return (*this)(index.first, index.second);
+    }
+
+    template <class T>
+    inline const T&
+    base_matrix<T, matrix_tag>::operator[](const index_t &index) const {
+        return (*this)(index.first, index.second);
+    }
+
+    template <class T>
+    base_matrix<T, matrix_view_tag>
     base_matrix<T, matrix_tag>::operator()(slice slc1, slice slc2) {
         if (slc1.size() > 0 && slc2.size() > 0) {
             __assert_within_bounds(
-                this->m_shape1, this->m_shape2, 
-                slc1[slc1.size() - 1], slc2[slc2.size() - 1]
+                m_shape1, m_shape2, slc1[slc1.size() - 1], slc2[slc2.size() - 1]
             );
         }
         return base_matrix<T, matrix_view_tag>(
-            slc1.size(), slc2.size(), this->m_data, 
-            this->m_shape2,
+            slc1.size(), slc2.size(), m_data,
+            m_shape2,
             slc1.start(), slc1.stride(),
             slc2.start(), slc2.stride()
         );
     }
 
     template <class T>
-    const base_matrix<T, matrix_view_tag> 
+    const base_matrix<T, matrix_view_tag>
     base_matrix<T, matrix_tag>::operator()(slice slc1, slice slc2) const {
         if (slc1.size() > 0 && slc2.size() > 0) {
             __assert_within_bounds(
-                this->m_shape1, this->m_shape2, 
-                slc1[slc1.size() - 1], slc2[slc2.size() - 1]
+                m_shape1, m_shape2, slc1[slc1.size() - 1], slc2[slc2.size() - 1]
             );
         }
         return base_matrix<T, matrix_view_tag>(
-            slc1.size(), slc2.size(), this->m_data, 
-            this->m_shape2,
+            slc1.size(), slc2.size(), m_data,
+            m_shape2,
             slc1.start(), slc1.stride(),
             slc2.start(), slc2.stride()
         );
     }
 
     template <class T>
-    base_array<T, array_view_tag> 
+    base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::operator()(size_t i, slice slc) {
         if (slc.size() > 0) {
-            __assert_within_bounds(
-                this->m_shape1, this->m_shape2, i, slc[slc.size() - 1]
-            );
+            __assert_within_bounds(m_shape1, m_shape2, i, slc[slc.size() - 1]);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, 
-            i*this->m_shape2 + slc.start(), slc.stride()
+            slc.size(), m_data,
+            i * m_shape2 + slc.start(), slc.stride()
         );
     }
 
     template <class T>
-    const base_array<T, array_view_tag> 
+    const base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::operator()(size_t i, slice slc) const {
         if (slc.size() > 0) {
-            __assert_within_bounds(
-                this->m_shape1, this->m_shape2, i, slc[slc.size() - 1]
-            );
+            __assert_within_bounds(m_shape1, m_shape2, i, slc[slc.size() - 1]);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, 
-            i*this->m_shape2 + slc.start(), slc.stride()
+            slc.size(), m_data,
+            i * m_shape2 + slc.start(), slc.stride()
         );
     }
 
     template <class T>
-    base_array<T, array_view_tag> 
+    base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::operator()(slice slc, size_t j) {
         if (slc.size() > 0) {
-            __assert_within_bounds(
-                this->m_shape1, this->m_shape2, slc[slc.size() - 1], j
-            );
+            __assert_within_bounds(m_shape1, m_shape2, slc[slc.size() - 1], j);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, 
-            slc.start()*this->m_shape2 + j, this->m_shape2*slc.stride()
+            slc.size(), m_data,
+            slc.start() * m_shape2 + j, m_shape2 * slc.stride()
         );
     }
 
     template <class T>
-    const base_array<T, array_view_tag> 
+    const base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::operator()(slice slc, size_t j) const {
         if (slc.size() > 0) {
-            __assert_within_bounds(
-                this->m_shape1, this->m_shape2, slc[slc.size() - 1], j
-            );
+            __assert_within_bounds(m_shape1, m_shape2, slc[slc.size() - 1], j);
         }
         return base_array<T, array_view_tag>(
-            slc.size(), this->m_data, 
-            slc.start()*this->m_shape2 + j, this->m_shape2*slc.stride()
+            slc.size(), m_data,
+            slc.start() * m_shape2 + j, m_shape2 * slc.stride()
         );
     }
 
     template <class T>
     template <class Tag>
-    base_array<T, index_view_tag> 
-    base_matrix<T, matrix_tag>::operator[](
-        const base_array<std::pair<size_t, size_t>, Tag> &index
+    base_array<T, index_view_tag> base_matrix<T, matrix_tag>::operator[](
+        const base_array<index_t, Tag> &index
     ) {
         size_t *m_index = new size_t[index.size()];
         for (size_t k = 0; k < index.size(); ++k) {
             size_t i = index[k].first, j = index[k].second;
-            m_index[k] = i*this->cols() + j;
-            __assert_within_bounds(this->rows(), this->cols(), i, j);
+            __assert_within_bounds(m_shape1, m_shape2, i, j);
+            m_index[k] = i * m_shape2 + j;
         }
-        return base_array<T, index_view_tag>(
-            index.size(), this->data(), m_index, -1
-        );
+        return base_array<T, index_view_tag>(index.size(), m_data, m_index, -1);
     }
 
     template <class T>
     template <class Tag>
     base_array<T, array_tag> base_matrix<T, matrix_tag>::operator[](
-        const base_array<std::pair<size_t, size_t>, Tag> &index
+        const base_array<index_t, Tag> &index
     ) const {
         base_array<T, array_tag> subarray(index.size());
         for (size_t k = 0; k < index.size(); ++k) {
@@ -444,7 +443,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    base_array<T, index_view_tag> 
+    base_array<T, index_view_tag>
     base_matrix<T, matrix_tag>::operator[](const base_matrix<bool, Tag> &mask) {
         __range_count_nonzero pred;
         size_t size = pred(mask.begin(), mask.end());
@@ -453,18 +452,18 @@ namespace numcpp {
         for (size_t i = 0; i < mask.rows(); ++i) {
             for (size_t j = 0; j < mask.cols(); ++j) {
                 if (mask(i, j)) {
-                    __assert_within_bounds(this->rows(), this->cols(), i, j);
-                    m_index[n++] = i*this->cols() + j;
+                    __assert_within_bounds(m_shape1, m_shape2, i, j);
+                    m_index[n++] = i * m_shape2 + j;
                 }
             }
         }
-        return base_array<T, index_view_tag>(size, this->data(), m_index, -1);
+        return base_array<T, index_view_tag>(size, m_data, m_index, -1);
     }
-    
+
     template <class T>
     template <class Tag>
-    base_array<T, array_tag> 
-    base_matrix<T, matrix_tag>::operator[](const base_matrix<bool, Tag> &mask) 
+    base_array<T, array_tag>
+    base_matrix<T, matrix_tag>::operator[](const base_matrix<bool, Tag> &mask)
     const {
         __range_count_nonzero pred;
         base_array<T, array_tag> subarray(pred(mask.begin(), mask.end()));
@@ -478,86 +477,86 @@ namespace numcpp {
         }
         return subarray;
     }
-    
+
     template <class T>
     inline size_t base_matrix<T, matrix_tag>::rows() const {
-        return this->m_shape1;
+        return m_shape1;
     }
 
     template <class T>
     inline size_t base_matrix<T, matrix_tag>::cols() const {
-        return this->m_shape2;
+        return m_shape2;
     }
 
     template <class T>
     inline size_t base_matrix<T, matrix_tag>::size() const {
-        return this->m_shape1 * this->m_shape2;
+        return m_shape1 * m_shape2;
     }
 
     template <class T>
     inline void base_matrix<T, matrix_tag>::resize(size_t m, size_t n) {
-        if (this->m_shape1 * this->m_shape2 != m * n) {
-            delete[] this->m_data;
-            this->m_data = new T[m * n];
+        if (m_shape1 * m_shape2 != m * n) {
+            delete[] m_data;
+            m_data = new T[m * n];
         }
-        this->m_shape1 = m;
-        this->m_shape2 = n;
+        m_shape1 = m;
+        m_shape2 = n;
     }
 
     template <class T>
     inline bool base_matrix<T, matrix_tag>::empty() const {
-        return (this->m_shape1 == 0 || this->m_shape2 == 0);
+        return (m_shape1 == 0 || m_shape2 == 0);
     }
 
     template <class T>
     inline T* base_matrix<T, matrix_tag>::data() {
-        return this->m_data;
+        return m_data;
     }
 
     template <class T>
     inline const T* base_matrix<T, matrix_tag>::data() const {
-        return this->m_data;
+        return m_data;
     }
 
     /// Operator overloading.
-    
+
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator=(
         const base_matrix<T, matrix_tag> &other
     ) {
         this->resize(other.m_shape1, other.m_shape2);
         std::copy(
-            other.m_data, other.m_data + other.m_shape1*other.m_shape2, 
-            this->m_data
+            other.m_data, other.m_data + other.m_shape1 * other.m_shape2,
+            m_data
         );
         return *this;
     }
-    
+
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator=(const base_matrix<T, Tag> &other) {
         this->resize(other.rows(), other.cols());
-        std::copy(other.begin(true), other.end(true), this->m_data);
+        std::copy(other.begin(true), other.end(true), m_data);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator=(const T &val) {
-        std::fill_n(this->m_data, this->m_shape1 * this->m_shape2, val);
+        std::fill_n(m_data, m_shape1 * m_shape2, val);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator=(base_matrix<T, matrix_tag> &&other) {
         if (this != &other) {
-            delete[] this->m_data;
-            this->m_data = other.m_data;
-            this->m_shape1 = other.m_shape1;
-            this->m_shape2 = other.m_shape2;
+            delete[] m_data;
+            m_data = other.m_data;
+            m_shape1 = other.m_shape1;
+            m_shape2 = other.m_shape2;
             other.m_data = NULL;
             other.m_shape1 = 0;
             other.m_shape2 = 0;
@@ -566,7 +565,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator=(
         std::initializer_list< std::initializer_list<T> > il
     ) {
@@ -575,10 +574,10 @@ namespace numcpp {
             n = std::max(n, row.size());
         }
         this->resize(m, n);
-        T* rowptr = this->m_data;
+        T* rowptr = m_data;
         for (const std::initializer_list<T> &row : il) {
             std::copy(row.begin(), row.end(), rowptr);
-            rowptr += this->m_shape2;
+            rowptr += m_shape2;
         }
         return *this;
     }
@@ -586,7 +585,7 @@ namespace numcpp {
     /// Compound assignment operator.
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator+=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -595,7 +594,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator-=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -604,7 +603,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator*=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -613,7 +612,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator/=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -622,7 +621,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator%=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -631,7 +630,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator&=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -640,7 +639,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator|=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -649,7 +648,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator^=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -658,7 +657,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator<<=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -667,7 +666,7 @@ namespace numcpp {
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator>>=(
         const base_matrix<T, matrix_tag> &rhs
     ) {
@@ -677,7 +676,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator+=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__plus(), *this, rhs, *this);
         return *this;
@@ -685,7 +684,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator-=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__minus(), *this, rhs, *this);
         return *this;
@@ -693,7 +692,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator*=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__multiplies(), *this, rhs, *this);
         return *this;
@@ -701,7 +700,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator/=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__divides(), *this, rhs, *this);
         return *this;
@@ -709,7 +708,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator%=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__modulus(), *this, rhs, *this);
         return *this;
@@ -717,7 +716,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator&=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__bit_and(), *this, rhs, *this);
         return *this;
@@ -725,7 +724,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator|=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__bit_or(), *this, rhs, *this);
         return *this;
@@ -733,7 +732,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator^=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__bit_xor(), *this, rhs, *this);
         return *this;
@@ -741,7 +740,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator<<=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__left_shift(), *this, rhs, *this);
         return *this;
@@ -749,77 +748,77 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator>>=(const base_matrix<T, Tag> &rhs) {
         __apply_binary_function(__right_shift(), *this, rhs, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator+=(const T &val) {
         __apply_binary_function(__plus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator-=(const T &val) {
         __apply_binary_function(__minus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator*=(const T &val) {
         __apply_binary_function(__multiplies(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator/=(const T &val) {
         __apply_binary_function(__divides(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator%=(const T &val) {
         __apply_binary_function(__modulus(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator&=(const T &val) {
         __apply_binary_function(__bit_and(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator|=(const T &val) {
         __apply_binary_function(__bit_or(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator^=(const T &val) {
         __apply_binary_function(__bit_xor(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator<<=(const T &val) {
         __apply_binary_function(__left_shift(), *this, val, *this);
         return *this;
     }
 
     template <class T>
-    inline base_matrix<T, matrix_tag>& 
+    inline base_matrix<T, matrix_tag>&
     base_matrix<T, matrix_tag>::operator>>=(const T &val) {
         __apply_binary_function(__right_shift(), *this, val, *this);
         return *this;
@@ -844,12 +843,11 @@ namespace numcpp {
     }
 
     template <class T>
-    void base_matrix<T, matrix_tag>::argmax(size_t &i, size_t &j) const {
+    index_t base_matrix<T, matrix_tag>::argmax() const {
         __range_argmax pred;
-        base_matrix_const_iterator<T, matrix_tag> it = 
+        base_matrix_const_iterator<T, matrix_tag> it =
             this->begin() + pred(this->begin(), this->end());
-        i = it.row();
-        j = it.col();
+        return index_t(it.row(), it.col());
     }
 
     template <class T>
@@ -860,12 +858,11 @@ namespace numcpp {
     }
 
     template <class T>
-    void base_matrix<T, matrix_tag>::argmin(size_t &i, size_t &j) const {
+    index_t base_matrix<T, matrix_tag>::argmin() const {
         __range_argmin pred;
-        base_matrix_const_iterator<T, matrix_tag> it = 
+        base_matrix_const_iterator<T, matrix_tag> it =
             this->begin() + pred(this->begin(), this->end());
-        i = it.row();
-        j = it.col();
+        return index_t(it.row(), it.col());
     }
 
     template <class T>
@@ -877,7 +874,7 @@ namespace numcpp {
 
     template <class T>
     template <class U>
-    base_matrix< U, lazy_unary_tag<__identity, T, matrix_tag> > 
+    base_matrix< U, lazy_unary_tag<__identity, T, matrix_tag> >
     base_matrix<T, matrix_tag>::astype() const {
         typedef lazy_unary_tag<__identity, T, matrix_tag> Closure;
         return base_matrix<U, Closure>(__identity(), *this);
@@ -889,14 +886,14 @@ namespace numcpp {
     }
 
     template <class T>
-    base_matrix< T, lazy_unary_tag<__conjugate, T, matrix_tag> > 
+    base_matrix< T, lazy_unary_tag<__conjugate, T, matrix_tag> >
     base_matrix<T, matrix_tag>::conj() const {
         typedef lazy_unary_tag<__conjugate, T, matrix_tag> Closure;
         return base_matrix<T, Closure>(__conjugate(), *this);
     }
 
     template <class T>
-    base_array<T, array_view_tag> 
+    base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::diagonal(ptrdiff_t offset) {
         size_t size = 0, start, stride = this->cols() + 1;
         if (offset >= 0) {
@@ -911,11 +908,11 @@ namespace numcpp {
             }
             start = -offset * this->cols();
         }
-        return base_array<T, array_view_tag>(size, this->m_data, start, stride);
+        return base_array<T, array_view_tag>(size, m_data, start, stride);
     }
 
     template <class T>
-    const base_array<T, array_view_tag> 
+    const base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::diagonal(ptrdiff_t offset) const {
         size_t size = 0, start, stride = this->cols() + 1;
         if (offset >= 0) {
@@ -930,12 +927,12 @@ namespace numcpp {
             }
             start = -offset * this->cols();
         }
-        return base_array<T, array_view_tag>(size, this->m_data, start, stride);
+        return base_array<T, array_view_tag>(size, m_data, start, stride);
     }
 
     template <class T>
     template <class Tag>
-    base_array<T, array_tag> 
+    base_array<T, array_tag>
     base_matrix<T, matrix_tag>::dot(const base_array<T, Tag> &rhs) const {
         __assert_matmul_shapes(this->rows(), this->cols(), rhs.size(), 1);
         base_array<T, array_tag> out(this->rows(), T(0));
@@ -949,7 +946,7 @@ namespace numcpp {
 
     template <class T>
     template <class Tag>
-    base_matrix<T, matrix_tag> 
+    base_matrix<T, matrix_tag>
     base_matrix<T, matrix_tag>::dot(const base_matrix<T, Tag> &rhs) const {
         __assert_matmul_shapes(this->rows(),this->cols(),rhs.rows(),rhs.cols());
         base_matrix<T, matrix_tag> out(this->rows(), rhs.cols(), T(0));
@@ -965,20 +962,20 @@ namespace numcpp {
 
     template <class T>
     base_array<T, array_view_tag> base_matrix<T, matrix_tag>::flatten() {
-        return base_array<T, array_view_tag>(this->size(), this->m_data);
+        return base_array<T, array_view_tag>(this->size(), m_data);
     }
 
     template <class T>
-    const base_array<T, array_view_tag> 
+    const base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::flatten() const {
-        return base_array<T, array_view_tag>(this->size(), this->m_data);
+        return base_array<T, array_view_tag>(this->size(), m_data);
     }
 
     template <class T>
-    base_matrix< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__imag_part, T, matrix_tag> 
-    > 
+    base_matrix<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__imag_part, T, matrix_tag>
+    >
     base_matrix<T, matrix_tag>::imag() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__imag_part, T, matrix_tag> Closure;
@@ -1031,7 +1028,7 @@ namespace numcpp {
     }
 
     template <class T>
-    base_array< T, lazy_axis_tag<__range_min, T, matrix_tag> > 
+    base_array< T, lazy_axis_tag<__range_min, T, matrix_tag> >
     base_matrix<T, matrix_tag>::min(bool rowwise) const {
         typedef lazy_axis_tag<__range_min, T, matrix_tag> Closure;
         return base_array<T, Closure>(__range_min(), *this, rowwise);
@@ -1044,8 +1041,8 @@ namespace numcpp {
         __assert_within_bounds(tda, kth);
         for (size_t i = 0; i < size; ++i) {
             std::nth_element(
-                this->begin(rowwise) + i*tda, 
-                this->begin(rowwise) + i*tda + kth, 
+                this->begin(rowwise) + i*tda,
+                this->begin(rowwise) + i*tda + kth,
                 this->begin(rowwise) + (i + 1)*tda
             );
         }
@@ -1061,9 +1058,9 @@ namespace numcpp {
         __assert_within_bounds(tda, kth);
         for (size_t i = 0; i < size; ++i) {
             std::nth_element(
-                this->begin(rowwise) + i*tda, 
-                this->begin(rowwise) + i*tda + kth, 
-                this->begin(rowwise) + (i + 1)*tda, 
+                this->begin(rowwise) + i*tda,
+                this->begin(rowwise) + i*tda + kth,
+                this->begin(rowwise) + (i + 1)*tda,
                 comp
             );
         }
@@ -1083,10 +1080,10 @@ namespace numcpp {
     }
 
     template <class T>
-    base_matrix< 
-        typename complex_traits<T>::value_type, 
-        lazy_unary_tag<__real_part, T, matrix_tag> 
-    > 
+    base_matrix<
+        typename complex_traits<T>::value_type,
+        lazy_unary_tag<__real_part, T, matrix_tag>
+    >
     base_matrix<T, matrix_tag>::real() const {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__real_part, T, matrix_tag> Closure;
@@ -1112,7 +1109,7 @@ namespace numcpp {
         size_t tda = rowwise ? this->cols() : this->rows();
         for (size_t i = 0; i < size; ++i) {
             std::reverse(
-                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + i*tda,
                 this->begin(rowwise) + (i + 1)*tda
             );
         }
@@ -1124,7 +1121,7 @@ namespace numcpp {
         size_t tda = rowwise ? this->cols() : this->rows();
         for (size_t i = 0; i < size; ++i) {
             std::sort(
-                this->begin(rowwise) + i*tda, 
+                this->begin(rowwise) + i*tda,
                 this->begin(rowwise) + (i + 1)*tda
             );
         }
@@ -1140,15 +1137,15 @@ namespace numcpp {
         for (size_t i = 0; i < size; ++i) {
             if (stable) {
                 std::stable_sort(
-                    this->begin(rowwise) + i*tda, 
-                    this->begin(rowwise) + (i + 1)*tda, 
+                    this->begin(rowwise) + i*tda,
+                    this->begin(rowwise) + (i + 1)*tda,
                     comp
                 );
             }
             else {
                 std::sort(
-                    this->begin(rowwise) + i*tda, 
-                    this->begin(rowwise) + (i + 1)*tda, 
+                    this->begin(rowwise) + i*tda,
+                    this->begin(rowwise) + (i + 1)*tda,
                     comp
                 );
             }
@@ -1183,23 +1180,23 @@ namespace numcpp {
 
     template <class T>
     void base_matrix<T, matrix_tag>::swap(base_matrix<T, matrix_tag> &other) {
-        std::swap(this->m_data, other.m_data);
-        std::swap(this->m_shape1, other.m_shape1);
-        std::swap(this->m_shape2, other.m_shape2);
+        std::swap(m_data, other.m_data);
+        std::swap(m_shape1, other.m_shape1);
+        std::swap(m_shape2, other.m_shape2);
     }
-    
+
     template <class T>
     base_matrix<T, matrix_view_tag> base_matrix<T, matrix_tag>::t() {
         return base_matrix<T, matrix_view_tag>(
-            this->cols(), this->rows(), this->m_data, false
+            this->cols(), this->rows(), m_data, false
         );
     }
 
     template <class T>
-    const base_matrix<T, matrix_view_tag> 
+    const base_matrix<T, matrix_view_tag>
     base_matrix<T, matrix_tag>::t() const {
         return base_matrix<T, matrix_view_tag>(
-            this->cols(), this->rows(), this->m_data, false
+            this->cols(), this->rows(), m_data, false
         );
     }
 
