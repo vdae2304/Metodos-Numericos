@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -60,7 +60,7 @@ namespace numcpp {
 
     /**
      * @brief A beta continuous distribution for random numbers.
-     * 
+     *
      * The formula for the beta probability density function is
      * @f[
      *     f(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}
@@ -69,7 +69,7 @@ namespace numcpp {
      */
     template <class RealType = double>
     class beta_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -86,11 +86,11 @@ namespace numcpp {
              : m_alpha(alpha), m_beta(beta) {}
 
             RealType alpha() const {
-                return this->m_alpha;
+                return m_alpha;
             }
 
             RealType beta() const {
-                return this->m_beta;
+                return m_beta;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -112,7 +112,7 @@ namespace numcpp {
         beta_distribution() : m_param() {}
 
         /**
-         * @brief Constructs a beta distribution with parameters @f$\alpha@f$ 
+         * @brief Constructs a beta distribution with parameters @f$\alpha@f$
          * and @f$\beta@f$.
          */
         beta_distribution(RealType alpha, RealType beta = RealType(1))
@@ -121,44 +121,51 @@ namespace numcpp {
         beta_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {
+            __random_gamma.reset();
+        }
+
+        /**
          * @brief Returns the @f$\alpha@f$ of the distribution.
          */
         RealType alpha() const {
-            return this->m_param.alpha();
+            return m_param.alpha();
         }
 
         /**
          * @brief Returns the @f$\beta@f$ of the distribution.
          */
         RealType beta() const {
-            return this->m_param.beta();
+            return m_param.beta();
         }
-        
+
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
          * @brief Returns the greatest lower bound value of the distribution.
          */
-        RealType min() const { 
+        RealType min() const {
             return RealType(0);
         }
 
         /**
          * @brief Returns the least upper bound value of the distribution.
          */
-        RealType max() const { 
+        RealType max() const {
             return RealType(1);
         }
 
@@ -167,13 +174,33 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
 
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two beta distributions have the same parameters
+         * and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const beta_distribution &d1, const beta_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param &&
+                    d1.__random_gamma == d2.__random_gamma);
+        }
+
+        /**
+         * @brief Return true if two beta distributions are different.
+         */
+        friend bool operator!=(
+            const beta_distribution &d1, const beta_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
 
         std::gamma_distribution<RealType> __random_gamma;
@@ -181,16 +208,16 @@ namespace numcpp {
 
     /**
      * @brief An inverse Gaussian continuous distribution for random numbers.
-     * 
+     *
      * The formula for the inverse Gaussian probability density function is
      * @f[
-     *     f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}} 
+     *     f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
      *         \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)
      * @f]
      */
     template <class RealType = double>
     class inverse_gaussian_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -207,11 +234,11 @@ namespace numcpp {
              : m_mu(mu), m_lambda(lambda) {}
 
             RealType mu() const {
-                return this->m_mu;
+                return m_mu;
             }
 
             RealType lambda() const {
-                return this->m_lambda;
+                return m_lambda;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -228,13 +255,13 @@ namespace numcpp {
         };
 
         /**
-         * @brief Constructs an inverse Gaussian distribution with parameters 1 
+         * @brief Constructs an inverse Gaussian distribution with parameters 1
          * and 1.
          */
         inverse_gaussian_distribution() : m_param() {}
-        
+
         /**
-         * @brief Constructs an inverse Gaussian distribution with parameters 
+         * @brief Constructs an inverse Gaussian distribution with parameters
          * @f$\mu@f$ and @f$\lambda@f$.
          */
         inverse_gaussian_distribution(RealType mu, RealType lambda=RealType(1))
@@ -243,31 +270,38 @@ namespace numcpp {
         inverse_gaussian_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {
+            __random_normal.reset();
+        }
+
+        /**
          * @brief Returns the @f$\mu@f$ of the distribution.
          */
         RealType mu() const {
-            return this->m_param.mu();
+            return m_param.mu();
         }
 
         /**
          * @brief Returns the @f$\lambda@f$ of the distribution.
          */
         RealType lambda() const {
-            return this->m_param.lambda();
+            return m_param.lambda();
         }
 
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
@@ -289,13 +323,36 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
 
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two inverse Gaussian distributions have the
+         * same parameters and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const inverse_gaussian_distribution &d1,
+            const inverse_gaussian_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param &&
+                    d1.__random_normal == d2.__random_normal);
+        }
+
+        /**
+         * @brief Return true if two inverse Gaussian distributions are
+         * different.
+         */
+        friend bool operator!=(
+            const inverse_gaussian_distribution &d1,
+            const inverse_gaussian_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
 
         std::normal_distribution<RealType> __random_normal;
@@ -303,7 +360,7 @@ namespace numcpp {
 
     /**
      * @brief A Laplace continuous distribution for random numbers.
-     * 
+     *
      * The formula for the Laplace probability density function is
      * @f[
      *     f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)
@@ -311,7 +368,7 @@ namespace numcpp {
      */
     template <class RealType = double>
     class laplace_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -328,11 +385,11 @@ namespace numcpp {
              : m_mu(mu), m_s(s) {}
 
             RealType mu() const {
-                return this->m_mu;
+                return m_mu;
             }
 
             RealType s() const {
-                return this->m_s;
+                return m_s;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -354,7 +411,7 @@ namespace numcpp {
         laplace_distribution() : m_param() {}
 
         /**
-         * @brief Constructs a Laplace distribution with parameters @f$\mu@f$ 
+         * @brief Constructs a Laplace distribution with parameters @f$\mu@f$
          * and @f$s@f$.
          */
         laplace_distribution(RealType mu, RealType s = RealType(1))
@@ -363,45 +420,50 @@ namespace numcpp {
         laplace_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {}
+
+        /**
          * @brief Returns the @f$\mu@f$ of the distribution.
          */
         RealType mu() const {
-            return this->m_param.mu();
+            return m_param.mu();
         }
 
         /**
          * @brief Returns the @f$s@f$ of the distribution.
          */
         RealType s() const {
-            return this->m_param.s();
+            return m_param.s();
         }
 
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
          * @brief Returns the greatest lower bound value of the distribution.
          */
-        RealType min() const { 
-            return std::numeric_limits<RealType>::min(); 
+        RealType min() const {
+            return std::numeric_limits<RealType>::min();
         }
 
         /**
          * @brief Returns the least upper bound value of the distribution.
          */
-        RealType max() const { 
-            return std::numeric_limits<RealType>::max(); 
+        RealType max() const {
+            return std::numeric_limits<RealType>::max();
         }
 
         /**
@@ -409,19 +471,38 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
 
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two Laplace distributions have the same
+         * parameters and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const laplace_distribution &d1, const laplace_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param);
+        }
+
+        /**
+         * @brief Return true if two Laplace distributions are different.
+         */
+        friend bool operator!=(
+            const laplace_distribution &d1, const laplace_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
     };
 
     /**
      * @brief A logistic continuous distribution for random numbers.
-     * 
+     *
      * The formula for the logistic probability density function is
      * @f[
      *     f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}
@@ -429,7 +510,7 @@ namespace numcpp {
      */
     template <class RealType = double>
     class logistic_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -446,11 +527,11 @@ namespace numcpp {
              : m_mu(mu), m_s(s) {}
 
             RealType mu() const {
-                return this->m_mu;
+                return m_mu;
             }
 
             RealType s() const {
-                return this->m_s;
+                return m_s;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -472,7 +553,7 @@ namespace numcpp {
         logistic_distribution() : m_param() {}
 
         /**
-         * @brief Constructs a logistic distribution with parameters @f$\mu@f$ 
+         * @brief Constructs a logistic distribution with parameters @f$\mu@f$
          * and @f$s@f$.
          */
         logistic_distribution(RealType mu, RealType s = RealType(1))
@@ -481,45 +562,50 @@ namespace numcpp {
         logistic_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {}
+
+        /**
          * @brief Returns the @f$\mu@f$ of the distribution.
          */
         RealType mu() const {
-            return this->m_param.mu();
+            return m_param.mu();
         }
 
         /**
          * @brief Returns the @f$s@f$ of the distribution.
          */
         RealType s() const {
-            return this->m_param.s();
+            return m_param.s();
         }
 
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
          * @brief Returns the greatest lower bound value of the distribution.
          */
-        RealType min() const { 
-            return std::numeric_limits<RealType>::min(); 
+        RealType min() const {
+            return std::numeric_limits<RealType>::min();
         }
 
         /**
          * @brief Returns the least upper bound value of the distribution.
          */
-        RealType max() const { 
-            return std::numeric_limits<RealType>::max(); 
+        RealType max() const {
+            return std::numeric_limits<RealType>::max();
         }
 
         /**
@@ -527,19 +613,38 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
 
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two logistic distributions have the same
+         * parameters and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const logistic_distribution &d1, const logistic_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param);
+        }
+
+        /**
+         * @brief Return true if two logistic distributions are different.
+         */
+        friend bool operator!=(
+            const logistic_distribution &d1, const logistic_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
     };
 
     /**
      * @brief A Pareto continuous distribution for random numbers.
-     * 
+     *
      * The formula for the Pareto probability density function is
      * @f[
      *     f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}
@@ -547,7 +652,7 @@ namespace numcpp {
      */
     template <class RealType = double>
     class pareto_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -564,11 +669,11 @@ namespace numcpp {
              : m_alpha(alpha), m_xm(xm) {}
 
             RealType alpha() const {
-                return this->m_alpha;
+                return m_alpha;
             }
 
             RealType xm() const {
-                return this->m_xm;
+                return m_xm;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -590,7 +695,7 @@ namespace numcpp {
         pareto_distribution() : m_param() {}
 
         /**
-         * @brief Constructs a Pareto distribution with parameters @f$\mu@f$ 
+         * @brief Constructs a Pareto distribution with parameters @f$\mu@f$
          * and @f$s@f$.
          */
         pareto_distribution(RealType alpha, RealType xm = RealType(1))
@@ -599,45 +704,50 @@ namespace numcpp {
         pareto_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {}
+
+        /**
          * @brief Returns the @f$\alpha@f$ of the distribution.
          */
         RealType alpha() const {
-            return this->m_param.alpha();
+            return m_param.alpha();
         }
 
         /**
          * @brief Returns the @f$x_m@f$ of the distribution.
          */
         RealType xm() const {
-            return this->m_param.xm();
+            return m_param.xm();
         }
 
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
          * @brief Returns the greatest lower bound value of the distribution.
          */
-        RealType min() const { 
-            return this->m_param.xm();
+        RealType min() const {
+            return m_param.xm();
         }
 
         /**
          * @brief Returns the least upper bound value of the distribution.
          */
-        RealType max() const { 
-            return std::numeric_limits<RealType>::max(); 
+        RealType max() const {
+            return std::numeric_limits<RealType>::max();
         }
 
         /**
@@ -645,19 +755,38 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
-        
+
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two Pareto distributions have the same
+         * parameters and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const pareto_distribution &d1, const pareto_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param);
+        }
+
+        /**
+         * @brief Return true if two Pareto distributions are different.
+         */
+        friend bool operator!=(
+            const pareto_distribution &d1, const pareto_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
     };
 
     /**
      * @brief A Rayleigh continuous distribution for random numbers.
-     * 
+     *
      * The formula for the Rayleigh probability density function is
      * @f[
      *     f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}
@@ -665,7 +794,7 @@ namespace numcpp {
      */
     template <class RealType = double>
     class rayleigh_distribution {
-        static_assert(std::is_floating_point<RealType>::value, 
+        static_assert(std::is_floating_point<RealType>::value,
                       "result_type must be a floating point type");
 
     public:
@@ -681,7 +810,7 @@ namespace numcpp {
             param_type(RealType sigma) : m_sigma(sigma) {}
 
             RealType sigma() const {
-                return this->m_sigma;
+                return m_sigma;
             }
 
             friend bool operator==(const param_type &p1, const param_type &p2) {
@@ -702,7 +831,7 @@ namespace numcpp {
         rayleigh_distribution() : m_param() {}
 
         /**
-         * @brief Constructs a Rayleigh distribution with parameter 
+         * @brief Constructs a Rayleigh distribution with parameter
          * @f$\sigma@f$.
          */
         rayleigh_distribution(RealType sigma) : m_param(sigma) {}
@@ -710,38 +839,43 @@ namespace numcpp {
         rayleigh_distribution(const param_type &p) : m_param(p) {}
 
         /**
+         * @brief Resets the distribution state.
+         */
+        void reset() {}
+
+        /**
          * @brief Returns the @f$\sigma@f$ of the distribution.
          */
         RealType sigma() const {
-            return this->m_param.sigma();
+            return m_param.sigma();
         }
 
         /**
          * @brief Returns the parameter set of the distribution.
          */
         param_type param() const {
-            return this->m_param;
+            return m_param;
         }
 
         /**
          * @brief Sets the parameter set of the distribution.
          */
         void param(const param_type &p) {
-            this->m_param = p;
+            m_param = p;
         }
 
         /**
          * @brief Returns the greatest lower bound value of the distribution.
          */
-        RealType min() const { 
+        RealType min() const {
             return RealType(0);
         }
 
         /**
          * @brief Returns the least upper bound value of the distribution.
          */
-        RealType max() const { 
-            return std::numeric_limits<RealType>::max(); 
+        RealType max() const {
+            return std::numeric_limits<RealType>::max();
         }
 
         /**
@@ -749,13 +883,32 @@ namespace numcpp {
          */
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng) {
-            return this->operator()(urng, this->m_param);
+            return this->operator()(urng, m_param);
         }
 
         template <class UniformRandomGenerator>
         RealType operator()(UniformRandomGenerator &urng, const param_type &p);
 
-    protected:
+        /**
+         * @brief Return true if two Rayleigh distributions have the same
+         * parameters and the sequences that would be generated are equal.
+         */
+        friend bool operator==(
+            const rayleigh_distribution &d1, const rayleigh_distribution &d2
+        ) {
+            return (d1.m_param == d2.m_param);
+        }
+
+        /**
+         * @brief Return true if two Rayleigh distributions are different.
+         */
+        friend bool operator!=(
+            const rayleigh_distribution &d1, const rayleigh_distribution &d2
+        ) {
+            return !(d1 == d2);
+        }
+
+    private:
         param_type m_param;
     };
 
@@ -764,7 +917,7 @@ namespace numcpp {
     RealType beta_distribution<RealType>::operator()(
         UniformRandomGenerator &urng, const param_type &p
     ) {
-        typedef typename std::gamma_distribution<RealType>::param_type 
+        typedef typename std::gamma_distribution<RealType>::param_type
             gamma_param_type;
         if (p.alpha() <= 1.0 && p.beta() <= 1.0) {
             // Use Johnk's algorithm.

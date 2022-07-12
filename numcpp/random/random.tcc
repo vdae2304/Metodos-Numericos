@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -43,13 +43,13 @@ namespace numcpp {
 
     template <class bit_generator>
     void Generator<bit_generator>::seed(typename bit_generator::result_type s) {
-        this->m_rng.seed(s);
+        m_rng.seed(s);
     }
 
     template <class bit_generator>
     template <class Sseq>
     void Generator<bit_generator>::seed(Sseq &s) {
-        this->m_rng.seed(s);
+        m_rng.seed(s);
     }
 
     /// Sample random data.
@@ -57,7 +57,7 @@ namespace numcpp {
     /// Helper function: Fill a range with values sampled from a distribution.
     template <class OutputIterator, class Distribution, class RandomState>
     void __sample_distribution(
-        OutputIterator first, OutputIterator last, Distribution &rvs, 
+        OutputIterator first, OutputIterator last, Distribution &rvs,
         RandomState &rng
     ) {
         while (first != last) {
@@ -70,7 +70,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::integers(T low, T high) {
         uniform_int_distribution<T> rvs(low, high);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -78,7 +78,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::integers(T low, T high, size_t n) {
         uniform_int_distribution<T> rvs(low, high);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -89,7 +89,7 @@ namespace numcpp {
     ) {
         uniform_int_distribution<T> rvs(low, high);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -97,7 +97,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::random() {
         uniform_real_distribution<T> rvs;
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -105,7 +105,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::random(size_t n) {
         uniform_real_distribution<T> rvs;
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -114,7 +114,7 @@ namespace numcpp {
     matrix<T> Generator<bit_generator>::random(size_t m, size_t n) {
         uniform_real_distribution<T> rvs;
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -125,14 +125,14 @@ namespace numcpp {
             throw std::invalid_argument("arr cannot be empty");
         }
         uniform_int_distribution<size_t> rvs(0, arr.size() - 1);
-        return arr[rvs(this->m_rng)];
+        return arr[rvs(m_rng)];
     }
 
     template <class bit_generator>
     template <class T, class Tag, class TWeights, class TagWeights>
     T Generator<bit_generator>::choice(
-        const base_array<T, Tag> &arr, 
-        const base_array<TWeights, TagWeights> &weights 
+        const base_array<T, Tag> &arr,
+        const base_array<TWeights, TagWeights> &weights
     ) {
         if (arr.empty()) {
             throw std::invalid_argument("arr cannot be empty");
@@ -141,7 +141,7 @@ namespace numcpp {
             throw std::invalid_argument("arr and weights must have same size");
         }
         discrete_distribution<size_t> rvs(weights.begin(), weights.end());
-        return arr[rvs(this->m_rng)];
+        return arr[rvs(m_rng)];
     }
 
     template <class bit_generator>
@@ -156,7 +156,7 @@ namespace numcpp {
             uniform_int_distribution<size_t> rvs(0, arr.size() - 1);
             array<T> out(size);
             for (size_t i = 0; i < size; ++i) {
-                out[i] = arr[rvs(this->m_rng)];
+                out[i] = arr[rvs(m_rng)];
             }
             return out;
         }
@@ -169,17 +169,17 @@ namespace numcpp {
             array<T> out(arr);
             for (size_t i = 0; i < size; ++i) {
                 uniform_int_distribution<size_t> rvs(i, arr.size() - 1);
-                std::swap(out[i], out[rvs(this->m_rng)]);
+                std::swap(out[i], out[rvs(m_rng)]);
             }
-            return out[slice(size)];
+            return array<T>(out.begin(), out.begin() + size);
         }
     }
 
     template <class bit_generator>
     template <class T, class Tag, class TWeights, class TagWeights>
     array<T> Generator<bit_generator>::choice(
-        const base_array<T, Tag> &arr, size_t size, 
-        const base_array<TWeights, TagWeights> &weights, bool replace 
+        const base_array<T, Tag> &arr, size_t size,
+        const base_array<TWeights, TagWeights> &weights, bool replace
     ) {
         if (arr.empty()) {
             throw std::invalid_argument("arr cannot be empty");
@@ -191,7 +191,7 @@ namespace numcpp {
             discrete_distribution<size_t> rvs(weights.begin(), weights.end());
             array<T> out(size);
             for (size_t i = 0; i < size; ++i) {
-                out[i] = arr[rvs(this->m_rng)];
+                out[i] = arr[rvs(m_rng)];
             }
             return out;
         }
@@ -205,12 +205,12 @@ namespace numcpp {
             array<TWeights> w(weights);
             for (size_t i = 0; i < size; ++i) {
                 discrete_distribution<size_t> rvs(w.begin() + i, w.end());
-                size_t idx = i + rvs(this->m_rng);
+                size_t idx = i + rvs(m_rng);
                 std::swap(out[i], out[idx]);
                 w[idx] = w[i];
                 w[i] = 0;
             }
-            return out[slice(size)];
+            return array<T>(out.begin(), out.begin() + size);
         }
     }
 
@@ -219,19 +219,19 @@ namespace numcpp {
     template <class bit_generator>
     template <class T>
     void Generator<bit_generator>::shuffle(array<T> &arr) {
-        std::shuffle(arr.begin(), arr.end(), this->m_rng);
+        std::shuffle(arr.begin(), arr.end(), m_rng);
     }
 
     template <class bit_generator>
     template <class T>
     void Generator<bit_generator>::shuffle(array_view<T> arr) {
-        std::shuffle(arr.begin(), arr.end(), this->m_rng);
+        std::shuffle(arr.begin(), arr.end(), m_rng);
     }
 
     template <class bit_generator>
     template <class T>
     void Generator<bit_generator>::shuffle(index_view<T> arr) {
-        std::shuffle(arr.begin(), arr.end(), this->m_rng);
+        std::shuffle(arr.begin(), arr.end(), m_rng);
     }
 
     template <class bit_generator>
@@ -239,7 +239,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::permutation(size_t n) {
         array<T> out(n);
         __iota(out.begin(), out.end(), 0, 1);
-        std::shuffle(out.begin(), out.end(), this->m_rng);
+        std::shuffle(out.begin(), out.end(), m_rng);
         return out;
     }
 
@@ -249,7 +249,7 @@ namespace numcpp {
         const base_array<T, Tag> &arr
     ) {
         array<T> out(arr);
-        std::shuffle(out.begin(), out.end(), this->m_rng);
+        std::shuffle(out.begin(), out.end(), m_rng);
         return out;
     }
 
@@ -259,7 +259,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::beta(const T &shape1, const T &shape2) {
         beta_distribution<T> rvs(shape1, shape2);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -269,7 +269,7 @@ namespace numcpp {
     ) {
         beta_distribution<T> rvs(shape1, shape2);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -280,7 +280,7 @@ namespace numcpp {
     ) {
         beta_distribution<T> rvs(shape1, shape2);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -288,7 +288,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::binomial(size_t size, double prob) {
         binomial_distribution<size_t> rvs(size, prob);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -298,7 +298,7 @@ namespace numcpp {
     ) {
         binomial_distribution<size_t> rvs(size, prob);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -309,7 +309,7 @@ namespace numcpp {
     ) {
         binomial_distribution<size_t> rvs(size, prob);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -317,7 +317,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::cauchy(const T &loc, const T &scale) {
         cauchy_distribution<T> rvs(loc, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -327,7 +327,7 @@ namespace numcpp {
     ) {
         cauchy_distribution<T> rvs(loc, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -338,7 +338,7 @@ namespace numcpp {
     ) {
         cauchy_distribution<T> rvs(loc, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -346,7 +346,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::chisquare(const T &df) {
         chi_squared_distribution<T> rvs(df);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -354,7 +354,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::chisquare(const T &df, size_t n) {
         chi_squared_distribution<T> rvs(df);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -365,7 +365,7 @@ namespace numcpp {
     ) {
         chi_squared_distribution<T> rvs(df);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -373,7 +373,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::exponential(const T &rate) {
         exponential_distribution<T> rvs(rate);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -381,7 +381,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::exponential(const T &rate, size_t n) {
         exponential_distribution<T> rvs(rate);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -392,7 +392,7 @@ namespace numcpp {
     ) {
         exponential_distribution<T> rvs(rate);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -400,7 +400,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::fisher_f(const T &df1, const T &df2) {
         fisher_f_distribution<T> rvs(df1, df2);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -410,7 +410,7 @@ namespace numcpp {
     ) {
         fisher_f_distribution<T> rvs(df1, df2);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -421,7 +421,7 @@ namespace numcpp {
     ) {
         fisher_f_distribution<T> rvs(df1, df2);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -429,7 +429,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::gamma(const T &shape, const T &scale) {
         gamma_distribution<T> rvs(shape, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -439,7 +439,7 @@ namespace numcpp {
     ) {
         gamma_distribution<T> rvs(shape, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -450,7 +450,7 @@ namespace numcpp {
     ) {
         gamma_distribution<T> rvs(shape, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -458,7 +458,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::geometric(double prob) {
         geometric_distribution<size_t> rvs(prob);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -466,7 +466,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::geometric(double prob, size_t n) {
         geometric_distribution<size_t> rvs(prob);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -477,7 +477,7 @@ namespace numcpp {
     ) {
         geometric_distribution<size_t> rvs(prob);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -485,7 +485,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::gumbel(const T &loc, const T &scale) {
         extreme_value_distribution<T> rvs(loc, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -495,7 +495,7 @@ namespace numcpp {
     ) {
         extreme_value_distribution<T> rvs(loc, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -506,7 +506,7 @@ namespace numcpp {
     ) {
         extreme_value_distribution<T> rvs(loc, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -514,7 +514,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::laplace(const T &loc, const T &scale) {
         laplace_distribution<T> rvs(loc, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -524,7 +524,7 @@ namespace numcpp {
     ) {
         laplace_distribution<T> rvs(loc, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -535,7 +535,7 @@ namespace numcpp {
     ) {
         laplace_distribution<T> rvs(loc, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -543,7 +543,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::logistic(const T &loc, const T &scale) {
         logistic_distribution<T> rvs(loc, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -553,7 +553,7 @@ namespace numcpp {
     ) {
         logistic_distribution<T> rvs(loc, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -564,7 +564,7 @@ namespace numcpp {
     ) {
         logistic_distribution<T> rvs(loc, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -572,7 +572,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::lognormal(const T &logmean, const T &logscale) {
         lognormal_distribution<T> rvs(logmean, logscale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -582,7 +582,7 @@ namespace numcpp {
     ) {
         lognormal_distribution<T> rvs(logmean, logscale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -593,7 +593,7 @@ namespace numcpp {
     ) {
         lognormal_distribution<T> rvs(logmean, logscale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -601,7 +601,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::negative_binomial(size_t size, double prob) {
         negative_binomial_distribution<size_t> rvs(size, prob);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -611,7 +611,7 @@ namespace numcpp {
     ) {
         negative_binomial_distribution<size_t> rvs(size, prob);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -622,7 +622,7 @@ namespace numcpp {
     ) {
         negative_binomial_distribution<size_t> rvs(size, prob);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -630,7 +630,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::normal(const T &mean, const T &stddev) {
         normal_distribution<T> rvs(mean, stddev);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -640,7 +640,7 @@ namespace numcpp {
     ) {
         normal_distribution<T> rvs(mean, stddev);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -651,7 +651,7 @@ namespace numcpp {
     ) {
         normal_distribution<T> rvs(mean, stddev);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -659,7 +659,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::pareto(const T &shape, const T &scale) {
         pareto_distribution<T> rvs(shape, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -669,7 +669,7 @@ namespace numcpp {
     ) {
         pareto_distribution<T> rvs(shape, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -680,7 +680,7 @@ namespace numcpp {
     ) {
         pareto_distribution<T> rvs(shape, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -688,7 +688,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::poisson(double rate) {
         poisson_distribution<size_t> rvs(rate);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -696,7 +696,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::poisson(double rate, size_t n) {
         poisson_distribution<size_t> rvs(rate);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -707,7 +707,7 @@ namespace numcpp {
     ) {
         poisson_distribution<size_t> rvs(rate);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -715,7 +715,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::rayleigh(const T &scale) {
         rayleigh_distribution<T> rvs(scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -725,7 +725,7 @@ namespace numcpp {
     ) {
         rayleigh_distribution<T> rvs(scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -736,7 +736,7 @@ namespace numcpp {
     ) {
         rayleigh_distribution<T> rvs(scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -744,7 +744,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::student_t(const T &df) {
         student_t_distribution<T> rvs(df);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -752,7 +752,7 @@ namespace numcpp {
     array<T> Generator<bit_generator>::student_t(const T &df, size_t n) {
         student_t_distribution<T> rvs(df);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -763,7 +763,7 @@ namespace numcpp {
     ) {
         student_t_distribution<T> rvs(df);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -777,7 +777,7 @@ namespace numcpp {
         piecewise_linear_distribution<T> rvs(
             breaks.begin(), breaks.end(), weights.begin()
         );
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -791,7 +791,7 @@ namespace numcpp {
             breaks.begin(), breaks.end(), weights.begin()
         );
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -806,7 +806,7 @@ namespace numcpp {
             breaks.begin(), breaks.end(), weights.begin()
         );
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -814,7 +814,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::uniform(const T &low, const T &high) {
         uniform_real_distribution<T> rvs(low, high);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -824,7 +824,7 @@ namespace numcpp {
     ) {
         uniform_real_distribution<T> rvs(low, high);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -835,7 +835,7 @@ namespace numcpp {
     ) {
         uniform_real_distribution<T> rvs(low, high);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -843,7 +843,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::wald(const T &mean, const T& scale) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -853,7 +853,7 @@ namespace numcpp {
     ) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -864,7 +864,7 @@ namespace numcpp {
     ) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -872,7 +872,7 @@ namespace numcpp {
     template <class T>
     T Generator<bit_generator>::weibull(const T &shape, const T &scale) {
         weibull_distribution<T> rvs(shape, scale);
-        return rvs(this->m_rng);
+        return rvs(m_rng);
     }
 
     template <class bit_generator>
@@ -882,7 +882,7 @@ namespace numcpp {
     ) {
         weibull_distribution<T> rvs(shape, scale);
         array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 
@@ -893,7 +893,7 @@ namespace numcpp {
     ) {
         weibull_distribution<T> rvs(shape, scale);
         matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, this->m_rng);
+        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
         return out;
     }
 }
