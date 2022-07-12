@@ -886,10 +886,10 @@ namespace numcpp {
     }
 
     template <class T>
-    base_matrix< T, lazy_unary_tag<__conjugate, T, matrix_tag> >
+    base_matrix< T, lazy_unary_tag<__math_conj, T, matrix_tag> >
     base_matrix<T, matrix_tag>::conj() const {
-        typedef lazy_unary_tag<__conjugate, T, matrix_tag> Closure;
-        return base_matrix<T, Closure>(__conjugate(), *this);
+        typedef lazy_unary_tag<__math_conj, T, matrix_tag> Closure;
+        return base_matrix<T, Closure>(__math_conj(), *this);
     }
 
     template <class T>
@@ -974,12 +974,12 @@ namespace numcpp {
     template <class T>
     base_matrix<
         typename complex_traits<T>::value_type,
-        lazy_unary_tag<__imag_part, T, matrix_tag>
+        lazy_unary_tag<__math_imag, T, matrix_tag>
     >
     base_matrix<T, matrix_tag>::imag() const {
         typedef typename complex_traits<T>::value_type Rt;
-        typedef lazy_unary_tag<__imag_part, T, matrix_tag> Closure;
-        return base_matrix<Rt, Closure>(__imag_part(), *this);
+        typedef lazy_unary_tag<__math_imag, T, matrix_tag> Closure;
+        return base_matrix<Rt, Closure>(__math_imag(), *this);
     }
 
     template <class T>
@@ -1082,12 +1082,12 @@ namespace numcpp {
     template <class T>
     base_matrix<
         typename complex_traits<T>::value_type,
-        lazy_unary_tag<__real_part, T, matrix_tag>
+        lazy_unary_tag<__math_real, T, matrix_tag>
     >
     base_matrix<T, matrix_tag>::real() const {
         typedef typename complex_traits<T>::value_type Rt;
-        typedef lazy_unary_tag<__real_part, T, matrix_tag> Closure;
-        return base_matrix<Rt, Closure>(__real_part(), *this);
+        typedef lazy_unary_tag<__math_real, T, matrix_tag> Closure;
+        return base_matrix<Rt, Closure>(__math_real(), *this);
     }
 
     template <class T>

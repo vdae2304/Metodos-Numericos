@@ -557,7 +557,7 @@ namespace numcpp {
          * @return A light-weight object with the complex conjugate of each
          *     element in the matrix_view. Convertible to a matrix object.
          */
-        base_matrix< T, lazy_unary_tag<__conjugate, T, matrix_view_tag> >
+        base_matrix< T, lazy_unary_tag<__math_conj, T, matrix_view_tag> >
         conj() const;
 
         /**
@@ -571,7 +571,7 @@ namespace numcpp {
          */
         base_matrix<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__imag_part, T, matrix_view_tag>
+            lazy_unary_tag<__math_imag, T, matrix_view_tag>
         >
         imag() const;
 
@@ -692,7 +692,7 @@ namespace numcpp {
          */
         base_matrix<
             typename complex_traits<T>::value_type,
-            lazy_unary_tag<__real_part, T, matrix_view_tag>
+            lazy_unary_tag<__math_real, T, matrix_view_tag>
         >
         real() const;
 
