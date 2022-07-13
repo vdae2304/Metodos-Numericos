@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -34,8 +34,8 @@ namespace numcpp {
     struct conj_transpose_tag;
 
     /**
-     * @brief A matrix_transpose is a light-weight object which stores the 
-     * transpose of a matrix. A matrix_transpose is a readonly matrix which is 
+     * @brief A matrix_transpose is a light-weight object which stores the
+     * transpose of a matrix. A matrix_transpose is a readonly matrix which is
      * convertible to a matrix object.
      *
      * @tparam T Type of the elements contained in the matrix.
@@ -48,10 +48,12 @@ namespace numcpp {
         typedef T value_type;
         typedef T reference;
         typedef const T const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator< T, transpose_tag<Tag> > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -59,7 +61,7 @@ namespace numcpp {
 
         /**
          * @brief Matrix transpose constructor. Constructs a matrix_transpose.
-         * 
+         *
          * @param mat Matrix-like object to transpose.
          */
         base_matrix(const base_matrix<T, Tag> &mat) : m_mat(mat) {}
@@ -70,20 +72,20 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * matrix_transpose.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the 
-         *     matrix_transpose. 
+         * @return A random access iterator to the beginning of the
+         *     matrix_transpose.
          */
         iterator begin() const {
-            return iterator(this, 0, true);
+            return iterator(this, 0, false);
         }
 
         iterator begin(bool row_major) const {
@@ -91,21 +93,21 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the matrix_transpose. It does not point to any element, and thus 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the matrix_transpose. It does not point to any element, and thus
          * shall not be dereferenced.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     matrix_transpose.
          */
         iterator end() const {
-            return iterator(this, this->size(), true);
+            return iterator(this, this->size(), false);
         }
 
         iterator end(bool row_major) const {
@@ -113,38 +115,38 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the matrix_transpose (i.e., its reverse beginning). Reverse 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the matrix_transpose (i.e., its reverse beginning). Reverse
          * iterators iterate backwards.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the matrix_transpose.
          */
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the matrix_transpose (i.e., its reverse end).
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     matrix_transpose.
          */
         reverse_iterator rend() const {
@@ -158,44 +160,55 @@ namespace numcpp {
         /// Matrix indexing.
 
         /**
-         * @brief Call operator. Returns the element at row i and column j in 
+         * @brief Call operator. Returns the element at row i and column j in
          * the matrix_transpose.
          *
-         * @param i Row position of an element in the matrix_transpose. Must be 
+         * @param i Row position of an element in the matrix_transpose. Must be
          *     between 0 and rows() - 1.
-         * @param i Column position of an element in the matrix_transpose. Must 
+         * @param i Column position of an element in the matrix_transpose. Must
          *     be between 0 and cols() - 1.
          *
-         * @return The element at the specified row and column in the 
-         *     matrix_transpose. 
-         *
-         * @throw std::out_of_range Thrown if either i or j is out of bounds.
+         * @return The element at the specified row and column in the
+         *     matrix_transpose.
          */
         T operator()(size_t i, size_t j) const {
-            __assert_within_bounds(this->rows(), this->cols(), i, j);
-            return this->m_mat(j, i);
-        }
-
-        /** 
-         * @brief Returns the number of rows in the matrix_transpose. 
-         * 
-         * @return The number of rows in the matrix_transpose.
-         */
-        size_t rows() const {
-            return this->m_mat.cols();
-        }
-
-        /** 
-         * @brief Returns the number of columns in the matrix_transpose.
-         * 
-         * @return The number of columns in the matrix_transpose.
-         */
-        size_t cols() const {
-            return this->m_mat.rows();
+            return m_mat(j, i);
         }
 
         /**
-         * @brief Returns the number of elements in the matrix_transpose, i.e., 
+         * @brief Subscript operator. Returns the element at a given row and
+         * column in the matrix_transpose.
+         *
+         * @param index An index_t object with the row and column position of
+         *     an element in the matrix_transpose.
+         *
+         * @return The element at the specified row and column in the
+         *     matrix_transpose.
+         */
+        T operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
+        }
+
+        /**
+         * @brief Returns the number of rows in the matrix_transpose.
+         *
+         * @return The number of rows in the matrix_transpose.
+         */
+        size_t rows() const {
+            return m_mat.cols();
+        }
+
+        /**
+         * @brief Returns the number of columns in the matrix_transpose.
+         *
+         * @return The number of columns in the matrix_transpose.
+         */
+        size_t cols() const {
+            return m_mat.rows();
+        }
+
+        /**
+         * @brief Returns the number of elements in the matrix_transpose, i.e.,
          * rows()*cols().
          *
          * @return The number of elements in the matrix_transpose.
@@ -205,13 +218,13 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns whether the matrix_transpose is empty (i.e., whether 
+         * @brief Returns whether the matrix_transpose is empty (i.e., whether
          * its size is 0).
          *
          * @return true if the matrix_transpose size is 0, false otherwise.
          */
         bool empty() const {
-            return this->size() == 0;
+            return (this->size() == 0);
         }
 
     protected:
@@ -220,8 +233,8 @@ namespace numcpp {
     };
 
     /**
-     * @brief A matrix_conj_transpose is a light-weight object which stores the 
-     * conjugate transpose of a matrix. A matrix_conj_transpose is a readonly 
+     * @brief A matrix_conj_transpose is a light-weight object which stores the
+     * conjugate transpose of a matrix. A matrix_conj_transpose is a readonly
      * matrix which is convertible to a matrix object.
      *
      * @tparam T Type of the elements contained in the matrix.
@@ -234,21 +247,23 @@ namespace numcpp {
         typedef T value_type;
         typedef T reference;
         typedef const T const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
-        typedef base_matrix_const_iterator< 
-            T, conj_transpose_tag<Tag> 
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
+        typedef base_matrix_const_iterator<
+            T, conj_transpose_tag<Tag>
         > iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
         /// Constructors.
 
         /**
-         * @brief Matrix conjugate transpose constructor. Constructs a 
+         * @brief Matrix conjugate transpose constructor. Constructs a
          * matrix_conj_transpose.
-         * 
+         *
          * @param mat Matrix-like object to transpose.
          */
         base_matrix(const base_matrix<T, Tag> &mat) : m_mat(mat) {}
@@ -259,20 +274,20 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * matrix_conj_transpose.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the 
-         *     matrix_conj_transpose. 
+         * @return A random access iterator to the beginning of the
+         *     matrix_conj_transpose.
          */
         iterator begin() const {
-            return iterator(this, 0, true);
+            return iterator(this, 0, false);
         }
 
         iterator begin(bool row_major) const {
@@ -280,21 +295,21 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the matrix_conj_transpose. It does not point to any element, and 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the matrix_conj_transpose. It does not point to any element, and
          * thus shall not be dereferenced.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     matrix_conj_transpose.
          */
         iterator end() const {
-            return iterator(this, this->size(), true);
+            return iterator(this, this->size(), false);
         }
 
         iterator end(bool row_major) const {
@@ -302,39 +317,39 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the matrix_conj_transpose (i.e., its reverse beginning). Reverse 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the matrix_conj_transpose (i.e., its reverse beginning). Reverse
          * iterators iterate backwards.
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the matrix_conj_transpose.
          */
         reverse_iterator rbegin() const {
             return reverse_iterator(this->end());
         }
-        
+
         reverse_iterator rbegin(bool row_major) const {
             return reverse_iterator(this->end(row_major));
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
-         * the first element in the matrix_conj_transpose (i.e., its reverse 
+         * @brief Returns a reverse iterator pointing to the element preceding
+         * the first element in the matrix_conj_transpose (i.e., its reverse
          * end).
-         * 
-         * @param row_major It is an optional parameter that changes the order 
-         *     in which elements are iterated. If provided, the elements are 
-         *     iterated in row-major or column-major order as specified by 
-         *     row_major. Otherwise, the elements are iterated in the same 
+         *
+         * @param row_major It is an optional parameter that changes the order
+         *     in which elements are iterated. If provided, the elements are
+         *     iterated in row-major or column-major order as specified by
+         *     row_major. Otherwise, the elements are iterated in the same
          *     order as stored in memory.
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     matrix_conj_transpose.
          */
         reverse_iterator rend() const {
@@ -348,44 +363,55 @@ namespace numcpp {
         /// Matrix indexing.
 
         /**
-         * @brief Call operator. Returns the element at row i and column j in 
+         * @brief Call operator. Returns the element at row i and column j in
          * the matrix_conj_transpose.
          *
-         * @param i Row position of an element in the matrix_conj_transpose. 
+         * @param i Row position of an element in the matrix_conj_transpose.
          *     Must be between 0 and rows() - 1.
-         * @param i Column position of an element in the matrix_conj_transpose. 
+         * @param i Column position of an element in the matrix_conj_transpose.
          *     Must be between 0 and cols() - 1.
          *
-         * @return The element at the specified row and column in the 
-         *     matrix_conj_transpose. 
-         *
-         * @throw std::out_of_range Thrown if either i or j is out of bounds.
+         * @return The element at the specified row and column in the
+         *     matrix_conj_transpose.
          */
         T operator()(size_t i, size_t j) const {
-            __assert_within_bounds(this->rows(), this->cols(), i, j);
-            return this->m_mat(j, i);
-        }
-
-        /** 
-         * @brief Returns the number of rows in the matrix_conj_transpose. 
-         * 
-         * @return The number of rows in the matrix_conj_transpose.
-         */
-        size_t rows() const {
-            return this->m_mat.cols();
-        }
-
-        /** 
-         * @brief Returns the number of columns in the matrix_conj_transpose.
-         * 
-         * @return The number of columns in the matrix_conj_transpose.
-         */
-        size_t cols() const {
-            return this->m_mat.rows();
+            return m_conj(m_mat(j, i));
         }
 
         /**
-         * @brief Returns the number of elements in the matrix_conj_transpose, 
+         * @brief Subscript operator. Returns the element at a given row and
+         * column in the matrix_conj_transpose.
+         *
+         * @param index An index_t object with the row and column position of
+         *     an element in the matrix_conj_transpose.
+         *
+         * @return The element at the specified row and column in the
+         *     matrix_conj_transpose.
+         */
+        T operator[](const index_t &index) const {
+            return (*this)(index.first, index.second);
+        }
+
+        /**
+         * @brief Returns the number of rows in the matrix_conj_transpose.
+         *
+         * @return The number of rows in the matrix_conj_transpose.
+         */
+        size_t rows() const {
+            return m_mat.cols();
+        }
+
+        /**
+         * @brief Returns the number of columns in the matrix_conj_transpose.
+         *
+         * @return The number of columns in the matrix_conj_transpose.
+         */
+        size_t cols() const {
+            return m_mat.rows();
+        }
+
+        /**
+         * @brief Returns the number of elements in the matrix_conj_transpose,
          * i.e., rows()*cols().
          *
          * @return The number of elements in the matrix_conj_transpose.
@@ -395,109 +421,22 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns whether the matrix_conj_transpose is empty 
-         * (i.e., whether its size is 0).
+         * @brief Returns whether the matrix_conj_transpose is empty (i.e.,
+         * whether its size is 0).
          *
-         * @return true if the matrix_conj_transpose size is 0, false 
-         * otherwise.
+         * @return true if the matrix_conj_transpose size is 0, false
+         *     otherwise.
          */
         bool empty() const {
-            return this->size() == 0;
+            return (this->size() == 0);
         }
 
     protected:
         /// Reference to the matrix argument.
         const base_matrix<T, Tag> &m_mat;
-    };
 
-    /**
-     * @brief Partial specialization of matrix_conj_transpose for complex
-     * types.
-     */
-    template <class T, class Tag>
-    class base_matrix< std::complex<T>, conj_transpose_tag<Tag> > {
-    public:
-        /// Member types:
-        typedef std::complex<T> value_type;
-        typedef std::complex<T> reference;
-        typedef const std::complex<T> const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
-        typedef base_matrix_const_iterator< 
-            std::complex<T>, conj_transpose_tag<Tag> 
-        > iterator;
-        typedef std::reverse_iterator<iterator> reverse_iterator;
-        typedef ptrdiff_t difference_type;
-        typedef size_t size_type;
-
-        /// Constructors.
-
-        base_matrix(const base_matrix<std::complex<T>, Tag> &mat)
-         : m_mat(mat) {}
-
-        /// Destructor.
-        ~base_matrix() {}
-
-        /// Iterators.
-
-        iterator begin() const {
-            return iterator(this, 0, true);
-        }
-
-        iterator begin(bool row_major) const {
-            return iterator(this, 0, row_major);
-        }
-
-        iterator end() const {
-            return iterator(this, this->size(), true);
-        }
-
-        iterator end(bool row_major) const {
-            return iterator(this, this->size(), row_major);
-        }
-
-        reverse_iterator rbegin() const {
-            return reverse_iterator(this->end());
-        }
-        
-        reverse_iterator rbegin(bool row_major) const {
-            return reverse_iterator(this->end(row_major));
-        }
-
-        reverse_iterator rend() const {
-            return reverse_iterator(this->begin());
-        }
-
-        reverse_iterator rend(bool row_major) const {
-            return reverse_iterator(this->begin(row_major));
-        }
-
-        /// Matrix indexing.
-
-        std::complex<T> operator()(size_t i, size_t j) const {
-            __assert_within_bounds(this->rows(), this->cols(), i, j);
-            return std::conj(this->m_mat(j, i));
-        }
-
-        size_t rows() const {
-            return this->m_mat.cols();
-        }
-
-        size_t cols() const {
-            return this->m_mat.rows();
-        }
-
-        size_t size() const {
-            return this->rows() * this->cols();
-        }
-
-        bool empty() const {
-            return this->size() == 0;
-        }
-
-    protected:
-        /// Reference to the matrix argument.
-        const base_matrix<std::complex<T>, Tag> &m_mat;
+        /// Function object implementing std::conj.
+        __math_conj m_conj;
     };
 }
 

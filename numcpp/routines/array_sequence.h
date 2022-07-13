@@ -1,9 +1,9 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
  * The NumCpp package is inspired by the NumPy package for Python, although it
@@ -30,8 +30,8 @@ namespace numcpp {
     struct log_sequence_tag;
 
     /**
-     * @brief An array_sequence is a light-weight object which stores a 
-     * sequence of evenly spaced values. An array_sequence is a readonly array 
+     * @brief An array_sequence is a light-weight object which stores a
+     * sequence of evenly spaced values. An array_sequence is a readonly array
      * which is convertible to an array object.
      *
      * @tparam T Type of the elements contained in the array.
@@ -43,10 +43,12 @@ namespace numcpp {
         typedef T value_type;
         typedef T reference;
         typedef const T const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_array_const_iterator<T, sequence_tag> iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -54,16 +56,16 @@ namespace numcpp {
 
         /**
          * @brief Array sequence constructor. Constructs an array_sequence.
-         * 
+         *
          * @param start The starting value of the sequence.
          * @param size Number of samples to generate.
-         * @param step Spacing between values. This is the distance between two 
-         *     adjacent values. 
+         * @param step Spacing between values. This is the distance between two
+         *     adjacent values.
          */
         base_array(const T &start, size_t size, const T &step) {
-            this->m_start = start;
-            this->m_size = size;
-            this->m_step = step;
+            m_start = start;
+            m_size = size;
+            m_step = step;
         }
 
         /// Destructor.
@@ -72,22 +74,22 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * array_sequence.
          *
-         * @return A random access iterator to the beginning of the 
-         *     array_sequence. 
+         * @return A random access iterator to the beginning of the
+         *     array_sequence.
          */
         iterator begin() const {
             return iterator(this, 0);
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the array_sequence. It does not point to any element, and thus shall 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the array_sequence. It does not point to any element, and thus shall
          * not be dereferenced.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     array_sequence.
          */
         iterator end() const {
@@ -95,11 +97,11 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the array_sequence (i.e., its reverse beginning). Reverse iterators 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the array_sequence (i.e., its reverse beginning). Reverse iterators
          * iterate backwards.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the array_sequence.
          */
         reverse_iterator rbegin() const {
@@ -107,10 +109,10 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the array_sequence (i.e., its reverse end).
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     array_sequence.
          */
         reverse_iterator rend() const {
@@ -120,19 +122,19 @@ namespace numcpp {
         /// Array indexing.
 
         /**
-         * @brief Subscript operator. Returns the element at position i in the 
+         * @brief Subscript operator. Returns the element at position i in the
          * sequence.
          *
-         * @param i Position of an element in the array_sequence. Must be 
+         * @param i Position of an element in the array_sequence. Must be
          *     between 0 and size() - 1.
          *
-         * @return The element in the sequence at the specified position. 
+         * @return The element in the sequence at the specified position.
          *
          * @throw std::out_of_range Thrown if i is out of bounds.
          */
         T operator[](size_t i) const {
-            __assert_within_bounds(this->m_size, i);
-            return this->m_start + T(i) * this->m_step;
+            __assert_within_bounds(m_size, i);
+            return m_start + T(i) * m_step;
         }
 
         /**
@@ -141,17 +143,17 @@ namespace numcpp {
          * @return The number of elements in the array_sequence.
          */
         size_t size() const {
-            return this->m_size;
+            return m_size;
         }
 
         /**
-         * @brief Returns whether the array_sequence is empty (i.e., whether 
+         * @brief Returns whether the array_sequence is empty (i.e., whether
          * its size is 0).
          *
          * @return true if the array_sequence size is 0, false otherwise.
          */
         bool empty() const {
-            return this->m_size == 0;
+            return (m_size == 0);
         }
 
     protected:
@@ -166,8 +168,8 @@ namespace numcpp {
     };
 
     /**
-     * @brief An array_log_sequence is a light-weight object which stores a 
-     * sequence of evenly spaced values on a log scale. An array_log_sequence 
+     * @brief An array_log_sequence is a light-weight object which stores a
+     * sequence of evenly spaced values on a log scale. An array_log_sequence
      * is a readonly array which is convertible to an array object.
      *
      * @tparam T Type of the elements contained in the array.
@@ -179,10 +181,12 @@ namespace numcpp {
         typedef T value_type;
         typedef T reference;
         typedef const T const_reference;
-        typedef void pointer;
-        typedef void const_pointer;
+        typedef nullptr_t pointer;
+        typedef nullptr_t const_pointer;
         typedef base_array_const_iterator<T, log_sequence_tag> iterator;
+        typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
+        typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -190,17 +194,17 @@ namespace numcpp {
 
         /**
          * @brief Array sequence constructor. Constructs an array_log_sequence.
-         * 
+         *
          * @param start The starting value of the sequence in the log scale.
          * @param size Number of samples to generate.
          * @param step Spacing between values in the log scale.
          * @param base The base of the log space.
          */
         base_array(const T &start, size_t size, const T &step, const T &base) {
-            this->m_start = start;
-            this->m_size = size;
-            this->m_step = step;
-            this->m_base = base;
+            m_start = start;
+            m_size = size;
+            m_step = step;
+            m_base = base;
         }
 
         /// Destructor.
@@ -209,22 +213,22 @@ namespace numcpp {
         /// Iterators.
 
         /**
-         * @brief Returns an iterator pointing to the first element in the 
+         * @brief Returns an iterator pointing to the first element in the
          * array_log_sequence.
          *
-         * @return A random access iterator to the beginning of the 
-         *     array_log_sequence. 
+         * @return A random access iterator to the beginning of the
+         *     array_log_sequence.
          */
         iterator begin() const {
             return iterator(this, 0);
         }
 
         /**
-         * @brief Returns an iterator pointing to the past-the-end element in 
-         * the array_log_sequence. It does not point to any element, and thus 
+         * @brief Returns an iterator pointing to the past-the-end element in
+         * the array_log_sequence. It does not point to any element, and thus
          * shall not be dereferenced.
          *
-         * @return A random access iterator to the element past the end of the 
+         * @return A random access iterator to the element past the end of the
          *     array_log_sequence.
          */
         iterator end() const {
@@ -232,11 +236,11 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the last element in 
-         * the array_log_sequence (i.e., its reverse beginning). Reverse 
+         * @brief Returns a reverse iterator pointing to the last element in
+         * the array_log_sequence (i.e., its reverse beginning). Reverse
          * iterators iterate backwards.
          *
-         * @return A reverse random access iterator to the reverse beginning of 
+         * @return A reverse random access iterator to the reverse beginning of
          *     the array_log_sequence.
          */
         reverse_iterator rbegin() const {
@@ -244,10 +248,10 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns a reverse iterator pointing to the element preceding 
+         * @brief Returns a reverse iterator pointing to the element preceding
          * the first element in the array_log_sequence (i.e., its reverse end).
          *
-         * @return A reverse random access iterator to the reverse end of the 
+         * @return A reverse random access iterator to the reverse end of the
          *     array_log_sequence.
          */
         reverse_iterator rend() const {
@@ -257,19 +261,19 @@ namespace numcpp {
         /// Array indexing.
 
         /**
-         * @brief Subscript operator. Returns the element at position i in the 
+         * @brief Subscript operator. Returns the element at position i in the
          * sequence.
          *
-         * @param i Position of an element in the array_log_sequence. Must be 
+         * @param i Position of an element in the array_log_sequence. Must be
          *     between 0 and size() - 1.
          *
-         * @return The element in the sequence at the specified position. 
+         * @return The element in the sequence at the specified position.
          *
          * @throw std::out_of_range Thrown if i is out of bounds.
          */
         T operator[](size_t i) const {
-            __assert_within_bounds(this->m_size, i);
-            return std::pow(this->m_base, this->m_start + T(i) * this->m_step);
+            __assert_within_bounds(m_size, i);
+            return std::pow(m_base, m_start + T(i) * m_step);
         }
 
         /**
@@ -278,17 +282,17 @@ namespace numcpp {
          * @return The number of elements in the array_log_sequence.
          */
         size_t size() const {
-            return this->m_size;
+            return m_size;
         }
 
         /**
-         * @brief Returns whether the array_log_sequence is empty (i.e., 
+         * @brief Returns whether the array_log_sequence is empty (i.e.,
          * whether its size is 0).
          *
          * @return true if the array_log_sequence size is 0, false otherwise.
          */
         bool empty() const {
-            return this->m_size == 0;
+            return (m_size == 0);
         }
 
     protected:
