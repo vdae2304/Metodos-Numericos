@@ -1,15 +1,15 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library 
- * that provides an array and a matrix object, and an assortment of routines 
- * for fast operations on arrays and matrices, including mathematical, logical, 
+ * NumCpp is a package for scientific computing in C++. It is a C++ library
+ * that provides an array and a matrix object, and an assortment of routines
+ * for fast operations on arrays and matrices, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it 
+ * The NumCpp package is inspired by the NumPy package for Python, although it
  * is not related to it or any of its parts.
  *
- * This program is free software: you can redistribute it and/or modify it by 
+ * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
@@ -36,8 +36,9 @@
 namespace numcpp {
     /// Helper function: Throws a std::runtime_error if the input file could
     /// not be opened.
-    void __assert_file_is_open(
-        std::ifstream &file, const std::string &filename
+    template <class charT, class traits>
+    inline void __assert_file_is_open(
+        std::basic_ifstream<charT, traits> &file, const std::string &filename
     ) {
         if (!file) {
             std::ostringstream error;
@@ -48,8 +49,9 @@ namespace numcpp {
 
     /// Helper function: Throws a std::runtime_error if the output file could
     /// not be opened.
-    void __assert_file_is_open(
-        std::ofstream &file, const std::string &filename
+    template <class charT, class traits>
+    inline void __assert_file_is_open(
+        std::basic_ofstream<charT, traits> &file, const std::string &filename
     ) {
         if (!file) {
             std::ostringstream error;
@@ -58,10 +60,28 @@ namespace numcpp {
         }
     }
 
+    /// Helper function: Reads an object using default input stream operator.
+    template <class T, class charT, class traits>
+    inline std::basic_istream<charT, traits>& __read(
+        std::basic_istream<charT, traits> &istr, T &rhs
+    ) {
+        return istr >> rhs;
+    }
+
+    /// Helper function: Prints an object using default output stream operator.
+    template <class T, class charT, class traits>
+    inline std::basic_ostream<charT, traits>& __print(
+        std::basic_ostream<charT, traits> &ostr, const T &rhs
+    ) {
+        return ostr << rhs;
+    }
+
     /// Binary files
 
     template <class T>
     array<T> load(const std::string &filename) {
+        static_assert(std::is_fundamental<T>::value,
+                      "T must be a fundamental type");
         std::ifstream file(filename, std::ifstream::binary);
         __assert_file_is_open(file, filename);
         size_t n;
@@ -73,6 +93,8 @@ namespace numcpp {
 
     template <class T>
     void save(const std::string &filename, const array<T> &arr) {
+        static_assert(std::is_fundamental<T>::value,
+                      "T must be a fundamental type");
         std::ofstream file(filename, std::ofstream::binary);
         __assert_file_is_open(file, filename);
         size_t n = arr.size();
@@ -82,6 +104,8 @@ namespace numcpp {
 
     template <class T>
     matrix<T> load_matrix(const std::string &filename) {
+        static_assert(std::is_fundamental<T>::value,
+                      "T must be a fundamental type");
         std::ifstream file(filename, std::ifstream::binary);
         __assert_file_is_open(file, filename);
         size_t m, n;
@@ -94,6 +118,8 @@ namespace numcpp {
 
     template <class T>
     void save_matrix(const std::string &filename, const matrix<T> &mat) {
+        static_assert(std::is_fundamental<T>::value,
+                      "T must be a fundamental type");
         std::ofstream file(filename, std::ofstream::binary);
         __assert_file_is_open(file, filename);
         size_t m = mat.rows(), n = mat.cols();
@@ -104,56 +130,136 @@ namespace numcpp {
 
     /// Text files
 
+    /// Parse a value from a string.
+    template <class T, class charT, class traits>
+    inline void __parse(const std::basic_string<charT, traits> &str, T &val) {
+        std::basic_istringstream<charT, traits> parser(str);
+        __read(parser, val);
+    }
+
+    /// Parse a value from a string. If already a string, removes leading and
+    /// trailing whitespaces.
+    template <class charT, class traits>
+    inline void __parse(
+        const std::basic_string<charT, traits> &str,
+        std::basic_string<charT, traits> &val
+    ) {
+        val = str;
+        val.erase(0, val.find_first_not_of(" \f\n\r\t\v"));
+        val.erase(val.find_last_not_of(" \f\n\r\t\v") + 1);
+    }
+
     /// Helper function: Find the number of rows and columns of the data
     /// stored in the text file. This function does not read any data, it only
-    /// returns the shape of the data stored.
-    void __scan_data_shape_in_file(
-        std::ifstream &file, size_t &nrows, size_t &ncols, char delimiter,
-        bool header
+    /// returns the size of the data stored.
+    template <class charT, class traits>
+    void __scan_file_size(
+        std::basic_ifstream<charT, traits> &file, size_t &nrows, size_t &ncols,
+        charT delimiter, charT newline, size_t skiprows, size_t max_rows
     ) {
-        std::string line, token;
-        if (header) {
-            file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        for (size_t i = 0; i < skiprows; ++i) {
+            file.ignore(std::numeric_limits<std::streamsize>::max(), newline);
         }
-        for (nrows = 0, ncols = 0; std::getline(file, line); ++nrows) {
-            std::istringstream tokenizer(line);
-            size_t width;
-            for (width = 0; std::getline(tokenizer, token, delimiter); ++width)
-                {}
+        std::streampos offset = file.tellg();
+        std::basic_string<charT, traits> line, token;
+        nrows = 0;
+        ncols = 0;
+        while (nrows < max_rows && std::getline(file, line, newline)) {
+            std::basic_istringstream<charT, traits> tokenizer(line);
+            size_t width = 0;
+            while (std::getline(tokenizer, token, delimiter)) {
+                ++width;
+            }
+            ++nrows;
             ncols = std::max(ncols, width);
         }
         file.clear();
-        file.seekg(0, std::ios::beg);
+        file.seekg(offset, std::ios::beg);
     }
 
-    /// Helper function: Return the column names (header) from an ifstream
-    /// object.
-    template <class Tag>
-    void __load_header_from_fstream(
-        std::ifstream &file, size_t ncols, char delimiter, 
-        base_array<std::string, Tag> &names
+    /// Helper function: Return the header from an ifstream object.
+    template <class charT, class traits>
+    void __load_file_header(
+        std::basic_ifstream<charT, traits> &file,
+        array< std::basic_string<charT, traits> > &header,
+        charT delimiter, charT newline
     ) {
-        names.resize(ncols);
-        std::string line, token;
-        std::getline(file, line);
-        std::istringstream tokenizer(line);
-        for (size_t j = 0; std::getline(tokenizer, token, delimiter); ++j) {
-            names[j] = token;
+        std::basic_string<charT, traits> line, token;
+        std::getline(file, line, newline);
+        std::basic_istringstream<charT, traits> tokenizer(line);
+        std::vector< std::basic_string<charT, traits> > buffer;
+        while (std::getline(tokenizer, token, delimiter)) {
+            __parse(token, token);
+            buffer.push_back(token);
+        }
+        header.resize(buffer.size());
+        for (size_t i = 0; i < buffer.size(); ++i) {
+            header[i] = buffer[i];
+        }
+    }
+
+    /// Helper function: Return the header from an ifstream object. Read only
+    /// the specified columns.
+    template <class charT, class traits>
+    void __load_file_header(
+        std::basic_ifstream<charT, traits> &file,
+        array< std::basic_string<charT, traits> > &header,
+        charT delimiter, charT newline,
+        std::initializer_list<size_t> usecols
+    ) {
+        std::basic_string<charT, traits> line, token;
+        std::getline(file, line, newline);
+        std::basic_istringstream<charT, traits> tokenizer(line);
+        std::vector< std::basic_string<charT, traits> > buffer;
+        while (std::getline(tokenizer, token, delimiter)) {
+            __parse(token, token);
+            buffer.push_back(token);
+        }
+        header.resize(usecols.size());
+        for (size_t i = 0; i < usecols.size(); ++i) {
+            header[i] = buffer[*(usecols.begin() + i)];
         }
     }
 
     /// Helper function: Return a new matrix with data from an ifstream object.
-    template <class T>
-    matrix<T> __load_data_from_fstream(
-        std::ifstream &file, size_t nrows, size_t ncols, char delimiter
+    template <class T, class charT, class traits>
+    matrix<T> __load_file_data(
+        std::basic_ifstream<charT, traits> &file, size_t nrows, size_t ncols,
+        charT delimiter, charT newline
     ) {
         matrix<T> mat(nrows, ncols);
-        std::string line, token;
-        for (size_t i = 0; std::getline(file, line); ++i) {
-            std::istringstream tokenizer(line);
-            for (size_t j = 0; std::getline(tokenizer, token, delimiter); ++j) {
-                std::istringstream in(token);
-                in >> mat(i, j);
+        std::basic_string<charT, traits> line, token;
+        for (size_t i = 0; i < nrows; ++i) {
+            std::getline(file, line, newline);
+            std::basic_istringstream<charT, traits> tokenizer(line);
+            for (size_t j = 0; j < ncols; ++j) {
+                std::getline(tokenizer, token, delimiter);
+                __parse(token, mat(i, j));
+            }
+        }
+        return mat;
+    }
+
+    /// Helper function: Return a new matrix with data from an ifstream object.
+    /// Read only the specified columns.
+    template <class T, class charT, class traits>
+    matrix<T> __load_file_data(
+        std::basic_ifstream<charT, traits> &file, size_t nrows, size_t ncols,
+        charT delimiter, charT newline,
+        std::initializer_list<size_t> usecols
+    ) {
+        matrix<T> mat(nrows, usecols.size());
+        std::basic_string<charT, traits> line, token;
+        for (size_t i = 0; i < nrows; ++i) {
+            std::getline(file, line, newline);
+            std::basic_istringstream<charT, traits> tokenizer(line);
+            std::vector<T> buffer(ncols);
+            for (size_t j = 0; j < ncols; ++j) {
+                std::getline(tokenizer, token, delimiter);
+                __parse(token, buffer[j]);
+            }
+            for (size_t j = 0; j < usecols.size(); ++j) {
+                mat(i, j) = buffer[*(usecols.begin() + j)];
             }
         }
         return mat;
@@ -161,31 +267,45 @@ namespace numcpp {
 
     template <class T>
     matrix<T> load_txt(
-        const std::string &filename, char delimiter, bool header
+        const std::string &filename, char delimiter, char newline,
+        size_t skiprows, size_t max_rows,
+        std::initializer_list<size_t> usecols
     ) {
-        std::ifstream file(filename);
+        std::ifstream file(filename, std::ifstream::binary);
         __assert_file_is_open(file, filename);
-        size_t nrows, ncols;
-        __scan_data_shape_in_file(file, nrows, ncols, delimiter, header);
-        if (header) {
-            file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        size_t m, n;
+        __scan_file_size(file, m, n, delimiter, newline, skiprows, max_rows);
+        if (usecols.size() == 0) {
+            return __load_file_data<T>(file, m, n, delimiter, newline);
         }
-        return __load_data_from_fstream<T>(file, nrows, ncols, delimiter);
+        else {
+            return __load_file_data<T>(file, m, n, delimiter, newline, usecols);
+        }
     }
 
     template <class T>
     matrix<T> load_txt(
-        const std::string &filename, char delimiter, bool header,
-        array<std::string> &names
+        const std::string &filename, array<std::string> &header,
+        char delimiter, char newline,
+        size_t skiprows, size_t max_rows,
+        std::initializer_list<size_t> usecols
     ) {
-        std::ifstream file(filename);
+        std::ifstream file(filename, std::ifstream::binary);
         __assert_file_is_open(file, filename);
-        size_t nrows, ncols;
-        __scan_data_shape_in_file(file, nrows, ncols, delimiter, header);
-        if (header) {
-            __load_header_from_fstream(file, ncols, delimiter, names);
+        if (usecols.size() == 0) {
+            __load_file_header(file, header, delimiter, newline);
         }
-        return __load_data_from_fstream<T>(file, nrows, ncols, delimiter);
+        else {
+            __load_file_header(file, header, delimiter, newline, usecols);
+        }
+        size_t m, n;
+        __scan_file_size(file, m, n, delimiter, newline, skiprows, max_rows);
+        if (usecols.size() == 0) {
+            return __load_file_data<T>(file, m, n, delimiter, newline);
+        }
+        else {
+            return __load_file_data<T>(file, m, n, delimiter, newline, usecols);
+        }
     }
 
     /// Helper function: Set all the print options flags on the output stream
@@ -217,68 +337,72 @@ namespace numcpp {
         }
     }
 
-    /// Helper function: Save the column names (header) to an ofstream object.
-    template <class Tag>
-    void __save_header_to_fstream(
-        std::ofstream &file, char delimiter, 
-        const base_array<std::string, Tag> &names
+    /// Helper function: Save the header to an ofstream object.
+    template <class charT, class traits, class Tag>
+    void __save_file_header(
+        std::basic_ofstream<charT, traits> &file,
+        const base_array<std::basic_string<charT, traits>, Tag> &header,
+        charT delimiter, charT newline
     ) {
-        if (!names.empty()) {
-            file << names[0];
-            for (size_t i = 1; i < names.size(); ++i) {
-                file << delimiter << names[i];
+        if (!header.empty()) {
+            file << header[0];
+            for (size_t i = 1; i < header.size(); ++i) {
+                file << delimiter << header[i];
             }
-            file << "\n";
+            file << newline;
         }
     }
 
     /// Helper function: Save the matrix data to an ofstream object.
-    template <class T, class Tag>
-    void __save_data_to_fstream(
-        std::ofstream &file, const base_matrix<T, Tag> &mat, char delimiter
+    template <class T, class Tag, class charT, class traits>
+    void __save_file_data(
+        std::basic_ofstream<charT, traits> &file,
+        const base_matrix<T, Tag> &mat,
+        charT delimiter, charT newline
     ) {
         if (!mat.empty()) {
             for (size_t i = 0; i < mat.rows(); ++i) {
-                file << mat(i, 0);
+                __print(file, mat(i, 0));
                 for (size_t j = 1; j < mat.cols(); ++j) {
-                    file << delimiter << mat(i, j);
+                    file << delimiter;
+                    __print(file, mat(i, j));
                 }
-                file << "\n";
+                file << newline;
             }
         }
     }
 
     template <class T, class Tag>
     void save_txt(
-        const std::string &filename, const base_matrix<T, Tag> &mat, 
-        char delimiter
+        const std::string &filename, const base_matrix<T, Tag> &mat,
+        char delimiter, char newline
     ) {
         std::ofstream file(filename);
         __assert_file_is_open(file, filename);
         __set_printoptions_flags<T>(file);
-        __save_data_to_fstream(file, mat, delimiter);
+        __save_file_data(file, mat, delimiter, newline);
     }
 
-    template <class T, class Tag1, class Tag2>
+    template <class T, class Tag, class TagHeader>
     void save_txt(
-        const std::string &filename, const base_matrix<T, Tag1> &mat, 
-        char delimiter,
-        const base_array<std::string, Tag2> &names
+        const std::string &filename, const base_matrix<T, Tag> &mat,
+        const base_array<std::string, TagHeader> &header,
+        char delimiter, char newline
     ) {
         std::ofstream file(filename);
         __assert_file_is_open(file, filename);
         __set_printoptions_flags<T>(file);
-        __save_header_to_fstream(file, delimiter, names);
-        __save_data_to_fstream(file, mat, delimiter);
+        __save_file_header(file, header, delimiter, newline);
+        __save_file_data(file, mat, delimiter, newline);
     }
 
     /// Input stream
 
-    /// Helper function: Read a list of values and append them at the end of a 
+    /// Helper function: Read a list of values and append them at the end of a
     /// std::vector. Returns whether the operation was successful or not.
     template <class T, class charT, class traits>
     bool __read_array(
-        std::basic_istream<charT, traits> &istr, 
+        std::basic_istream<charT, traits> &istr,
         size_t &size, std::vector<T> &buffer
     ) {
         charT ch;
@@ -286,7 +410,7 @@ namespace numcpp {
         size = 0;
         if (istr >> ch) {
             if (traits::eq(ch, istr.widen('['))) {
-                while (istr >> val >> ch) {
+                while (__read(istr, val) && istr >> ch) {
                     ++size;
                     buffer.push_back(val);
                     if (traits::eq(ch, istr.widen(']'))) {
@@ -306,6 +430,36 @@ namespace numcpp {
         return false;
     }
 
+    /// Helper function: Read a list of values and append them at the end of a
+    /// std::vector. Returns whether the operation was successful or not.
+    /// Specialization for string objects.
+    template <class charT, class traits>
+    bool __read_array(
+        std::basic_istream<charT, traits> &istr,
+        size_t &size, std::vector< std::basic_string<charT, traits> > &buffer
+    ) {
+        charT ch;
+        size = 0;
+        if (istr >> ch) {
+            if (traits::eq(ch, istr.widen('['))) {
+                std::basic_string<charT, traits> line, token;
+                std::getline(istr, line, istr.widen(']'));
+                std::basic_istringstream<charT, traits> tokenizer(line);
+                while (std::getline(tokenizer, token, istr.widen(','))) {
+                    ++size;
+                    __parse(token, token);
+                    buffer.push_back(token);
+                }
+                return true;
+            }
+            else {
+                istr.putback(ch);
+                return false;
+            }
+        }
+        return false;
+    }
+
     template <class T, class charT, class traits>
     std::basic_istream<charT, traits>& operator>>(
         std::basic_istream<charT, traits> &istr, array<T> &arr
@@ -313,7 +467,7 @@ namespace numcpp {
         size_t size;
         std::vector<T> buffer;
         if (__read_array(istr, size, buffer)) {
-            arr = array<T>(buffer.begin(), buffer.end());
+            arr = std::move(array<T>(buffer.begin(), buffer.end()));
         }
         else {
             istr.setstate(std::ios_base::failbit);
@@ -322,12 +476,12 @@ namespace numcpp {
         return istr;
     }
 
-    /// Helper function: Read a list of lists and append the values at the end 
-    /// of a std::vector. All inner lists must be of equal length. Returns 
+    /// Helper function: Read a list of lists and append the values at the end
+    /// of a std::vector. All inner lists must be of equal length. Returns
     /// whether the operation was successful or not.
     template <class T, class charT, class traits>
     bool __read_matrix(
-        std::basic_istream<charT, traits> &istr, 
+        std::basic_istream<charT, traits> &istr,
         size_t &nrows, size_t &ncols, std::vector<T> &buffer
     ) {
         charT ch;
@@ -366,7 +520,7 @@ namespace numcpp {
         size_t nrows, ncols;
         std::vector<T> buffer;
         if (__read_matrix(istr, nrows, ncols, buffer)) {
-            mat = matrix<T>(buffer.begin(), buffer.end(), ncols);
+            mat = std::move(matrix<T>(buffer.begin(), buffer.end(), ncols));
         }
         else {
             istr.setstate(std::ios_base::failbit);
@@ -374,23 +528,23 @@ namespace numcpp {
         }
         return istr;
     }
-    
+
     /// Output stream
 
     /// Helper function: Print a subset of elements of an array-like object.
     template <class charT, class traits, class ArrayIterator>
     void __print_subarray(
         std::basic_ostream<charT, traits> &ostr,
-        ArrayIterator first, ArrayIterator last, 
+        ArrayIterator first, ArrayIterator last,
         size_t width
     ) {
         if (first != last) {
             ostr.width(width);
-            ostr << *first;
+            __print(ostr, *first);
             while (++first != last) {
                 ostr << ", ";
                 ostr.width(width);
-                ostr << *first;
+                __print(ostr, *first);
             }
         }
     }
@@ -398,8 +552,8 @@ namespace numcpp {
     /// Helper function: Print the elements of an array-like object.
     template <class charT, class traits, class ArrayIterator>
     void __print_array(
-        std::basic_ostream<charT, traits> &ostr, 
-        ArrayIterator first, ArrayIterator last, 
+        std::basic_ostream<charT, traits> &ostr,
+        ArrayIterator first, ArrayIterator last,
         size_t width
     ) {
         using namespace printoptions;
@@ -449,8 +603,8 @@ namespace numcpp {
     /// Helper function: Print the elements of a matrix-like object.
     template <class charT, class traits, class MatrixIterator>
     void __print_matrix(
-        std::basic_ostream<charT, traits> &ostr, 
-        size_t nrows, size_t ncols, MatrixIterator first, 
+        std::basic_ostream<charT, traits> &ostr,
+        size_t nrows, size_t ncols, MatrixIterator first,
         size_t width
     ) {
         using namespace printoptions;
@@ -480,20 +634,20 @@ namespace numcpp {
         size_t width = 0;
         for (size_t i = 0; i < mat.rows(); ++i) {
             if (
-                mat.rows() < threshold || 
-                mat.rows() <= 2*edgeitems || 
-                i < edgeitems || 
+                mat.rows() < threshold ||
+                mat.rows() <= 2*edgeitems ||
+                i < edgeitems ||
                 i >= mat.rows() - edgeitems
             ) {
                 for (size_t j = 0; j < mat.cols(); ++j) {
                     if (
-                        mat.cols() < threshold || 
-                        mat.cols() <= 2*edgeitems || 
-                        j < edgeitems || 
+                        mat.cols() < threshold ||
+                        mat.cols() <= 2*edgeitems ||
+                        j < edgeitems ||
                         j >= mat.cols() - edgeitems
                     ) {
                         buffer.str("");
-                        buffer << mat(i, j);
+                        __print(buffer, mat(i, j));
                         width = std::max(width, buffer.str().size());
                     }
                 }
