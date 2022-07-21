@@ -576,6 +576,15 @@ namespace numcpp {
     }
 
     template <class T>
+    void base_array<T, index_view_tag>::imag(
+        const typename complex_traits<T>::value_type &val
+    ) {
+        for (size_t i = 0; i < this->size(); ++i) {
+            (*this)[i].imag(val);
+        }
+    }
+
+    template <class T>
     template <class Tag>
     void base_array<T, index_view_tag>::imag(
         const base_array<typename complex_traits<T>::value_type, Tag> &arr
@@ -632,6 +641,15 @@ namespace numcpp {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__math_real, T, index_view_tag> Closure;
         return base_array<Rt, Closure>(__math_real(), *this);
+    }
+
+    template <class T>
+    void base_array<T, index_view_tag>::real(
+        const typename complex_traits<T>::value_type &val
+    ) {
+        for (size_t i = 0; i < this->size(); ++i) {
+            (*this)[i].real(val);
+        }
     }
 
     template <class T>
