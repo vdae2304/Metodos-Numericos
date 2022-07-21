@@ -34,7 +34,7 @@ namespace numcpp {
      */
     template <class charT, class traits, class T, class U>
     std::basic_istream<charT, traits>& __read(
-        std::basic_istream<charT, traits> &istr, std::pair<T, T> &rhs
+        std::basic_istream<charT, traits> &istr, std::pair<T, U> &rhs
     );
 
     /**
