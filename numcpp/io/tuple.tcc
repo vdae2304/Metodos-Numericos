@@ -15,7 +15,7 @@
 
  /** @file include/numcpp/io/tuple.tcc
   *  This is an internal header file, included by other library headers.
-  *  Do not attempt to use it directly. @headername{numcpp/io/tuple.tcc}
+  *  Do not attempt to use it directly. @headername{numcpp/io/tuple.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
