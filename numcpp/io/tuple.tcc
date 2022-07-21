@@ -23,6 +23,8 @@
 #ifndef NUMCPP_TUPLE_IO_TCC_INCLUDED
 #define NUMCPP_TUPLE_IO_TCC_INCLUDED
 
+#include <type_traits>
+
 namespace numcpp {
     /// Helper function: Reads a tuple. Returns whether the operation was
     /// successful or not.

@@ -25,7 +25,6 @@
 
 #include <iosfwd>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 
 namespace numcpp {
