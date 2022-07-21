@@ -15,7 +15,7 @@
 
  /** @file include/numcpp/io/io.tcc
   *  This is an internal header file, included by other library headers.
-  *  Do not attempt to use it directly. @headername{numcpp.h}
+  *  Do not attempt to use it directly. @headername{numcpp/io.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
