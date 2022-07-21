@@ -983,6 +983,17 @@ namespace numcpp {
     }
 
     template <class T>
+    void base_matrix<T, matrix_tag>::imag(
+        const typename complex_traits<T>::value_type &val
+    ) {
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->cols(); ++j) {
+                (*this)(i, j).imag(val);
+            }
+        }
+    }
+
+    template <class T>
     template <class Tag>
     void base_matrix<T, matrix_tag>::imag(
         const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
@@ -1088,6 +1099,17 @@ namespace numcpp {
         typedef typename complex_traits<T>::value_type Rt;
         typedef lazy_unary_tag<__math_real, T, matrix_tag> Closure;
         return base_matrix<Rt, Closure>(__math_real(), *this);
+    }
+
+    template <class T>
+    void base_matrix<T, matrix_tag>::real(
+        const typename complex_traits<T>::value_type &val
+    ) {
+        for (size_t i = 0; i < this->rows(); ++i) {
+            for (size_t j = 0; j < this->cols(); ++j) {
+                (*this)(i, j).real(val);
+            }
+        }
     }
 
     template <class T>

@@ -563,6 +563,7 @@ namespace numcpp {
         /**
          * @brief Return or set the imaginary part, element-wise.
          *
+         * @param val Value to set the imaginary part to.
          * @param mat A matrix-like object with the values to set the imaginary
          *     part to.
          *
@@ -575,6 +576,7 @@ namespace numcpp {
         >
         imag() const;
 
+        void imag(const typename complex_traits<T>::value_type &val);
         template <class Tag>
         void imag(
             const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
@@ -684,6 +686,7 @@ namespace numcpp {
         /**
          * @brief Return or set the real part, element-wise.
          *
+         * @param val Value to set the real part to.
          * @param mat A matrix-like object with the values to set the real part
          *     to.
          *
@@ -696,6 +699,7 @@ namespace numcpp {
         >
         real() const;
 
+        void real(const typename complex_traits<T>::value_type &val);
         template <class Tag>
         void real(
             const base_matrix<typename complex_traits<T>::value_type, Tag> &mat
