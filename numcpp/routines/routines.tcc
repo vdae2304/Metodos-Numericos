@@ -1860,40 +1860,24 @@ namespace numcpp {
     template <class T, class Tag>
     typename complex_traits<T>::value_type
     norm(const base_array<T, Tag> &arr, double p) {
-        typedef typename complex_traits<T>::value_type value_type;
+        typedef typename complex_traits<T>::value_type Rt;
+        typedef lazy_unary_tag<__math_abs, T, Tag> Closure;
         if (arr.empty()) {
-            return value_type(0);
+            return Rt(0);
         }
         if (p == 0) {
             return count_nonzero(arr);
         }
         else if (p == HUGE_VAL) {
-            value_type val = std::abs(arr[0]);
-            for (size_t i = 1; i < arr.size(); ++i) {
-                if (val < std::abs(arr[i])) {
-                    val = std::abs(arr[i]);
-                }
-            }
-            return val;
+            return amax(base_array<Rt, Closure>(__math_abs(), arr));
         }
         else if (p == -HUGE_VAL) {
-            value_type val = std::abs(arr[0]);
-            for (size_t i = 1; i < arr.size(); ++i) {
-                if (val > std::abs(arr[i])) {
-                    val = std::abs(arr[i]);
-                }
-            }
-            return val;
+            return amin(base_array<Rt, Closure>(__math_abs(), arr));
         }
         else {
-            value_type max_abs = std::abs(arr[0]);
-            value_type val = 0;
-            for (size_t i = 1; i < arr.size(); ++i) {
-                if (max_abs < std::abs(arr[i])) {
-                    max_abs = std::abs(arr[i]);
-                }
-            }
-            if (max_abs > value_type(0)) {
+            Rt val = 0;
+            Rt max_abs = amax(base_array<Rt, Closure>(__math_abs(), arr));
+            if (max_abs > Rt(0)) {
                 for (size_t i = 0; i < arr.size(); ++i) {
                     val += std::pow(std::abs(arr[i]) / max_abs, p);
                 }
