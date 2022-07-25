@@ -191,7 +191,7 @@ namespace numcpp {
         /**
          * @brief Subscript operator. Returns a reference to the element at
          * position i in the array_view. The element at position i corresponds
-         * to the element at position offset + i*stride in the original array.
+         * to the element at position offset + i*stride in the memory array.
          *
          * @param i Position of an element in the array_view. Must be between
          *     0 and size() - 1.
@@ -230,6 +230,22 @@ namespace numcpp {
          */
         T* data();
         const T* data() const;
+
+        /**
+         * @brief Returns the position in the memory array of the first
+         * element.
+         *
+         * @return Offset in memory array.
+         */
+        size_t offset() const;
+
+        /**
+         * @brief Returns the span that separates the elements in the memory
+         * array.
+         *
+         * @return Stride in memory array.
+         */
+        size_t stride() const;
 
         /// Assignment operator.
 
@@ -536,8 +552,7 @@ namespace numcpp {
         /// Number of elements in the array_view.
         size_t m_size;
 
-        /// Offset and stride in the array_view with respect to the original
-        /// array.
+        /// Offset and stride in the memory array.
         size_t m_offset, m_stride;
     };
 }

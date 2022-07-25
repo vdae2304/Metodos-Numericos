@@ -203,6 +203,16 @@ namespace numcpp {
         return m_data;
     }
 
+    template <class T>
+    inline size_t base_array<T, array_view_tag>::offset() const {
+        return m_offset;
+    }
+
+    template <class T>
+    inline size_t base_array<T, array_view_tag>::stride() const {
+        return m_stride;
+    }
+
     /// Assignment operator.
 
     template <class T>
