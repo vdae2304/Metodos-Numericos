@@ -92,14 +92,12 @@ namespace numcpp {
     base_matrix<T, matrix_tag>::base_matrix(
         base_matrix<T, matrix_tag> &&other
     ) {
-        if (this != &other) {
-            m_data = other.m_data;
-            m_shape1 = other.m_shape1;
-            m_shape2 = other.m_shape2;
-            other.m_data = NULL;
-            other.m_shape1 = 0;
-            other.m_shape2 = 0;
-        }
+        m_data = other.m_data;
+        m_shape1 = other.m_shape1;
+        m_shape2 = other.m_shape2;
+        other.m_data = NULL;
+        other.m_shape1 = 0;
+        other.m_shape2 = 0;
     }
 
     template <class T>
@@ -131,13 +129,13 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::begin() {
-        return base_matrix_iterator<T, matrix_tag>(this, 0, true);
+        return this->begin(true);
     }
 
     template <class T>
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::begin() const {
-        return base_matrix_const_iterator<T, matrix_tag>(this, 0, true);
+        return this->begin(true);
     }
 
     template <class T>
@@ -155,17 +153,13 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_tag>::iterator
     base_matrix<T, matrix_tag>::end() {
-        return base_matrix_iterator<T, matrix_tag>(
-            this, m_shape1 * m_shape2, true
-        );
+        return this->end(true);
     }
 
     template <class T>
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::end() const {
-        return base_matrix_const_iterator<T, matrix_tag>(
-            this, m_shape1 * m_shape2, true
-        );
+        return this->end(true);
     }
 
     template <class T>
@@ -251,7 +245,7 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::cbegin() const {
-        return base_matrix_const_iterator<T, matrix_tag>(this, 0, true);
+        return this->cbegin(true);
     }
 
     template <class T>
@@ -263,9 +257,7 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_tag>::const_iterator
     base_matrix<T, matrix_tag>::cend() const {
-        return base_matrix_const_iterator<T, matrix_tag>(
-            this, m_shape1 * m_shape2, true
-        );
+        return this->cend(true);
     }
 
     template <class T>
@@ -343,11 +335,11 @@ namespace numcpp {
                 m_shape1, m_shape2, slc1[slc1.size() - 1], slc2[slc2.size() - 1]
             );
         }
+        size_t offset = slc1.start() * m_shape2 + slc2.start();
+        size_t stride1 = slc1.stride() * m_shape2;
+        size_t stride2 = slc2.stride();
         return base_matrix<T, matrix_view_tag>(
-            slc1.size(), slc2.size(), m_data,
-            m_shape2,
-            slc1.start(), slc1.stride(),
-            slc2.start(), slc2.stride()
+            slc1.size(), slc2.size(), m_data, offset, stride1, stride2
         );
     }
 
@@ -359,11 +351,11 @@ namespace numcpp {
                 m_shape1, m_shape2, slc1[slc1.size() - 1], slc2[slc2.size() - 1]
             );
         }
+        size_t offset = slc1.start() * m_shape2 + slc2.start();
+        size_t stride1 = slc1.stride() * m_shape2;
+        size_t stride2 = slc2.stride();
         return base_matrix<T, matrix_view_tag>(
-            slc1.size(), slc2.size(), m_data,
-            m_shape2,
-            slc1.start(), slc1.stride(),
-            slc2.start(), slc2.stride()
+            slc1.size(), slc2.size(), m_data, offset, stride1, stride2
         );
     }
 
@@ -373,10 +365,9 @@ namespace numcpp {
         if (slc.size() > 0) {
             __assert_within_bounds(m_shape1, m_shape2, i, slc[slc.size() - 1]);
         }
-        return base_array<T, array_view_tag>(
-            slc.size(), m_data,
-            i * m_shape2 + slc.start(), slc.stride()
-        );
+        size_t offset = i * m_shape2 + slc.start();
+        size_t stride = slc.stride();
+        return base_array<T, array_view_tag>(slc.size(), m_data, offset,stride);
     }
 
     template <class T>
@@ -385,10 +376,9 @@ namespace numcpp {
         if (slc.size() > 0) {
             __assert_within_bounds(m_shape1, m_shape2, i, slc[slc.size() - 1]);
         }
-        return base_array<T, array_view_tag>(
-            slc.size(), m_data,
-            i * m_shape2 + slc.start(), slc.stride()
-        );
+        size_t offset = i * m_shape2 + slc.start();
+        size_t stride = slc.stride();
+        return base_array<T, array_view_tag>(slc.size(), m_data, offset,stride);
     }
 
     template <class T>
@@ -397,10 +387,9 @@ namespace numcpp {
         if (slc.size() > 0) {
             __assert_within_bounds(m_shape1, m_shape2, slc[slc.size() - 1], j);
         }
-        return base_array<T, array_view_tag>(
-            slc.size(), m_data,
-            slc.start() * m_shape2 + j, m_shape2 * slc.stride()
-        );
+        size_t offset = slc.start() * m_shape2 + j;
+        size_t stride = slc.stride() * m_shape2;
+        return base_array<T, array_view_tag>(slc.size(), m_data, offset,stride);
     }
 
     template <class T>
@@ -409,10 +398,9 @@ namespace numcpp {
         if (slc.size() > 0) {
             __assert_within_bounds(m_shape1, m_shape2, slc[slc.size() - 1], j);
         }
-        return base_array<T, array_view_tag>(
-            slc.size(), m_data,
-            slc.start() * m_shape2 + j, m_shape2 * slc.stride()
-        );
+        size_t offset = slc.start() * m_shape2 + j;
+        size_t stride = slc.stride() * m_shape2;
+        return base_array<T, array_view_tag>(slc.size(), m_data, offset,stride);
     }
 
     template <class T>
@@ -516,6 +504,16 @@ namespace numcpp {
     template <class T>
     inline const T* base_matrix<T, matrix_tag>::data() const {
         return m_data;
+    }
+
+    template <class T>
+    inline bool base_matrix<T, matrix_tag>::rowmajor() const {
+        return true;
+    }
+
+    template <class T>
+    inline bool base_matrix<T, matrix_tag>::colmajor() const {
+        return false;
     }
 
     /// Operator overloading.
@@ -895,17 +893,13 @@ namespace numcpp {
     template <class T>
     base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::diagonal(ptrdiff_t offset) {
-        size_t size = 0, start, stride = this->cols() + 1;
-        if (offset >= 0) {
-            if (this->cols() > (size_t)offset) {
-                size = std::min(this->rows(), this->cols() - offset);
-            }
+        size_t size = 0, start = 0, stride = this->cols() + 1;
+        if (offset >= 0 && this->cols() > (size_t)offset) {
+            size = std::min(this->rows(), this->cols() - offset);
             start = offset;
         }
-        else {
-            if (this->rows() > (size_t)-offset) {
-                size = std::min(this->rows() + offset, this->cols());
-            }
+        else if (offset < 0 && this->rows() > (size_t)-offset) {
+            size = std::min(this->rows() + offset, this->cols());
             start = -offset * this->cols();
         }
         return base_array<T, array_view_tag>(size, m_data, start, stride);
@@ -914,17 +908,13 @@ namespace numcpp {
     template <class T>
     const base_array<T, array_view_tag>
     base_matrix<T, matrix_tag>::diagonal(ptrdiff_t offset) const {
-        size_t size = 0, start, stride = this->cols() + 1;
-        if (offset >= 0) {
-            if (this->cols() > (size_t)offset) {
-                size = std::min(this->rows(), this->cols() - offset);
-            }
+        size_t size = 0, start = 0, stride = this->cols() + 1;
+        if (offset >= 0 && this->cols() > (size_t)offset) {
+            size = std::min(this->rows(), this->cols() - offset);
             start = offset;
         }
-        else {
-            if (this->rows() > (size_t)-offset) {
-                size = std::min(this->rows() + offset, this->cols());
-            }
+        else if (offset < 0 && this->rows() > (size_t)-offset) {
+            size = std::min(this->rows() + offset, this->cols());
             start = -offset * this->cols();
         }
         return base_array<T, array_view_tag>(size, m_data, start, stride);
@@ -1210,7 +1200,7 @@ namespace numcpp {
     template <class T>
     base_matrix<T, matrix_view_tag> base_matrix<T, matrix_tag>::t() {
         return base_matrix<T, matrix_view_tag>(
-            this->cols(), this->rows(), m_data, false
+            m_shape2, m_shape1, m_data, false
         );
     }
 
@@ -1218,7 +1208,7 @@ namespace numcpp {
     const base_matrix<T, matrix_view_tag>
     base_matrix<T, matrix_tag>::t() const {
         return base_matrix<T, matrix_view_tag>(
-            this->cols(), this->rows(), m_data, false
+            m_shape2, m_shape1, m_data, false
         );
     }
 

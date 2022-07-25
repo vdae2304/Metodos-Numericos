@@ -33,12 +33,9 @@ namespace numcpp {
         m_data = NULL;
         m_shape1 = 0;
         m_shape2 = 0;
-        m_tda = 0;
-        m_offset1 = 0;
+        m_offset = 0;
         m_stride1 = 1;
-        m_offset2 = 0;
         m_stride2 = 1;
-        m_order = true;
     }
 
     template <class T>
@@ -48,30 +45,28 @@ namespace numcpp {
         m_data = data;
         m_shape1 = m;
         m_shape2 = n;
-        m_tda = row_major ? n : m;
-        m_offset1 = 0;
-        m_stride1 = 1;
-        m_offset2 = 0;
-        m_stride2 = 1;
-        m_order = row_major;
+        m_offset = 0;
+        if (row_major) {
+            m_stride1 = n;
+            m_stride2 = 1;
+        }
+        else {
+            m_stride1 = 1;
+            m_stride2 = m;
+        }
     }
 
     template <class T>
     base_matrix<T, matrix_view_tag>::base_matrix(
-        size_t m, size_t n, T *data, size_t tda,
-        size_t offset1, size_t stride1,
-        size_t offset2, size_t stride2,
-        bool row_major
+        size_t m, size_t n, T *data,
+        size_t offset, size_t stride1, size_t stride2
     ) {
         m_data = data;
         m_shape1 = m;
         m_shape2 = n;
-        m_tda = tda;
-        m_offset1 = offset1;
+        m_offset = offset;
         m_stride1 = stride1;
-        m_offset2 = offset2;
         m_stride2 = stride2;
-        m_order = row_major;
     }
 
     template <class T>
@@ -81,12 +76,9 @@ namespace numcpp {
         m_data = other.m_data;
         m_shape1 = other.m_shape1;
         m_shape2 = other.m_shape2;
-        m_tda = other.m_tda;
-        m_offset1 = other.m_offset1;
+        m_offset = other.m_offset;
         m_stride1 = other.m_stride1;
-        m_offset2 = other.m_offset2;
         m_stride2 = other.m_stride2;
-        m_order = other.m_order;
     }
 
     template <class T>
@@ -96,21 +88,15 @@ namespace numcpp {
         m_data = other.m_data;
         m_shape1 = other.m_shape1;
         m_shape2 = other.m_shape2;
-        m_tda = other.m_tda;
-        m_offset1 = other.m_offset1;
+        m_offset = other.m_offset;
         m_stride1 = other.m_stride1;
-        m_offset2 = other.m_offset2;
         m_stride2 = other.m_stride2;
-        m_order = other.m_order;
         other.m_data = NULL;
         other.m_shape1 = 0;
         other.m_shape2 = 0;
-        other.m_tda = 0;
-        other.m_offset1 = 0;
+        other.m_offset = 0;
         other.m_stride1 = 1;
-        other.m_offset2 = 0;
         other.m_stride2 = 1;
-        other.m_order = true;
     }
 
     /// Destructor.
@@ -123,13 +109,13 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::iterator
     base_matrix<T, matrix_view_tag>::begin() {
-        return base_matrix_iterator<T, matrix_view_tag>(this, 0, m_order);
+        return this->begin(this->rowmajor());
     }
 
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::const_iterator
     base_matrix<T, matrix_view_tag>::begin() const {
-        return base_matrix_const_iterator<T, matrix_view_tag>(this, 0, m_order);
+        return this->begin(this->rowmajor());
     }
 
     template <class T>
@@ -149,17 +135,13 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::iterator
     base_matrix<T, matrix_view_tag>::end() {
-        return base_matrix_iterator<T, matrix_view_tag>(
-            this, m_shape1 * m_shape2, m_order
-        );
+        return this->end(this->rowmajor());
     }
 
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::const_iterator
     base_matrix<T, matrix_view_tag>::end() const {
-        return base_matrix_const_iterator<T, matrix_view_tag>(
-            this, m_shape1 * m_shape2, m_order
-        );
+        return this->end(this->rowmajor());
     }
 
     template <class T>
@@ -245,9 +227,7 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::const_iterator
     base_matrix<T, matrix_view_tag>::cbegin() const {
-        return base_matrix_const_iterator<T, matrix_view_tag>(
-            this, 0, m_order
-        );
+        return this->cbegin(this->rowmajor());
     }
 
     template <class T>
@@ -261,9 +241,7 @@ namespace numcpp {
     template <class T>
     inline typename base_matrix<T, matrix_view_tag>::const_iterator
     base_matrix<T, matrix_view_tag>::cend() const {
-        return base_matrix_const_iterator<T, matrix_view_tag>(
-            this, m_shape1 * m_shape2, m_order
-        );
+        return this->cend(this->rowmajor());
     }
 
     template <class T>
@@ -311,28 +289,14 @@ namespace numcpp {
     template <class T>
     inline T& base_matrix<T, matrix_view_tag>::operator()(size_t i, size_t j) {
         __assert_within_bounds(m_shape1, m_shape2, i, j);
-        i = m_offset1 + i * m_stride1;
-        j = m_offset2 + j * m_stride2;
-        if (m_order) {
-            return m_data[i * m_tda + j];
-        }
-        else {
-            return m_data[j * m_tda + i];
-        }
+        return m_data[m_offset + i * m_stride1 + j * m_stride2];
     }
 
     template <class T>
     inline const T&
     base_matrix<T, matrix_view_tag>::operator()(size_t i, size_t j) const {
         __assert_within_bounds(m_shape1, m_shape2, i, j);
-        i = m_offset1 + i * m_stride1;
-        j = m_offset2 + j * m_stride2;
-        if (m_order) {
-            return m_data[i * m_tda + j];
-        }
-        else {
-            return m_data[j * m_tda + i];
-        }
+        return m_data[m_offset + i * m_stride1 + j * m_stride2];
     }
 
     template <class T>
@@ -378,13 +342,24 @@ namespace numcpp {
     }
 
     template <class T>
+    inline size_t base_matrix<T, matrix_view_tag>::offset() const {
+        return m_offset;
+    }
+
+    template <class T>
+    inline index_t base_matrix<T, matrix_view_tag>::stride() const {
+        return index_t(m_stride1, m_stride2);
+    }
+
+
+    template <class T>
     inline bool base_matrix<T, matrix_view_tag>::rowmajor() const {
-        return m_order;
+        return (m_stride1 >= m_stride2);
     }
 
     template <class T>
     inline bool base_matrix<T, matrix_view_tag>::colmajor() const {
-        return !m_order;
+        return (m_stride1 < m_stride2);
     }
 
     /// Assignment operator.
@@ -436,21 +411,15 @@ namespace numcpp {
             m_data = other.m_data;
             m_shape1 = other.m_shape1;
             m_shape2 = other.m_shape2;
-            m_tda = other.m_tda;
-            m_offset1 = other.m_offset1;
+            m_offset = other.m_offset;
             m_stride1 = other.m_stride1;
-            m_offset2 = other.m_offset2;
             m_stride2 = other.m_stride2;
-            m_order = other.m_order;
             other.m_data = NULL;
             other.m_shape1 = 0;
             other.m_shape2 = 0;
-            other.m_tda = 0;
-            other.m_offset1 = 0;
+            other.m_offset = 0;
             other.m_stride1 = 1;
-            other.m_offset2 = 0;
             other.m_stride2 = 1;
-            other.m_order = true;
         }
         return *this;
     }
@@ -838,6 +807,36 @@ namespace numcpp {
     }
 
     template <class T>
+    base_array<T, array_view_tag>
+    base_matrix<T, matrix_view_tag>::diagonal(ptrdiff_t offset) {
+        size_t size = 0, start = m_offset, stride = m_stride1 + m_stride2;
+        if (offset >= 0 && this->cols() > (size_t)offset) {
+            size = std::min(this->rows(), this->cols() - offset);
+            start = m_offset + offset * m_stride2;
+        }
+        else if (offset < 0 && this->rows() > (size_t)-offset) {
+            size = std::min(this->rows() + offset, this->cols());
+            start = m_offset + -offset * m_stride1;
+        }
+        return base_array<T, array_view_tag>(size, m_data, start, stride);
+    }
+
+    template <class T>
+    const base_array<T, array_view_tag>
+    base_matrix<T, matrix_view_tag>::diagonal(ptrdiff_t offset) const {
+        size_t size = 0, start = m_offset, stride = m_stride1 + m_stride2;
+        if (offset >= 0 && this->cols() > (size_t)offset) {
+            size = std::min(this->rows(), this->cols() - offset);
+            start = m_offset + offset * m_stride2;
+        }
+        else if (offset < 0 && this->rows() > (size_t)-offset) {
+            size = std::min(this->rows() + offset, this->cols());
+            start = m_offset + -offset * m_stride1;
+        }
+        return base_array<T, array_view_tag>(size, m_data, start, stride);
+    }
+
+    template <class T>
     base_matrix<
         typename complex_traits<T>::value_type,
         lazy_unary_tag<__math_imag, T, matrix_view_tag>
@@ -1064,6 +1063,21 @@ namespace numcpp {
     base_matrix<T, matrix_view_tag>::sum(bool rowwise) const {
         typedef lazy_axis_tag<__range_sum, T, matrix_view_tag> Closure;
         return base_array<T, Closure>(__range_sum(), *this, rowwise);
+    }
+
+    template <class T>
+    base_matrix<T, matrix_view_tag> base_matrix<T, matrix_view_tag>::t() {
+        return base_matrix<T, matrix_view_tag>(
+            m_shape2, m_shape1, m_data, m_offset, m_stride2, m_stride1
+        );
+    }
+
+    template <class T>
+    const base_matrix<T, matrix_view_tag>
+    base_matrix<T, matrix_view_tag>::t() const {
+        return base_matrix<T, matrix_view_tag>(
+            m_shape2, m_shape1, m_data, m_offset, m_stride2, m_stride1
+        );
     }
 
     template <class T>

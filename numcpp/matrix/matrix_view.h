@@ -78,25 +78,16 @@ namespace numcpp {
          * @param m The number of rows in the matrix_view.
          * @param n The number of columns in the matrix_view.
          * @param data The pointer to the memory array used by the matrix_view.
-         * @param tda Trailing dimmension. For row-major order, it is the
-         *     number of columns as laid out in memory. For column-major order,
-         *     it is the number of rows as laid out in memory.
-         * @param offset1 Index of the first row selected into the matrix_view.
-         * @param stride1 Span that separates the rows selected into the
+         * @param offset Index of the first element selected into the
          *     matrix_view.
-         * @param offset2 Index of the first column selected into the
+         * @param stride1 Span that separates the rows selected into the
          *     matrix_view.
          * @param stride2 Span that separates the columns selected into the
          *     matrix_view.
-         * @param row_major If true (default), the elements are stored in
-         *     row-major order. Otherwise, the elements are stored in
-         *     column-major order.
          */
         base_matrix(
-            size_t m, size_t n, T *data, size_t tda,
-            size_t offset1, size_t stride1,
-            size_t offset2, size_t stride2,
-            bool row_major = true
+            size_t m, size_t n, T *data,
+            size_t offset, size_t stride1, size_t stride2
         );
 
         /**
@@ -274,8 +265,8 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns a reference to the element at row i
          * and column j in the matrix_view. The element at row i and column j
-         * corresponds to the element at row offset1 + i*stride1 and column
-         * offset2 + j*stride2 in the original matrix.
+         * corresponds to the element at position offset + i*stride + j*stride2
+         * in the memory array.
          *
          * @param i Row position of an element in the matrix_view. Must be
          *     between 0 and rows() - 1.
@@ -350,6 +341,22 @@ namespace numcpp {
          */
         T* data();
         const T* data() const;
+
+        /**
+         * @brief Returns the position in the memory array of the first
+         * element.
+         *
+         * @return Offset in memory array.
+         */
+        size_t offset() const;
+
+        /**
+         * @brief Returns the span that separates the elements in the memory
+         * array.
+         *
+         * @return Stride in memory array.
+         */
+        index_t stride() const;
 
         /**
          * @brief Returns whether the elements are stored in row-major order.
@@ -559,6 +566,21 @@ namespace numcpp {
          */
         base_matrix< T, lazy_unary_tag<__math_conj, T, matrix_view_tag> >
         conj() const;
+
+        /**
+         * @brief Return a view of the diagonal of *this.
+         *
+         * @param offset Offset of the diagonal from the main diagonal. A
+         *    positive value refers to an upper diagonal and a negative value
+         *    refers to a lower diagonal. Defaults to 0 (main diagonal).
+         *
+         * @return If the matrix_view is const-qualified, the function returns
+         *     a const array_view object. Otherwise, the function returns an
+         *     array_view object, which has reference semantics to the original
+         *     matrix.
+         */
+        array_view<T> diagonal(ptrdiff_t offset = 0);
+        const array_view<T> diagonal(ptrdiff_t offset = 0) const;
 
         /**
          * @brief Return or set the imaginary part, element-wise.
@@ -778,6 +800,17 @@ namespace numcpp {
         sum(bool rowwise) const;
 
         /**
+         * @brief Return a view of the matrix transposed.
+         *
+         * @return If the matrix_view is const-qualified, the function returns
+         *     a const matrix_view object. Otherwise, the function returns a
+         *     matrix_view object, which has reference semantics to the
+         *     original matrix.
+         */
+        base_matrix t();
+        const base_matrix t() const;
+
+        /**
          * @brief Return the variance of the matrix_view elements.
          *
          * @param ddof Delta degrees of freedom. [See numcpp::var for full
@@ -810,21 +843,8 @@ namespace numcpp {
         /// Number of rows and columns in the matrix_view.
         size_t m_shape1, m_shape2;
 
-        /// Trailing dimmension. For row-major order, it is the size of a row
-        /// as laid out in memory. For column-major order, it is the size of a
-        /// column as laid out in memory.
-        size_t m_tda;
-
-        /// Offset and stride between rows in the matrix_view with respect to
-        /// the original matrix.
-        size_t m_offset1, m_stride1;
-
-        /// Offset and stride between columns in the matrix_view with respect
-        /// to the original matrix.
-        size_t m_offset2, m_stride2;
-
-        /// Whether the elements are stored in row-major or column-major order.
-        bool m_order;
+        /// Offset and stride in the memory array.
+        size_t m_offset, m_stride1, m_stride2;
     };
 }
 

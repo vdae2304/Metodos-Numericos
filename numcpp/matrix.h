@@ -501,6 +501,21 @@ namespace numcpp {
         T* data();
         const T* data() const;
 
+        /**
+         * @brief Returns whether the elements are stored in row-major order.
+         *
+         * @return For matrix objects, always returns true.
+         */
+        bool rowmajor() const;
+
+        /**
+         * @brief Returns whether the elements are stored in column-major
+         * order.
+         *
+         * @return For matrix objects, always returns false.
+         */
+        bool colmajor() const;
+
         /// Assignment operator.
 
         /**
