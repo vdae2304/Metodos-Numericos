@@ -351,7 +351,6 @@ namespace numcpp {
         return index_t(m_stride1, m_stride2);
     }
 
-
     template <class T>
     inline bool base_matrix<T, matrix_view_tag>::rowmajor() const {
         return (m_stride1 >= m_stride2);
