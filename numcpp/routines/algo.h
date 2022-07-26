@@ -27,6 +27,7 @@
 #include <cmath>
 #include <complex>
 #include <iterator>
+#include <type_traits>
 #include <stdexcept>
 
 namespace numcpp {
@@ -229,6 +230,15 @@ namespace numcpp {
     /// Function object implementing reduce.
     template <class Function>
     struct __range_reduce {
+    private:
+        /// Type traits to check if has identity.
+        template <class F, typename = void>
+        struct has_identity : std::false_type {};
+
+        template <class F>
+        struct has_identity<F, decltype(void(F::identity))> : std::true_type {};
+
+    public:
         /// Underlying function.
         Function f;
 
@@ -250,12 +260,23 @@ namespace numcpp {
          *     [first, last).
          */
         template <class InputIterator>
-        typename std::iterator_traits<InputIterator>::value_type operator()(
-            InputIterator first, InputIterator last
-        ) const {
+        typename std::enable_if<
+            has_identity<Function>::value,
+            typename std::iterator_traits<InputIterator>::value_type
+        >::type operator()(InputIterator first, InputIterator last) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            return __reduce(first, last, T(f.identity), f);
+        }
+
+        template <class InputIterator>
+        typename std::enable_if<
+            !has_identity<Function>::value,
+            typename std::iterator_traits<InputIterator>::value_type
+        >::type operator()(InputIterator first, InputIterator last) const {
             typedef typename std::iterator_traits<InputIterator>::value_type T;
             if (first == last) {
-                char error[] = "attempt to call reduce on an empty sequence";
+                char error[] = "attempt to call reduce on an empty sequence "
+                "with no identity";
                 throw std::invalid_argument(error);
             }
             T init = *first;
