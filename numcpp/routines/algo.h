@@ -32,22 +32,6 @@
 namespace numcpp {
     /// Unary and binary predicates.
 
-    /// Function object implementing std::max.
-    struct __math_max {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
-            return std::max(x, y);
-        }
-    };
-
-    /// Function object implementing std::min.
-    struct __math_min {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
-            return std::min(x, y);
-        }
-    };
-
     /// Function object implementing clamp.
     template <class T>
     struct __clamp {
@@ -241,6 +225,44 @@ namespace numcpp {
     }
 
     /// Range function objects.
+
+    /// Function object implementing reduce.
+    template <class Function>
+    struct __range_reduce {
+        /// Underlying function.
+        Function f;
+
+        /**
+         * @brief Constructor.
+         *
+         * @param f Binary function to apply.
+         */
+        __range_reduce(Function f = Function()) : f(f) {};
+
+        /**
+         * Returns the result of accumulating all the values in the range
+         * [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The result of accumulating all the elements in the range
+         *     [first, last).
+         */
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type operator()(
+            InputIterator first, InputIterator last
+        ) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            if (first == last) {
+                char error[] = "attempt to call reduce on an empty sequence";
+                throw std::invalid_argument(error);
+            }
+            T init = *first;
+            ++first;
+            return __reduce(first, last, init, f);
+        }
+    };
 
     /// Function object implementing maximum in range.
     struct __range_max {

@@ -24,6 +24,7 @@
 #define NUMCPP_ROUTINES_H_INCLUDED
 
 #include "numcpp/config.h"
+#include "numcpp/math/mathfwd.h"
 #include "numcpp/routines/algo.h"
 
 #include "numcpp/routines/array_sequence.h"
