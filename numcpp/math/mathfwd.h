@@ -102,6 +102,22 @@ namespace numcpp {
         }
     };
 
+    /// Function object implementing std::max.
+    struct __math_max {
+        template <class T>
+        T operator()(const T &x, const T &y) const {
+            return std::max(x, y);
+        }
+    };
+
+    /// Function object implementing std::min.
+    struct __math_min {
+        template <class T>
+        T operator()(const T &x, const T &y) const {
+            return std::min(x, y);
+        }
+    };
+
     /// Function object implementing std::fmod.
     struct __math_fmod {
         template <class T>
