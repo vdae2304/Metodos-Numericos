@@ -113,11 +113,11 @@ namespace numcpp {
     template <class Container, class T = typename Container::value_type>
     array<T> asarray(const Container &data);
 
-    template <class T>
-    array<T> asarray(std::initializer_list<T> data);
-
     template <class T, size_t N>
     array<T> asarray(const T (&data)[N]);
+
+    template <class T>
+    array<T> asarray(std::initializer_list<T> data);
 
     template <class T>
     array<T>& asarray(array<T> &data);
@@ -127,7 +127,8 @@ namespace numcpp {
      *
      * @param data Input data, in any container form. This includes static
      *     arrays, std::vector, std::list, std::set, etc. The input must be one
-     *     dimensional, except for matrix and std::initializer_list.
+     *     dimensional, except for static arrays, matrix and
+     *     std::initializer_list.
      * @param n Number of columns. The number of rows is inferred from the
      *     length of the data. Ignored if the input is already two dimensional.
      *     Defaults to 1.
@@ -141,13 +142,13 @@ namespace numcpp {
     template <class Container, class T = typename Container::value_type>
     matrix<T> asmatrix(const Container &data, size_t n = 1);
 
+    template <class T, size_t M, size_t N>
+    matrix<T> asmatrix(const T (&data)[M][N], size_t n = 1);
+
     template <class T>
     matrix<T> asmatrix(
         std::initializer_list< std::initializer_list<T> > data, size_t n = 1
     );
-
-    template <class T, size_t M, size_t N>
-    matrix<T> asmatrix(const T (&data)[M][N], size_t n = 1);
 
     template <class T>
     matrix<T>& asmatrix(matrix<T> &data, size_t n = 1);

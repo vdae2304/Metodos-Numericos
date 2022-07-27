@@ -83,14 +83,14 @@ namespace numcpp {
         return array<T>(data.begin(), data.end());
     }
 
-    template <class T>
-    array<T> asarray(std::initializer_list<T> data) {
-        return array<T>(data);
-    }
-
     template <class T, size_t N>
     array<T> asarray(const T (&data)[N]) {
         return array<T>(data, data + N);
+    }
+
+    template <class T>
+    array<T> asarray(std::initializer_list<T> data) {
+        return array<T>(data);
     }
 
     template <class T>
@@ -103,16 +103,16 @@ namespace numcpp {
         return matrix<T>(data.begin(), data.end(), n);
     }
 
+    template <class T, size_t M, size_t N>
+    matrix<T> asmatrix(const T (&data)[M][N], size_t) {
+        return matrix<T>(*data, *data + M * N, N);
+    }
+
     template <class T>
     matrix<T> asmatrix(
         std::initializer_list< std::initializer_list<T> > data, size_t
     ) {
         return matrix<T>(data);
-    }
-
-    template <class T, size_t M, size_t N>
-    matrix<T> asmatrix(const T (&data)[M][N], size_t) {
-        return matrix<T>(*data, *data + M * N, N);
     }
 
     template <class T>
