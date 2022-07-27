@@ -321,6 +321,8 @@ namespace numcpp {
      *     positive value indicates the matrix is rotated clockwise and a
      *     negative value indicates the matrix is rotated counter clockwise.
      *     Defaults to 1.
+     *
+     * @return The rotated matrix.
      */
     template <class T, class Tag>
     base_matrix< T, rotate_tag<Tag> > rot90(
