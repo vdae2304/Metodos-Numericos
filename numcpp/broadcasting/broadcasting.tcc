@@ -478,10 +478,10 @@ namespace numcpp {
         const base_matrix<T, Tag> &mat,
         const base_array<bool, TagCond> &condition, bool rowwise
     ) {
-        size_t n = std::count(condition.begin(), condition.end(), true);
+        size_t size = std::count(condition.begin(), condition.end(), true);
         if (rowwise) {
-            matrix<T> out(mat.rows(), n);
-            n = 0;
+            matrix<T> out(mat.rows(), size);
+            size_t n = 0;
             for (size_t j = 0; j < condition.size(); ++j) {
                 if (condition[j]) {
                     for (size_t i = 0; i < mat.rows(); ++i) {
@@ -493,8 +493,8 @@ namespace numcpp {
             return out;
         }
         else {
-            matrix<T> out(n, mat.cols());
-            n = 0;
+            matrix<T> out(size, mat.cols());
+            size_t n = 0;
             for (size_t i = 0; i < condition.size(); ++i) {
                 if (condition[i]) {
                     for (size_t j = 0; j < mat.cols(); ++j) {
