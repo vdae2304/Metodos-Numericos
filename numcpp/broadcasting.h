@@ -75,7 +75,7 @@ namespace numcpp {
      *
      * @details Return a readonly matrix_view constructed by repeating an array
      * a given number of times. This function does not create a new matrix,
-     * instead, it broadcasts the given array as a matrix of given shape. Some
+     * instead, it broadcasts the given array as a matrix of given size. Some
      * elements in the broadcasted matrix may refer to the same memory
      * location.
      *
@@ -84,7 +84,7 @@ namespace numcpp {
      * @param rowwise If true (default), the array is tiled across each row.
      *     Otherwise, the array is tiled across each column.
      *
-     * @return A read only view of the original array with the given shape.
+     * @return A read only view of the original array with the given size.
      */
     template <class T>
     const matrix_view<T> broadcast_to(
