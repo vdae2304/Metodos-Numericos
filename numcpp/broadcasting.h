@@ -186,6 +186,8 @@ namespace numcpp {
      * @param row_major Whether to flatten the elements in row-major order or
      *     column-major order. Defaults to the same order as stored in memory.
      *
+     * @return The flattened matrix.
+     *
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
