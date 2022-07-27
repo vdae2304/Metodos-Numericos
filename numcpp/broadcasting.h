@@ -55,9 +55,9 @@ namespace numcpp {
     /**
      * @brief Broadcast a value to a matrix.
      *
-     * @details Return a readonly matrix_view of given shape filled with val.
+     * @details Return a readonly matrix_view of given size filled with val.
      * This function does not create a new matrix, instead, it broadcasts the
-     * given value as a matrix of given shape. All the elements in the
+     * given value as a matrix of given size. All the elements in the
      * broadcasted matrix refer to the same memory location.
      *
      * @param val A reference to the fill value.
