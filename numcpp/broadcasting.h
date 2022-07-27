@@ -345,13 +345,11 @@ namespace numcpp {
      * @return The flattened index.
      */
     size_t ravel_multi_index(
-        size_t i, size_t j,
-        size_t m, size_t n, bool row_major = true
+        size_t i, size_t j, size_t m, size_t n, bool row_major = true
     );
 
     size_t ravel_multi_index(
-        const index_t &multi_index,
-        size_t m, size_t n, bool row_major = true
+        const index_t &multi_index, size_t m, size_t n, bool row_major = true
     );
 
     /**
@@ -388,8 +386,7 @@ namespace numcpp {
      * @return The unraveled index.
      */
     index_t unravel_index(
-        size_t index,
-        size_t m, size_t n, bool row_major = true
+        size_t index, size_t m, size_t n, bool row_major = true
     );
 
     /**

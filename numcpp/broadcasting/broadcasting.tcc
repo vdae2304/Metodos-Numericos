@@ -219,16 +219,14 @@ namespace numcpp {
     /// Indexing routines
 
     size_t ravel_multi_index(
-        size_t i, size_t j,
-        size_t m, size_t n, bool row_major
+        size_t i, size_t j, size_t m, size_t n, bool row_major
     ) {
         __ravel_multi_index pred(m, n, row_major);
         return pred(i, j);
     }
 
     size_t ravel_multi_index(
-        const index_t &multi_index,
-        size_t m, size_t n, bool row_major
+        const index_t &multi_index, size_t m, size_t n, bool row_major
     ) {
         __ravel_multi_index pred(m, n, row_major);
         return pred(multi_index);
@@ -247,8 +245,7 @@ namespace numcpp {
     }
 
     index_t unravel_index(
-        size_t index,
-        size_t m, size_t n, bool row_major
+        size_t index, size_t m, size_t n, bool row_major
     ) {
         __unravel_index pred(m, n, row_major);
         return pred(index);
