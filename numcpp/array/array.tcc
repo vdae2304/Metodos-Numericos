@@ -247,8 +247,7 @@ namespace numcpp {
     template <class Tag>
     base_array<T, index_view_tag>
     base_array<T, array_tag>::operator[](const base_array<bool, Tag> &mask) {
-        __range_count_nonzero pred;
-        size_t size = pred(mask.begin(), mask.end());
+        size_t size = std::count(mask.begin(), mask.end(), true);
         size_t *m_index = new size_t[size];
         size_t n = 0;
         for (size_t i = 0; i < mask.size(); ++i) {
@@ -265,8 +264,8 @@ namespace numcpp {
     base_array<T, array_tag>
     base_array<T, array_tag>::operator[](const base_array<bool, Tag> &mask)
     const {
-        __range_count_nonzero pred;
-        base_array<T, array_tag> subarray(pred(mask.begin(), mask.end()));
+        size_t size = std::count(mask.begin(), mask.end(), true);
+        base_array<T, array_tag> subarray(size);
         size_t n = 0;
         for (size_t i = 0; i < mask.size(); ++i) {
             if (mask[i]) {
