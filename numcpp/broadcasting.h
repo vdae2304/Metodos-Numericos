@@ -735,9 +735,9 @@ namespace numcpp {
      *     where condition is true.
      * @param arr2 An array-like object with the values from which to choose
      *     where condition is false.
-     * @param val1 Value to use as first argument. Values are broadcasted to an
+     * @param val1 Value to use as true argument. Values are broadcasted to an
      *     appropriate size.
-     * @param val2 Value to use as second argument. Values are broadcasted to
+     * @param val2 Value to use as false argument. Values are broadcasted to
      *     an appropriate size.
      *
      * @return A light-weight object with the elements choosen from arr1 where
@@ -770,7 +770,9 @@ namespace numcpp {
 
     template <class T, class TagCond>
     base_array< T, select_tag<TagCond, scalar_tag, scalar_tag> > select(
-        const base_array<bool, TagCond> &condition, const T &val1, const T &val2
+        const base_array<bool, TagCond> &condition,
+        const typename base_array<T, TagCond>::value_type &val1,
+        const typename base_array<T, TagCond>::value_type &val2
     );
 
     /**
@@ -783,9 +785,9 @@ namespace numcpp {
      *     where condition is true.
      * @param mat2 A matrix-like object with the values from which to choose
      *     where condition is false.
-     * @param val1 Value to use as first argument. Values are broadcasted to an
+     * @param val1 Value to use as true argument. Values are broadcasted to an
      *     appropriate size.
-     * @param val2 Value to use as second argument. Values are broadcasted to
+     * @param val2 Value to use as false argument. Values are broadcasted to
      *     an appropriate size.
      *
      * @return A light-weight object with the elements choosen from mat1 where
@@ -819,7 +821,8 @@ namespace numcpp {
     template <class T, class TagCond>
     base_matrix< T, select_tag<TagCond, scalar_tag, scalar_tag> > select(
         const base_matrix<bool, TagCond> &condition,
-        const T &val1, const T &val2
+        const typename base_array<T, TagCond>::value_type &val1,
+        const typename base_array<T, TagCond>::value_type &val2
     );
 
     /// Functional programming

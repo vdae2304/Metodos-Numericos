@@ -640,7 +640,9 @@ namespace numcpp {
 
     template <class T, class TagCond>
     base_array< T, select_tag<TagCond, scalar_tag, scalar_tag> > select(
-        const base_array<bool, TagCond> &condition, const T &val1, const T &val2
+        const base_array<bool, TagCond> &condition,
+        const typename base_array<T, TagCond>::value_type &val1,
+        const typename base_array<T, TagCond>::value_type &val2
     ) {
         typedef select_tag<TagCond, scalar_tag, scalar_tag> Closure;
         return base_array<T, Closure>(condition, val1, val2);
@@ -679,7 +681,8 @@ namespace numcpp {
     template <class T, class TagCond>
     base_matrix< T, select_tag<TagCond, scalar_tag, scalar_tag> > select(
         const base_matrix<bool, TagCond> &condition,
-        const T &val1, const T &val2
+        const typename base_array<T, TagCond>::value_type &val1,
+        const typename base_array<T, TagCond>::value_type &val2
     ) {
         typedef select_tag<TagCond, scalar_tag, scalar_tag> Closure;
         return base_matrix<T, Closure>(condition, val1, val2);

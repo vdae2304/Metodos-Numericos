@@ -44,7 +44,7 @@ namespace numcpp {
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            T, base_matrix< T, select_tag<TagCond, TagTrue, TagFalse> >
+            T, select_tag<TagCond, TagTrue, TagFalse>
         > iterator;
         typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
@@ -265,7 +265,7 @@ namespace numcpp {
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            T, base_matrix< T, select_tag<TagCond, TagTrue, scalar_tag> >
+            T, select_tag<TagCond, TagTrue, scalar_tag>
         > iterator;
         typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
@@ -378,7 +378,7 @@ namespace numcpp {
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            T, base_matrix< T, select_tag<TagCond, scalar_tag, TagFalse> >
+            T, select_tag<TagCond, scalar_tag, TagFalse>
         > iterator;
         typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
@@ -491,7 +491,7 @@ namespace numcpp {
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_matrix_const_iterator<
-            T, base_matrix< T, select_tag<TagCond, scalar_tag, scalar_tag> >
+            T, select_tag<TagCond, scalar_tag, scalar_tag>
         > iterator;
         typedef iterator const_iterator;
         typedef std::reverse_iterator<iterator> reverse_iterator;
