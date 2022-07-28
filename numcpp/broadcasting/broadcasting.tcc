@@ -40,11 +40,11 @@ namespace numcpp {
 
     template <class T>
     const matrix_view<T> broadcast_to(
-        array<T> &arr, size_t reps, bool rowwise
+        array<T> &arr, size_t reps, bool row_major
     ) {
         size_t m, n;
         size_t offset = 0, stride1 = 0, stride2 = 0;
-        if (rowwise) {
+        if (row_major) {
             m = reps;
             n = arr.size();
             stride2 = 1;
@@ -59,11 +59,11 @@ namespace numcpp {
 
     template <class T>
     const matrix_view<T> broadcast_to(
-        array_view<T> &arr, size_t reps, bool rowwise
+        array_view<T> &arr, size_t reps, bool row_major
     ) {
         size_t m, n;
         size_t offset = arr.offset(), stride1 = 0, stride2 = 0;
-        if (rowwise) {
+        if (row_major) {
             m = reps;
             n = arr.size();
             stride2 = arr.stride();
@@ -285,6 +285,24 @@ namespace numcpp {
             out[i] = mat(indices[i].first, indices[i].second);
         }
         return out;
+    }
+
+    template <class T, class Tag>
+    array<T> take(const base_matrix<T, Tag> &mat, size_t index, bool rowwise) {
+        if (rowwise) {
+            array<T> out(mat.rows());
+            for (size_t i = 0; i < mat.rows(); ++i) {
+                out[i] = mat(i, index);
+            }
+            return out;
+        }
+        else {
+            array<T> out(mat.cols());
+            for (size_t j = 0; j < mat.cols(); ++j) {
+                out[j] = mat(index, j);
+            }
+            return out;
+        }
     }
 
     template <class T, class Tag, class TagIndex>

@@ -81,19 +81,19 @@ namespace numcpp {
      *
      * @param arr A reference to an array or array_view object.
      * @param reps The number of repetitions of arr along the new axis.
-     * @param rowwise If true (default), the array is tiled across each row.
+     * @param row_major If true (default), the array is tiled across each row.
      *     Otherwise, the array is tiled across each column.
      *
      * @return A read only view of the original array with the given size.
      */
     template <class T>
     const matrix_view<T> broadcast_to(
-        array<T> &arr, size_t reps, bool rowwise = true
+        array<T> &arr, size_t reps, bool row_major = true
     );
 
     template <class T>
     const matrix_view<T> broadcast_to(
-        array_view<T> &arr, size_t reps, bool rowwise = true
+        array_view<T> &arr, size_t reps, bool row_major = true
     );
 
     /// Creation routines from existing data
@@ -410,7 +410,9 @@ namespace numcpp {
     );
 
     /**
-     * @brief Take elements from an array.
+     * @brief Take elements from an array. When an array object is given, a
+     * call such as np::take(arr, indices) is equivalent to arr[indices],
+     * except that a copy is always returned.
      *
      * @param arr The source array.
      * @param indices An array-like object of size_t with the indices of the
@@ -428,7 +430,9 @@ namespace numcpp {
     );
 
     /**
-     * @brief Take elements from a matrix.
+     * @brief Take elements from a matrix. When a matrix object is given, a
+     * call such as np::take(mat, indices) is equivalent to mat[indices],
+     * except that a copy is always returned.
      *
      * @param mat The source matrix.
      * @param indices An array-like object of index_t with the indices of the
@@ -449,16 +453,21 @@ namespace numcpp {
      * @brief Take elements from a matrix along an axis.
      *
      * @param mat The source matrix.
-     * @param indices An array-like object of size_t with the indices of the
-     *     values to take.
+     * @param indices A single index or an array-like object of size_t with the
+     *     indices of the values to take.
      * @param rowwise If true, take elements along each row. Otherwise, take
      *     elements along each column.
      *
-     * @return A new matrix with the elements from mat at the given positions.
+     * @return A new array if a single index is given, or a new matrix if an
+     *     array of indices is given, with the elements from mat at the given
+     *     positions.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
+    template <class T, class Tag>
+    array<T> take(const base_matrix<T, Tag> &mat, size_t index, bool rowwise);
+
     template <class T, class Tag, class TagIndex>
     matrix<T> take(
         const base_matrix<T, Tag> &mat,
@@ -488,11 +497,13 @@ namespace numcpp {
     );
 
     /**
-     * @brief Replaces specified elements of an array with given values.
+     * @brief Replaces specified elements of an array with given values. When
+     * an array object is given, a call such as np::put(arr, indices, values)
+     * is equivalent to arr[indices] = values.
      *
      * @param arr Target array.
      * @param indices Target indices.
-     * @param values A single value or an array of values to place in arr at
+     * @param values A single value or an array of values to put into arr at
      *     target indices.
      *
      * @throw std::invalid_argument Thrown if indices and values have different
@@ -513,11 +524,13 @@ namespace numcpp {
     );
 
     /**
-     * @brief Replaces specified elements of a matrix with given values.
+     * @brief Replaces specified elements of a matrix with given values. When a
+     * matrix object is given, a call such as np::put(mat, indices, values) is
+     * equivalent to mat[indices] = values.
      *
      * @param mat Target matrix.
      * @param indices Target indices.
-     * @param values A single value or an array of values to place in mat at
+     * @param values A single value or an array of values to put into mat at
      *     target indices.
      *
      * @throw std::invalid_argument Thrown if indices and values have different
@@ -539,8 +552,8 @@ namespace numcpp {
 
     /**
      * @brief Put values into the destination matrix by matching 1d index and
-     * data slices. Functions returning an index along an axis, like argsort and
-     * argpartition, produce suitable indices for this function.
+     * data slices. Functions returning an index along an axis, like argsort
+     * and argpartition, produce suitable indices for this function.
      *
      * @param mat Destination matrix.
      * @param indices A matrix-like object of size_t with the indices to change
@@ -570,7 +583,9 @@ namespace numcpp {
     );
 
     /**
-     * @brief Return the elements of an array that satisfy some condition.
+     * @brief Return the elements of an array that satisfy some condition. When
+     * an array object is given, a call such as np::extract(arr, condition) is
+     * equivalent to arr[condition], except that a copy is always returned.
      *
      * @param arr An array-like object.
      * @param condition An array-like object of bool whose true entries
@@ -588,7 +603,9 @@ namespace numcpp {
     );
 
     /**
-     * @brief Return the elements of a matrix that satisfy some condition.
+     * @brief Return the elements of a matrix that satisfy some condition. When
+     * a matrix object is given, a call such as np::extract(mat, condition) is
+     * equivalent to mat[condition], except that a copy is always returned.
      *
      * @param mat A matrix-like object.
      * @param condition A matrix-like object of bool whose true entries
@@ -632,7 +649,7 @@ namespace numcpp {
      *
      * @param arr Array to put data into.
      * @param condition Boolean mask array.
-     * @param values A single value or an array of values to put into arr. Only
+     * @param values A single value or an array of values to place in arr. Only
      *     the first N elements are used, where N is the number of true values
      *     in condition.
      */
@@ -656,7 +673,7 @@ namespace numcpp {
      *
      * @param mat Matrix to put data into.
      * @param condition Boolean mask matrix.
-     * @param values A single value or an array of values to put into mat. Only
+     * @param values A single value or an array of values to place in mat. Only
      *     the first N elements are used, where N is the number of true values
      *     in condition.
      */
