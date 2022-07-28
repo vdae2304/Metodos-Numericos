@@ -587,4 +587,4 @@ namespace numcpp {
     };
 }
 
-#endif // NUMCPP_ARRAY_SELECT_H_INCLUDED
+#endif // NUMCPP_MATRIX_SELECT_H_INCLUDED

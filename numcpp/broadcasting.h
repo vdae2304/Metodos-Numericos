@@ -731,8 +731,10 @@ namespace numcpp {
      *
      * @param condition An array-like object of bool, where true, yield arr1,
      *     otherwise yield arr2.
-     * @param arr1 An array-like object.
-     * @param arr2 An array-like object.
+     * @param arr1 An array-like object with the values from which to choose
+     *     where condition is true.
+     * @param arr2 An array-like object with the values from which to choose
+     *     where condition is false.
      * @param val1 Value to use as first argument. Values are broadcasted to an
      *     appropriate size.
      * @param val2 Value to use as second argument. Values are broadcasted to
@@ -777,8 +779,10 @@ namespace numcpp {
      *
      * @param condition A matrix-like object of bool, where true, yield mat1,
      *     otherwise yield mat2.
-     * @param mat1 A matrix-like object.
-     * @param mat2 A matrix-like object.
+     * @param mat1 A matrix-like object with the values from which to choose
+     *     where condition is true.
+     * @param mat2 A matrix-like object with the values from which to choose
+     *     where condition is false.
      * @param val1 Value to use as first argument. Values are broadcasted to an
      *     appropriate size.
      * @param val2 Value to use as second argument. Values are broadcasted to
