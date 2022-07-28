@@ -1057,7 +1057,11 @@ namespace numcpp {
      * @param rowwise If true, accumulate the function along each row.
      *     Otherwise, accumulate the function along each column.
      *
-     * @return The result of accumulating the elements along an axis.
+     * @return A light-weight object which stores the result of accumulating
+     *     the elements along an axis. This function uses lazy-evaluation,
+     *     meaning that the result of each call is computed only at the end,
+     *     when the whole expression is evaluated or assigned
+     *     to a matrix object.
      *
      * @throw std::invalid_argument Thrown if the axis is empty and f does not
      *     have an identity property.
