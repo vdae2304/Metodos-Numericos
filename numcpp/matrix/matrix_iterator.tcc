@@ -293,7 +293,7 @@ namespace numcpp {
     ) {
         m_ptr = other.base();
         m_index = other.index();
-        m_order = other.order();
+        m_order = other.rowmajor();
     }
 
     template <class T, class Tag>
@@ -312,7 +312,7 @@ namespace numcpp {
     ) {
         m_ptr = other.base();
         m_index = other.index();
-        m_order = other.order();
+        m_order = other.rowmajor();
         return *this;
     }
 
