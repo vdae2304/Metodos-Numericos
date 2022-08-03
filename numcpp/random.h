@@ -1,13 +1,14 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library
- * that provides an array and a matrix object, and an assortment of routines
- * for fast operations on arrays and matrices, including mathematical, logical,
+ * NumCPP is a package for scientific computing in C++. It is a C++ library
+ * that provides support for multidimensional arrays, and defines an assortment
+ * of routines for fast operations on them, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it
- * is not related to it or any of its parts.
+ * NumCPP comes from Numeric C++ and, as the name suggests, is a package
+ * inspired by the NumPy package for Python, although it is completely
+ * independent from its Python counterpart.
  *
  * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
@@ -22,7 +23,7 @@
 #ifndef NUMCPP_RANDOM_H_INCLUDED
 #define NUMCPP_RANDOM_H_INCLUDED
 
-#include "numcpp/config.h"
+#include "numcpp/tensor.h"
 #include "numcpp/random/distributions.h"
 
 namespace numcpp {
@@ -92,37 +93,22 @@ namespace numcpp {
         T integers(T low, T high);
 
         /**
-         * @brief Return an array of random integers from low to high
+         * @brief Return a tensor of random integers from low to high
          * (inclusive).
          *
          * @param low Lowest integer to be drawn.
          * @param high Largest integer to be drawn.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array of random integers.
+         * @return A tensor of random integers.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> integers(T low, T high, size_t n);
-
-        /**
-         * @brief Return a matrix of random integers from low to high
-         * (inclusive).
-         *
-         * @param low Lowest integer to be drawn.
-         * @param high Largest integer to be drawn.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix of random integers.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        matrix<T> integers(T low, T high, size_t m, size_t n);
+        tensor<T, 1> integers(T low, T high, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> integers(T low, T high, const shape_t<Rank> &size);
 
         /**
          * @brief Return random floating point numbers in the half-open
@@ -134,69 +120,58 @@ namespace numcpp {
         T random();
 
         /**
-         * @brief Return an array of random floating point numbers in the
+         * @brief Return a tensor of random floating point numbers in the
          * half-open interval [0, 1).
          *
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array of random floating point numbers.
+         * @return A tensor of random floating point numbers.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> random(size_t n);
+        tensor<T, 1> random(size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> random(const shape_t<Rank> &size);
 
         /**
-         * @brief Return a matrix of random floating point numbers in the
-         * half-open interval [0, 1).
+         * @brief Generates a random sample from a given sequence.
          *
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix of random floating point numbers.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        matrix<T> random(size_t m, size_t n);
-
-        /**
-         * @brief Generates a random sample from a given array.
-         *
-         * @param arr An array-like object with the values to sample from.
-         * @param weights An array-like object with the weights associated to
-         *     each entry of arr. If not provided, the sample assumes a uniform
-         *     distribution over all entries of arr.
+         * @param population A one dimensional tensor with the values to sample
+         *     from.
+         * @param weights A one dimensional tensor with the weights associated
+         *     to each entry of population. If not provided, the sample assumes
+         *     a uniform distribution over all entries of population.
          *
          * @return The generated random sample.
          *
          * @throw std::invalid_argument Thrown if the population size is 0 or
-         *     if the population and weights have different sizes.
+         *     if the population and weights have different shapes.
          */
         template <class T, class Tag>
-        T choice(const base_array<T, Tag> &arr);
+        T choice(const base_tensor<T, 1, Tag> &population);
 
         template <class T, class Tag, class TWeights, class TagWeights>
         T choice(
-            const base_array<T, Tag> &arr,
-            const base_array<TWeights, TagWeights> &weights
+            const base_tensor<T, 1, Tag> &population,
+            const base_tensor<TWeights, 1, TagWeights> &weights
         );
 
         /**
-         * @brief Generates a random sample from a given array.
+         * @brief Generates a random sample from a given sequence.
          *
-         * @param arr An array-like object with the values to sample from.
-         * @param size Number of samples to drawn.
-         * @param weights An array-like object with the weights associated to
-         *     each entry of arr. If not provided, the sample assumes a uniform
-         *     distribution over all entries of arr.
+         * @param population A one dimensional tensor with the values to sample
+         *     from.
+         * @param size Output shape.
+         * @param weights A one dimensional tensor with the weights associated
+         *     to each entry of population. If not provided, the sample assumes
+         *     a uniform distribution over all entries of population.
          * @param replace Whether the sample is with or without replacement.
          *     Default is true, meaning that a value can be selected multiple
          *     times.
          *
-         * @return An array with the generated random samples.
+         * @return A tensor with the generated random samples.
          *
          * @throw std::invalid_argument Thrown if the population size is 0, if
          *     the population and weights have different sizes or if
@@ -206,50 +181,58 @@ namespace numcpp {
          *     may throw an exception.
          */
         template <class T, class Tag>
-        array<T> choice(
-            const base_array<T, Tag> &arr, size_t size, bool replace = true
+        tensor<T, 1> choice(
+            const base_tensor<T, 1, Tag> &population, size_t size,
+            bool replace = true
+        );
+        template <class T, size_t Rank, class Tag>
+        tensor<T, Rank> choice(
+            const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
+            bool replace = true
         );
 
         template <class T, class Tag, class TWeights, class TagWeights>
-        array<T> choice(
-            const base_array<T, Tag> &arr, size_t size,
-            const base_array<TWeights, TagWeights> &weights, bool replace = true
+        tensor<T, 1> choice(
+            const base_tensor<T, 1, Tag> &population, size_t size,
+            const base_tensor<TWeights, 1, TagWeights> &weights,
+            bool replace = true
+        );
+        template <class T, size_t Rank, class Tag,
+                  class TWeights, class TagWeights>
+        tensor<T, Rank> choice(
+            const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
+            const base_tensor<TWeights, 1, TagWeights> &weights,
+            bool replace = true
         );
 
         /// Permutations.
 
         /**
-         * @brief Modify an array in-place by shuffling its contents.
+         * @brief Modify a tensor in-place by shuffling its contents.
          *
-         * @param arr The array to be shuffled.
+         * @param arg The tensor to be shuffled.
          */
-        template <class T>
-        void shuffle(array<T> &arr);
-
-        template <class T>
-        void shuffle(array_view<T> arr);
-
-        template <class T>
-        void shuffle(index_view<T> arr);
+        template <class T, size_t Rank, class Tag>
+        void shuffle(base_tensor<T, Rank, Tag> &arg);
 
         /**
-         * @brief Randomly permute an array or return a permuted range.
+         * @brief Randomly permute a tensor or return a permuted range.
          *
          * @param n If an integer is given, randomly permute the range
          *     0, 1, 2, ..., n - 1.
-         * @param arr If an array is given, make a copy and shuffle the
+         * @param arg If a tensor is given, make a copy and shuffle the
          *     elements randomly.
          *
-         * @return The permuted array or range.
+         * @return The permuted tensor or range.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> permutation(size_t n);
+        tensor<T, 1> permutation(size_t n);
 
-        template <class T, class Tag>
-        array<T> permutation(const base_array<T, Tag> &arr);
+        template <class T, size_t Rank, class Tag>
+        tensor<T, Rank> permutation(const base_tensor<T, Rank, Tag> &arg);
 
         /// Distributions.
 
@@ -271,38 +254,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T beta(const T &shape1, const T &shape2);
+        T beta(T shape1, T shape2);
 
         /**
          * @brief Draw samples from a Beta distribution.
          *
          * @param shape1 Shape parameter. This shall be a positive value.
          * @param shape2 Shape parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> beta(const T &shape1, const T &shape2, size_t n);
-
-        /**
-         * @brief Draw samples from a Beta distribution.
-         *
-         * @param shape1 Shape parameter. This shall be a positive value.
-         * @param shape2 Shape parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> beta(const T &shape1, const T &shape2, size_t m, size_t n);
+        tensor<T, 1> beta(T shape1, T shape2, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> beta(T shape1, T shape2, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a binomial distribution.
@@ -315,47 +284,34 @@ namespace numcpp {
          * for x = 0, 1, 2, ... , n, where n is the number of trials and p is
          * the probability of success.
          *
-         * @param size Number of trials.
+         * @param n Number of trials.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
          *
          * @return A sample from the distribution.
          */
         template <class T>
-        T binomial(size_t size, double prob);
+        T binomial(size_t n, double prob);
 
         /**
          * @brief Draw samples from a binomial distribution.
          *
-         * @param size Number of trials.
+         * @param n Number of trials.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> binomial(size_t size, double prob, size_t n);
-
-        /**
-         * @brief Draw samples from a binomial distribution.
-         *
-         * @param size Number of trials.
-         * @param prob Probability of success. This shall be a value between 0
-         *     and 1 (inclusive).
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        matrix<T> binomial(size_t size, double prob, size_t m, size_t n);
+        tensor<T, 1> binomial(size_t n, double prob, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> binomial(
+            size_t n, double prob, const shape_t<Rank> &size
+        );
 
         /**
          * @brief Draw samples from a Cauchy distribution.
@@ -375,38 +331,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T cauchy(const T &loc, const T &scale);
+        T cauchy(T loc, T scale);
 
         /**
          * @brief Draw samples from a Cauchy distribution.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> cauchy(const T &loc, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Cauchy distribution.
-         *
-         * @param loc Location parameter.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> cauchy(const T &loc, const T &scale, size_t m, size_t n);
+        tensor<T, 1> cauchy(T loc, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> cauchy(T loc, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a chi-squared distribution.
@@ -423,36 +365,23 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T chisquare(const T &df);
+        T chisquare(T df);
 
         /**
          * @brief Draw samples from a chi-squared distribution.
          *
          * @param df Degrees of freedom. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> chisquare(const T &df, size_t n);
-
-        /**
-         * @brief Draw samples from a chi-squared distribution.
-         *
-         * @param df Degrees of freedom. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> chisquare(const T &df, size_t m, size_t n);
+        tensor<T, 1> chisquare(T df, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> chisquare(T df, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from an exponential distribution.
@@ -469,36 +398,23 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T exponential(const T &rate);
+        T exponential(T rate);
 
         /**
          * @brief Draw samples from an exponential distribution.
          *
          * @param rate Rate parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> exponential(const T &rate, size_t n);
-
-        /**
-         * @brief Draw samples from an exponential distribution.
-         *
-         * @param rate Rate parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> exponential(const T &rate, size_t m, size_t n);
+        tensor<T, 1> exponential(T rate, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> exponential(T rate, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Fisher F-distribution.
@@ -518,38 +434,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T fisher_f(const T &df1, const T &df2);
+        T fisher_f(T df1, T df2);
 
         /**
          * @brief Draw samples from a Fisher F-distribution.
          *
          * @param df1 Degrees of freedom. This shall be a positive value.
          * @param df2 Degrees of freedom. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> fisher_f(const T &df1, const T &df2, size_t n);
-
-        /**
-         * @brief Draw samples from a Fisher F-distribution.
-         *
-         * @param df1 Degrees of freedom. This shall be a positive value.
-         * @param df2 Degrees of freedom. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> fisher_f(const T &df1, const T &df2, size_t m, size_t n);
+        tensor<T, 1> fisher_f(T df1, T df2, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> fisher_f(T df1, T df2, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Gamma distribution.
@@ -569,38 +471,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T gamma(const T &shape, const T &scale);
+        T gamma(T shape, T scale);
 
         /**
          * @brief Draw samples from a Gamma distribution.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> gamma(const T &shape, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Gamma distribution.
-         *
-         * @param shape Shape parameter. This shall be a positive value.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> gamma(const T &shape, const T &scale, size_t m, size_t n);
+        tensor<T, 1> gamma(T shape, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> gamma(T shape, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a geometric distribution.
@@ -625,31 +513,17 @@ namespace numcpp {
          *
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> geometric(double prob, size_t n);
-
-        /**
-         * @brief Draw samples from a geometric distribution.
-         *
-         * @param prob Probability of success. This shall be a value between 0
-         *     and 1 (inclusive).
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> geometric(double prob, size_t m, size_t n);
+        tensor<T, 1> geometric(double prob, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> geometric(double prob, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Gumbel distribution.
@@ -668,38 +542,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T gumbel(const T &loc, const T &scale);
+        T gumbel(T loc, T scale);
 
         /**
          * @brief Draw samples from a Gumbel distribution.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> gumbel(const T &loc, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Gumbel distribution.
-         *
-         * @param loc Location parameter.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> gumbel(const T &loc, const T &scale, size_t m, size_t n);
+        tensor<T, 1> gumbel(T loc, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> gumbel(T loc, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Laplace distribution.
@@ -718,38 +578,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T laplace(const T &loc, const T &scale);
+        T laplace(T loc, T scale);
 
         /**
          * @brief Draw samples from a Laplace distribution.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> laplace(const T &loc, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Laplace distribution.
-         *
-         * @param loc Location parameter.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> laplace(const T &loc, const T &scale, size_t m, size_t n);
+        tensor<T, 1> laplace(T loc, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> laplace(T loc, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a logistic distribution.
@@ -769,38 +615,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T logistic(const T &loc, const T &scale);
+        T logistic(T loc, T scale);
 
         /**
          * @brief Draw samples from a logistic distribution.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> logistic(const T &loc, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a logistic distribution.
-         *
-         * @param loc Location parameter.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> logistic(const T &loc, const T &scale, size_t m, size_t n);
+        tensor<T, 1> logistic(T loc, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> logistic(T loc, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a log-normal distribution.
@@ -822,7 +654,7 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T lognormal(const T &logmean, const T &logscale);
+        T lognormal(T logmean, T logscale);
 
         /**
          * @brief Draw samples from a log-normal distribution.
@@ -830,33 +662,18 @@ namespace numcpp {
          * @param logmean Mean of the underlying normal distribution.
          * @param logscale Standard deviation of the underlying normal
          *     distribution. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> lognormal(const T &logmean, const T &logscale, size_t n);
-
-        /**
-         * @brief Draw samples from a log-normal distribution.
-         *
-         * @param logmean Mean of the underlying normal distribution.
-         * @param logscale Standard deviation of the underlying normal
-         *     distribution. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> lognormal(
-            const T &logmean, const T &logscale, size_t m, size_t n
+        tensor<T, 1> lognormal(T logmean, T logscale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> lognormal(
+            T logmean, T logscale, const shape_t<Rank> &size
         );
 
         /**
@@ -870,48 +687,33 @@ namespace numcpp {
          * for x = 0, 1, 2, ..., where n is the number of successes before the
          * experiment is stopped and p is the probability of success.
          *
-         * @param size Number of successes.
+         * @param n Number of successes.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
          *
          * @return A sample from the distribution.
          */
         template <class T>
-        T negative_binomial(size_t size, double prob);
+        T negative_binomial(size_t n, double prob);
 
         /**
          * @brief Draw samples from a negative binomial distribution.
          *
-         * @param size Number of successes.
+         * @param n Number of successes.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> negative_binomial(size_t size, double prob, size_t n);
-
-        /**
-         * @brief Draw samples from a negative binomial distribution.
-         *
-         * @param size Number of successes.
-         * @param prob Probability of success. This shall be a value between 0
-         *     and 1 (inclusive).
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        matrix<T> negative_binomial(
-            size_t size, double prob, size_t m, size_t n
+        tensor<T, 1> negative_binomial(size_t n, double prob, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> negative_binomial(
+            size_t n, double prob, const shape_t<Rank> &size
         );
 
         /**
@@ -933,7 +735,7 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T normal(const T &mean, const T &stddev);
+        T normal(T mean, T stddev);
 
         /**
          * @brief Draw samples from a normal distribution.
@@ -941,32 +743,17 @@ namespace numcpp {
          * @param mean Mean of the distribution.
          * @param stddev Standard deviation of the distribution. This shall be
          *     a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> normal(const T &mean, const T &stddev, size_t n);
-
-        /**
-         * @brief Draw samples from a normal distribution.
-         *
-         * @param mean Mean of the distribution.
-         * @param stddev Standard deviation of the distribution. This shall be
-         *     a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> normal(const T &mean, const T &stddev, size_t m, size_t n);
+        tensor<T, 1> normal(T mean, T stddev, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> normal(T mean, T stddev, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Pareto distribution.
@@ -985,38 +772,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T pareto(const T &shape, const T &scale);
+        T pareto(T shape, T scale);
 
         /**
          * @brief Draw samples from a Pareto distribution.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> pareto(const T &shape, const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Pareto distribution.
-         *
-         * @param shape Shape parameter. This shall be a positive value.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> pareto(const T &shape, const T &scale, size_t m, size_t n);
+        tensor<T, 1> pareto(T shape, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> pareto(T shape, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Poisson distribution.
@@ -1039,30 +812,17 @@ namespace numcpp {
          * @brief Draw samples from a Poisson distribution.
          *
          * @param rate Rate parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> poisson(double rate, size_t n);
-
-        /**
-         * @brief Draw samples from a Poisson distribution.
-         *
-         * @param rate Rate parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> poisson(double rate, size_t m, size_t n);
+        tensor<T, 1> poisson(double rate, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> poisson(double rate, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Rayleigh distribution.
@@ -1079,36 +839,23 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T rayleigh(const T &scale);
+        T rayleigh(T scale);
 
         /**
          * @brief Draw samples from a Rayleigh distribution.
          *
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> rayleigh(const T &scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Rayleigh distribution.
-         *
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> rayleigh(const T &scale, size_t m, size_t n);
+        tensor<T, 1> rayleigh(T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> rayleigh(T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Student's t distribution.
@@ -1128,36 +875,23 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T student_t(const T &df);
+        T student_t(T df);
 
         /**
          * @brief Draw samples from a Student's t distribution.
          *
          * @param df Degrees of freedom. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> student_t(const T &df, size_t n);
-
-        /**
-         * @brief Draw samples from a Student's t distribution.
-         *
-         * @param df Degrees of freedom. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> student_t(const T &df, size_t m, size_t n);
+        tensor<T, 1> student_t(T df, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> student_t(T df, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a triangular distribution.
@@ -1181,7 +915,7 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T triangular(const T &left, const T &mode, const T &right);
+        T triangular(T left, T mode, T right);
 
         /**
          * @brief Draw samples from a triangular distribution.
@@ -1189,35 +923,18 @@ namespace numcpp {
          * @param left Lower boundary.
          * @param mode Mode of the distribution.
          * @param right Upper boundary.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> triangular(
-            const T &left, const T &mode, const T &right, size_t n
-        );
-
-        /**
-         * @brief Draw samples from a triangular distribution.
-         *
-         * @param left Lower boundary.
-         * @param mode Mode of the distribution.
-         * @param right Upper boundary.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> triangular(
-            const T &left, const T &mode, const T &right, size_t m, size_t n
+        tensor<T, 1> triangular(T left, T mode, T right, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> triangular(
+            T left, T mode, T right, const shape_t<Rank> &size
         );
 
         /**
@@ -1237,38 +954,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T uniform(const T &low, const T &high);
+        T uniform(T low, T high);
 
         /**
          * @brief Draw samples from an uniform distribution.
          *
          * @param low Lower boundary.
          * @param high Upper boundary.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> uniform(const T &low, const T &high, size_t n);
-
-        /**
-         * @brief Draw samples from an uniform distribution.
-         *
-         * @param low Lower boundary.
-         * @param high Upper boundary.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> uniform(const T &low, const T &high, size_t m, size_t n);
+        tensor<T, 1> uniform(T low, T high, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> uniform(T low, T high, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Wald, or inverse Gaussian, distribution.
@@ -1288,38 +991,24 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T wald(const T &mean, const T& scale);
+        T wald(T mean, T scale);
 
         /**
          * @brief Draw samples from a Wald distribution.
          *
          * @param mean Mean of the distribution. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
-         */
-        template <class T>
-        array<T> wald(const T &mean, const T& scale, size_t n);
-
-        /**
-         * @brief Draw samples from a Wald distribution.
-         *
-         * @param mean Mean of the distribution. This shall be a positive value.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        matrix<T> wald(const T &mean, const T& scale, size_t m, size_t n);
+        tensor<T, 1> wald(T mean, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> wald(T mean, T scale, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Weibull distribution.
@@ -1338,40 +1027,34 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T weibull(const T &shape, const T &scale);
+        T weibull(T shape, T scale);
 
         /**
          * @brief Draw samples from a Weibull distribution.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
-         * @param n Length of array.
+         * @param size Output shape.
          *
-         * @return An array with samples from the distribution.
+         * @return A tensor with samples from the distribution.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        array<T> weibull(const T &shape, const T &scale, size_t n);
+        tensor<T, 1> weibull(T shape, T scale, size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> weibull(T shape, T scale, const shape_t<Rank> &size);
 
+    private:
         /**
-         * @brief Draw samples from a Weibull distribution.
-         *
-         * @param shape Shape parameter. This shall be a positive value.
-         * @param scale Scale parameter. This shall be a positive value.
-         * @param m Number of rows.
-         * @param n Number of columns.
-         *
-         * @return A matrix with samples from the distribution.
-         *
-         * @throw std::bad_alloc If the function fails to allocate storage it
-         *     may throw an exception.
+         * @brief Sample values from a distribution.
          */
-        template <class T>
-        matrix<T> weibull(const T &shape, const T &scale, size_t m, size_t n);
+        template <class OutputIterator, class Distribution>
+        void __sample_distribution(
+            OutputIterator first, OutputIterator last, Distribution &rvs
+        );
 
-    protected:
         /// Underlying uniform random number generator.
         bit_generator m_rng;
     };

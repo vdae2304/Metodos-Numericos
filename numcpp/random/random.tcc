@@ -23,7 +23,8 @@
 #ifndef NUMCPP_RANDOM_TCC_INCLUDED
 #define NUMCPP_RANDOM_TCC_INCLUDED
 
-#include "numcpp/routines/algo.h"
+#include <algorithm>
+#include <numeric>
 
 namespace numcpp {
     /// Constructors.
@@ -54,201 +55,216 @@ namespace numcpp {
 
     /// Sample random data.
 
-    /// Helper function: Fill a range with values sampled from a distribution.
-    template <class OutputIterator, class Distribution, class RandomState>
-    void __sample_distribution(
-        OutputIterator first, OutputIterator last, Distribution &rvs,
-        RandomState &rng
+    template <class bit_generator>
+    template <class OutputIterator, class Distribution>
+    inline void Generator<bit_generator>::__sample_distribution(
+        OutputIterator first, OutputIterator last, Distribution &rvs
     ) {
         while (first != last) {
-            *first = rvs(rng);
+            *first = rvs(m_rng);
             ++first;
         }
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::integers(T low, T high) {
+    inline T Generator<bit_generator>::integers(T low, T high) {
         uniform_int_distribution<T> rvs(low, high);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::integers(T low, T high, size_t n) {
-        uniform_int_distribution<T> rvs(low, high);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+    inline tensor<T, 1> Generator<bit_generator>::integers(
+        T low, T high, size_t size
+    ) {
+        return this->integers<T>(low, high, make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::integers(
-        T low, T high, size_t m, size_t n
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::integers(
+        T low, T high, const shape_t<Rank> &size
     ) {
         uniform_int_distribution<T> rvs(low, high);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::random() {
+    inline T Generator<bit_generator>::random() {
         uniform_real_distribution<T> rvs;
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::random(size_t n) {
-        uniform_real_distribution<T> rvs;
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+    inline tensor<T, 1> Generator<bit_generator>::random(size_t size) {
+        return this->random<T>(make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::random(size_t m, size_t n) {
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::random(
+        const shape_t<Rank> &size
+    ) {
         uniform_real_distribution<T> rvs;
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T, class Tag>
-    T Generator<bit_generator>::choice(const base_array<T, Tag> &arr) {
-        if (arr.empty()) {
-            throw std::invalid_argument("arr cannot be empty");
+    T Generator<bit_generator>::choice(
+        const base_tensor<T, 1, Tag> &population
+    ) {
+        if (population.empty()) {
+            throw std::invalid_argument("population cannot be empty");
         }
-        uniform_int_distribution<size_t> rvs(0, arr.size() - 1);
-        return arr[rvs(m_rng)];
+        uniform_int_distribution<size_t> rvs(0, population.size() - 1);
+        return population[rvs(m_rng)];
     }
 
     template <class bit_generator>
     template <class T, class Tag, class TWeights, class TagWeights>
     T Generator<bit_generator>::choice(
-        const base_array<T, Tag> &arr,
-        const base_array<TWeights, TagWeights> &weights
+        const base_tensor<T, 1, Tag> &population,
+        const base_tensor<TWeights, 1, TagWeights> &weights
     ) {
-        if (arr.empty()) {
-            throw std::invalid_argument("arr cannot be empty");
+        if (population.empty()) {
+            throw std::invalid_argument("population cannot be empty");
         }
-        if (arr.size() != weights.size()) {
-            throw std::invalid_argument("arr and weights must have same size");
+        if (population.size() != weights.size()) {
+            char error[] = "population and weights must have same size";
+            throw std::invalid_argument(error);
         }
         discrete_distribution<size_t> rvs(weights.begin(), weights.end());
-        return arr[rvs(m_rng)];
+        return population[rvs(m_rng)];
     }
 
     template <class bit_generator>
     template <class T, class Tag>
-    array<T> Generator<bit_generator>::choice(
-        const base_array<T, Tag> &arr, size_t size, bool replace
+    inline tensor<T, 1> Generator<bit_generator>::choice(
+        const base_tensor<T, 1, Tag> &population, size_t size,
+        bool replace
     ) {
-        if (arr.empty()) {
-            throw std::invalid_argument("arr cannot be empty");
+        return this->choice(population, make_shape(size), replace);
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> Generator<bit_generator>::choice(
+        const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
+        bool replace
+    ) {
+        if (population.empty()) {
+            throw std::invalid_argument("population cannot be empty");
         }
         if (replace) {
-            uniform_int_distribution<size_t> rvs(0, arr.size() - 1);
-            array<T> out(size);
-            for (size_t i = 0; i < size; ++i) {
-                out[i] = arr[rvs(m_rng)];
+            uniform_int_distribution<size_t> rvs(0, population.size() - 1);
+            tensor<T, Rank> out(size);
+            for (auto it = out.begin(); it != out.end(); ++it) {
+                *it = population[rvs(m_rng)];
             }
             return out;
         }
         else {
-            if (size > arr.size()) {
+            if (size.size() > population.size()) {
                 char error[] = "cannot take a larger sample than population "
                                "when replace=false";
                 throw std::invalid_argument(error);
             }
-            array<T> out(arr);
-            for (size_t i = 0; i < size; ++i) {
-                uniform_int_distribution<size_t> rvs(i, arr.size() - 1);
+            size_t n = size.size();
+            tensor<T, 1> out(population);
+            for (size_t i = 0; i < n; ++i) {
+                uniform_int_distribution<size_t> rvs(i, population.size() - 1);
                 std::swap(out[i], out[rvs(m_rng)]);
             }
-            return array<T>(out.begin(), out.begin() + size);
+            return tensor<T, Rank>(size, out.begin());
         }
     }
 
     template <class bit_generator>
     template <class T, class Tag, class TWeights, class TagWeights>
-    array<T> Generator<bit_generator>::choice(
-        const base_array<T, Tag> &arr, size_t size,
-        const base_array<TWeights, TagWeights> &weights, bool replace
+    inline tensor<T, 1> Generator<bit_generator>::choice(
+        const base_tensor<T, 1, Tag> &population, size_t size,
+        const base_tensor<TWeights, 1, TagWeights> &weights,
+        bool replace
     ) {
-        if (arr.empty()) {
-            throw std::invalid_argument("arr cannot be empty");
+        return this->choice(population, make_shape(size), weights, replace);
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank, class Tag,
+              class TWeights, class TagWeights>
+    tensor<T, Rank> Generator<bit_generator>::choice(
+        const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
+        const base_tensor<TWeights, 1, TagWeights> &weights,
+        bool replace
+    ) {
+        if (population.empty()) {
+            throw std::invalid_argument("population cannot be empty");
         }
-        if (arr.size() != weights.size()) {
-            throw std::invalid_argument("arr and weights must have same size");
+        if (population.shape() != weights.shape()) {
+            char error[] = "population and weights must have same size";
+            throw std::invalid_argument(error);
         }
         if (replace) {
             discrete_distribution<size_t> rvs(weights.begin(), weights.end());
-            array<T> out(size);
-            for (size_t i = 0; i < size; ++i) {
-                out[i] = arr[rvs(m_rng)];
+            tensor<T, Rank> out(size);
+            for (auto it = out.begin(); it != out.end(); ++it) {
+                *it = population[rvs(m_rng)];
             }
             return out;
         }
         else {
-            if (size > arr.size()) {
+            if (size.size() > population.size()) {
                 char error[] = "cannot take a larger sample than population "
                                "when replace=false";
                 throw std::invalid_argument(error);
             }
-            array<T> out(arr);
-            array<TWeights> w(weights);
-            for (size_t i = 0; i < size; ++i) {
+            size_t n = size.size();
+            tensor<T, 1> out(population);
+            tensor<TWeights, 1> w(weights);
+            for (size_t i = 0; i < n; ++i) {
                 discrete_distribution<size_t> rvs(w.begin() + i, w.end());
                 size_t idx = i + rvs(m_rng);
                 std::swap(out[i], out[idx]);
                 w[idx] = w[i];
                 w[i] = 0;
             }
-            return array<T>(out.begin(), out.begin() + size);
+            return tensor<T, Rank>(size, out.begin());
         }
     }
 
     /// Permutations.
 
     template <class bit_generator>
-    template <class T>
-    void Generator<bit_generator>::shuffle(array<T> &arr) {
-        std::shuffle(arr.begin(), arr.end(), m_rng);
+    template <class T, size_t Rank, class Tag>
+    inline void Generator<bit_generator>::shuffle(
+        base_tensor<T, Rank, Tag> &arg
+    ) {
+        std::shuffle(arg.begin(), arg.end(), m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    void Generator<bit_generator>::shuffle(array_view<T> arr) {
-        std::shuffle(arr.begin(), arr.end(), m_rng);
-    }
-
-    template <class bit_generator>
-    template <class T>
-    void Generator<bit_generator>::shuffle(index_view<T> arr) {
-        std::shuffle(arr.begin(), arr.end(), m_rng);
-    }
-
-    template <class bit_generator>
-    template <class T>
-    array<T> Generator<bit_generator>::permutation(size_t n) {
-        array<T> out(n);
-        __iota(out.begin(), out.end(), 0, 1);
+    inline tensor<T, 1> Generator<bit_generator>::permutation(size_t n) {
+        tensor<T, 1> out(n);
+        std::iota(out.begin(), out.end(), 0);
         std::shuffle(out.begin(), out.end(), m_rng);
         return out;
     }
 
     template <class bit_generator>
-    template <class T, class Tag>
-    array<T> Generator<bit_generator>::permutation(
-        const base_array<T, Tag> &arr
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, Rank> Generator<bit_generator>::permutation(
+        const base_tensor<T, Rank, Tag> &arg
     ) {
-        array<T> out(arr);
+        tensor<T, Rank> out(arg);
         std::shuffle(out.begin(), out.end(), m_rng);
         return out;
     }
@@ -257,643 +273,577 @@ namespace numcpp {
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::beta(const T &shape1, const T &shape2) {
+    inline T Generator<bit_generator>::beta(T shape1, T shape2) {
         beta_distribution<T> rvs(shape1, shape2);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::beta(
-        const T &shape1, const T &shape2, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::beta(
+        T shape1, T shape2, size_t size
+    ) {
+        return this->beta<T>(shape1, shape2, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::beta(
+        T shape1, T shape2, const shape_t<Rank> &size
     ) {
         beta_distribution<T> rvs(shape1, shape2);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::beta(
-        const T &shape1, const T &shape2, size_t m, size_t n
-    ) {
-        beta_distribution<T> rvs(shape1, shape2);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::binomial(size_t size, double prob) {
-        binomial_distribution<size_t> rvs(size, prob);
+    inline T Generator<bit_generator>::binomial(size_t n, double prob) {
+        binomial_distribution<T> rvs(n, prob);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::binomial(
-        size_t size, double prob, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::binomial(
+        size_t n, double prob, size_t size
     ) {
-        binomial_distribution<size_t> rvs(size, prob);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        return this->binomial<T>(n, prob, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::binomial(
+        size_t n, double prob, const shape_t<Rank> &size
+    ) {
+        binomial_distribution<T> rvs(n, prob);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::binomial(
-        size_t size, double prob, size_t m, size_t n
-    ) {
-        binomial_distribution<size_t> rvs(size, prob);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::cauchy(const T &loc, const T &scale) {
+    inline T Generator<bit_generator>::cauchy(T loc, T scale) {
         cauchy_distribution<T> rvs(loc, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::cauchy(
-        const T &loc, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::cauchy(
+        T loc, T scale, size_t size
+    ) {
+        return this->cauchy<T>(loc, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::cauchy(
+        T loc, T scale, const shape_t<Rank> &size
     ) {
         cauchy_distribution<T> rvs(loc, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::cauchy(
-        const T &loc, const T &scale, size_t m, size_t n
-    ) {
-        cauchy_distribution<T> rvs(loc, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::chisquare(const T &df) {
+    inline T Generator<bit_generator>::chisquare(T df) {
         chi_squared_distribution<T> rvs(df);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::chisquare(const T &df, size_t n) {
-        chi_squared_distribution<T> rvs(df);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+    inline tensor<T, 1> Generator<bit_generator>::chisquare(T df, size_t size) {
+        return this->chisquare<T>(df, make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::chisquare(
-        const T &df, size_t m, size_t n
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::chisquare(
+        T df, const shape_t<Rank> &size
     ) {
         chi_squared_distribution<T> rvs(df);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::exponential(const T &rate) {
+    inline T Generator<bit_generator>::exponential(T rate) {
         exponential_distribution<T> rvs(rate);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::exponential(const T &rate, size_t n) {
-        exponential_distribution<T> rvs(rate);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+    inline tensor<T, 1> Generator<bit_generator>::exponential(
+        T rate, size_t size
+    ) {
+        return this->exponential<T>(rate, make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::exponential(
-        const T &rate, size_t m, size_t n
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::exponential(
+        T rate, const shape_t<Rank> &size
     ) {
         exponential_distribution<T> rvs(rate);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::fisher_f(const T &df1, const T &df2) {
+    inline T Generator<bit_generator>::fisher_f(T df1, T df2) {
         fisher_f_distribution<T> rvs(df1, df2);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::fisher_f(
-        const T &df1, const T &df2, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::fisher_f(
+        T df1, T df2, size_t size
+    ) {
+        return this->fisher_f<T>(df1, df2, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::fisher_f(
+        T df1, T df2, const shape_t<Rank> &size
     ) {
         fisher_f_distribution<T> rvs(df1, df2);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::fisher_f(
-        const T &df1, const T &df2, size_t m, size_t n
-    ) {
-        fisher_f_distribution<T> rvs(df1, df2);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::gamma(const T &shape, const T &scale) {
+    inline T Generator<bit_generator>::gamma(T shape, T scale) {
         gamma_distribution<T> rvs(shape, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::gamma(
-        const T &shape, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::gamma(
+        T shape, T scale, size_t size
+    ) {
+        return this->gamma<T>(shape, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::gamma(
+        T shape, T scale, const shape_t<Rank> &size
     ) {
         gamma_distribution<T> rvs(shape, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::gamma(
-        const T &shape, const T &scale, size_t m, size_t n
-    ) {
-        gamma_distribution<T> rvs(shape, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::geometric(double prob) {
-        geometric_distribution<size_t> rvs(prob);
+    inline T Generator<bit_generator>::geometric(double prob) {
+        geometric_distribution<T> rvs(prob);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::geometric(double prob, size_t n) {
-        geometric_distribution<size_t> rvs(prob);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::geometric(
-        double prob, size_t m, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::geometric(
+        double prob, size_t size
     ) {
-        geometric_distribution<size_t> rvs(prob);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        return this->geometric<T>(prob, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::geometric(
+        double prob, const shape_t<Rank> &size
+    ) {
+        geometric_distribution<T> rvs(prob);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::gumbel(const T &loc, const T &scale) {
+    inline T Generator<bit_generator>::gumbel(T loc, T scale) {
         extreme_value_distribution<T> rvs(loc, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::gumbel(
-        const T &loc, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::gumbel(
+        T loc, T scale, size_t size
+    ) {
+        return this->gumbel<T>(loc, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::gumbel(
+        T loc, T scale, const shape_t<Rank> &size
     ) {
         extreme_value_distribution<T> rvs(loc, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::gumbel(
-        const T &loc, const T &scale, size_t m, size_t n
-    ) {
-        extreme_value_distribution<T> rvs(loc, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::laplace(const T &loc, const T &scale) {
+    inline T Generator<bit_generator>::laplace(T loc, T scale) {
         laplace_distribution<T> rvs(loc, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::laplace(
-        const T &loc, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::laplace(
+        T loc, T scale, size_t size
+    ) {
+        return this->laplace<T>(loc, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::laplace(
+        T loc, T scale, const shape_t<Rank> &size
     ) {
         laplace_distribution<T> rvs(loc, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::laplace(
-        const T &loc, const T &scale, size_t m, size_t n
-    ) {
-        laplace_distribution<T> rvs(loc, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::logistic(const T &loc, const T &scale) {
+    inline T Generator<bit_generator>::logistic(T loc, T scale) {
         logistic_distribution<T> rvs(loc, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::logistic(
-        const T &loc, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::logistic(
+        T loc, T scale, size_t size
+    ) {
+        return this->logistic<T>(loc, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::logistic(
+        T loc, T scale, const shape_t<Rank> &size
     ) {
         logistic_distribution<T> rvs(loc, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::logistic(
-        const T &loc, const T &scale, size_t m, size_t n
-    ) {
-        logistic_distribution<T> rvs(loc, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::lognormal(const T &logmean, const T &logscale) {
+    inline T Generator<bit_generator>::lognormal(T logmean, T logscale) {
         lognormal_distribution<T> rvs(logmean, logscale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::lognormal(
-        const T &logmean, const T &logscale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::lognormal(
+        T logmean, T logscale, size_t size
+    ) {
+        return this->lognormal<T>(logmean, logscale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::lognormal(
+        T logmean, T logscale, const shape_t<Rank> &size
     ) {
         lognormal_distribution<T> rvs(logmean, logscale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::lognormal(
-        const T &logmean, const T &logscale, size_t m, size_t n
+    inline T Generator<bit_generator>::negative_binomial(
+        size_t n, double prob
     ) {
-        lognormal_distribution<T> rvs(logmean, logscale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::negative_binomial(size_t size, double prob) {
-        negative_binomial_distribution<size_t> rvs(size, prob);
+        negative_binomial_distribution<T> rvs(n, prob);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::negative_binomial(
-        size_t size, double prob, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::negative_binomial(
+        size_t n, double prob, size_t size
     ) {
-        negative_binomial_distribution<size_t> rvs(size, prob);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        return this->negative_binomial<T>(n, prob, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
+        size_t n, double prob, const shape_t<Rank> &size
+    ) {
+        negative_binomial_distribution<T> rvs(n, prob);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::negative_binomial(
-        size_t size, double prob, size_t m, size_t n
-    ) {
-        negative_binomial_distribution<size_t> rvs(size, prob);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::normal(const T &mean, const T &stddev) {
+    inline T Generator<bit_generator>::normal(T mean, T stddev) {
         normal_distribution<T> rvs(mean, stddev);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::normal(
-        const T &mean, const T &stddev, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::normal(
+        T mean, T stddev, size_t size
+    ) {
+        return this->normal<T>(mean, stddev, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::normal(
+        T mean, T stddev, const shape_t<Rank> &size
     ) {
         normal_distribution<T> rvs(mean, stddev);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::normal(
-        const T &mean, const T &stddev, size_t m, size_t n
-    ) {
-        normal_distribution<T> rvs(mean, stddev);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::pareto(const T &shape, const T &scale) {
+    inline T Generator<bit_generator>::pareto(T shape, T scale) {
         pareto_distribution<T> rvs(shape, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::pareto(
-        const T &shape, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::pareto(
+        T shape, T scale, size_t size
+    ) {
+        return this->pareto<T>(shape, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::pareto(
+        T shape, T scale, const shape_t<Rank> &size
     ) {
         pareto_distribution<T> rvs(shape, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::pareto(
-        const T &shape, const T &scale, size_t m, size_t n
-    ) {
-        pareto_distribution<T> rvs(shape, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::poisson(double rate) {
-        poisson_distribution<size_t> rvs(rate);
+    inline T Generator<bit_generator>::poisson(double rate) {
+        poisson_distribution<T> rvs(rate);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::poisson(double rate, size_t n) {
-        poisson_distribution<size_t> rvs(rate);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::poisson(
-        double rate, size_t m, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::poisson(
+        double rate, size_t size
     ) {
-        poisson_distribution<size_t> rvs(rate);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        return this->poisson<T>(rate, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::poisson(
+        double rate, const shape_t<Rank> &size
+    ) {
+        poisson_distribution<T> rvs(rate);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::rayleigh(const T &scale) {
+    inline T Generator<bit_generator>::rayleigh(T scale) {
         rayleigh_distribution<T> rvs(scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::rayleigh(
-        const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::rayleigh(
+        T scale, size_t size
+    ) {
+        return this->rayleigh<T>(scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::rayleigh(
+        T scale, const shape_t<Rank> &size
     ) {
         rayleigh_distribution<T> rvs(scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::rayleigh(
-        const T &scale, size_t m, size_t n
-    ) {
-        rayleigh_distribution<T> rvs(scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::student_t(const T &df) {
+    inline T Generator<bit_generator>::student_t(T df) {
         student_t_distribution<T> rvs(df);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::student_t(const T &df, size_t n) {
-        student_t_distribution<T> rvs(df);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+    inline tensor<T, 1> Generator<bit_generator>::student_t(
+        T df, const size_t size
+    ) {
+        return this->student_t<T>(df, make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::student_t(
-        const T &df, size_t m, size_t n
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::student_t(
+        T df, const shape_t<Rank> &size
     ) {
         student_t_distribution<T> rvs(df);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    T Generator<bit_generator>::triangular(
-        const T &lower, const T &mode, const T &right
-    ) {
-        array<T> breaks{lower, mode, right};
-        array<T> weights{T(0), T(1), T(0)};
-        piecewise_linear_distribution<T> rvs(
-            breaks.begin(), breaks.end(), weights.begin()
-        );
+    inline T Generator<bit_generator>::triangular(T lower, T mode, T right) {
+        T breaks[3] = {lower, mode, right};
+        T weights[3] = {T(0), T(1), T(0)};
+        piecewise_linear_distribution<T> rvs(breaks, breaks + 3, weights);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::triangular(
-        const T &lower, const T &mode, const T &right, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::triangular(
+        T lower, T mode, T right, size_t size
     ) {
-        array<T> breaks{lower, mode, right};
-        array<T> weights{T(0), T(1), T(0)};
-        piecewise_linear_distribution<T> rvs(
-            breaks.begin(), breaks.end(), weights.begin()
-        );
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        return this->triangular<T>(lower, mode, right, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::triangular(
+        T lower, T mode, T right, const shape_t<Rank> &size
+    ) {
+        T breaks[3] = {lower, mode, right};
+        T weights[3] = {T(0), T(1), T(0)};
+        piecewise_linear_distribution<T> rvs(breaks, breaks + 3, weights);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::triangular(
-        const T &lower, const T &mode, const T &right, size_t m, size_t n
-    ) {
-        array<T> breaks{lower, mode, right};
-        array<T> weights{T(0), T(1), T(0)};
-        piecewise_linear_distribution<T> rvs(
-            breaks.begin(), breaks.end(), weights.begin()
-        );
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::uniform(const T &low, const T &high) {
+    inline T Generator<bit_generator>::uniform(T low, T high) {
         uniform_real_distribution<T> rvs(low, high);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::uniform(
-        const T &low, const T &high, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::uniform(
+        T low, T high, size_t size
+    ) {
+        return this->uniform<T>(low, high, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::uniform(
+        T low, T high, const shape_t<Rank> &size
     ) {
         uniform_real_distribution<T> rvs(low, high);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::uniform(
-        const T &low, const T &high, size_t m, size_t n
-    ) {
-        uniform_real_distribution<T> rvs(low, high);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::wald(const T &mean, const T& scale) {
+    inline T Generator<bit_generator>::wald(T mean, T scale) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::wald(
-        const T &mean, const T& scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::wald(
+        T mean, T scale, size_t size
+    ) {
+        return this->wald<T>(mean, scale, make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::wald(
+        T mean, T scale, const shape_t<Rank> &size
     ) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    matrix<T> Generator<bit_generator>::wald(
-        const T &mean, const T& scale, size_t m, size_t n
-    ) {
-        inverse_gaussian_distribution<T> rvs(mean, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
-    }
-
-    template <class bit_generator>
-    template <class T>
-    T Generator<bit_generator>::weibull(const T &shape, const T &scale) {
+    inline T Generator<bit_generator>::weibull(T shape, T scale) {
         weibull_distribution<T> rvs(shape, scale);
         return rvs(m_rng);
     }
 
     template <class bit_generator>
     template <class T>
-    array<T> Generator<bit_generator>::weibull(
-        const T &shape, const T &scale, size_t n
+    inline tensor<T, 1> Generator<bit_generator>::weibull(
+        T shape, T scale, size_t size
     ) {
-        weibull_distribution<T> rvs(shape, scale);
-        array<T> out(n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
-        return out;
+        return this->weibull<T>(shape, scale, make_shape(size));
     }
 
     template <class bit_generator>
-    template <class T>
-    matrix<T> Generator<bit_generator>::weibull(
-        const T &shape, const T &scale, size_t m, size_t n
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::weibull(
+        T shape, T scale, const shape_t<Rank> &size
     ) {
         weibull_distribution<T> rvs(shape, scale);
-        matrix<T> out(m, n);
-        __sample_distribution(out.begin(), out.end(), rvs, m_rng);
+        tensor<T, Rank> out(size);
+        this->__sample_distribution(out.begin(), out.end(), rvs);
         return out;
     }
 }

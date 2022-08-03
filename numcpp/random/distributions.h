@@ -1,13 +1,14 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library
- * that provides an array and a matrix object, and an assortment of routines
- * for fast operations on arrays and matrices, including mathematical, logical,
+ * NumCPP is a package for scientific computing in C++. It is a C++ library
+ * that provides support for multidimensional arrays, and defines an assortment
+ * of routines for fast operations on them, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it
- * is not related to it or any of its parts.
+ * NumCPP comes from Numeric C++ and, as the name suggests, is a package
+ * inspired by the NumPy package for Python, although it is completely
+ * independent from its Python counterpart.
  *
  * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
@@ -50,13 +51,19 @@ namespace numcpp {
     using std::student_t_distribution;
     using std::weibull_distribution;
 
-    /// Helper function: Generates a random floating point number in [0, 1).
+/// Namespace for implementation details.
+namespace detail {
+    /**
+     * @brief Helper function. Generates a uniform random floating point number
+     * in [0, 1).
+     */
     template <class RealType, class UniformRandomNumberGenerator>
-    RealType __random_uniform(UniformRandomNumberGenerator &urng) {
+    RealType random_uniform(UniformRandomNumberGenerator &urng) {
         return std::generate_canonical<
             RealType, std::numeric_limits<RealType>::digits
         >(urng);
     }
+}
 
     /**
      * @brief A beta continuous distribution for random numbers.
@@ -923,8 +930,8 @@ namespace numcpp {
             // Use Johnk's algorithm.
             RealType U, V, X, Y;
             do {
-                U = __random_uniform<RealType>(urng);
-                V = __random_uniform<RealType>(urng);
+                U = detail::random_uniform<RealType>(urng);
+                V = detail::random_uniform<RealType>(urng);
                 X = std::pow(U, 1.0 / p.alpha());
                 Y = std::pow(V, 1.0 / p.beta());
             } while (X + Y > 1.0 || X + Y == 0.0);
@@ -946,7 +953,7 @@ namespace numcpp {
         RealType Y = __random_normal(urng);
         Y = p.mu() * Y * Y;
         RealType X = p.mu() + c * (Y - std::sqrt(4.0 * p.lambda() * Y + Y * Y));
-        RealType U = __random_uniform<RealType>(urng);
+        RealType U = detail::random_uniform<RealType>(urng);
         if (U <= p.mu() / (p.mu() + X)) {
             return X;
         }
@@ -963,7 +970,7 @@ namespace numcpp {
         // Use inverse CDF.
         RealType U;
         do {
-            U = __random_uniform<RealType>(urng);
+            U = detail::random_uniform<RealType>(urng);
         } while (U == 0.0);
         if (U <= 0.5) {
             return p.mu() + p.s() * std::log(2.0 * U);
@@ -981,7 +988,7 @@ namespace numcpp {
         // Use inverse CDF.
         RealType U;
         do {
-            U = __random_uniform<RealType>(urng);
+            U = detail::random_uniform<RealType>(urng);
         } while (U == 0.0);
         return p.mu() + p.s() * std::log(U / (1.0 - U));
     }
@@ -992,7 +999,7 @@ namespace numcpp {
         UniformRandomGenerator &urng, const param_type &p
     ) {
         // Use inverse CDF.
-        RealType U = __random_uniform<RealType>(urng);
+        RealType U = detail::random_uniform<RealType>(urng);
         return p.xm() * std::pow(1.0 - U, -1.0 / p.alpha());
     }
 
@@ -1002,7 +1009,7 @@ namespace numcpp {
         UniformRandomGenerator &urng, const param_type &p
     ) {
         // Use inverse CDF.
-        RealType U = __random_uniform<RealType>(urng);
+        RealType U = detail::random_uniform<RealType>(urng);
         return p.sigma() * std::sqrt(-2.0 * std::log1p(-U));
     }
 }
