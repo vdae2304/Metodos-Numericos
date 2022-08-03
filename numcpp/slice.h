@@ -114,7 +114,7 @@ namespace numcpp {
          * @param i Position of an element in the slice. This function does not
          *     check for out of bounds.
          *
-         * @return start() + i*stride()
+         * @return start() + i * stride()
          */
         size_t operator[](size_t i) const {
             return m_offset + i * m_stride;
