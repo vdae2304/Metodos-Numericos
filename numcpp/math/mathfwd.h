@@ -1,21 +1,21 @@
 /*
  * This file is part of the NumCpp project.
  *
- * NumCpp is a package for scientific computing in C++. It is a C++ library
- * that provides an array and a matrix object, and an assortment of routines
- * for fast operations on arrays and matrices, including mathematical, logical,
+ * NumCPP is a package for scientific computing in C++. It is a C++ library
+ * that provides support for multidimensional arrays, and defines an assortment
+ * of routines for fast operations on them, including mathematical, logical,
  * sorting, selecting, I/O and much more.
  *
- * The NumCpp package is inspired by the NumPy package for Python, although it
- * is not related to it or any of its parts.
+ * NumCPP comes from Numeric C++ and, as the name suggests, is a package
+ * inspired by the NumPy package for Python, although it is completely
+ * independent from its Python counterpart.
  *
  * This program is free software: you can redistribute it and/or modify it by
  * giving enough credit to its creators.
  */
 
  /** @file include/numcpp/math/mathfwd.h
-  *  This is an internal header file, included by other library headers.
-  *  Do not attempt to use it directly. @headername{numcpp/math.h}
+  *  This header defines function objects for several mathematical functions.
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
@@ -26,166 +26,136 @@
 #include <cmath>
 #include <complex>
 #include <type_traits>
+#include <utility>
 
 namespace numcpp {
-    /// Basic functions
-    using std::abs;
-    using std::fmod;
-    using std::max;
-    using std::min;
+    /// Basic functions.
 
-    /// Trigonometric functions
-    using std::cos;
-    using std::sin;
-    using std::tan;
-    using std::acos;
-    using std::asin;
-    using std::atan;
-    using std::atan2;
-    using std::hypot;
-
-    /// Hyperbolic functions
-    using std::cosh;
-    using std::sinh;
-    using std::tanh;
-    using std::acosh;
-    using std::asinh;
-    using std::atanh;
-
-    /// Exponential and logarithmic functions
-    using std::exp;
-    using std::log;
-    using std::log10;
-    using std::exp2;
-    using std::log2;
-    using std::expm1;
-    using std::log1p;
-
-    /// Power functions
-    using std::pow;
-    using std::sqrt;
-    using std::cbrt;
-
-    /// Rounding
-    using std::ceil;
-    using std::floor;
-    using std::trunc;
-    using std::round;
-
-    /// Floating-point manipulation functions
-    using std::frexp;
-    using std::ldexp;
-    using std::copysign;
-    using std::nextafter;
-
-    /// Complex numbers
-    using std::real;
-    using std::imag;
-    using std::arg;
-    using std::conj;
-
-    /// Clasification functions
-    using std::isfinite;
-    using std::isinf;
-    using std::isnan;
-
-    /// Function object implementing std::abs.
-    struct __math_abs {
+    /**
+     * @brief Function object implementing std::abs.
+     */
+    struct math_abs {
         template <class T>
-        T operator()(const T &x) const {
-            return std::abs(x);
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &x) const {
-            return std::abs(x);
+        auto operator()(T &&x) const
+         -> decltype(std::abs(std::forward<T>(x))) {
+            return std::abs(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::max.
-    struct __math_max {
+    /**
+     * @brief Function object implementing std::max.
+     */
+    struct math_max {
         template <class T>
         T operator()(const T &x, const T &y) const {
             return std::max(x, y);
         }
     };
 
-    /// Function object implementing std::min.
-    struct __math_min {
+    /**
+     * @brief Function object implementing std::min.
+     */
+    struct math_min {
         template <class T>
         T operator()(const T &x, const T &y) const {
             return std::min(x, y);
         }
     };
 
-    /// Function object implementing std::fmod.
-    struct __math_fmod {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
+    /**
+     * @brief Function object implementing std::fmod.
+     */
+    struct math_fmod {
+        template <class T, class U>
+        auto operator()(T x, U y) const -> decltype(std::fmod(x, y)) {
             return std::fmod(x, y);
         }
     };
 
-    /// Function object implementing std::cos.
-    struct __math_cos {
+    /// Trigonometric functions.
+
+    /**
+     * @brief Function object implementing std::cos.
+     */
+    struct math_cos {
         template <class T>
-        T operator()(const T &x) const {
-            return std::cos(x);
+        auto operator()(T &&x) const
+         -> decltype(std::cos(std::forward<T>(x))) {
+            return std::cos(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::sin.
-    struct __math_sin {
+    /**
+     * @brief Function object implementing std::sin.
+     */
+    struct math_sin {
         template <class T>
-        T operator()(const T &x) const {
-            return std::sin(x);
+        auto operator()(T &&x) const
+         -> decltype(std::sin(std::forward<T>(x))) {
+            return std::sin(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::tan.
-    struct __math_tan {
+    /**
+     * @brief Function object implementing std::tan.
+     */
+    struct math_tan {
         template <class T>
-        T operator()(const T &x) const {
-            return std::tan(x);
+        auto operator()(T &&x) const
+         -> decltype(std::tan(std::forward<T>(x))) {
+            return std::tan(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::acos.
-    struct __math_acos {
+    /**
+     * @brief Function object implementing std::acos.
+     */
+    struct math_acos {
         template <class T>
-        T operator()(const T &x) const {
-            return std::acos(x);
+        auto operator()(T &&x) const
+         -> decltype(std::acos(std::forward<T>(x))) {
+            return std::acos(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::asin.
-    struct __math_asin {
+    /**
+     * @brief Function object implementing std::asin.
+     */
+    struct math_asin {
         template <class T>
-        T operator()(const T &x) const {
-            return std::asin(x);
+        auto operator()(T &&x) const
+         -> decltype(std::asin(std::forward<T>(x))) {
+            return std::asin(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::atan.
-    struct __math_atan {
+    /**
+     * @brief Function object implementing std::atan.
+     */
+    struct math_atan {
         template <class T>
-        T operator()(const T &x) const {
-            return std::atan(x);
+        auto operator()(T &&x) const
+         -> decltype(std::atan(std::forward<T>(x))) {
+            return std::atan(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::atan2.
-    struct __math_atan2 {
-        template <class T>
-        T operator()(const T &y, const T &x) const {
+    /**
+     * @brief Function object implementing std::atan2.
+     */
+    struct math_atan2 {
+        template <class T, class U>
+        auto operator()(T y, U x) const -> decltype(std::atan2(y, x)) {
             return std::atan2(y, x);
         }
     };
 
-    /// Function object implementing std::hypot.
-    struct __math_hypot {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
+    /**
+     * @brief Function object implementing std::hypot.
+     */
+    struct math_hypot {
+        template <class T, class U>
+        auto operator()(T x, U y) const -> decltype(std::hypot(x, y)) {
             return std::hypot(x, y);
         }
     };
@@ -199,17 +169,17 @@ namespace numcpp {
      */
     double degrees(double x) {
         double inv_pi = 0.31830988618379067;
-        return 180.0*x*inv_pi;
+        return 180.0 * x * inv_pi;
     }
 
     float degrees(float x) {
         float inv_pi = 0.318309886f;
-        return 180.0f*x*inv_pi;
+        return 180.0f * x * inv_pi;
     }
 
     long double degrees(long double x) {
         long double inv_pi = 0.318309886183790671537767526745028L;
-        return 180.0L*x*inv_pi;
+        return 180.0L * x * inv_pi;
     }
 
     template <class T>
@@ -218,10 +188,12 @@ namespace numcpp {
         return degrees((double)x);
     }
 
-    /// Function object implementing numcpp::degrees.
-    struct __math_degrees {
+    /**
+     * @brief Function object implementing numcpp::degrees.
+     */
+    struct math_degrees {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(degrees(x)) {
             return degrees(x);
         }
     };
@@ -235,17 +207,17 @@ namespace numcpp {
      */
     double radians(double x) {
         double pi = 3.14159265358979324;
-        return pi*x/180.0;
+        return pi * x / 180.0;
     }
 
     float radians(float x) {
         float pi = 3.141592654f;
-        return pi*x/180.0f;
+        return pi * x / 180.0f;
     }
 
     long double radians(long double x) {
         long double pi = 3.141592653589793238462643383279502L;
-        return pi*x/180.0L;
+        return pi * x / 180.0L;
     }
 
     template <class T>
@@ -254,207 +226,281 @@ namespace numcpp {
         return radians((double)x);
     }
 
-    /// Function object implementing numcpp::radians.
-    struct __math_radians {
+    /**
+     * @brief Function object implementing numcpp::radians.
+     */
+    struct math_radians {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(radians(x)) {
             return radians(x);
         }
     };
 
-    /// Function object implementing std::cosh.
-    struct __math_cosh {
+    /// Hyperbolic functions.
+
+    /**
+     * @brief Function object implementing std::cosh.
+     */
+    struct math_cosh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::cosh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::cosh(std::forward<T>(x))) {
+            return std::cosh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::sinh.
-    struct __math_sinh {
+    /**
+     * @brief Function object implementing std::sinh.
+     */
+    struct math_sinh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::sinh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::sinh(std::forward<T>(x))) {
+            return std::sinh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::tanh.
-    struct __math_tanh {
+    /**
+     * @brief Function object implementing std::tanh.
+     */
+    struct math_tanh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::tanh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::tanh(std::forward<T>(x))) {
+            return std::tanh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::acosh.
-    struct __math_acosh {
+    /**
+     * @brief Function object implementing std::acosh.
+     */
+    struct math_acosh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::acosh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::acosh(std::forward<T>(x))) {
+            return std::acosh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::asinh.
-    struct __math_asinh {
+    /**
+     * @brief Function object implementing std::asinh.
+     */
+    struct math_asinh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::asinh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::asinh(std::forward<T>(x))) {
+            return std::asinh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::atanh.
-    struct __math_atanh {
+    /**
+     * @brief Function object implementing std::atanh.
+     */
+    struct math_atanh {
         template <class T>
-        T operator()(const T &x) const {
-            return std::atanh(x);
+        auto operator()(T &&x) const
+         -> decltype(std::atanh(std::forward<T>(x))) {
+            return std::atanh(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::exp.
-    struct __math_exp {
+    /// Exponential and logarithmic functions.
+
+    /**
+     * @brief Function object implementing std::exp.
+     */
+    struct math_exp {
         template <class T>
-        T operator()(const T &x) const {
-            return std::exp(x);
+        auto operator()(T &&x) const
+         -> decltype(std::exp(std::forward<T>(x))) {
+            return std::exp(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::log.
-    struct __math_log {
+    /**
+     * @brief Function object implementing std::log.
+     */
+    struct math_log {
         template <class T>
-        T operator()(const T &x) const {
-            return std::log(x);
+        auto operator()(T &&x) const
+         -> decltype(std::log(std::forward<T>(x))) {
+            return std::log(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::log10.
-    struct __math_log10 {
+    /**
+     * @brief Function object implementing std::log10.
+     */
+    struct math_log10 {
         template <class T>
-        T operator()(const T &x) const {
-            return std::log10(x);
+        auto operator()(T &&x) const
+         -> decltype(std::log10(std::forward<T>(x))) {
+            return std::log10(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::exp2.
-    struct __math_exp2 {
+    /**
+     * @brief Function object implementing std::exp2.
+     */
+    struct math_exp2 {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::exp2(x)) {
             return std::exp2(x);
         }
     };
 
-    /// Function object implementing std::log2.
-    struct __math_log2 {
+    /**
+     * @brief Function object implementing std::log2.
+     */
+    struct math_log2 {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::log2(x)) {
             return std::log2(x);
         }
     };
 
-    /// Function object implementing std::expm1.
-    struct __math_expm1 {
+    /**
+     * @brief Function object implementing std::expm1.
+     */
+    struct math_expm1 {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::expm1(x)) {
             return std::expm1(x);
         }
     };
 
-    /// Function object implementing std::log1p.
-    struct __math_log1p {
+    /**
+     * @brief Function object implementing std::log1p.
+     */
+    struct math_log1p {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::log1p(x)) {
             return std::log1p(x);
         }
     };
 
-    /// Function object implementing std::pow.
-    struct __math_pow {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
-            return std::pow(x, y);
+    /// Power functions.
+
+    /**
+     * @brief Function object implementing std::pow.
+     */
+    struct math_pow {
+        template <class T, class U>
+        auto operator()(T &&x, U &&y) const
+         -> decltype(std::pow(std::forward<T>(x), std::forward<U>(y))) {
+            return std::pow(std::forward<T>(x), std::forward<U>(y));
         }
     };
 
-    /// Function object implementing std::sqrt.
-    struct __math_sqrt {
+    /**
+     * @brief Function object implementing std::sqrt.
+     */
+    struct math_sqrt {
         template <class T>
-        T operator()(const T &x) const {
-            return std::sqrt(x);
+        auto operator()(T &&x) const
+         -> decltype(std::sqrt(std::forward<T>(x))) {
+            return std::sqrt(std::forward<T>(x));
         }
     };
 
-    /// Function object implementing std::cbrt.
-    struct __math_cbrt {
+    /**
+     * @brief Function object implementing std::cbrt.
+     */
+    struct math_cbrt {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::cbrt(x)) {
             return std::cbrt(x);
         }
     };
 
-    /// Function object implementing std::ceil.
-    struct __math_ceil {
+    /// Rounding.
+
+    /**
+     * @brief Function object implementing std::ceil.
+     */
+    struct math_ceil {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::ceil(x)) {
             return std::ceil(x);
         }
     };
 
-    /// Function object implementing std::floor.
-    struct __math_floor {
+    /**
+     * @brief Function object implementing std::floor.
+     */
+    struct math_floor {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::floor(x)) {
             return std::floor(x);
         }
     };
 
-    /// Function object implementing std::trunc.
-    struct __math_trunc {
+    /**
+     * @brief Function object implementing std::trunc.
+     */
+    struct math_trunc {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::trunc(x)) {
             return std::trunc(x);
         }
     };
 
-    /// Function object implementing std::round.
-    struct __math_round {
+    /**
+     * @brief Function object implementing std::round.
+     */
+    struct math_round {
         template <class T>
-        T operator()(const T &x) const {
+        auto operator()(T x) const -> decltype(std::round(x)) {
             return std::round(x);
         }
     };
 
-    /// Function object implementing std::frexp.
-    struct __math_frexp {
+    /// Floating-point manipulation functions.
+
+    /**
+     * @brief Function object implementing std::frexp.
+     */
+    struct math_frexp {
         template <class T>
-        std::pair<T, int> operator()(const T &x) const {
+        auto operator()(T x) const
+         -> std::pair<decltype(std::frexp(x, std::declval<int*>())), int> {
             int exp;
-            T mantissa = std::frexp(x, &exp);
+            auto mantissa = std::frexp(x, &exp);
             return std::make_pair(mantissa, exp);
         }
     };
 
-    /// Function object implementing std::ldexp.
-    struct __math_ldexp {
+    /**
+     * @brief Function object implementing std::ldexp.
+     */
+    struct math_ldexp {
         template <class T>
-        T operator()(const T &x, int exp) const {
+        auto operator()(T x, int exp) const -> decltype(std::ldexp(x, exp)) {
             return std::ldexp(x, exp);
         }
     };
 
-    /// Function object implementing std::copysign.
-    struct __math_copysign {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
+    /**
+     * @brief Function object implementing std::copysign.
+     */
+    struct math_copysign {
+        template <class T, class U>
+        auto operator()(T x, U y) const -> decltype(std::copysign(x, y)) {
             return std::copysign(x, y);
         }
     };
 
-    /// Function object implementing std::nextafter.
-    struct __math_nextafter {
-        template <class T>
-        T operator()(const T &x, const T &y) const {
+    /**
+     * @brief Function object implementing std::nextafter.
+     */
+    struct math_nextafter {
+        template <class T, class U>
+        auto operator()(T x, U y) const -> decltype(std::nextafter(x, y)) {
             return std::nextafter(x, y);
         }
     };
+
+    /// Integer-valued functions.
 
     /**
      * @brief Return the greatest common divisor of |m| and |n|.
@@ -480,10 +526,12 @@ namespace numcpp {
         return std::abs(m);
     }
 
-    /// Function object implementing numcpp::gcd.
-    struct __math_gcd {
-        template <class T>
-        T operator()(const T &m, const T &n) const {
+    /**
+     * @brief Function object implementing numcpp::gcd.
+     */
+    struct math_gcd {
+        template <class T, class U>
+        auto operator()(T m, U n) const -> decltype(gcd(m, n)) {
             return gcd(m, n);
         }
     };
@@ -511,86 +559,57 @@ namespace numcpp {
         }
     }
 
-    /// Function object implementing numcpp::lcm.
-    struct __math_lcm {
-        template <class T>
-        T operator()(const T &m, const T &n) const {
+    /**
+     * @brief Function object implementing numcpp::lcm.
+     */
+    struct math_lcm {
+        template <class T, class U>
+        auto operator()(T m, U n) const -> decltype(lcm(m, n)) {
             return lcm(m, n);
         }
     };
 
-    /// Function object implementing arg.real().
-    struct __math_real {
-        template <class T>
-        T operator()(const T &arg) const {
-            return arg;
-        }
+    /// Complex numbers.
 
+    /**
+     * @brief Function object implementing std::arg.
+     */
+    struct math_arg {
         template <class T>
-        T operator()(const std::complex<T> &arg) const {
-            return arg.real();
-        }
-    };
-
-    /// Function object implementing arg.imag().
-    struct __math_imag {
-        template <class T>
-        T operator()(const T&) const {
-            return 0;
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &arg) const {
-            return arg.imag();
+        auto operator()(T &&z) const
+         -> decltype(std::arg(std::forward<T>(z))) {
+            return std::arg(std::forward<T>(z));
         }
     };
 
-    /// Function object implementing std::conj.
-    struct __math_conj {
-        template <class T>
-        T operator()(const T &arg) const {
-            return arg;
-        }
+    /// Clasification functions.
 
+    /**
+     * @brief Function object implementing std::isfinite.
+     */
+    struct math_isfinite {
         template <class T>
-        std::complex<T> operator()(const std::complex<T> &arg) const {
-            return std::conj(arg);
-        }
-    };
-
-    /// Function object implementing std::arg.
-    struct __math_arg {
-        template <class T>
-        T operator()(const T &z) const {
-            return std::arg(z);
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &z) const {
-            return std::arg(z);
-        }
-    };
-
-    /// Function object implementing std::isfinite.
-    struct __math_isfinite {
-        template <class T>
-        bool operator()(const T &x) const {
+        bool operator()(T x) const {
             return std::isfinite(x);
         }
     };
 
-    /// Function object implementing std::isinf.
-    struct __math_isinf {
+    /**
+     * @brief Function object implementing std::isinf.
+     */
+    struct math_isinf {
         template <class T>
-        bool operator()(const T &x) const {
+        bool operator()(T x) const {
             return std::isinf(x);
         }
     };
 
-    /// Function object implementing std::isnan.
-    struct __math_isnan {
+    /**
+     * @brief Function object implementing std::isnan.
+     */
+    struct math_isnan {
         template <class T>
-        bool operator()(const T &x) const {
+        bool operator()(T x) const {
             return std::isnan(x);
         }
     };
