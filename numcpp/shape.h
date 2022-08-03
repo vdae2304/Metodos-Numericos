@@ -97,14 +97,14 @@ namespace detail {
         /**
          * @brief Copy constructor.
          *
-         * @param other A shape_t object to copy.
+         * @param other A shape_t object with the same dimension to copy.
          */
         shape_t(const shape_t &other);
 
         /**
          * @brief Copy assignment.
          *
-         * @param other A shape_t object to copy.
+         * @param other A shape_t object with the same dimension to copy.
          *
          * @return *this
          */
@@ -130,8 +130,7 @@ namespace detail {
         constexpr size_t ndim() const;
 
         /**
-         * @brief Return the number of elements, (i.e. the product of the sizes
-         * along all the axis).
+         * @brief Return the product of the sizes along all the axes.
          *
          * @note Time complexity: O(Rank)
          */
@@ -142,8 +141,8 @@ namespace detail {
          *
          * @param i Axis index.
          *
-         * @return If the shape_t is const-qualified, return a reference to the
-         *     size of the i-th axis. Otherwise, return a copy.
+         * @return If the shape_t is const-qualified, return a copy of the size.
+         *     Otherwise, return a reference to the size along the i-th axis.
          */
         size_t& operator[](size_t i);
         size_t operator[](size_t i) const;
@@ -181,6 +180,9 @@ namespace detail {
      * @brief Create an index_t object deducing its dimension from the number of
      * arguments.
      *
+     * @details index_t is just an alias of shape_t defined to distinguish
+     * between shapes and indices, improving readability.
+     *
      * @param args... Index arguments.
      *
      * @return An index with the given values.
@@ -189,10 +191,10 @@ namespace detail {
     inline index_t<sizeof...(Args)> make_index(Args... args);
 
     /**
-     * @brief Construct a tuple of indices into a flat index.
+     * @brief Converts a tuple of indices into a flat index.
      *
-     * @param index A tuple of indices.
-     * @param shape The shape of the tensor used for unraveling.
+     * @param index A tuple of indices to flatten.
+     * @param shape The shape of the tensor used for raveling.
      * @param order Determines whether the indices should be viewed as indexing
      *     in row-major order (true) or column-major order (false). Defaults to
      *     row-major order.
@@ -208,7 +210,7 @@ namespace detail {
     /**
      * @brief Converts a flat index into a tuple of indices.
      *
-     * @param index Index to flatten.
+     * @param index Index to unravel.
      * @param shape The shape of the tensor used for unraveling.
      * @param order Determines whether the indices should be viewed as indexing
      *     in row-major order (true) or column-major order (false). Defaults to
@@ -225,6 +227,12 @@ namespace detail {
      * @brief Broadcast two shapes into a common shape. Throws a
      * std::invalid_argument exception if the shapes are not compatible and
      * cannot be broadcasted according to broadcasting rules.
+     *
+     * @details Two dimensions are said to be compatible if
+     *   - they are equal or,
+     *   - one of them is 1
+     * The size of the resulting broadcasting is the size that is not 1 along
+     * each axis of the shapes.
      */
     template <size_t Rank>
     shape_t<Rank> broadcast_shapes(
@@ -258,7 +266,7 @@ namespace detail {
 
     /**
      * @brief Compares two shape_t objects. Returns true if they have different
-     * dimensions or they they are different in at least one axis.
+     * dimensions or they are different in at least one axis.
      */
     template <size_t Rank1, size_t Rank2>
     inline bool operator!=(
