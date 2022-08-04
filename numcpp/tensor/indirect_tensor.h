@@ -27,14 +27,15 @@ namespace numcpp {
     /**
      * @brief An indirect_tensor is a view of a subset of elements from a
      * multidimensional array. It references the elements in the original
-     * array. The view itself does not own the data and any changes made to the
-     * view will affect the original array, and any changes made to the
-     * original array will affect the view.
+     * array through an array of indices. The view itself does not own the data
+     * and any changes made to the view will affect the original array, and any
+     * changes made to the original array will affect the view.
      *
-     * @tparam T Type of the elements contained in the tensor_view. This shall
-     *     be an arithmetic type or a class that behaves like one (such as
-     *     std::complex).
-     * @tparam Rank Dimension of the tensor_view. It must be a positive integer.
+     * @tparam T Type of the elements contained in the indirect_tensor. This
+     *     shall be an arithmetic type or a class that behaves like one (such
+     *     as std::complex).
+     * @tparam Rank Dimension of the indirect_tensor. It must be a positive
+     *     integer.
      */
     template <class T, size_t Rank>
     class base_tensor<T, Rank, indirect_tag>
@@ -63,7 +64,7 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the indirect_tensor.
-         * @param index Pointer to the index array with its elements
+         * @param index Pointer to the array of indices with its elements
          *     identifying which elements of data are selected.
          * @param order If true (default), the elements are stored in row-major
          *     order (from first axis to last axis). Otherwise, the elements
@@ -71,7 +72,7 @@ namespace numcpp {
          * @param mode If positive, creates a copy of index. If zero, stores
          *     the pointer directly without making a copy. If negative,
          *     acquires the ownership of index, which will be deleted
-         *     altogether with the indirect_tensor. Defaults to make a copy.
+         *     along with the indirect_tensor. Defaults to make a copy.
          */
         base_tensor(
             const shape_t<Rank> &shape, T *data, size_t *index,
@@ -110,8 +111,8 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns a reference to the element at the
          * given position. The elements in an indirect_tensor are given by
-         *     data[index[ravel_index(index, shape, order)]]
-         * where data is the memory array.
+         *     data[index[ravel_index(indices, shape, order)]]
+         * where data is the memory array and index is the array of indices.
          *
          * @param args... Index arguments.
          *
@@ -169,7 +170,9 @@ namespace numcpp {
 
         /**
          * @brief Returns the number of elements in the indirect_tensor (i.e.,
-         * the product of the sizes along all the axis).
+         * the product of the sizes along all the axes).
+         *
+         * @note Time complexity: O(1)
          */
         size_t size() const;
 
@@ -242,7 +245,9 @@ namespace numcpp {
          * @brief Move assignment. Acquires the contents of other, leaving
          * other in an empty state.
          *
-         * @param other An indirect_tensor of the same type.
+         * @param other An indirect_tensor of the same type and rank. The
+         *     ownership is directly transferred from other. other is left in
+         *     an empty state.
          *
          * @return *this
          */
