@@ -93,9 +93,7 @@ Constructs a tensor with given shape, each element is left uninitialized.
 ```cpp
 tensor(const shape_t<Rank> &shape);
 
-template <class... Args,
-          typename = detail::RequiresNArguments<Rank, Args...>,
-          typename = detail::RequiresIntegral<Args...> >
+template <class... Args>
 tensor(Args... args);
 ```
 
@@ -192,8 +190,7 @@ Output
 Constructs a tensor with given shape, with each element constructed from its
 corresponding element in the range starting at `first`, in the same order.
 ```cpp
-template <class InputIterator,
-          typename = detail::RequiresInputIterator<InputIterator> >
+template <class InputIterator>
 tensor(const shape_t<Rank> &shape, InputIterator first);
 ```
 
@@ -278,7 +275,7 @@ transferred from `other`. `other` is left in an empty state.
 Constructs a tensor with a copy of each of the elements in `il`, in the same
 order.
 ```cpp
-tensor(detail::RequiresDepthInitializerList<T, Rank> il);
+tensor(/* Nested initializer_list */ il);
 ```
 
 Parameters
@@ -346,14 +343,10 @@ Output
 
 Returns a reference to the element at the given position.
 ```cpp
-template <class... Args,
-          detail::RequiresNArguments<Rank, Args...> = true,
-          detail::RequiresIntegral<Args...> = true>
+template <class... Args>
 T& operator()(Args... args);
 
-template <class... Args,
-          detail::RequiresNArguments<Rank, Args...> = true,
-          detail::RequiresIntegral<Args...> = true>
+template <class... Args>
 const T& operator()(Args... args) const;
 ```
 
@@ -734,16 +727,12 @@ bool colmajor() const;
 
 Returns a `tensor_view` object that selects the elements given by the slices.
 ```cpp
-template <class... Args,
-          detail::RequiresNArguments<Rank, Args...> = true,
-          detail::RequiresSlice<Args...> = true>
-tensor_view<T, detail::slice_index_rank<Args...>::value>
+template <class... Args>
+tensor_view<T, /* Number of slice arguments */>
 operator()(Args... args);
 
-template <class... Args,
-          detail::RequiresNArguments<Rank, Args...> = true,
-          detail::RequiresSlice<Args...> = true>
-tensor_view<const T, detail::slice_index_rank<Args...>::value>
+template <class... Args>
+tensor_view<const T, /* Number of slice arguments */>
 operator()(Args... args) const;
 ```
 
@@ -1184,7 +1173,7 @@ Returns
 Assigns to each element the value of the corresponding element in `il` after
 resizing the object (if necessary).
 ```cpp
-tensor& operator=(detail::RequiresDepthInitializerList<T, Rank> il);
+tensor& operator=(/* Nested initializer_list */ il);
 ```
 
 Parameters
