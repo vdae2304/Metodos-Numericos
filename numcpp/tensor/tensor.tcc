@@ -44,7 +44,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class... Args, typename, typename>
     tensor<T, Rank>::base_tensor(Args... args)
-     : m_shape(make_shape(args...))
+     : m_shape(args...)
     {
         m_size = m_shape.size();
         m_data = new T[m_size];
@@ -236,7 +236,7 @@ namespace detail {
             slc = slice(shape[axis]);
         }
         else if (slc.start() >= shape[axis]) {
-            slc = slice(0, 0, 1);
+            slc = slice(0);
         }
         else if (slc.size() > 0 && slc[slc.size() - 1] >= shape[axis]) {
             size_t new_size = (shape[axis] - slc.start()) / slc.stride();
@@ -280,7 +280,7 @@ namespace detail {
             slc = slice(shape[axis]);
         }
         else if (slc.start() >= shape[axis]) {
-            slc = slice(0, 0, 1);
+            slc = slice(0);
         }
         else if (slc.size() > 0 && slc[slc.size() - 1] >= shape[axis]) {
             size_t new_size = (shape[axis] - slc.start()) / slc.stride();
@@ -341,7 +341,7 @@ namespace detail {
         const base_tensor<index_t<Rank>, N, Tag> &index
     ) const {
         tensor<T, N> subset(index.shape());
-        auto result = subset.begin();
+        typename tensor<T, N>::iterator result = subset.begin();
         for (auto it = index.begin(true); it != index.end(true); ++it) {
             *result = this->operator[](*it);
             ++result;
@@ -373,7 +373,7 @@ namespace detail {
     ) const {
         static_assert(Rank == 1, "Unkown conversion from integral type");
         tensor<T, N> subset(index.shape());
-        auto result = subset.begin();
+        typename tensor<T, N>::iterator result = subset.begin();
         for (auto it = index.begin(true); it != index.end(true); ++it) {
             *result = this->operator[](*it);
             ++result;
@@ -386,10 +386,10 @@ namespace detail {
     indirect_tensor<T, 1> tensor<T, Rank>::operator[](
         const base_tensor<bool, Rank, Tag> &mask
     ) {
-        if (this->shape() != mask.shape()) {
+        if (m_shape != mask.shape()) {
             std::ostringstream error;
             error << "boolean index did not match indexed tensor; shape is "
-                  << this->shape() << " but corresponding boolean shape is "
+                  << m_shape << " but corresponding boolean shape is "
                   << mask.shape();
             throw std::invalid_argument(error.str());
         }
@@ -409,16 +409,16 @@ namespace detail {
     tensor<T, 1> tensor<T, Rank>::operator[](
         const base_tensor<bool, Rank, Tag> &mask
     ) const {
-        if (this->shape() != mask.shape()) {
+        if (m_shape != mask.shape()) {
             std::ostringstream error;
             error << "boolean index did not match indexed tensor; shape is "
-                  << this->shape() << " but corresponding boolean shape is "
+                  << m_shape << " but corresponding boolean shape is "
                   << mask.shape();
             throw std::invalid_argument(error.str());
         }
         size_t size = std::count(mask.begin(), mask.end(), true);
         tensor<T, 1> subset(size);
-        auto result = subset.begin();
+        typename tensor<T, 1>::iterator result = subset.begin();
         for (auto it = mask.begin(true); it != mask.end(true); ++it) {
             if (*it) {
                 *result = this->operator[](it.coords());
@@ -500,6 +500,7 @@ namespace detail {
     template <class T, size_t Rank>
     tensor<T, Rank>& tensor<T, Rank>::operator=(base_tensor &&other) {
         if (this != &other) {
+            delete[] m_data;
             m_data = other.m_data;
             m_size = other.m_size;
             m_shape = other.m_shape;
@@ -624,8 +625,8 @@ namespace detail {
     template <class T, size_t Rank>
     template <size_t N>
     tensor_view<T, Rank - N> tensor<T, Rank>::squeeze(const shape_t<N> &axes) {
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N < Rank, "Reduction dimension must be less than tensor"
+                      " dimension");
         shape_t<Rank - N> new_shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -650,8 +651,8 @@ namespace detail {
     template <size_t N>
     tensor_view<const T, Rank - N>
     tensor<T, Rank>::squeeze(const shape_t<N> &axes) const {
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N < Rank, "Reduction dimension must be less than tensor"
+                      " dimension");
         shape_t<Rank - N> new_shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
