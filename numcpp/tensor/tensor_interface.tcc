@@ -587,7 +587,7 @@ namespace numcpp {
     tensor<R, Rank> tensor_interface<T, Rank, Tag>::reduce(
         Function f, const shape_t<N> &axes
     ) const {
-        typedef typename tensor<T, Rank>::iterator iterator;
+        typedef typename tensor<R, Rank>::iterator iterator;
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
         size_t size = 1;
