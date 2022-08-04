@@ -60,11 +60,11 @@ namespace np = numcpp;
 int main() {
     np::array<int> arr{5, 8, 16, 16, 17, 20, 4, 10, 1, 6};
     // Selects indices 0, 1, 2, 3, 4.
-    std::cout << arr[np::slice(5)] << '\n';
+    std::cout << arr(np::slice(5)) << '\n';
     // Selects indices 2, 3, 4, 5, 6.
-    std::cout << arr[np::slice(2, 5)] << '\n';
+    std::cout << arr(np::slice(2, 5)) << '\n';
     // Selects indices 1, 3, 5, 7, 9.
-    std::cout << arr[np::slice(1, 5, 2)] << '\n';
+    std::cout << arr(np::slice(1, 5, 2)) << '\n';
     return 0;
 }
 ```
