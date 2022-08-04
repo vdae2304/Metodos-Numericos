@@ -447,7 +447,9 @@ namespace detail {
          * @brief Move assignment. Acquires the contents of other, leaving
          * other in an empty state.
          *
-         * @param other A tensor of the same type.
+         * @param other A tensor of the same type and rank. The ownership is
+         *     directly transferred from other. other is left in an empty
+         *     state.
          *
          * @return *this
          */
