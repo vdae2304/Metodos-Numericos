@@ -418,7 +418,7 @@ namespace detail {
          * corresponding element in other, after resizing the object (if
          * necessary).
          *
-         * @param other A tensor-like object.
+         * @param other A tensor-like object of the same rank.
          *
          * @return *this
          *
