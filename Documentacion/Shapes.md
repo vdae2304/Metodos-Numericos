@@ -51,9 +51,7 @@ shape_t();
 Construct a new `shape_t` object from a list of sizes.
 
 ```cpp
-template <class... Args,
-          typename = detail::RequiresNArguments<Rank, Args...>,
-          typename = detail::RequiresIntegral<Args...> >
+template <class... Args>
 shape_t(Args... args);
 ```
 
