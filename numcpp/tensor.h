@@ -291,8 +291,8 @@ namespace detail {
         operator()(Args... args) const;
 
         /**
-         * @brief Coordinate array indexing. Returns an indirect_tensor that
-         * selects the elements specified by the array of indices.
+         * @brief Coordinate tensor indexing. Returns an indirect_tensor that
+         * selects the elements specified by the tensor of indices.
          *
          * @param index A tensor-like object of index_t with its elements
          *     identifying which elements of the tensor are selected. If the
@@ -330,7 +330,7 @@ namespace detail {
         ) const;
 
         /**
-         * @brief Boolean array indexing. Returns an indirect_tensor that
+         * @brief Boolean tensor indexing. Returns an indirect_tensor that
          * selects the elements specified by the boolean mask.
          *
          * @param mask A tensor-like object of bool with its elements
