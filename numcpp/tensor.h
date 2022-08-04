@@ -373,8 +373,10 @@ namespace detail {
         size_t shape(size_t axis) const;
 
         /**
-         * @brief Returns the number of elements in the tensor (i.e., the
-         * product of the sizes along all the axis).
+         * @brief Return the number of elements in the tensor (i.e., the
+         * product of the sizes along all the axes).
+         *
+         * @note Time complexity: O(1)
          */
         size_t size() const;
 
