@@ -229,6 +229,9 @@ namespace numcpp {
     indirect_tensor<T, Rank>&
     indirect_tensor<T, Rank>::operator=(base_tensor &&other) {
         if (this != &other) {
+            if (m_owner) {
+                delete[] m_index;
+            }
             m_data = other.m_data;
             m_size = other.m_size;
             m_shape = other.m_shape;
