@@ -291,7 +291,7 @@ namespace detail {
         operator()(Args... args) const;
 
         /**
-         * @brief Integer array indexing. Returns an indirect_tensor that
+         * @brief Coordinate array indexing. Returns an indirect_tensor that
          * selects the elements specified by the array of indices.
          *
          * @param index A tensor-like object of index_t with its elements
