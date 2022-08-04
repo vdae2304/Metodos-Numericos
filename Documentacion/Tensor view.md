@@ -1,5 +1,7 @@
 # Tensor view
 
+Defined in `numcpp/tensor.h`
+
 - [Tensor view](#tensor-view)
   - [Template parameters](#template-parameters)
   - [Aliases](#aliases)
