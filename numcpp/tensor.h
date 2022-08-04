@@ -342,8 +342,8 @@ namespace detail {
          *     function returns an indirect_tensor, which has reference
          *     semantics to the original tensor.
          *
-         * @throw std::out_of_range Thrown if the tensor and the boolean mask
-         *     have different shapes.
+         * @throw std::invalid_argument Thrown if the tensor and the boolean
+         *     mask have different shapes.
          * @throw std::bad_alloc If the function needs to allocate storage and
          *     fails, it may throw an exception.
          */
