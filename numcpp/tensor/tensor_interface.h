@@ -374,7 +374,7 @@ namespace numcpp {
          *     as first argument is considered to go before the second.
          *
          * @return A one-dimensional tensor of indices that partitions the
-         *     tensor. If a is a tensor, then a[a.argpartition()] yields a
+         *     tensor. If a is a tensor, then a[a.argpartition(kth)] yields a
          *     partitioned a.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
