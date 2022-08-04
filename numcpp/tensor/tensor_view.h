@@ -169,7 +169,9 @@ namespace numcpp {
 
         /**
          * @brief Returns the number of elements in the tensor_view (i.e.,
-         * the product of the sizes along all the axis).
+         * the product of the sizes along all the axes).
+         *
+         * @note Time complexity: O(1)
          */
         size_t size() const;
 
@@ -248,7 +250,8 @@ namespace numcpp {
          * @brief Move assignment. Acquires the contents of other, leaving
          * other in an empty state.
          *
-         * @param other A tensor_view of the same type.
+         * @param other A tensor_view of the same type and rank. other is left
+         *     in an empty state.
          *
          * @return *this
          */
