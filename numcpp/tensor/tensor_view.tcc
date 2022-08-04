@@ -290,8 +290,8 @@ namespace numcpp {
     template <size_t N>
     tensor_view<T, Rank - N>
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) {
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N < Rank, "Reduction dimension must be less than tensor"
+                      " dimension");
         shape_t<Rank - N> new_shape, new_stride;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -319,8 +319,8 @@ namespace numcpp {
     template <size_t N>
     tensor_view<const T, Rank - N>
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) const {
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N < Rank, "Reduction dimension must be less than tensor"
+                      " dimension");
         shape_t<Rank - N> new_shape, new_stride;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
