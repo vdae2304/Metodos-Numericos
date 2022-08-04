@@ -253,6 +253,13 @@ namespace detail {
     size_t unpack_slices(
         const shape_t<Rank> &shape,
         shape_t<N> &sizes, size_t &offset, shape_t<N> &strides,
+        slice slc, Args... args
+    );
+
+    template <size_t Rank, size_t N, class... Args>
+    size_t unpack_slices(
+        const shape_t<Rank> &shape,
+        shape_t<N> &sizes, size_t &offset, shape_t<N> &strides,
         size_t i, Args... args
     ) {
         size_t axis = Rank - sizeof...(Args) - 1;
@@ -312,40 +319,6 @@ namespace detail {
         shape_t<N> sizes, strides;
         detail::unpack_slices(m_shape, sizes, offset, strides, args...);
         return tensor_view<const T, N>(sizes, m_data, offset, strides);
-    }
-
-    template <class T, size_t Rank>
-    tensor_view<T, 1> tensor<T, Rank>::operator[](slice slc) {
-        static_assert(Rank == 1, "Tensor must be one dimensional");
-        if (slc == slice()) {
-            slc = slice(m_size);
-        }
-        else if (slc.start() >= m_size) {
-            slc = slice(0, 0, 1);
-        }
-        else if (slc.size() > 0 && slc[slc.size() - 1] >= m_size) {
-            size_t new_size = (m_size - slc.start()) / slc.stride();
-            slc = slice(slc.start(), new_size, slc.stride());
-        }
-        return tensor_view<T, 1>(slc.size(), m_data, slc.start(), slc.stride());
-    }
-
-    template <class T, size_t Rank>
-    tensor_view<const T, 1> tensor<T, Rank>::operator[](slice slc) const {
-        static_assert(Rank == 1, "Tensor must be one dimensional");
-        if (slc == slice()) {
-            slc = slice(m_size);
-        }
-        else if (slc.start() >= m_size) {
-            slc = slice(0, 0, 1);
-        }
-        else if (slc.size() > 0 && slc[slc.size() - 1] >= m_size) {
-            size_t new_size = (m_size - slc.start()) / slc.stride();
-            slc = slice(slc.start(), new_size, slc.stride());
-        }
-        return tensor_view<const T, 1>(
-            slc.size(), m_data, slc.start(), slc.stride()
-        );
     }
 
     template <class T, size_t Rank>

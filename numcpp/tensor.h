@@ -266,8 +266,7 @@ namespace detail {
          * @param args... Index arguments. Each index can be either an integer
          *     or a slice. If a slice is given, select multiple positions along
          *     the corresponding axis. An empty slice can be used to select all
-         *     the positions along the axis. If the tensor is one dimensional,
-         *     the subscript operator can be used instead.
+         *     the positions along the axis.
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
@@ -290,9 +289,6 @@ namespace detail {
                   detail::RequiresSlice<Args...> = true>
         tensor_view<const T, detail::slice_index_rank<Args...>::value>
         operator()(Args... args) const;
-
-        tensor_view<T, 1> operator[](slice slc);
-        tensor_view<const T, 1> operator[](slice slc) const;
 
         /**
          * @brief Integer array indexing. Returns an indirect_tensor that
