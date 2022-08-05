@@ -23,6 +23,7 @@ Defined in `numcpp/tensor.h`
     - [`indirect_tensor::index`](#indirect_tensorindex)
     - [`indirect_tensor::rowmajor`](#indirect_tensorrowmajor)
     - [`indirect_tensor::colmajor`](#indirect_tensorcolmajor)
+    - [`indirect_tensor::is_owner`](#indirect_tensoris_owner)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
     - [Fill assignment](#fill-assignment)
@@ -525,6 +526,13 @@ bool rowmajor() const;
 Returns whether the elements are stored in column-major order.
 ```cpp
 bool colmajor() const;
+```
+
+### `indirect_tensor::is_owner`
+
+Returns whether the `indirect_tensor` is owner of an array of indices.
+```cpp
+bool is_owner() const;
 ```
 
 ## Assignment
