@@ -71,7 +71,6 @@ namespace numcpp {
         if (other.m_owner) {
             m_index = new size_t[m_size];
             std::copy_n(other.m_index, m_size, m_index);
-            m_owner = true;
         }
         else {
             m_index = other.m_index;
