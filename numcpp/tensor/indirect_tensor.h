@@ -217,6 +217,12 @@ namespace numcpp {
          */
         bool colmajor() const;
 
+        /**
+         * @brief Returns whether the indirect_tensor is owner of an array of
+         * indices.
+         */
+        bool is_owner() const;
+
         /// Assignment operator.
 
         /**

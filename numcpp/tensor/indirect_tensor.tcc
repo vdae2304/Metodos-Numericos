@@ -200,6 +200,11 @@ namespace numcpp {
         return !m_order;
     }
 
+    template <class T, size_t Rank>
+    inline bool indirect_tensor<T, Rank>::is_owner() const {
+        return m_owner;
+    }
+
     /// Assignment operator.
 
     template <class T, size_t Rank>
