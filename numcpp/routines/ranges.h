@@ -324,15 +324,16 @@ namespace ranges {
      * @brief Function object implementing sample variance.
      */
     struct var {
-        /// Delta degrees of freedom.
-        size_t ddof;
+        /// Whether to use a biased estimator.
+        bool bias;
 
         /**
          * @brief Constructor.
          *
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          */
-        var(size_t ddof = 0) : ddof(ddof) {}
+        var(bool bias = false) : bias(bias) {}
 
         /**
          * @brief Returns the sample variance of the elements in the range
@@ -364,7 +365,7 @@ namespace ranges {
                 val += deviation * deviation;
                 ++first;
             }
-            val /= size - ddof;
+            val /= size - 1 + bias;
             return val;
         }
     };
@@ -376,9 +377,10 @@ namespace ranges {
         /**
          * @brief Constructor.
          *
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          */
-        stddev(size_t ddof = 0) : var(ddof) {}
+        stddev(bool bias = false) : var(bias) {}
 
         /**
          * @brief Returns the sample standard deviation of the elements in the
