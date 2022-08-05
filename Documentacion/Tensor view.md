@@ -223,7 +223,7 @@ int main() {
     //   4 + 3*6 + 0*1 = 22, 4 + 3*6 + 1*1 = 23
     np::matrix_view<int> view1({4, 2}, data, 4, {6, 1});
     std::cout << view1 << "\n";
-    // Sizes are (1, 3), offset is 6, strides are (0, 3).
+    // Sizes are (1, 3), offset is 6, strides are (0, 2).
     // Select positions
     //   6 + 0*0 + 0*2 = 6, 6 + 0*0 + 1*2 = 8, 6 + 0*0 + 2*2 = 10
     np::matrix_view<int> view2({1, 3}, data, 6, {0, 2});
