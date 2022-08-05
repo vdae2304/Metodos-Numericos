@@ -758,24 +758,24 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::stddev(size_t ddof) const {
-        ranges::stddev pred(ddof);
+    inline T tensor_interface<T, Rank, Tag>::stddev(bool bias) const {
+        ranges::stddev pred(bias);
         return pred(this->begin(), this->end());
     }
 
     template <class T, size_t Rank, class Tag>
     inline tensor<T, Rank> tensor_interface<T, Rank, Tag>::stddev(
-        size_t axes, size_t ddof
+        size_t axes, bool bias
     ) const {
-        return this->stddev(make_shape(axes), ddof);
+        return this->stddev(make_shape(axes), bias);
     }
 
     template <class T, size_t Rank, class Tag>
     template <size_t N>
     inline tensor<T, Rank> tensor_interface<T, Rank, Tag>::stddev(
-        const shape_t<N> &axes, size_t ddof
+        const shape_t<N> &axes, bool bias
     ) const {
-        return this->reduce<T>(ranges::stddev(ddof), axes);
+        return this->reduce<T>(ranges::stddev(bias), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -799,24 +799,24 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::var(size_t ddof) const {
-        ranges::var pred(ddof);
+    inline T tensor_interface<T, Rank, Tag>::var(bool bias) const {
+        ranges::var pred(bias);
         return pred(this->begin(), this->end());
     }
 
     template <class T, size_t Rank, class Tag>
     inline tensor<T, Rank> tensor_interface<T, Rank, Tag>::var(
-        size_t axes, size_t ddof
+        size_t axes, bool bias
     ) const {
-        return this->var(make_shape(axes), ddof);
+        return this->var(make_shape(axes), bias);
     }
 
     template <class T, size_t Rank, class Tag>
     template <size_t N>
     inline tensor<T, Rank> tensor_interface<T, Rank, Tag>::var(
-        const shape_t<N> &axes, size_t ddof
+        const shape_t<N> &axes, bool bias
     ) const {
-        return this->reduce<T>(ranges::var(ddof), axes);
+        return this->reduce<T>(ranges::var(bias), axes);
     }
 }
 

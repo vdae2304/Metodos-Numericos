@@ -446,6 +446,12 @@ namespace numcpp {
 
         /**
          * @brief Return a copy of the tensor.
+         *
+         * @return A new tensor with a copy of each of the elements in the
+         *     tensor, in the same order.
+         *
+         * @throw std::bad_alloc If the function fails to allocate storage it
+         *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank> copy() const;
 
@@ -553,6 +559,12 @@ namespace numcpp {
 
         /**
          * @brief Return the indices of the elements that are non-zero.
+         *
+         * @return A new tensor with the indices of the elements that are
+         * non-zero.
+         *
+         * @throw std::bad_alloc If the function fails to allocate storage it
+         *     may throw an exception.
          */
         tensor<index_t<Rank>, 1> nonzero() const;
 
@@ -655,16 +667,17 @@ namespace numcpp {
          * average of the squared deviations from the mean
          *     stddev(a) = sqrt(mean(x)),    x = abs(a - mean(a))**2
          * The mean is calculated as sum(x)/n, where n = x.size(). However, if
-         * ddof is specified, the divisor n - ddof is used instead of n.
-         * In statistics, ddof = 1 provides an unbiased estimator of the sample
-         * variance; while ddof = 0 provides the maximum likelihood estimator of
-         * the variance for normally distributed variables.
+         * bias is false, the divisor n - 1 is used instead of n. In
+         * statistics, n - 1 provides an unbiased estimator of the sample
+         * variance; while n provides the maximum likelihood estimator of the
+         * variance for normally distributed variables.
          *
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          *
          * @return The standard deviation of the tensor elements.
          */
-        T stddev(size_t ddof = 0) const;
+        T stddev(bool bias) const;
 
         /**
          * @brief Return the standard deviation of the tensor elements over the
@@ -672,7 +685,8 @@ namespace numcpp {
          *
          * @param axes A shape_t object with the axes along which the standard
          *     deviation is computed.
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          *
          * @return A new tensor with the standard deviation over the axes. The
          *     output tensor will have the same dimension and the same shape,
@@ -682,9 +696,9 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> stddev(size_t axes, size_t ddof) const;
+        tensor<T, Rank> stddev(size_t axes, bool bias) const;
         template <size_t N>
-        tensor<T, Rank> stddev(const shape_t<N> &axes, size_t ddof) const;
+        tensor<T, Rank> stddev(const shape_t<N> &axes, bool bias) const;
 
         /**
          * @brief Return the sum of the tensor elements.
@@ -717,16 +731,17 @@ namespace numcpp {
          * deviations from the mean
          *     var(a) = mean(x),    x = abs(a - mean(a))**2
          * The mean is calculated as sum(x)/n, where n = x.size(). However, if
-         * ddof is specified, the divisor n - ddof is used instead of n.
-         * In statistics, ddof = 1 provides an unbiased estimator of the sample
-         * variance; while ddof = 0 provides the maximum likelihood estimator of
-         * the variance for normally distributed variables.
+         * bias is false, the divisor n - 1 is used instead of n. In
+         * statistics, n - 1 provides an unbiased estimator of the sample
+         * variance; while n provides the maximum likelihood estimator of the
+         * variance for normally distributed variables.
          *
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          *
          * @return The variance of the tensor elements.
          */
-        T var(size_t ddof = 0) const;
+        T var(bool bias) const;
 
         /**
          * @brief Return the variance of the tensor elements over the given
@@ -734,7 +749,8 @@ namespace numcpp {
          *
          * @param axes A shape_t object with the axes along which the variance
          *     is computed.
-         * @param ddof Delta degrees of freedom.
+         * @param bias If bias is true, then normalization is by n. Otherwise,
+         *     normalization is by n - 1.
          *
          * @return A new tensor with the variance over the axes. The output
          *     tensor will have the same dimension and the same shape, except
@@ -744,9 +760,9 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> var(size_t axes, size_t ddof) const;
+        tensor<T, Rank> var(size_t axes, bool bias) const;
         template <size_t N>
-        tensor<T, Rank> var(const shape_t<N> &axes, size_t ddof) const;
+        tensor<T, Rank> var(const shape_t<N> &axes, bool bias) const;
 
     private:
         /**
