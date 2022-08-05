@@ -34,6 +34,11 @@ Defined in `numcpp/tensor.h`
     - [Fill assignment](#fill-assignment)
     - [Move assignment](#move-assignment)
     - [Initializer list assignment](#initializer-list-assignment)
+  - [Resizing](#resizing)
+    - [`tensor::flatten`](#tensorflatten)
+    - [`tensor::reshape`](#tensorreshape)
+    - [`tensor::resize`](#tensorresize)
+    - [`tensor::squeeze`](#tensorsqueeze)
 
 ```cpp
 template <class T, size_t Rank> class tensor;
@@ -1194,3 +1199,236 @@ Warnings
 * When the shapes do not mach, invalidates all iterators, references and views
 to elements of the tensor. Otherwise, valid iterators, references and views
 keep their validity.
+
+## Resizing
+
+### `tensor::flatten`
+
+Return a view of the tensor collapsed into one dimension.
+```cpp
+tensor_view<T, 1> flatten();
+tensor_view<const T, 1> flatten() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> matrix{{1, 14, 12, -3},
+                           {-5, -3, 11, 11},
+                           {-1, 18, -3, -1}};
+    std::cout << matrix.flatten() << "\n";
+    np::tensor<int, 3> cube{{{16, 15, 14, -1},
+                             {5, 14, 9, 10},
+                             {18, 15, 2, 5}},
+                            {{11, 6, 19, -2},
+                             {7, 10, 1, -2},
+                             {14, 7, -2, 11}}};
+    std::cout << cube.flatten() << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+[ 1, 14, 12, -3, -5, -3, 11, 11, -1, 18, -3, -1]
+[16, 15, 14, -1,  5, 14,  9, 10, 18, 15,  2,  5, 11,  6, 19, -2,  7, 10,  1, -2,
+ 14,  7, -2, 11]
+```
+
+### `tensor::reshape`
+
+Return a `tensor_view` containing the same data with a new shape.
+```cpp
+template <size_t N>
+tensor_view<T, N> reshape(const shape_t<N> &shape);
+template <class... Args>
+tensor_view<T, sizeof...(Args)> reshape(Args... args);
+
+template <size_t N>
+tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
+template <class... Args>
+tensor_view<const T, sizeof...(Args)> reshape(Args... args) const;
+```
+
+Parameters
+
+* `shape` The new shape should be compatible with the original shape. It can be
+a `shape_t` object or the elements of the shape passed as separate arguments.
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the tensor could not reshaped.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> array{4, 9, 5, 0, 10, 3};
+    std::cout << "1 dimensional:\n" << array << "\n";
+    std::cout << "As row vector:\n" << array.reshape(1, array.size()) << "\n";
+    std::cout << "As column vector:\n" << array.reshape(array.size(), 1) << "\n";
+    std::cout << "As 2 x 3 matrix:\n" << array.reshape(2, 3) << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+1 dimensional:
+[ 4,  9,  5,  0, 10,  3]
+As row vector:
+[[ 4,  9,  5,  0, 10,  3]]
+As column vector:
+[[ 4],
+ [ 9],
+ [ 5],
+ [ 0],
+ [10],
+ [ 3]]
+As 2 x 3 matrix:
+[[ 4,  9,  5],
+ [ 0, 10,  3]]
+```
+
+### `tensor::resize`
+
+Resizes the tensor in-place to a given shape. Before resizing, if the new size
+is different from the total number of elements in the tensor, allocates memory
+for the new size losing the previous contents. Otherwise, the contents are
+preserved, but possibly aranged in a different order.
+```cpp
+void resize(const shape_t<Rank> &shape);
+template <class... Args>
+void resize(Args... args);
+```
+
+Parameters
+
+* `shape` New shape of the tensor. It can be a `shape_t` object or the elements
+of the shape passed as separate arguments.
+
+Returns
+
+* Invalidates all iterators, references and views to elements of the tensor.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> matrix{{1, 14, 12, -3},
+                           {-5, -3, 11, 11},
+                           {-1, 18, -3, -1}};
+    std::cout << matrix << "\n";
+    // Keeps previous contents.
+    matrix.resize(2, 6);
+    std::cout << matrix << "\n";
+    // Realloactes memory.
+    matrix.resize(3, 3);
+    std::cout << matrix << "\n";
+    return 0;
+}
+```
+
+Possible output
+
+```
+[[ 1, 14, 12, -3],
+ [-5, -3, 11, 11],
+ [-1, 18, -3, -1]]
+[[ 1, 14, 12, -3, -5, -3],
+ [11, 11, -1, 18, -3, -1]]
+[[-2062542064,         536, -2062548656],
+ [        536,          -5,          -3],
+ [         11,          11,          -1]]
+```
+
+### `tensor::squeeze`
+
+Removes axes of length one.
+```cpp
+template <size_t N>
+tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
+template <class... Args>
+tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
+
+template <size_t N>
+tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
+template <class... Args>
+tensor_view<const T, Rank - sizeof...(Args)> squeeze(Args... args) const;
+```
+
+Parameters
+
+* `axes` Selects a subset of the entries of length one in the shape. It can be
+a `shape_t` object or the elements of the shape passed as separate arguments.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if an axis with shape entry greater than one
+is selected.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 4> tensor4({1, 3, 1, 4}, 0);
+    std::cout << "4 dimensional:\n";
+    std::cout << tensor4.shape() << "\n";
+    std::cout << tensor4 << "\n";
+    np::matrix_view<int> view = tensor4.squeeze(0, 2);
+    std::cout << "2 dimensional:\n";
+    std::cout << view.shape() << "\n";
+    std::cout << view << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+4 dimensional:
+(1, 3, 1, 4)
+[[[[0, 0, 0, 0]],
+
+  [[0, 0, 0, 0]],
+
+  [[0, 0, 0, 0]]]]
+2 dimensional:
+(3, 4)
+[[0, 0, 0, 0],
+ [0, 0, 0, 0],
+ [0, 0, 0, 0]]
+```
