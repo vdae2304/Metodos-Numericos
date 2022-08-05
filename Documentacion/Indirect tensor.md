@@ -29,7 +29,7 @@ Defined in `numcpp/tensor.h`
     - [Move assignment](#move-assignment)
 
 ```cpp
-template <class T, size_t Rank> class indirect_tensor<T, Rank>;
+template <class T, size_t Rank> class indirect_tensor;
 ```
 An `indirect_tensor` is a view of a subset of elements from a multidimensional
 array. It references the elements in the original array through an array of

@@ -31,7 +31,7 @@ Defined in `numcpp/tensor.h`
     - [Move assignment](#move-assignment)
 
 ```cpp
-template <class T, size_t Rank> class tensor_view<T, Rank>;
+template <class T, size_t Rank> class tensor_view;
 ```
 A `tensor_view` is just a view of a multidimensional array. It references the
 elements in the original array. The view itself does not own the data and any

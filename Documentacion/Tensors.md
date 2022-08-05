@@ -36,7 +36,7 @@ Defined in `numcpp/tensor.h`
     - [Initializer list assignment](#initializer-list-assignment)
 
 ```cpp
-template <class T, size_t Rank> class tensor<T, Rank>;
+template <class T, size_t Rank> class tensor;
 ```
 Tensors are contiguous multidimensional sequence containers: they hold a
 specific number of elements arranged in multiple axis. Unlike a `tensor_view`,
