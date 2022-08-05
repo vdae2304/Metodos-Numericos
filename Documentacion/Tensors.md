@@ -859,9 +859,9 @@ Output
 Returns an `indirect_tensor` that selects the elements specified by the tensor
 of indices.
 ```cpp
-template <size_t N,>
+template <size_t N>
 indirect_tensor<T, N> operator[](const tensor<index_t<Rank>, N> &index);
-template <size_t N,>
+template <size_t N>
 tensor<T, N> operator[](const tensor<index_t<Rank>, N> &index) const;
 
 template <class IntegralType, size_t N>
