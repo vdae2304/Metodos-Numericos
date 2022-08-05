@@ -612,6 +612,9 @@ namespace detail {
             m_size = shape.size();
             m_data = new T[m_size];
         }
+        else {
+            m_shape = shape;
+        }
     }
 
     template <class T, size_t Rank>
