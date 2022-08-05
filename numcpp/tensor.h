@@ -553,7 +553,8 @@ namespace detail {
          * @brief Removes axes of length one.
          *
          * @param axes Selects a subset of the entries of length one in the
-         *     shape.
+         *     shape. It can be a shape_t object or the elements of the shape
+         *     passed as separate arguments.
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
@@ -566,8 +567,14 @@ namespace detail {
         template <size_t N>
         tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
 
+        template <class... Args, detail::RequiresIntegral<Args...> = true>
+        tensor_view<T, Rank-sizeof...(Args)> squeeze(Args... args);
+
         template <size_t N>
         tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
+
+        template <class... Args, detail::RequiresIntegral<Args...> = true>
+        tensor_view<const T, Rank-sizeof...(Args)> squeeze(Args... args) const;
 
         /**
          * @brief Return a view of the tensor with its axes in reversed order.

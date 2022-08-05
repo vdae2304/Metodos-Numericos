@@ -316,6 +316,13 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
+    template <class... Args, detail::RequiresIntegral<Args...> >
+    inline tensor_view<T, Rank - sizeof...(Args)>
+    tensor_view<T, Rank>::squeeze(Args... args) {
+        return this->squeeze(make_shape(args...));
+    }
+
+    template <class T, size_t Rank>
     template <size_t N>
     tensor_view<const T, Rank - N>
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) const {
@@ -342,6 +349,13 @@ namespace numcpp {
         return tensor_view<const T, Rank - N>(
             new_shape, m_data, m_offset, new_stride, m_order
         );
+    }
+
+    template <class T, size_t Rank>
+    template <class... Args, detail::RequiresIntegral<Args...> >
+    inline tensor_view<const T, Rank - sizeof...(Args)>
+    tensor_view<T, Rank>::squeeze(Args... args) const {
+        return this->squeeze(make_shape(args...));
     }
 
     template <class T, size_t Rank>
