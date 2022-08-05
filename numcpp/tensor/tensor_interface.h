@@ -412,7 +412,9 @@ namespace numcpp {
          * @tparam U Data type to which the elements are casted.
          *
          * @return A light-weight object with the elements in the tensor casted
-         *     to the specified type. Convertible to a tensor object.
+         *     to the specified type. This function does not create a new
+         *     tensor, instead, it returns a readonly view of the tensor with
+         *     its elements casted to the specified type.
          */
         template <class U>
         base_tensor<U, Rank, lazy_unary_tag<identity, T, Tag> >
@@ -421,10 +423,8 @@ namespace numcpp {
         /**
          * @brief Clamp the values in the tensor. Given an interval
          * [a_min, a_max], values smaller than a_min become a_min, and values
-         * larger than a_max become a_max.
-         *
-         * For complex types, the real and imaginary parts are clamped
-         * separately.
+         * larger than a_max become a_max. For complex types, the real and
+         * imaginary parts are clamped separately.
          *
          * @param a_min The lower boundary to clamp.
          * @param a_max The upper boundary to clamp.
@@ -437,7 +437,9 @@ namespace numcpp {
          * @brief Return the complex conjugate, element-wise.
          *
          * @return A light-weight object with the complex conjugate of each
-         *     element in the tensor. Convertible to a tensor object.
+         *     element in the tensor. This function does not create a new
+         *     tensor, instead, it returns a readonly view with the complex
+         *     conjugate of each element.
          */
         base_tensor<T, Rank, lazy_unary_tag<math_conj, T, Tag> >
         conj() const;
@@ -448,14 +450,18 @@ namespace numcpp {
         tensor<typename std::remove_cv<T>::type, Rank> copy() const;
 
         /**
-         * @brief Return or set the imaginary part, element-wise.
+         * @brief Return or set the imaginary part, element-wise. Non-complex
+         * types are treated as complex numbers with zero imaginary part
+         * component.
          *
          * @param arg A tensor-like object with the values to set the imaginary
          *     part to.
          * @param val Value to set the imaginary part to.
          *
          * @return A light-weight object with the imaginary part of each
-         *     element in the tensor. Convertible to a tensor object.
+         *     element in the tensor. This function does not create a new
+         *     tensor, instead, it returns a readonly view with the imaginary
+         *     part of each element.
          */
         base_tensor<detail::complex_value_type<T>, Rank,
                     lazy_unary_tag<math_imag, T, Tag> >
@@ -596,14 +602,16 @@ namespace numcpp {
         tensor<T, Rank> prod(const shape_t<N> &axes) const;
 
         /**
-         * @brief Return or set the real part, element-wise.
+         * @brief Return or set the real part, element-wise. Non-complex types
+         * are treated as complex numbers with zero imaginary part component.
          *
          * @param arg A tensor-like object with the values to set the real part
          *     to.
          * @param val Value to set the real part to.
          *
          * @return A light-weight object with the real part of each element in
-         *     the tensor. Convertible to a tensor object.
+         *     the tensor. This function does not create a new tensor, instead,
+         *     it returns a readonly view with the real part of each element.
          */
         base_tensor<detail::complex_value_type<T>, Rank,
                     lazy_unary_tag<math_real, T, Tag> >
