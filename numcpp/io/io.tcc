@@ -183,6 +183,7 @@ namespace numcpp {
             }
         }
         if (fail) {
+            slc = slice();
             istr.setstate(std::ios_base::failbit);
         }
         return istr;
@@ -236,35 +237,44 @@ namespace detail {
             return bool(istr >> rhs);
         case complexmode_t::algebraic:
             T x, y;
+            charT ch;
+            bool fail = true;
             if (istr >> x) {
                 if (!istr.eof()) {
-                    charT ch, plus = istr.widen('+'), minus = istr.widen('-');
+                    charT plus = istr.widen('+'), minus = istr.widen('-');
                     istr >> ch;
                     if (traits::eq(ch, plus) || traits::eq(ch, minus)) {
                         istr.putback(ch);
                         if (istr >> y >> ch) {
                             if (traits::eq(ch, istr.widen('i'))) {
                                 rhs = std::complex<T>(x, y);
-                                return true;
+                                fail = false;
                             }
-                            istr.putback(ch);
+                            else {
+                                istr.putback(ch);
+                            }
                         }
-                        istr.setstate(std::ios_base::failbit);
-                        return false;
                     }
                     else if (traits::eq(ch, istr.widen('i'))) {
                         rhs = std::complex<T>(T(), x);
-                        return true;
+                        fail = false;
                     }
-                    istr.putback(ch);
+                    else {
+                        istr.putback(ch);
+                        rhs = x;
+                        fail = false;
+                    }
                 }
-                rhs = x;
-                return true;
+                else {
+                    rhs = x;
+                    fail = false;
+                }
             }
-            istr.setstate(std::ios_base::failbit);
-            return false;
+            if (fail) {
+                istr.setstate(std::ios_base::failbit);
+            }
         }
-        return false;
+        return bool(istr);
     }
 
     /**
