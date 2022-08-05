@@ -12,8 +12,8 @@ Defined in `numcpp/shape.h`
     - [Copy assignment](#copy-assignment)
     - [Integer assignment](#integer-assignment)
   - [Public methods](#public-methods)
-    - [`shape::ndim`](#shapendim)
-    - [`shape::size`](#shapesize)
+    - [`shape_t::ndim`](#shape_tndim)
+    - [`shape_t::size`](#shape_tsize)
     - [`shape_t::transpose`](#shape_ttranspose)
   - [Operators](#operators)
     - [`shape_t::operator[]`](#shape_toperator)
@@ -126,7 +126,7 @@ Returns
 
 ## Public methods
 
-### `shape::ndim`
+### `shape_t::ndim`
 
 Return the dimension of the shape.
 ```cpp
@@ -158,7 +158,7 @@ Output
 3
 ```
 
-### `shape::size`
+### `shape_t::size`
 
 Return the product of the sizes along all the axes.
 ```cpp
