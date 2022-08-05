@@ -530,7 +530,7 @@ namespace detail {
         tensor_view<const T, sizeof...(Args)> reshape(Args... args) const;
 
         /**
-         * @brief Resizes the tensor in-place to a given shape. After resizing,
+         * @brief Resizes the tensor in-place to a given shape. Before resizing,
          * if the new size is different from the total number of elements in
          * the tensor, allocates memory for the new size losing the previous
          * contents. Otherwise, the contents are preserved, but possibly
