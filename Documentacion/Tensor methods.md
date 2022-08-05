@@ -14,36 +14,39 @@ Defined in `numcpp/tensor.h`
     - [`tensor::iterator::coords`](#tensoriteratorcoords)
     - [`tensor::iterator::rowmajor`](#tensoriteratorrowmajor)
     - [`tensor::iterator::colmajor`](#tensoriteratorcolmajor)
-  - [Public methods](#public-methods)
+  - [Complex numbers](#complex-numbers)
+    - [`tensor::conj`](#tensorconj)
+    - [`tensor::real`](#tensorreal)
+    - [`tensor::imag`](#tensorimag)
+  - [Miscellaneous](#miscellaneous)
+    - [`tensor::apply`](#tensorapply)
+    - [`tensor::astype`](#tensorastype)
+    - [`tensor::clamp`](#tensorclamp)
+    - [`tensor::copy`](#tensorcopy)
+  - [Sorting and searching](#sorting-and-searching)
+    - [`tensor::argpartition`](#tensorargpartition)
+    - [`tensor::argsort`](#tensorargsort)
+    - [`tensor::nonzero`](#tensornonzero)
+    - [`tensor::partition(axis)`](#tensorpartitionaxis)
+    - [`tensor::reverse(axis)`](#tensorreverseaxis)
+    - [`tensor::sort(axis)`](#tensorsortaxis)
+  - [Reductions](#reductions)
     - [`tensor::all`](#tensorall)
     - [`tensor::all(axes)`](#tensorallaxes)
     - [`tensor::any`](#tensorany)
     - [`tensor::any(axes)`](#tensoranyaxes)
-    - [`tensor::apply`](#tensorapply)
     - [`tensor::argmax`](#tensorargmax)
     - [`tensor::argmax(axis)`](#tensorargmaxaxis)
     - [`tensor::argmin`](#tensorargmin)
     - [`tensor::argmin(axis)`](#tensorargminaxis)
-    - [`tensor::argpartition`](#tensorargpartition)
-    - [`tensor::argsort`](#tensorargsort)
-    - [`tensor::astype`](#tensorastype)
-    - [`tensor::clamp`](#tensorclamp)
-    - [`tensor::conj`](#tensorconj)
-    - [`tensor::copy`](#tensorcopy)
-    - [`tensor::imag`](#tensorimag)
     - [`tensor::max`](#tensormax)
     - [`tensor::max(axes)`](#tensormaxaxes)
     - [`tensor::mean`](#tensormean)
     - [`tensor::mean(axes)`](#tensormeanaxes)
     - [`tensor::min`](#tensormin)
     - [`tensor::min(axes)`](#tensorminaxes)
-    - [`tensor::nonzero`](#tensornonzero)
-    - [`tensor::partition`](#tensorpartition)
     - [`tensor::prod`](#tensorprod)
     - [`tensor::prod(axes)`](#tensorprodaxes)
-    - [`tensor::real`](#tensorreal)
-    - [`tensor::reverse`](#tensorreverse)
-    - [`tensor::sort`](#tensorsort)
     - [`tensor::stddev`](#tensorstddev)
     - [`tensor::stddev(axes)`](#tensorstddevaxes)
     - [`tensor::sum`](#tensorsum)
@@ -279,12 +282,12 @@ Returns
 Accesses the underlying tensor.
 
 ```cpp
-/// For iterator
+/// tensor::iterator
 tensor<T, Rank>* base() const;
 tensor_view<T, Rank>* base() const;
 indirect_tensor<T, Rank>* base() const;
 
-/// For const_iterator
+/// tensor::const_iterator
 const tensor<T, Rank>* base() const;
 const tensor_view<T, Rank>* base() const;
 const indirect_tensor<T, Rank>* base() const;
@@ -319,7 +322,7 @@ Output
 
 Returns the underlying flat index.
 ```cpp
-/// For both iterator and const_iterator
+/// tensor::iterator, tensor::const_iterator
 size_t index() const;
 ```
 
@@ -365,7 +368,7 @@ Output
 
 Returns an `index_t` object with the current coordinates.
 ```cpp
-/// For both iterator and const_iterator
+/// tensor::iterator, tensor::const_iterator
 index_t<Rank> coords() const;
 ```
 
@@ -429,7 +432,7 @@ Column-major order:
 
 Returns whether the elements are iterated in row-major order.
 ```cpp
-/// For both iterator and const_iterator
+/// tensor::iterator, tensor::const_iterator
 bool rowmajor() const;
 ```
 
@@ -474,7 +477,7 @@ it2 iterates in column-major order
 
 Returns whether the elements are iterated in column-major order.
 ```cpp
-/// For both iterator and const_iterator
+/// tensor::iterator, tensor::const_iterator
 bool colmajor() const;
 ```
 
@@ -511,7 +514,951 @@ it1 iterates in row-major order
 it2 iterates in column-major order
 ```
 
-## Public methods
+## Complex numbers
+
+### `tensor::conj`
+
+<h3><code>tensor_view::conj</code></h3>
+
+<h3><code>indirect_tensor::conj</code></h3>
+
+Return the complex conjugate, element-wise.
+```cpp
+tensor<T, Rank> conj() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* A light-weight object with the complex conjugate of each element in the
+tensor. This function does not create a new tensor, instead, it returns a
+readonly view with the complex conjugate of each element.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<std::complex<double> > a;
+    std::cin >> a;
+    std::cout << a.conj() << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+```
+
+Output
+
+```
+[ 8+1i, 12+3i,  8-9i,  5-0i,  1-2i, 12-1i,  0+3i, -1-9i,  6-0i, 0-10i]
+```
+
+### `tensor::real`
+
+<h3><code>tensor_view::real</code></h3>
+
+<h3><code>indirect_tensor::real</code></h3>
+
+Return or set the real part, element-wise. Non-complex types are treated as
+complex numbers with zero imaginary part component.
+```cpp
+/// If T = std::complex<U>.
+tensor<U, Rank> real() const;
+void real(const tensor<U, Rank> &arg);
+void real(const U &val);
+
+/// Non-complex types
+tensor<T, Rank> real() const;
+```
+
+Parameters
+
+* `arg` A tensor-like object with the values to set the real part to.
+* `val` Value to set the real part to.
+
+Returns
+
+* A light-weight object with the real part of each element in the tensor. This
+function does not create a new tensor, instead, it returns a readonly view with
+the real part of each element.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<std::complex<double> > a;
+    std::cin >> a;
+    std::cout << a.real() << "\n";
+    a.real(0);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+Input
+
+```
+[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+```
+
+Output
+
+```
+[ 8, 12,  8,  5,  1, 12,  0, -1,  6,  0]
+[ 0-1i,  0-3i,  0+9i,  0+0i,  0+2i,  0+1i,  0-3i,  0+9i,  0+0i, 0+10i]
+```
+
+### `tensor::imag`
+
+<h3><code>tensor_view::imag</code></h3>
+
+<h3><code>indirect_tensor::imag</code></h3>
+
+Return or set the imaginary part, element-wise. Non-complex types are treated
+as complex numbers with zero imaginary part component.
+```cpp
+/// If T = std::complex<U>.
+tensor<U, Rank> imag() const;
+void imag(const tensor<U, Rank> &arg);
+void imag(const U &val);
+
+/// Non-complex types
+tensor<T, Rank> imag() const;
+```
+
+Parameters
+
+* `arg` A tensor-like object with the values to set the imaginary part to.
+* `val` Value to set the imaginary part to.
+
+Returns
+
+* A light-weight object with the imaginary part of each element in the tensor.
+This function does not create a new tensor, instead, it returns a readonly view
+with the imaginary part of each element.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<std::complex<double> > a;
+    std::cin >> a;
+    std::cout << a.imag() << "\n";
+    a.imag(0);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+Input
+
+```
+[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+```
+
+Output
+
+```
+[-1, -3,  9,  0,  2,  1, -3,  9,  0, 10]
+[ 8+0i, 12+0i,  8+0i,  5+0i,  1+0i, 12+0i,  0+0i, -1+0i,  6+0i,  0+0i]
+```
+
+## Miscellaneous
+
+### `tensor::apply`
+
+<h3><code>tensor_view::apply</code></h3>
+
+<h3><code>indirect_tensor::apply</code></h3>
+
+Assigns to each element the result of applying a function to the corresponding
+elements in `*this`.
+```cpp
+void apply(T f(T));
+void apply(T f(const T&));
+template <class Function>
+void apply(Function f);
+```
+
+Parameters
+
+* `f` A function that accepts one element of type `T` as argument, and returns
+a value convertible to `T`.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+
+int square(int x) {
+    return x*x;
+}
+
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    a.apply(square);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[4, 2, -4, -2, 8, -5, 7, -4, 6, 3]
+```
+
+Output
+
+```
+[16,  4, 16,  4, 64, 25, 49, 16, 36,  9]
+```
+
+### `tensor::astype`
+
+<h3><code>tensor_view::astype</code></h3>
+
+<h3><code>indirect_tensor::astype</code></h3>
+
+Cast each element to a specified type.
+```cpp
+template <class U>
+tensor<U, Rank> astype() const;
+```
+
+Template parameters
+
+* `U` Data type to which the elements are casted.
+
+Returns
+
+* A light-weight object with the elements in the tensor casted to the specified
+type. This function does not create a new tensor, instead, it returns a
+readonly view of the tensor with its elements casted to the specified type.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<double> a;
+    std::cin >> a;
+    std::cout << a.astype<int>() << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2.01, -3.62, -4.97, 6.77, 8.33, 5.93, 0.49, 7.8, 14.8, -2.3 ]
+```
+
+Output
+
+```
+[ 2, -3, -4,  6,  8,  5,  0,  7, 14, -2]
+```
+
+### `tensor::clamp`
+
+<h3><code>tensor_view::clamp</code></h3>
+
+<h3><code>indirect_tensor::clamp</code></h3>
+
+Clamp the values in the tensor. Given an interval [`a_min`, `a_max`], values
+smaller than `a_min` become `a_min`, and values larger than `a_max` become
+`a_max`. For complex types, the real and imaginary parts are clamped
+separately.
+```cpp
+void clamp(const T &a_min, const T &a_max);
+```
+
+Parameters
+
+* `a_min` The lower boundary to clamp.
+* `a_max` The upper boundary to clamp.
+
+Returns
+
+* None
+
+Notes
+
+* The behavior is undefined if `a_min` is greater than `a_max`.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    int a_min, a_max;
+    std::cin >> a >> a_min >> a_max;
+    a.clamp(a_min, a_max);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[4, 12, 2, 0, 2, 10, -4, 6, 2, -4]
+1 10
+```
+
+Output
+
+```
+[ 4, 10,  2,  1,  2, 10,  1,  6,  2,  1]
+```
+
+### `tensor::copy`
+
+<h3><code>tensor_view::copy</code></h3>
+
+<h3><code>indirect_tensor::copy</code></h3>
+
+Return a copy of the tensor.
+```cpp
+tensor<typename std::remove_cv<T>::type, Rank> copy() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* A new tensor with a copy of each of the elements in the tensor, in the same
+order.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+## Sorting and searching
+
+### `tensor::argpartition`
+
+<h3><code>tensor_view::argpartition</code></h3>
+
+<h3><code>indirect_tensor::argpartition</code></h3>
+
+Return the indices that would partition the tensor.
+```cpp
+tensor<index_t<Rank>, 1> argpartition(size_t kth) const;
+template <class Compare>
+tensor<index_t<Rank>, 1> argpartition(size_t kth, Compare comp) const;
+```
+
+Parameters
+
+* `kth` Element index to partition by. The element at the `kth` position is the
+element that would be in that position in the sorted tensor. The other elements
+are left without any specific order, except that none of the elements preceding
+`kth` are greater than it, and none of the elements following it are less.
+* `comp` Custom comparator. A binary function that accepts two elements of type
+`T` as arguments, and returns a value convertible to `bool`. The value returned
+indicates whether the element passed as first argument is considered to go
+before the second.
+
+Returns
+
+* A one-dimensional tensor of indices that partitions the tensor. If `a` is a
+tensor, then `a[a.argpartition(kth)]` yields a partitioned `a`.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    int kth;
+    std::cin >> a >> kth;
+    np::array<np::index_t<1> > indices = a.argpartition(kth);
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Partitioned array:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+5
+```
+
+Output
+
+```
+Indices:
+[(1,), (7,), (6,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
+Partitioned array:
+[-2, -5, -3,  0,  3,  4, 12, 12, 18, 19]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    int kth;
+    std::cin >> a >> kth;
+    np::array<np::index_t<2> > indices = a.argpartition(kth);
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Partitioned array:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[19,  3, -5,  2],
+ [ 2, 16, -4,  8],
+ [ 3, 13,  9,  7]]
+6
+```
+
+Output
+
+```
+Indices:
+[(0, 1), (2, 0), (0, 2), (0, 3), (1, 0), (1, 2), (2, 3), (1, 3), (0, 0), (2, 1),
+ (2, 2), (1, 1)]
+Partitioned array:
+[ 3,  3, -5,  2,  2, -4,  7,  8, 19, 13,  9, 16]
+```
+
+### `tensor::argsort`
+
+<h3><code>tensor_view::argsort</code></h3>
+
+<h3><code>indirect_tensor::argsort</code></h3>
+
+Return the indices that would sort the tensor.
+```cpp
+tensor<index_t<Rank>, 1> argsort(bool stable = false) const;
+template <class Compare>
+tensor<index_t<Rank>, 1> argsort(Compare comp, bool stable = false) const;
+```
+
+Parameters
+
+* `comp` Custom comparator. A binary function that accepts two elements of type
+`T` as arguments, and returns a value convertible to `bool`. The value returned
+indicates whether the element passed as first argument is considered to go
+before the second.
+* `stable` If `true`, preserve the relative order of the elements with
+equivalent values. Otherwise, equivalent elements are not guaranteed to keep
+their original relative order.
+
+Returns
+
+* A one-dimensional tensor of indices that sort the tensor. If `a` is a tensor,
+then `a[a.argsort()]` yields a sorted `a`.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    np::array<np::index_t<1> > indices = a.argsort();
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Sorted array:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+```
+
+Output
+
+```
+Indices:
+[(7,), (6,), (1,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
+Sorted array:
+[-5, -3, -2,  0,  3,  4, 12, 12, 18, 19]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    std::cin >> a;
+    np::array<np::index_t<2> > indices = a.argsort();
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Sorted array:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[19,  3, -5,  2],
+ [ 2, 16, -4,  8],
+ [ 3, 13,  9,  7]]
+```
+
+Output
+
+```
+Indices:
+[(0, 2), (1, 2), (0, 3), (1, 0), (0, 1), (2, 0), (2, 3), (1, 3), (2, 2), (2, 1),
+ (1, 1), (0, 0)]
+Sorted array:
+[-5, -4,  2,  2,  3,  3,  7,  8,  9, 13, 16, 19]
+```
+
+### `tensor::nonzero`
+
+<h3><code>tensor_view::nonzero</code></h3>
+
+<h3><code>indirect_tensor::nonzero</code></h3>
+
+Return the indices of the elements that are non-zero.
+```cpp
+tensor<index_t<Rank>, 1> nonzero() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* A new tensor with the indices of the elements that are non-zero.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    np::array<bool> is_positive = (a > 0);
+    np::array<np::index_t<1> > indices = is_positive.nonzero();
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Values:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[7, 0, 5, 11, -3, 0, -3, 8, -1, 14]
+```
+
+Output
+
+```
+Indices:
+[(0,), (2,), (3,), (7,), (9,)]
+Values:
+[ 7,  5, 11,  8, 14]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    std::cin >> a;
+    np::matrix<bool> is_positive = (a > 0);
+    np::array<np::index_t<2> > indices = is_positive.nonzero();
+    std::cout << "Indices:\n" << indices << "\n";
+    std::cout << "Values:\n" << a[indices] << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[ 6,  3,  4, 13,  5, 12],
+ [ 0, -4,  9,  7, 14,  9],
+ [ 8, 11,  9, -2,  7,  4],
+ [ 1, -2,  6,  9, 14, -2]]
+```
+
+Output
+
+```
+Indices:
+[(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (1, 2), (1, 3), (1, 4), (1, 5),
+ (2, 0), (2, 1), (2, 2), (2, 4), (2, 5), (3, 0), (3, 2), (3, 3), (3, 4)]
+Values:
+[ 6,  3,  4, 13,  5, 12,  9,  7, 14,  9,  8, 11,  9,  7,  4,  1,  6,  9, 14]
+```
+
+### `tensor::partition(axis)`
+
+<h3><code>tensor_view::partition(axis)</code></h3>
+
+<h3><code>indirect_tensor::partition(axis)</code></h3>
+
+Partition the elements in-place.
+```cpp
+void partition(size_t kth, size_t axis = Rank - 1);
+template <class Compare>
+void partition(size_t kth, size_t axis, Compare comp);
+```
+
+Parameters
+
+* `kth` Element index to partition by. The element at the `kth` position is the
+element that would be in that position in the sorted tensor. The other elements
+are left without any specific order, except that none of the elements preceding
+`kth` are greater than it, and none of the elements following it are less.
+* `axis` Axis along which to partition. Defaults to `Rank - 1`, which means
+partition along the last axis.
+* `comp` Custom comparator. A binary function that accepts two elements of type
+`T` as arguments, and returns a value convertible to `bool`. The value returned
+indicates whether the element passed as first argument is considered to go
+before the second.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    int kth;
+    std::cin >> a >> kth;
+    a.partition(kth);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+5
+```
+
+Output
+
+```
+[-2, -5, -3,  0,  3,  4, 12, 12, 18, 19]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    int kth;
+    std::cin >> a >> kth;
+    a.partition(kth, 0);
+    std::cout << "Axis 0:\n" << a << "\n";
+    std::cin >> kth;
+    a.partition(kth, 1);
+    std::cout << "Axis 1:\n" << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[11, 18, -3, 13, -2, 15],
+ [10, -4, 15,  1,  0, -5],
+ [ 9,  3, -1,  4,  3, -3],
+ [-1, -3, 12,  2, 18, -1]]
+1
+2
+```
+
+Output
+
+```
+Axis 0:
+[[-1, -4, -3,  1, -2, -5],
+ [ 9, -3, -1,  2,  0, -3],
+ [11,  3, 12,  4,  3, 15],
+ [10, 18, 15, 13, 18, -1]]
+Axis 1:
+[[-4, -5, -3, -2, -1,  1],
+ [-3, -3, -1,  0,  2,  9],
+ [ 3,  3,  4, 11, 12, 15],
+ [-1, 10, 13, 15, 18, 18]]
+```
+
+### `tensor::reverse(axis)`
+
+<h3><code>tensor_view::reverse(axis)</code></h3>
+
+<h3><code>indirect_tensor::reverse(axis)</code></h3>
+
+Reverse the order of the elements in-place.
+```cpp
+void reverse(size_t axis = Rank - 1);
+```
+
+Parameters
+
+* `axis` Axis along which to reverse. Defaults to `Rank - 1`, which means
+reverse along the last axis.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    a.reverse();
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+```
+
+Output
+
+```
+[12,  3, -5, -3, 18,  4,  0, 19, -2, 12]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    std::cin >> a;
+    a.reverse(0);
+    std::cout << "Axis 0:\n" << a << "\n";
+    a.reverse(1);
+    std::cout << "Axis 1:\n" << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[11, 18, -3, 13, -2, 15],
+ [10, -4, 15,  1,  0, -5],
+ [ 9,  3, -1,  4,  3, -3],
+ [-1, -3, 12,  2, 18, -1]]
+```
+
+Output
+
+```
+Axis 0:
+[[-1, -3, 12,  2, 18, -1],
+ [ 9,  3, -1,  4,  3, -3],
+ [10, -4, 15,  1,  0, -5],
+ [11, 18, -3, 13, -2, 15]]
+Axis 1:
+[[-1, 18,  2, 12, -3, -1],
+ [-3,  3,  4, -1,  3,  9],
+ [-5,  0,  1, 15, -4, 10],
+ [15, -2, 13, -3, 18, 11]]
+```
+
+### `tensor::sort(axis)`
+
+<h3><code>tensor_view::sort(axis)</code></h3>
+
+<h3><code>indirect_tensor::sort(axis)</code></h3>
+
+Sort the elements in-place.
+```cpp
+void sort(size_t axis = Rank - 1, bool stable = false);
+template <class Compare>
+void sort(size_t axis, Compare comp, bool stable = false);
+```
+
+Parameters
+
+* `axis` Axis along which to sort. Defaults to `Rank - 1`, which means sort
+along the last axis.
+* `comp` Custom comparator. A binary function that accepts two elements of type
+`T` as arguments, and returns a value convertible to `bool`. The value returned
+indicates whether the element passed as first argument is considered to go
+before the second.
+* `stable` If `true`, preserve the relative order of the elements with
+equivalent values. Otherwise, equivalent elements are not guaranteed to keep
+their original relative order.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    a.sort();
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+```
+
+Output
+
+```
+[-5, -3, -2,  0,  3,  4, 12, 12, 18, 19]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    std::cin >> a;
+    a.sort(0);
+    std::cout << "Axis 0:\n" << a << "\n";
+    a.sort(1);
+    std::cout << "Axis 1:\n" << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[11, 18, -3, 13, -2, 15],
+ [10, -4, 15,  1,  0, -5],
+ [ 9,  3, -1,  4,  3, -3],
+ [-1, -3, 12,  2, 18, -1]]
+```
+
+Output
+
+```
+Axis 0:
+[[-1, -4, -3,  1, -2, -5],
+ [ 9, -3, -1,  2,  0, -3],
+ [10,  3, 12,  4,  3, -1],
+ [11, 18, 15, 13, 18, 15]]
+Axis 1:
+[[-5, -4, -3, -2, -1,  1],
+ [-3, -3, -1,  0,  2,  9],
+ [-1,  3,  3,  4, 10, 12],
+ [11, 13, 15, 15, 18, 18]]
+```
+
+## Reductions
 
 ### `tensor::all`
 
@@ -523,6 +1470,10 @@ Test whether all tensor elements evaluates to `true`.
 ```cpp
 bool all() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -616,19 +1567,19 @@ int main() {
 Input
 
 ```
-[[13,  3, -1, 1,  3, -3],
- [13,  0, 11, 5, 12,  5],
- [ 1,  5, 13, 2, -3,  8],
- [ 5, 13, 11, 0,  4,  9]]
+[[ 6,  3,  4, 13,  5, 12],
+ [ 0, -4,  9,  7, 14,  9],
+ [ 8, 11,  9, -2,  7,  4],
+ [ 1, -2,  6,  9, 14, -2]]
 ```
 
 Output
 
 ```
 Axis 0:
-[[ true, false, false, false, false, false]]
+[[false, false,  true, false,  true, false]]
 Axis 1:
-[[false],
+[[ true],
  [false],
  [false],
  [false]]
@@ -681,6 +1632,10 @@ Test whether any tensor element evaluates to `true`.
 ```cpp
 bool any() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -774,22 +1729,22 @@ int main() {
 Input
 
 ```
-[[13,  3, -1, 1,  3, -3],
- [13,  0, 11, 5, 12,  5],
- [ 1,  5, 13, 2, -3,  8],
- [ 5, 13, 11, 0,  4,  9]]
+[[ 6,  3,  4, 13,  5, 12],
+ [ 0, -4,  9,  7, 14,  9],
+ [ 8, 11,  9, -2,  7,  4],
+ [ 1, -2,  6,  9, 14, -2]]
 ```
 
 Output
 
 ```
 Axis 0:
-[[false, false,  true, false,  true,  true]]
+[[false,  true, false,  true, false,  true]]
 Axis 1:
-[[ true],
- [false],
+[[false],
  [ true],
- [false]]
+ [ true],
+ [ true]]
 ```
 
 Example
@@ -829,62 +1784,6 @@ Last 2 axes:
  [[false]]]
 ```
 
-### `tensor::apply`
-
-<h3><code>tensor_view::apply</code></h3>
-
-<h3><code>indirect_tensor::apply</code></h3>
-
-Assigns to each element the result of applying a function to the corresponding
-elements in `*this`.
-```cpp
-void apply(T f(T));
-void apply(T f(const T&));
-template <class Function>
-void apply(Function f);
-```
-
-Parameters
-
-* `f` A function that accepts one element of type `T` as argument, and returns
-a value convertible to `T`.
-
-Returns
-
-* None
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-
-int square(int x) {
-    return x*x;
-}
-
-int main() {
-    np::array<int> a;
-    std::cin >> a;
-    a.apply(square);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[4, 2, -4, -2, 8, -5, 7, -4, 6, 3]
-```
-
-Output
-
-```
-[16,  4, 16,  4, 64, 25, 49, 16, 36,  9]
-```
-
 ### `tensor::argmax`
 
 <h3><code>tensor_view::argmax</code></h3>
@@ -895,6 +1794,10 @@ Return the indices of the maximum value in the tensor.
 ```cpp
 index_t<Rank> argmax() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -999,6 +1902,10 @@ Return the indices of the minimum value in the tensor.
 index_t<Rank> argmin() const;
 ```
 
+Parameters
+
+* None
+
 Returns
 
 * The indices of the minimum value in the tensor.
@@ -1091,356 +1998,6 @@ Axis 1:
  [5]]
 ```
 
-### `tensor::argpartition`
-
-<h3><code>tensor_view::argpartition</code></h3>
-
-<h3><code>indirect_tensor::argpartition</code></h3>
-
-Return the indices that would partition the tensor.
-```cpp
-tensor<index_t<Rank>, 1> argpartition(size_t kth) const;
-template <class Compare>
-tensor<index_t<Rank>, 1> argpartition(size_t kth, Compare comp) const;
-```
-
-Parameters
-
-* `kth` Element index to partition by. The element at the `kth` position is the
-element that would be in that position in the sorted tensor. The other elements
-are left without any specific order, except that none of the elements preceding
-`kth` are greater than it, and none of the elements following it are less.
-* `comp` Custom comparator. A binary function that accepts two elements of type
-`T` as arguments, and returns a value convertible to `bool`. The value returned
-indicates whether the element passed as first argument is considered to go
-before the second.
-
-Returns
-
-* A one-dimensional tensor of indices that partitions the tensor. If `a` is a
-tensor, then `a[a.argpartition(kth)]` yields a partitioned `a`.
-
-Exceptions
-
-* `std::bad_alloc` If the function fails to allocate storage it may throw an
-exception.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    int kth;
-    std::cin >> a >> kth;
-    np::array<np::index_t<1> > indices = a.argpartition(kth);
-    std::cout << "Indices:\n" << indices << "\n";
-    std::cout << "Partitioned array:\n" << a[indices] << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
-5
-```
-
-Output
-
-```
-Indices:
-[(1,), (7,), (6,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
-Partitioned array:
-[-2, -5, -3,  0,  3,  4, 12, 12, 18, 19]
-```
-
-### `tensor::argsort`
-
-<h3><code>tensor_view::argsort</code></h3>
-
-<h3><code>indirect_tensor::argsort</code></h3>
-
-Return the indices that would sort the tensor.
-```cpp
-tensor<index_t<Rank>, 1> argsort(bool stable = false) const;
-template <class Compare>
-tensor<index_t<Rank>, 1>
-argsort(Compare comp, bool stable = false) const;
-```
-
-Parameters
-
-* `comp` Custom comparator. A binary function that accepts two elements of type
-`T` as arguments, and returns a value convertible to `bool`. The value returned
-indicates whether the element passed as first argument is considered to go
-before the second.
-* `stable` If `true`, preserve the relative order of the elements with
-equivalent values. Otherwise, equivalent elements are not guaranteed to keep
-their original relative order.
-
-Returns
-
-* A one-dimensional tensor of indices that sort the tensor. If `a` is a tensor,
-then `a[a.argsort()]` yields a sorted `a`.
-
-Exceptions
-
-* `std::bad_alloc` If the function fails to allocate storage it may throw an
-exception.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    std::cin >> a;
-    np::array<np::index_t<1> > indices = a.argsort();
-    std::cout << "Indices:\n" << indices << "\n";
-    std::cout << "Sorted array:\n" << a[indices] << "\n";
-    return 0;
-}
-```
-
-
-Input
-
-```
-[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
-```
-
-Output
-
-```
-Indices:
-[(7,), (6,), (1,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
-Sorted array:
-[-5, -3, -2,  0,  3,  4, 12, 12, 18, 19]
-```
-
-### `tensor::astype`
-
-<h3><code>tensor_view::astype</code></h3>
-
-<h3><code>indirect_tensor::astype</code></h3>
-
-Cast each element to a specified type.
-```cpp
-template <class U>
-tensor<U, Rank> astype() const;
-```
-
-Template parameters
-
-* `U` Data type to which the elements are casted.
-
-Returns
-
-* A light-weight object with the elements in the tensor casted to the specified
-type. This function does not create a new tensor, instead, it returns a
-readonly view of the tensor with its elements casted to the specified type.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<double> a;
-    std::cin >> a;
-    std::cout << a.astype<int>() << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[2.01, -3.62, -4.97, 6.77, 8.33, 5.93, 0.49, 7.8, 14.8, -2.3 ]
-```
-
-Output
-
-```
-[ 2, -3, -4,  6,  8,  5,  0,  7, 14, -2]
-```
-
-### `tensor::clamp`
-
-<h3><code>tensor_view::clamp</code></h3>
-
-<h3><code>indirect_tensor::clamp</code></h3>
-
-Clamp the values in the tensor. Given an interval [`a_min`, `a_max`], values
-smaller than `a_min` become `a_min`, and values larger than `a_max` become
-`a_max`. For complex types, the real and imaginary parts are clamped
-separately.
-```cpp
-void clamp(const T &a_min, const T &a_max);
-```
-
-Parameters
-
-* `a_min` The lower boundary to clamp.
-* `a_max` The upper boundary to clamp.
-
-Notes
-
-* The behavior is undefined if `a_min` is greater than `a_max`.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<double> a;
-    int a_min, a_max;
-    std::cin >> a >> a_min >> a_max;
-    a.clamp(a_min, a_max);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[4, 12, 2, 0, 2, 10, -4, 6, 2, -4]
-1 10
-```
-
-Output
-
-```
-[ 4, 10,  2,  1,  2, 10,  1,  6,  2,  1]
-```
-
-### `tensor::conj`
-
-<h3><code>tensor_view::conj</code></h3>
-
-<h3><code>indirect_tensor::conj</code></h3>
-
-Return the complex conjugate, element-wise.
-```cpp
-tensor<T, Rank> conj() const;
-```
-
-Returns
-
-* A light-weight object with the complex conjugate of each element in the
-tensor. This function does not create a new tensor, instead, it returns a
-readonly view with the complex conjugate of each element.
-
-Example
-
-```cpp
-#include <iostream>
-#include <complex>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.conj() << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
-```
-
-Output
-
-```
-[ 8+1i, 12+3i,  8-9i,  5-0i,  1-2i, 12-1i,  0+3i, -1-9i,  6-0i, 0-10i]
-```
-
-### `tensor::copy`
-
-<h3><code>tensor_view::copy</code></h3>
-
-<h3><code>indirect_tensor::copy</code></h3>
-
-Return a copy of the tensor.
-```cpp
-tensor<typename std::remove_cv<T>::type, Rank> copy() const;
-```
-
-### `tensor::imag`
-
-<h3><code>tensor_view::imag</code></h3>
-
-<h3><code>indirect_tensor::imag</code></h3>
-
-Return or set the imaginary part, element-wise. Non-complex types are treated
-as complex numbers with zero imaginary part component.
-```cpp
-/// If T = std::complex<U>.
-tensor<U, Rank> imag() const;
-void imag(const tensor<U, Rank> &arg);
-void imag(const U &val);
-
-/// Non-complex types
-tensor<T, Rank> imag() const;
-```
-
-Parameters
-
-* `arg` A tensor-like object with the values to set the imaginary part to.
-* `val` Value to set the imaginary part to.
-
-Returns
-
-* A light-weight object with the imaginary part of each element in the tensor.
-This function does not create a new tensor, instead, it returns a readonly view
-with the imaginary part of each element.
-
-Example
-
-```cpp
-#include <iostream>
-#include <complex>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.imag() << "\n";
-    a.imag(0);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-Input
-
-```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
-```
-
-Output
-
-```
-[-1, -3,  9,  0,  2,  1, -3,  9,  0, 10]
-[ 8+0i, 12+0i,  8+0i,  5+0i,  1+0i, 12+0i,  0+0i, -1+0i,  6+0i,  0+0i]
-```
-
 ### `tensor::max`
 
 <h3><code>tensor_view::max</code></h3>
@@ -1451,6 +2008,10 @@ Return the maximum value contained in the tensor.
 ```cpp
 T max() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -1593,6 +2154,10 @@ Return the average of the tensor elements.
 T mean() const;
 ```
 
+Parameters
+
+* None
+
 Returns
 
 * The average of the tensor elements.
@@ -1602,25 +2167,24 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::array<double> a;
-    std::cin >> a;
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::array<double> a = rng.normal<double>(9, 5, 10);
+    std::cout << a << "\n";
     std::cout << a.mean() << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[12.83, -4.69, 2.15, -3.72, 9.76, 14.81, -1.39, 7.57, -0.85, -1.75]
-```
-
-Output
-
-```
-3.472
+[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
+  6.366814,  11.31266, 10.003497]
+8.67431
 ```
 
 ### `tensor::mean(axes)`
@@ -1656,34 +2220,33 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<double> a;
-    std::cin >> a;
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
+    std::cout << a << "\n";
     std::cout << "Axis 0:\n" << a.mean(0) << "\n";
     std::cout << "Axis 1:\n" << a.mean(1) << "\n";
     return 0;
 }
 ```
-Input
+
+Possible output
 
 ```
-[[-3.45, -0.45,  0.24, -3.54, -2.92, 12.56],
- [-0.77,  3.49, 14.81,  3.38,  7.12, 11.98],
- [ 1.95, -0.84, 10.37,  5.75,  2.47,  9.41],
- [-0.81, -4.54, 11.09,  0.37,  8.12,  0.05]]
-```
-
-Output
-
-```
+[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
+ [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
+ [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
+ [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
 Axis 0:
-[[ -0.77, -0.585, 9.1275,   1.49, 3.6975,    8.5]]
+[[8.9959515, 4.6219839, 9.3078007, 6.8339142, 8.3193789, 12.094182]]
 Axis 1:
-[[0.40666667],
- [ 6.6683333],
- [ 4.8516667],
- [      2.38]]
+[[8.3153517],
+ [11.222165],
+ [10.634152],
+ [ 3.277139]]
 ```
 
 Example
@@ -1691,34 +2254,32 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::tensor<double, 3> a;
-    std::cin >> a;
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
+    std::cout << a << "\n";
     std::cout << "Last 2 axes:\n" << a.mean(np::make_shape(1, 2));
-    std::cout << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[[[ 8.04,  8.93, -4.34, -1.15],
-  [10.37, -3.23, 14.25,  5.74],
-  [10.24, -4.75, -2.35,  3.02]],
- [[-3.24, 10.34, 11.09,  6.01],
-  [14.1 , -4.23, -2.39,  5.94],
-  [ 2.72,  8.91,  2.32,  8.76]]]
-```
+[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
+  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
+  [  11.31266,  10.003497,  19.623383,  10.858606]],
 
-Output
-
-```
+ [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
+  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
+  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
 Last 2 axes:
-[[[3.7308333]],
+[[[9.7687585]],
 
- [[   5.0275]]]
+ [[6.9556453]]]
 ```
 
 ### `tensor::min`
@@ -1731,6 +2292,10 @@ Return the minimum value contained in the tensor.
 ```cpp
 T min() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -1862,135 +2427,6 @@ Last 2 axes:
  [[-4]]]
 ```
 
-### `tensor::nonzero`
-
-<h3><code>tensor_view::nonzero</code></h3>
-
-<h3><code>indirect_tensor::nonzero</code></h3>
-
-Return the indices of the elements that are non-zero.
-```cpp
-tensor<index_t<Rank>, 1> nonzero() const;
-```
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    std::cin >> a;
-    np::array<bool> is_negative = (a < 0);
-    np::array<np::index_t<1> > indices = is_negative.nonzero();
-    std::cout << "Indices: " << indices << "\n";
-    std::cout << "Values: " << a[indices] << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[7, 0, 5, 11, -3, 0, -3, 8, -1, 14]
-```
-
-Output
-
-```
-Indices: [(4,), (6,), (8,)]
-Values: [-3, -3, -1]
-```
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::matrix<int> a;
-    std::cin >> a;
-    np::matrix<bool> is_negative = (a < 0);
-    np::array<np::index_t<2> > indices = is_negative.nonzero();
-    std::cout << "Indices: " << indices << "\n";
-    std::cout << "Values: " << a[indices] << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[[13,  3, -1, 1,  3, -3],
- [13,  0, 11, 5, 12,  5],
- [ 1,  5, 13, 2, -3,  8],
- [ 5, 13, 11, 0,  4,  9]]
-```
-
-Output
-
-```
-Indices: [(0, 2), (0, 5), (2, 4)]
-Values: [-1, -3, -3]
-```
-
-### `tensor::partition`
-
-<h3><code>tensor_view::partition</code></h3>
-
-<h3><code>indirect_tensor::partition</code></h3>
-
-Partition the elements in-place.
-```cpp
-void partition(size_t kth, size_t axis = Rank - 1);
-template <class Compare>
-void partition(size_t kth, size_t axis, Compare comp);
-```
-
-Parameters
-
-* `kth` Element index to partition by. The element at the `kth` position is the
-element that would be in that position in the sorted tensor. The other elements
-are left without any specific order, except that none of the elements preceding
-`kth` are greater than it, and none of the elements following it are less.
-* `axis` Axis along which to partition. Defaults to `Rank - 1`, which means
-partition along the last axis.
-* `comp` Custom comparator. A binary function that accepts two elements of type
-`T` as arguments, and returns a value convertible to `bool`. The value returned
-indicates whether the element passed as first argument is considered to go
-before the second.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    int kth;
-    std::cin >> a >> kth;
-    a.partition(kth);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
-5
-```
-
-Output
-
-```
-[-2, -5, -3,  0,  3,  4, 12, 12, 18, 19]
-```
-
 ### `tensor::prod`
 
 <h3><code>tensor_view::prod</code></h3>
@@ -2001,6 +2437,10 @@ Return the product of the tensor elements.
 ```cpp
 T prod() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -2131,161 +2571,6 @@ Last 2 axes:
  [[3628800]]]
 ```
 
-### `tensor::real`
-
-<h3><code>tensor_view::real</code></h3>
-
-<h3><code>indirect_tensor::real</code></h3>
-
-Return or set the real part, element-wise. Non-complex types are treated as
-complex numbers with zero imaginary part component.
-```cpp
-/// If T = std::complex<U>.
-tensor<U, Rank> real() const;
-void real(const tensor<U, Rank> &arg);
-void real(const U &val);
-
-/// Non-complex types
-tensor<T, Rank> real() const;
-```
-
-Parameters
-
-* `arg` A tensor-like object with the values to set the real part to.
-* `val` Value to set the real part to.
-
-Returns
-
-* A light-weight object with the real part of each element in the tensor. This
-function does not create a new tensor, instead, it returns a readonly view with
-the real part of each element.
-
-Example
-
-```cpp
-#include <iostream>
-#include <complex>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.real() << "\n";
-    a.real(0);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-Input
-
-```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
-```
-
-Output
-
-```
-[ 8, 12,  8,  5,  1, 12,  0, -1,  6,  0]
-[ 0-1i,  0-3i,  0+9i,  0+0i,  0+2i,  0+1i,  0-3i,  0+9i,  0+0i, 0+10i]
-```
-
-### `tensor::reverse`
-
-<h3><code>tensor_view::reverse</code></h3>
-
-<h3><code>indirect_tensor::reverse</code></h3>
-
-Reverse the order of the elements in-place.
-```cpp
-void reverse(size_t axis = Rank - 1);
-```
-
-Parameters
-
-* `axis` Axis along which to reverse. Defaults to `Rank - 1`, which means
-reverse along the last axis.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    std::cin >> a;
-    a.reverse();
-    std::cout << a << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
-```
-
-Output
-
-```
-[12,  3, -5, -3, 18,  4,  0, 19, -2, 12]
-```
-
-### `tensor::sort`
-
-<h3><code>tensor_view::reverse</code></h3>
-
-<h3><code>indirect_tensor::reverse</code></h3>
-
-Sort the elements in-place.
-```cpp
-void sort(size_t axis = Rank - 1, bool stable = false);
-template <class Compare>
-void sort(size_t axis, Compare comp, bool stable = false);
-```
-
-Parameters
-
-* `axis` Axis along which to sort. Defaults to `Rank - 1`, which means sort
-along the last axis.
-* `comp` Custom comparator. A binary function that accepts two elements of type
-`T` as arguments, and returns a value convertible to `bool`. The value returned
-indicates whether the element passed as first argument is considered to go
-before the second.
-* `stable` If `true`, preserve the relative order of the elements with
-equivalent values. Otherwise, equivalent elements are not guaranteed to keep
-their original relative order.
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::array<int> a;
-    std::cin >> a;
-    a.sort();
-    std::cout << a << "\n";
-    return 0;
-}
-```
-
-nput
-
-```
-[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
-```
-
-Output
-
-```
-[-5, -3, -2,  0,  3,  4, 12, 12, 18, 19]
-```
-
 ### `tensor::stddev`
 
 <h3><code>tensor_view::stddev</code></h3>
@@ -2294,7 +2579,7 @@ Output
 
 Return the standard deviation of the tensor elements.
 ```cpp
-T stddev(size_t ddof = 0) const;
+T stddev(bool bias) const;
 ```
 
 The standard deviation is defined as the square root of the average of the
@@ -2304,15 +2589,16 @@ squared deviations from the mean
     stddev(a) = sqrt(mean(x)),    x = abs(a - mean(a))**2
 ```
 
-The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `ddof`
-is specified, the divisor `n - ddof` is used instead of `n`. In statistics,
-`ddof = 1` provides an unbiased estimator of the sample variance; while
-`ddof = 0` provides the maximum likelihood estimator of the variance for
-normally distributed variables.
+The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `bias`
+is `false`, the divisor `n - 1` is used instead of `n`. In statistics, `n - 1`
+provides an unbiased estimator of the sample variance; while `n` provides the
+maximum likelihood estimator of the variance for normally distributed
+variables.
 
 Parameters
 
-* `ddof` Delta degrees of freedom.
+* `bias` If `bias` is `true`, then normalization is by `n`. Otherwise,
+normalization is by `n - 1`.
 
 Returns
 
@@ -2323,25 +2609,24 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::array<double> a;
-    std::cin >> a;
-    std::cout << a.stddev() << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::array<double> a = rng.normal<double>(9, 5, 10);
+    std::cout << a << "\n";
+    std::cout << a.stddev(true) << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[12.83, -4.69, 2.15, -3.72, 9.76, 14.81, -1.39, 7.57, -0.85, -1.75]
-```
-
-Output
-
-```
-6.79804
+[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
+  6.366814,  11.31266, 10.003497]
+3.10905
 ```
 
 ### `tensor::stddev(axes)`
@@ -2352,16 +2637,17 @@ Output
 
 Return the standard deviation of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> stddev(size_t axes, size_t ddof) const;
+tensor<T, Rank> stddev(size_t axes, bool bias) const;
 template <size_t N>
-tensor<T, Rank> stddev(const shape_t<N> &axes, size_t ddof) const;
+tensor<T, Rank> stddev(const shape_t<N> &axes, bool bias) const;
 ```
 
 Parameters
 
 * `axes` A `shape_t` object with the axes along which the standard deviation is
 computed.
-* `ddof` Delta degrees of freedom.
+* `bias` If `bias` is `true`, then normalization is by `n`. Otherwise,
+normalization is by `n - 1`.
 
 Returns
 
@@ -2379,35 +2665,33 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<double> a;
-    std::cin >> a;
-    std::cout << "Axis 0:\n" << a.stddev(0, 0) << "\n";
-    std::cout << "Axis 1:\n" << a.stddev(1, 0) << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
+    std::cout << a << "\n";
+    std::cout << "Axis 0:\n" << a.stddev(0, true) << "\n";
+    std::cout << "Axis 1:\n" << a.stddev(1, true) << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[[-3.45, -0.45,  0.24, -3.54, -2.92, 12.56],
- [-0.77,  3.49, 14.81,  3.38,  7.12, 11.98],
- [ 1.95, -0.84, 10.37,  5.75,  2.47,  9.41],
- [-0.81, -4.54, 11.09,  0.37,  8.12,  0.05]]
-```
-
-Output
-
-```
+[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
+ [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
+ [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
+ [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
 Axis 0:
-[[1.9093454, 2.8430134, 5.4007795, 3.4740107, 4.3752164, 5.0205727]]
+[[3.4768586, 6.1983183, 2.8289795, 2.2790862, 7.4894955, 2.3393709]]
 Axis 1:
-[[5.6270468],
- [5.3377318],
- [4.0522521],
- [5.4213037]]
+[[3.6876608],
+ [4.0824806],
+ [3.7244233],
+ [ 4.605317]]
 ```
 
 Example
@@ -2415,34 +2699,32 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::tensor<double, 3> a;
-    std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.stddev(np::make_shape(1, 2), 0);
-    std::cout << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
+    std::cout << a << "\n";
+    std::cout << "Last 2 axes:\n" << a.stddev(np::make_shape(1, 2), true);
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[[[ 8.04,  8.93, -4.34, -1.15],
-  [10.37, -3.23, 14.25,  5.74],
-  [10.24, -4.75, -2.35,  3.02]],
- [[-3.24, 10.34, 11.09,  6.01],
-  [14.1 , -4.23, -2.39,  5.94],
-  [ 2.72,  8.91,  2.32,  8.76]]]
-```
+[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
+  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
+  [  11.31266,  10.003497,  19.623383,  10.858606]],
 
-Output
-
-```
+ [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
+  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
+  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
 Last 2 axes:
-[[[6.4132551]],
+[[[4.1527264]],
 
- [[5.7721849]]]
+ [[5.5741856]]]
 ```
 
 ### `tensor::sum`
@@ -2455,6 +2737,10 @@ Return the sum of the tensor elements.
 ```cpp
 T sum() const;
 ```
+
+Parameters
+
+* None
 
 Returns
 
@@ -2593,7 +2879,7 @@ Last 2 axes:
 
 Return the variance of the tensor elements.
 ```cpp
-T var(size_t ddof = 0) const;
+T var(bool bias) const;
 ```
 
 The variance is defined as the average of the squared deviations from the mean
@@ -2602,15 +2888,16 @@ The variance is defined as the average of the squared deviations from the mean
     var(a) = mean(x),    x = abs(a - mean(a))**2
 ```
 
-The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `ddof`
-is specified, the divisor `n - ddof` is used instead of `n`. In statistics,
-`ddof = 1` provides an unbiased estimator of the sample variance; while
-`ddof = 0` provides the maximum likelihood estimator of the variance for
-normally distributed variables.
+The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `bias`
+is `false`, the divisor `n - 1` is used instead of `n`. In statistics, `n - 1`
+provides an unbiased estimator of the sample variance; while `n` provides the
+maximum likelihood estimator of the variance for normally distributed
+variables.
 
 Parameters
 
-* `ddof` Delta degrees of freedom.
+* `bias` If `bias` is `true`, then normalization is by `n`. Otherwise,
+normalization is by `n - 1`.
 
 Returns
 
@@ -2621,25 +2908,24 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::array<double> a;
-    std::cin >> a;
-    std::cout << a.var() << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::array<double> a = rng.normal<double>(9, 5, 10);
+    std::cout << a << "\n";
+    std::cout << a.var(true) << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[12.83, -4.69, 2.15, -3.72, 9.76, 14.81, -1.39, 7.57, -0.85, -1.75]
-```
-
-Output
-
-```
-46.2134
+[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
+  6.366814,  11.31266, 10.003497]
+9.66621
 ```
 
 ### `tensor::var(axes)`
@@ -2650,15 +2936,16 @@ Output
 
 Return the variance of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> var(size_t axes, size_t ddof) const;
+tensor<T, Rank> var(size_t axes, bool bias) const;
 template <size_t N>
-tensor<T, Rank> var(const shape_t<N> &axes, size_t ddof) const;
+tensor<T, Rank> var(const shape_t<N> &axes, bool bias) const;
 ```
 
 Parameters
 
 * `axes` A `shape_t` object with the axes along which the variance is computed.
-* `ddof` Delta degrees of freedom.
+* `bias` If `bias` is `true`, then normalization is by `n`. Otherwise,
+normalization is by `n - 1`.
 
 Returns
 
@@ -2676,35 +2963,33 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<double> a;
-    std::cin >> a;
-    std::cout << "Axis 0:\n" << a.var(0, 0) << "\n";
-    std::cout << "Axis 1:\n" << a.var(1, 0) << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
+    std::cout << a << "\n";
+    std::cout << "Axis 0:\n" << a.var(0, true) << "\n";
+    std::cout << "Axis 1:\n" << a.var(1, true) << "\n";
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[[-3.45, -0.45,  0.24, -3.54, -2.92, 12.56],
- [-0.77,  3.49, 14.81,  3.38,  7.12, 11.98],
- [ 1.95, -0.84, 10.37,  5.75,  2.47,  9.41],
- [-0.81, -4.54, 11.09,  0.37,  8.12,  0.05]]
-```
-
-Output
-
-```
+[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
+ [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
+ [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
+ [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
 Axis 0:
-[[   3.6456,  8.082725, 29.168419,  12.06875, 19.142519,  25.20615]]
+[[12.088546, 38.419149, 8.0031247, 5.1942341, 56.092543,  5.472656]]
 Axis 1:
-[[31.663656],
- [28.491381],
- [16.420747],
- [29.390533]]
+[[13.598842],
+ [16.666648],
+ [13.871329],
+ [21.208945]]
 ```
 
 Example
@@ -2712,32 +2997,30 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    np::tensor<double, 3> a;
-    std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.var(np::make_shape(1, 2), 0);
-    std::cout << "\n";
+    // Sample from a normal distribution with mean 9 and standard deviation 5.
+    np::default_rng rng(0);
+    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
+    std::cout << a << "\n";
+    std::cout << "Last 2 axes:\n" << a.var(np::make_shape(1, 2), true);
     return 0;
 }
 ```
 
-Input
+Possible output
 
 ```
-[[[ 8.04,  8.93, -4.34, -1.15],
-  [10.37, -3.23, 14.25,  5.74],
-  [10.24, -4.75, -2.35,  3.02]],
- [[-3.24, 10.34, 11.09,  6.01],
-  [14.1 , -4.23, -2.39,  5.94],
-  [ 2.72,  8.91,  2.32,  8.76]]]
-```
+[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
+  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
+  [  11.31266,  10.003497,  19.623383,  10.858606]],
 
-Output
-
-```
+ [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
+  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
+  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
 Last 2 axes:
-[[[41.129841]],
+[[[17.245136]],
 
- [[33.318119]]]
+ [[31.071545]]]
 ```
