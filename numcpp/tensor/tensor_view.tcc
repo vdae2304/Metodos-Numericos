@@ -254,36 +254,30 @@ namespace numcpp {
     template <class T, size_t Rank>
     tensor_view<T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t offset) {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = m_offset, stride = m_stride[0] + m_stride[1];
-        if (offset >= 0 && m_shape[1] > (size_t)offset) {
-            size = std::min(m_shape[0], m_shape[1] - offset);
-            start = m_offset + offset * m_stride[1];
+        size_t size = 0, start = 0, stride = 0;
+        index_t<2> index = (offset >= 0) ? make_index(0, offset)
+                                         : make_index(-offset, 0);
+        if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
+            size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
+            start = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
+            stride = m_stride[0] + m_stride[1];
         }
-        else if (offset < 0 && m_shape[0] > (size_t)-offset) {
-            size = std::min(m_shape[0] + offset, m_shape[1]);
-            start = m_offset + -offset * m_stride[0];
-        }
-        return tensor_view<T, 1>(
-            make_shape(size), m_data, start, make_shape(stride)
-        );
+        return tensor_view<T, 1>(size, m_data, start, stride);
     }
 
     template <class T, size_t Rank>
     tensor_view<const T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t offset)
     const {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = m_offset, stride = m_stride[0] + m_stride[1];
-        if (offset >= 0 && m_shape[1] > (size_t)offset) {
-            size = std::min(m_shape[0], m_shape[1] - offset);
-            start = m_offset + offset * m_stride[1];
+        size_t size = 0, start = 0, stride = 0;
+        index_t<2> index = (offset >= 0) ? make_index(0, offset)
+                                         : make_index(-offset, 0);
+        if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
+            size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
+            start = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
+            stride = m_stride[0] + m_stride[1];
         }
-        else if (offset < 0 && m_shape[0] > (size_t)-offset) {
-            size = std::min(m_shape[0] + offset, m_shape[1]);
-            start = m_offset + -offset * m_stride[0];
-        }
-        return tensor_view<const T, 1>(
-            make_shape(size), m_data, start, make_shape(stride)
-        );
+        return tensor_view<const T, 1>(size, m_data, start, stride);
     }
 
     template <class T, size_t Rank>
