@@ -39,6 +39,8 @@ Defined in `numcpp/tensor.h`
     - [`tensor::reshape`](#tensorreshape)
     - [`tensor::resize`](#tensorresize)
     - [`tensor::squeeze`](#tensorsqueeze)
+  - [Transpose](#transpose)
+    - [`tensor::t`](#tensort)
 
 ```cpp
 template <class T, size_t Rank> class tensor;
@@ -1336,6 +1338,10 @@ of the shape passed as separate arguments.
 
 Returns
 
+* None
+
+Warnings
+
 * Invalidates all iterators, references and views to elements of the tensor.
 
 Example
@@ -1392,6 +1398,13 @@ Parameters
 * `axes` Selects a subset of the entries of length one in the shape. It can be
 a `shape_t` object or the elements of the shape passed as separate arguments.
 
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
 Exceptions
 
 * `std::invalid_argument` Thrown if an axis with shape entry greater than one
@@ -1431,4 +1444,89 @@ Input
 [[0, 0, 0, 0],
  [0, 0, 0, 0],
  [0, 0, 0, 0]]
+```
+
+## Transpose
+
+### `tensor::t`
+
+Return a view of the tensor with its axes in reversed order.
+```cpp
+tensor_view<T, Rank> t();
+tensor_view<const T, Rank> t() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> array{0, 14, -4, 5, 1, 1, -3, 1, 5, 0};
+    np::array_view<int> view1 = array.t();
+    std::cout << "1 dimensional:\n";
+    std::cout << view1.shape() << "\n";
+    std::cout << view1 << "\n";
+    np::matrix<int> matrix{{1, 14, 12, -3},
+                           {-5, -3, 11, 11},
+                           {-1, 18, -3, -1}};
+    np::matrix_view<int> view2 = matrix.t();
+    std::cout << "2 dimensional:\n";
+    std::cout << view2.shape() << "\n";
+    std::cout << view2 << "\n";
+    np::tensor<int, 3> cube{{{16, 15, 14, -1},
+                             {5, 14, 9, 10},
+                             {18, 15, 2, 5}},
+                            {{11, 6, 19, -2},
+                             {7, 10, 1, -2},
+                             {14, 7, -2, 11}}};
+    np::tensor_view<int, 3> view3 = cube.t();
+    std::cout << "3 dimensional:\n";
+    std::cout << view3.shape() << "\n";
+    std::cout << view3 << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+1 dimensional:
+(10,)
+[ 0, 14, -4,  5,  1,  1, -3,  1,  5,  0]
+2 dimensional:
+(4, 3)
+[[ 1, -5, -1],
+ [14, -3, 18],
+ [12, 11, -3],
+ [-3, 11, -1]]
+3 dimensional:
+(4, 3, 2)
+[[[16, 11],
+  [ 5,  7],
+  [18, 14]],
+
+ [[15,  6],
+  [14, 10],
+  [15,  7]],
+
+ [[14, 19],
+  [ 9,  1],
+  [ 2, -2]],
+
+ [[-1, -2],
+  [10, -2],
+  [ 5, 11]]]
 ```
