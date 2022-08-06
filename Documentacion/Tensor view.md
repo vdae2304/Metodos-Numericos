@@ -29,6 +29,11 @@ Defined in `numcpp/tensor.h`
     - [Copy assignment](#copy-assignment)
     - [Fill assignment](#fill-assignment)
     - [Move assignment](#move-assignment)
+  - [Resizing](#resizing)
+    - [`tensor_view::squeeze`](#tensor_viewsqueeze)
+  - [Tranpose](#tranpose)
+    - [`tensor_view::swapaxes`](#tensor_viewswapaxes)
+    - [`tensor_view::t`](#tensor_viewt)
 
 ```cpp
 template <class T, size_t Rank> class tensor_view;
@@ -809,3 +814,239 @@ empty state.
 Returns
 
 * `*this`
+
+## Resizing
+
+### `tensor_view::squeeze`
+
+Removes axes of length one.
+```cpp
+template <size_t N>
+tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
+template <class... Args>
+tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
+
+template <size_t N>
+tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
+template <class... Args>
+tensor_view<const T, Rank - sizeof...(Args)> squeeze(Args... args) const;
+```
+
+Parameters
+
+* `axes` Selects a subset of the entries of length one in the shape. It can be
+a `shape_t` object or the elements of the shape passed as separate arguments.
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if an axis with shape entry greater than one
+is selected.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    int data[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    np::tensor_view<int, 4> view4d({1, 3, 1, 4}, data);
+    std::cout << "4 dimensional:\n";
+    std::cout << view4d.shape() << "\n";
+    std::cout << view4d << "\n";
+    np::matrix_view<int> view2d = view4d.squeeze(0, 2);
+    std::cout << "2 dimensional:\n";
+    std::cout << view2d.shape() << "\n";
+    std::cout << view2d << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+4 dimensional:
+(1, 3, 1, 4)
+[[[[ 0,  1,  2,  3]],
+
+  [[ 4,  5,  6,  7]],
+
+  [[ 8,  9, 10, 11]]]]
+2 dimensional:
+(3, 4)
+[[ 0,  1,  2,  3],
+ [ 4,  5,  6,  7],
+ [ 8,  9, 10, 11]]
+```
+
+## Tranpose
+
+### `tensor_view::swapaxes`
+
+Interchanges two axes of a `tensor_view` in-place.
+```cpp
+void swapaxes(size_t axis1, size_t axis2);
+```
+
+Parameters
+
+* `axis1` First axis.
+* `axis2` Second axis.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    int data2d[3*4] = {1, 14, 12, -3,
+                       -5, -3, 11, 11,
+                       -1, 18, -3, -1};
+    np::matrix_view<int> matrix({3, 4}, data2d);
+    std::cout << "2 dimensional:\n";
+    std::cout << matrix << "\n";
+    matrix.swapaxes(0, 1);
+    std::cout << matrix << "\n";
+
+    int data3d[2*3*4] = {16, 15, 14, -1,
+                         5, 14, 9, 10,
+                         18, 15, 2, 5,
+
+                         11, 6, 19, -2,
+                         7, 10, 1, -2,
+                         14, 7, -2, 11};
+    np::tensor_view<int, 3> cube({2, 3, 4}, data3d);
+    std::cout << "3 dimensional:\n";
+    std::cout << cube << "\n";
+    cube.swapaxes(1, 2); // Swap last 2 axes.
+    std::cout << cube << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+2 dimensional:
+[[ 1, 14, 12, -3],
+ [-5, -3, 11, 11],
+ [-1, 18, -3, -1]]
+[[ 1, -5, -1],
+ [14, -3, 18],
+ [12, 11, -3],
+ [-3, 11, -1]]
+3 dimensional:
+[[[16, 15, 14, -1],
+  [ 5, 14,  9, 10],
+  [18, 15,  2,  5]],
+
+ [[11,  6, 19, -2],
+  [ 7, 10,  1, -2],
+  [14,  7, -2, 11]]]
+[[[16,  5, 18],
+  [15, 14, 15],
+  [14,  9,  2],
+  [-1, 10,  5]],
+
+ [[11,  7, 14],
+  [ 6, 10,  7],
+  [19,  1, -2],
+  [-2, -2, 11]]]
+```
+
+### `tensor_view::t`
+
+Return a view of the tensor with its axes in reversed order.
+```cpp
+tensor_view<T, Rank> t();
+tensor_view<const T, Rank> t() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    int data2d[3*4] = {1, 14, 12, -3,
+                       -5, -3, 11, 11,
+                       -1, 18, -3, -1};
+    np::matrix_view<int> matrix({3, 4}, data2d);
+    std::cout << "2 dimensional:\n";
+    std::cout << matrix << "\n";
+    std::cout << matrix.t() << "\n";
+
+    int data3d[2*3*4] = {16, 15, 14, -1,
+                         5, 14, 9, 10,
+                         18, 15, 2, 5,
+
+                         11, 6, 19, -2,
+                         7, 10, 1, -2,
+                         14, 7, -2, 11};
+    np::tensor_view<int, 3> cube({2, 3, 4}, data3d);
+    std::cout << "3 dimensional:\n";
+    std::cout << cube << "\n";
+    std::cout << cube.t() << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+2 dimensional:
+[[ 1, 14, 12, -3],
+ [-5, -3, 11, 11],
+ [-1, 18, -3, -1]]
+[[ 1, -5, -1],
+ [14, -3, 18],
+ [12, 11, -3],
+ [-3, 11, -1]]
+3 dimensional:
+[[[16, 15, 14, -1],
+  [ 5, 14,  9, 10],
+  [18, 15,  2,  5]],
+
+ [[11,  6, 19, -2],
+  [ 7, 10,  1, -2],
+  [14,  7, -2, 11]]]
+[[[16, 11],
+  [ 5,  7],
+  [18, 14]],
+
+ [[15,  6],
+  [14, 10],
+  [15,  7]],
+
+ [[14, 19],
+  [ 9,  1],
+  [ 2, -2]],
+
+ [[-1, -2],
+  [10, -2],
+  [ 5, 11]]]
+```
