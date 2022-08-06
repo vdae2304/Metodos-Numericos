@@ -528,7 +528,7 @@ namespace detail {
     template <class T, size_t Rank>
     tensor_view<T, 1> tensor<T, Rank>::diagonal(ptrdiff_t offset) {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = m_shape[1] + 1;
+        size_t size = 0, start = 0, stride = 1 + m_shape[1];
         if (offset >= 0 && m_shape[1] > (size_t)offset) {
             size = std::min(m_shape[0], m_shape[1] - offset);
             start = offset;
@@ -543,7 +543,7 @@ namespace detail {
     template <class T, size_t Rank>
     tensor_view<const T, 1> tensor<T, Rank>::diagonal(ptrdiff_t offset) const {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = m_shape[1] + 1;
+        size_t size = 0, start = 0, stride = 1 + m_shape[1];
         if (offset >= 0 && m_shape[1] > (size_t)offset) {
             size = std::min(m_shape[0], m_shape[1] - offset);
             start = offset;
