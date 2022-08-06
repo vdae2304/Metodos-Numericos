@@ -659,10 +659,11 @@ namespace detail {
      * @param val Value to use either as left-hand or right-hand operand.
      *
      * @return A light-weight object which stores the result of performing the
-     *     operation on each element. Each of these operators uses
-     *     lazy-evaluation, meaning that the result of each operation is
-     *     computed only at the end, when the whole expression is evaluated or
-     *     assigned to a tensor object.
+     *     operation on each element. None of these operators creates a new
+     *     tensor object, instead, an expression object is returned. The
+     *     returned object uses lazy-evaluation, which means that the result of
+     *     each operation is computed only when required, i.e., when the whole
+     *     expression is evaluated or assigned to a tensor object.
      *
      * @throw std::invalid_argument Thrown if the shapes are not compatible and
      *     cannot be broadcasted according to broadcasting rules.
