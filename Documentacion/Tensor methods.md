@@ -23,6 +23,8 @@ Defined in `numcpp/tensor.h`
     - [`tensor::astype`](#tensorastype)
     - [`tensor::clamp`](#tensorclamp)
     - [`tensor::copy`](#tensorcopy)
+    - [`tensor::diagonal`](#tensordiagonal)
+    - [`tensor::view`](#tensorview)
   - [Sorting and searching](#sorting-and-searching)
     - [`tensor::argpartition`](#tensorargpartition)
     - [`tensor::argsort`](#tensorargsort)
@@ -872,6 +874,82 @@ Exceptions
 
 * `std::bad_alloc` If the function fails to allocate storage it may throw an
 exception.
+
+### `tensor::diagonal`
+
+<h3><code>tensor_view::diagonal</code></h3>
+
+Return a view of the diagonal.
+```cpp
+tensor_view<T, 1> diagonal(ptrdiff_t offset = 0);
+tensor_view<const T, 1> diagonal(ptrdiff_t offset = 0) const;
+```
+
+Parameters
+
+* `offset` Offset of the diagonal from the main diagonal. A positive value
+refers to an upper diagonal and a negative value refers to a lower diagonal.
+Defaults to 0 (main diagonal).
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    std::cin >> a;
+    std::cout << "Main diagonal: " << a.diagonal() << "\n";
+    std::cout << "Sub diagonal: " << a.diagonal(-1) << "\n";
+    std::cout << "Sup diagonal: " << a.diagonal(1) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[-3, -3,  0, -5, 15],
+ [13,  7,  0, -4, 10],
+ [17, -3,  7, -5,  9],
+ [ 7, -4, 10, -4,  2],
+ [16,  1,  3,  9, 18]]
+```
+
+Output
+
+```
+Main diagonal: [-3,  7,  7, -4, 18]
+Sub diagonal: [13, -3, 10,  9]
+Sup diagonal: [-3,  0, -5,  2]
+```
+
+### `tensor::view`
+
+Return a view of the tensor with the same data.
+```cpp
+tensor_view<T, Rank> view();
+tensor_view<const T, Rank> view() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* If the tensor is const-qualified, the function returns a `tensor_view` to
+`const T`, which is convertible to a tensor object. Otherwise, the function
+returns a `tensor_view` to `T`, which has reference semantics to the original
+tensor.
 
 ## Sorting and searching
 
