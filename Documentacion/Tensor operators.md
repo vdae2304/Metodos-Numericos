@@ -11,6 +11,8 @@ Defined in `numcpp/tensor.h`
     - [Bitwise operators](#bitwise-operators)
     - [Logical operators](#logical-operators)
     - [Relational operators](#relational-operators)
+  - [Matrix multiplication](#matrix-multiplication)
+    - [`matmul`](#matmul)
 
 ## Template parameters
 
@@ -674,4 +676,305 @@ a + b (3, 4, 6):
   [14, 14,  3,  3, 12, 21],
   [ 2, 17, 14,  2,  9,  2],
   [ 7,  4, 16, -2, -1, 15]]]
+```
+
+## Matrix multiplication
+
+### `matmul`
+
+Return the matrix multiplication of two matrices.
+```cpp
+template <class T>
+T matmul(const tensor<T, 1> &a, const tensor<T, 1> &b);
+
+template <class T>
+tensor<T, 2> matmul(const tensor<T, 2> &a, const tensor<T, 2> &b);
+
+template <class T, size_t Rank>
+tensor<T, Rank - 1> matmul(const tensor<T, Rank> &a, const tensor<T, 1> &b);
+
+template <class T, size_t Rank>
+tensor<T, Rank - 1> matmul(const tensor<T, 1> &a, const tensor<T, Rank> &b);
+
+template <class T, size_t Rank>
+tensor<T, Rank> matmul(const tensor<T, Rank> &a, const tensor<T, Rank> &b);
+```
+
+The behaviour depends on the arguments in the following way.
+
+* If both arguments are one-dimensional, it is the inner product of vectors
+(without complex conjugation).
+* If both arguments are two-dimensional, it is the conventional matrix
+multiplication.
+* If the first argument is one-dimensional, it is promoted to a matrix by
+prepending a 1 to its dimensions. After matrix multiplication the prepended 1
+is removed.
+* If the second argument is one-dimensional, it is promoted to a matrix by
+appending a 1 to its dimensions. After matrix multiplication the appended 1 is
+removed.
+* If both arguments are $n$-dimensional, $n > 2$, it is treated as a stack of
+matrices residing in the last two indexes and broadcast accordingly.
+
+The inner product of two vectors $a = [a_1, a_2, \ldots, a_n]$ and
+$b = [b_1, b_2, \ldots, b_n]$ is defined as
+
+$$a \cdot b = a_1b_1 + a_2b_2 + \ldots + a_nb_n$$
+
+The matrix multiplication of a $m \times p$ matrix $A = (a_{ij})$ and a
+$p \times n$ matrix $B = (b_{ij})$ is the $m \times n$ matrix $C = (c_{ij})$
+such that
+
+$$c_{ij} = a_{i1}b_{1j} + a_{i2}b_{2j} + \ldots + a_{ip}b_{pj}$$
+
+Parameters
+
+* `a` First tensor-like argument.
+* `b` Second tensor-like argument.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the last dimension of `a` is not the same
+as the second-to-last dimension of `b`.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    // Prints the inner product of a and b.
+    std::cout << np::matmul(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[-3, 10,  9,  7,  5, 13]
+[-3,  0, 10, -5,  5,  6]
+```
+
+Output
+
+```
+167
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a, b;
+    std::cin >> a >> b;
+    // Prints the matrix multiplication of a and b.
+    // Do not confuse with a * b; a * b is the element-wise product while
+    // matmul(a, b) is the matrix multiplication.
+    std::cout << np::matmul(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[ 4, -2, 10, -5, 11,  1],
+ [ 6,  5,  9,  0, -1, 10],
+ [ 6,  8,  0,  7,  7,  0],
+ [ 1,  7,  4,  8,  0, -2]]
+
+[[-2, -4, -4],
+ [ 4,  6,  0],
+ [-5,  8,  1],
+ [-1,  2, 11],
+ [ 6, -1,  3],
+ [11, 10, -3]]
+```
+
+Output
+
+```
+[[ 16,  41, -31],
+ [ 67, 179, -48],
+ [ 55,  31,  74],
+ [-24,  66,  94]]
+```
+
+Input
+
+```
+[[ 4, -2, 10, -5, 11,  1],
+ [ 6,  5,  9,  0, -1, 10],
+ [ 6,  8,  0,  7,  7,  0],
+ [ 1,  7,  4,  8,  0, -2]]
+
+[[ 8,  4, 12,  6],
+ [ 7, -4, 14,  3],
+ [13, -3, 13,  3],
+ [ 0, -4, 14, 14]]
+```
+
+Output
+
+```
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  shapes (4, 6) and (4, 4) not aligned: 6 (dim 1) != 4 (dim 0)
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    np::array<int> b;
+    std::cin >> a >> b;
+    // Prints the matrix multiplication of a and b. b is treated as a column
+    // vector.
+    std::cout << np::matmul(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[ 4, -2, 10, -5, 11,  1],
+ [ 6,  5,  9,  0, -1, 10],
+ [ 6,  8,  0,  7,  7,  0],
+ [ 1,  7,  4,  8,  0, -2]]
+
+[-3,  0, 10, -5,  5,  6]
+```
+
+Output
+
+```
+[174, 127, -18, -15]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    np::matrix<int> b;
+    std::cin >> a >> b;
+    // Prints the matrix multiplication of a and b. a is treated as a row
+    // vector.
+    std::cout << np::matmul(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[-3, 10,  9,  7,  5, 13]
+
+[[-2, -4, -4],
+ [ 4,  6,  0],
+ [-5,  8,  1],
+ [-1,  2, 11],
+ [ 6, -1,  3],
+ [11, 10, -3]]
+```
+
+Output
+
+```
+[167, 283,  74]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 3> a, b;
+    std::cin >> a >> b;
+    // a and b can be interpreted as arrays of matrices. Therefore, the output
+    // is the element-wise matrix multiplication, with the matrices residing
+    // in the last two axes.
+    std::cout << "matmul(a, b):\n" << np::matmul(a, b) << "\n";
+    // Prints the multiplications one by one to check the previous statement.
+    for (unsigned i = 0; i < a.shape(0); ++i) {
+        std::cout << "Block " << i << "\n";
+        std::cout << np::matmul(a(i, np::slice(), np::slice()),
+                                b(i, np::slice(), np::slice())) << "\n";
+    }
+    return 0;
+}
+```
+
+Input
+
+```
+[[[-5, -2,  1, 10, -3],
+  [ 9,  8,  9, 11,  6],
+  [11, -2, -5,  7,  8]],
+ [[10,  6, 12,  8,  6],
+  [ 6, -3,  7, -2,  8],
+  [-3,  5,  2,  9, 14]],
+ [[ 4,  6,  5,  3,  0],
+  [ 8,  7,  5,  0,  8],
+  [10,  3, 12, 12, -4]]]
+
+[[[10,  4],
+  [14, 13],
+  [ 0, 13],
+  [14, 10],
+  [ 7,  1]],
+ [[13,  5],
+  [-1, 10],
+  [11, 10],
+  [ 5,  4],
+  [-2,  2]],
+ [[-3, -5],
+  [ 7,  8],
+  [-3,  5],
+  [ 1, -1],
+  [-4,  6]]]
+```
+
+Output
+
+```
+matmul(a, b):
+[[[ 41,  64],
+  [398, 373],
+  [236,  31]],
+
+ [[284, 274],
+  [132,  78],
+  [ -5, 119]],
+
+ [[ 18,  50],
+  [-22,  89],
+  [-17,  -2]]]
+Block 0
+[[ 41,  64],
+ [398, 373],
+ [236,  31]]
+Block 1
+[[284, 274],
+ [132,  78],
+ [ -5, 119]]
+Block 2
+[[ 18,  50],
+ [-22,  89],
+ [-17,  -2]]
 ```
