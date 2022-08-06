@@ -162,6 +162,7 @@ namespace numcpp {
             *first1 = f(*first1, val);
             ++first1;
         }
+        return *this->base();
     }
 
     template <class T, size_t Rank, class Tag>
