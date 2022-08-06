@@ -31,7 +31,7 @@ Defined in `numcpp/tensor.h`
     - [Move assignment](#move-assignment)
   - [Resizing](#resizing)
     - [`tensor_view::squeeze`](#tensor_viewsqueeze)
-  - [Tranpose](#tranpose)
+  - [Transpose](#transpose)
     - [`tensor_view::swapaxes`](#tensor_viewswapaxes)
     - [`tensor_view::t`](#tensor_viewt)
 
@@ -886,7 +886,7 @@ Output
  [ 8,  9, 10, 11]]
 ```
 
-## Tranpose
+## Transpose
 
 ### `tensor_view::swapaxes`
 
