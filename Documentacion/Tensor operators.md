@@ -735,6 +735,8 @@ Exceptions
 
 * `std::invalid_argument` Thrown if the last dimension of `a` is not the same
 as the second-to-last dimension of `b`.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
 
 Example
 
