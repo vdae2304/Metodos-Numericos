@@ -1320,6 +1320,8 @@ namespace detail {
      *
      * @throw std::invalid_argument Thrown if the last dimension of a is not
      *     the same as the second-to-last dimension of b.
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
      */
     template <class T, class Tag1, class Tag2>
     T matmul(
