@@ -441,7 +441,7 @@ namespace numcpp {
          *     tensor, instead, it returns a readonly view with the complex
          *     conjugate of each element.
          */
-        base_tensor<T, Rank, lazy_unary_tag<math_conj, T, Tag> >
+        base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
         conj() const;
 
         /**
@@ -469,15 +469,13 @@ namespace numcpp {
          *     tensor, instead, it returns a readonly view with the imaginary
          *     part of each element.
          */
-        base_tensor<detail::complex_value_type<T>, Rank,
-                    lazy_unary_tag<math_imag, T, Tag> >
+        base_tensor<math::complex_scalar<T>, Rank,
+                    lazy_unary_tag<math::imag, T, Tag> >
         imag() const;
 
-        template <class TagArg>
-        void imag(
-            const base_tensor<detail::complex_value_type<T>, Rank, TagArg> &arg
-        );
-        void imag(const detail::complex_value_type<T> &val);
+        template <class Tag2>
+        void imag(const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg);
+        void imag(const math::complex_scalar<T> &val);
 
         /**
          * @brief Return the maximum value contained in the tensor.
@@ -625,15 +623,13 @@ namespace numcpp {
          *     the tensor. This function does not create a new tensor, instead,
          *     it returns a readonly view with the real part of each element.
          */
-        base_tensor<detail::complex_value_type<T>, Rank,
-                    lazy_unary_tag<math_real, T, Tag> >
+        base_tensor<math::complex_scalar<T>, Rank,
+                    lazy_unary_tag<math::real, T, Tag> >
         real() const;
 
-        template <class TagArg>
-        void real(
-            const base_tensor<detail::complex_value_type<T>, Rank, TagArg> &arg
-        );
-        void real(const detail::complex_value_type<T> &val);
+        template <class Tag2>
+        void real(const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg);
+        void real(const math::complex_scalar<T> &val);
 
         /**
          * @brief Reverse the order of the elements in-place.

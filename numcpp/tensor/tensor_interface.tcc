@@ -398,10 +398,10 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_conj, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
     tensor_interface<T, Rank, Tag>::conj() const {
-        typedef lazy_unary_tag<math_conj, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_conj(), *this->base());
+        typedef lazy_unary_tag<math::conj, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::conj(), *this->base());
     }
 
     template <class T, size_t Rank, class Tag>
@@ -419,18 +419,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<detail::complex_value_type<T>, Rank,
-                       lazy_unary_tag<math_imag, T, Tag> >
+    inline base_tensor<math::complex_scalar<T>, Rank,
+                       lazy_unary_tag<math::imag, T, Tag> >
     tensor_interface<T, Rank, Tag>::imag() const {
-        typedef detail::complex_value_type<T> Rt;
-        typedef lazy_unary_tag<math_imag, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math_imag(), *this->base());
+        typedef math::complex_scalar<T> Rt;
+        typedef lazy_unary_tag<math::imag, T, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(math::imag(), *this->base());
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class TagArg>
+    template <class Tag2>
     void tensor_interface<T, Rank, Tag>::imag(
-        const base_tensor<detail::complex_value_type<T>, Rank, TagArg> &arg
+        const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg
     ) {
         typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
         if (this->shape() != arg.shape()) {
@@ -448,7 +448,7 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     void tensor_interface<T, Rank, Tag>::imag(
-        const detail::complex_value_type<T> &val
+        const math::complex_scalar<T> &val
     ) {
         typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
         for (iterator it = this->begin(); it != this->end(); ++it) {
@@ -499,18 +499,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<detail::complex_value_type<T>, Rank,
-                       lazy_unary_tag<math_real, T, Tag> >
+    inline base_tensor<math::complex_scalar<T>, Rank,
+                       lazy_unary_tag<math::real, T, Tag> >
     tensor_interface<T, Rank, Tag>::real() const {
-        typedef detail::complex_value_type<T> Rt;
-        typedef lazy_unary_tag<math_real, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math_real(), *this->base());
+        typedef math::complex_scalar<T> Rt;
+        typedef lazy_unary_tag<math::real, T, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(math::real(), *this->base());
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class TagArg>
+    template <class Tag2>
     void tensor_interface<T, Rank, Tag>::real(
-        const base_tensor<detail::complex_value_type<T>, Rank, TagArg> &arg
+        const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg
     ) {
         typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
         if (this->shape() != arg.shape()) {
@@ -528,7 +528,7 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     void tensor_interface<T, Rank, Tag>::real(
-        const detail::complex_value_type<T> &val
+        const math::complex_scalar<T> &val
     ) {
         typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
         for (iterator it = this->begin(); it != this->end(); ++it) {
