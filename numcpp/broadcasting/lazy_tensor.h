@@ -27,6 +27,7 @@
 #include <type_traits>
 
 namespace numcpp {
+
 /// Namespace for implementation details.
 namespace detail {
     /// Checks whether a tensor subclass is an expression object.
