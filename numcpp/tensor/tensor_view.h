@@ -293,13 +293,13 @@ namespace numcpp {
         tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
 
         template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<T, Rank-sizeof...(Args)> squeeze(Args... args);
+        tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
 
         template <size_t N>
         tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 
         template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<const T, Rank-sizeof...(Args)> squeeze(Args... args) const;
+        tensor_view<const T,Rank - sizeof...(Args)> squeeze(Args... args) const;
 
         /**
          * @brief Interchanges two axes of a tensor_view in-place.
