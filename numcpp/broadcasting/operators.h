@@ -307,8 +307,8 @@ namespace math {
      */
     struct real {
         template <class T>
-        T operator()(T &&x) const {
-            return std::forward<T>(x);
+        T operator()(const T &x) const {
+            return x;
         }
 
         template <class T>
@@ -322,7 +322,7 @@ namespace math {
      */
     struct imag {
         template <class T>
-        T operator()(T&&) const {
+        T operator()(const T&) const {
             return T();
         }
 
@@ -337,8 +337,8 @@ namespace math {
      */
     struct conj {
         template <class T>
-        T operator()(T &&x) const {
-            return std::forward<T>(x);
+        T operator()(const T &x) const {
+            return x;
         }
 
         template <class T>
