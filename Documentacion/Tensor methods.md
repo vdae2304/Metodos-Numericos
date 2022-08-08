@@ -858,7 +858,7 @@ Output
 
 Return a copy of the tensor.
 ```cpp
-tensor<typename std::remove_cv<T>::type, Rank> copy() const;
+tensor<T> copy() const;
 ```
 
 Parameters
