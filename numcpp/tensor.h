@@ -73,7 +73,7 @@ namespace detail {
 
     /// Return the number of slice arguments.
     template <class... Args>
-    struct slice_index_rank {};
+    struct slice_index_rank;
 
     template <>
     struct slice_index_rank<> : std::integral_constant<size_t, 0> {};
