@@ -270,14 +270,8 @@ int main() {
     np::array<double> x;
     std::cin >> x;
     np::array<std::pair<double, double> > y = np::modf(x);
-    np::array<double> intpart(x.size());
-    np::array<double> fracpart(x.size());
-    for (unsigned i = 0; i < x.size(); ++i) {
-        intpart[i] = y[i].first;
-        fracpart[i] = y[i].second;
-    }
-    std::cout << intpart << "\n";
-    std::cout << fracpart << "\n";
+    std::cout << np::unzip<0>(y) << "\n";
+    std::cout << np::unzip<1>(y) << "\n";
     return 0;
 }
 ```
@@ -1881,14 +1875,8 @@ int main() {
     np::array<double> x;
     std::cin >> x;
     np::array<std::pair<double, int> > y = np::frexp(x);
-    np::array<double> mantissa(x.size());
-    np::array<int> exponent(x.size());
-    for (unsigned i = 0; i < x.size(); ++i) {
-        mantissa[i] = y[i].first;
-        exponent[i] = y[i].second;
-    }
-    std::cout << mantissa << "\n";
-    std::cout << exponent << "\n";
+    std::cout << np::unzip<0>(y) << "\n";
+    std::cout << np::unzip<1>(y) << "\n";
     return 0;
 }
 ```
