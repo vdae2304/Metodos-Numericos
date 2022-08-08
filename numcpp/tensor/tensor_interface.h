@@ -403,8 +403,7 @@ namespace numcpp {
          */
         tensor<index_t<Rank>, 1> argsort(bool stable = false) const;
         template <class Compare>
-        tensor<index_t<Rank>, 1>
-        argsort(Compare comp, bool stable = false) const;
+        tensor<index_t<Rank>, 1> argsort(Compare comp, bool stable=false) const;
 
         /**
          * @brief Cast each element to a specified type.
@@ -499,9 +498,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> max(size_t axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        max(size_t axes) const;
+
         template <size_t N>
-        tensor<T, Rank> max(const shape_t<N> &axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        max(const shape_t<N> &axes) const;
 
         /**
          * @brief Return the average of the tensor elements.
@@ -525,9 +527,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> mean(size_t axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        mean(size_t axes) const;
+
         template <size_t N>
-        tensor<T, Rank> mean(const shape_t<N> &axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        mean(const shape_t<N> &axes) const;
 
         /**
          * @brief Return the minimum value contained in the tensor.
@@ -551,9 +556,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> min(size_t axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        min(size_t axes) const;
+
         template <size_t N>
-        tensor<T, Rank> min(const shape_t<N> &axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        min(const shape_t<N> &axes) const;
 
         /**
          * @brief Return the indices of the elements that are non-zero.
@@ -607,9 +615,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> prod(size_t axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        prod(size_t axes) const;
+
         template <size_t N>
-        tensor<T, Rank> prod(const shape_t<N> &axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        prod(const shape_t<N> &axes) const;
 
         /**
          * @brief Return or set the real part, element-wise. Non-complex types
@@ -692,9 +703,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> stddev(size_t axes, bool bias) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        stddev(size_t axes, bool bias) const;
+
         template <size_t N>
-        tensor<T, Rank> stddev(const shape_t<N> &axes, bool bias) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        stddev(const shape_t<N> &axes, bool bias) const;
 
         /**
          * @brief Return the sum of the tensor elements.
@@ -716,9 +730,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> sum(size_t axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        sum(size_t axes) const;
+
         template <size_t N>
-        tensor<T, Rank> sum(const shape_t<N> &axes) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        sum(const shape_t<N> &axes) const;
 
         /**
          * @brief Return the variance of the tensor elements.
@@ -756,9 +773,12 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<T, Rank> var(size_t axes, bool bias) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        var(size_t axes, bool bias) const;
+
         template <size_t N>
-        tensor<T, Rank> var(const shape_t<N> &axes, bool bias) const;
+        tensor<typename std::remove_cv<T>::type, Rank>
+        var(const shape_t<N> &axes, bool bias) const;
 
     private:
         /**
