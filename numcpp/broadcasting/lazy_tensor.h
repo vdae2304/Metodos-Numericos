@@ -27,6 +27,32 @@
 #include <type_traits>
 
 namespace numcpp {
+/// Namespace for implementation details.
+namespace detail {
+    /// Checks whether a tensor subclass is an expression object.
+    template <class Tensor>
+    struct is_expression : std::false_type {};
+
+    template <class R, size_t Rank, class Function, class T, class Tag>
+    struct is_expression<
+        base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> >
+    > : std::true_type {};
+
+    template <class R, size_t Rank,
+              class Function, class T, class TagT, class U, class TagU>
+    struct is_expression<
+        base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
+    > : std::true_type {};
+
+    /// If a tensor subclass is an expression, return the template unchanged.
+    /// Otherwise, return a const reference to it. Useful to avoid dangling
+    /// references when returning expression objects.
+    template <class Tensor>
+    using ConstRefIfNotExpression = typename std::conditional<
+        is_expression<Tensor>::value, Tensor, const Tensor&
+    >::type;
+}
+
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
      * applying an unary function on each element in a tensor object. The
@@ -43,11 +69,9 @@ namespace numcpp {
     class base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<
-            typename std::remove_reference<R>::type
-        >::type value_type;
+        typedef typename std::remove_cv<R>::type value_type;
         typedef R reference;
-        typedef const R const_reference;
+        typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_tensor_iterator<
@@ -202,7 +226,7 @@ namespace numcpp {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        const R operator()(Args... args) const {
+        R operator()(Args... args) const {
             return this->operator[](make_index(args...));
         }
 
@@ -221,7 +245,7 @@ namespace numcpp {
             return m_fun(m_arg[index]);
         }
 
-        const R operator[](const index_t<Rank> &index) const {
+        R operator[](const index_t<Rank> &index) const {
             return m_fun(m_arg[index]);
         }
 
@@ -230,7 +254,7 @@ namespace numcpp {
             return m_fun(m_arg[i]);
         }
 
-        const R operator[](size_t i) const {
+        R operator[](size_t i) const {
             static_assert(Rank == 1, "Unkown conversion from integral type");
             return m_fun(m_arg[i]);
         }
@@ -250,7 +274,7 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<Rank>& shape() const {
+        shape_t<Rank> shape() const {
             return m_arg.shape();
         }
 
@@ -301,7 +325,7 @@ namespace numcpp {
         Function m_fun;
 
         /// Tensor object where the function is applied.
-        const base_tensor<T, Rank, Tag> &m_arg;
+        detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
     };
 
     /**
@@ -323,11 +347,9 @@ namespace numcpp {
     class base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<
-            typename std::remove_reference<R>::type
-        >::type value_type;
+        typedef typename std::remove_cv<R>::type value_type;
         typedef R reference;
-        typedef const R const_reference;
+        typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_tensor_iterator<
@@ -491,7 +513,7 @@ namespace numcpp {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        const R operator()(Args... args) const {
+        R operator()(Args... args) const {
             return this->operator[](make_index(args...));
         }
 
@@ -514,7 +536,7 @@ namespace numcpp {
             );
         }
 
-        const R operator[](const index_t<Rank> &index) const {
+        R operator[](const index_t<Rank> &index) const {
             assert_within_bounds(m_shape, index);
             return m_fun(
                 m_lhs[this->broadcast_index(index, m_lhs.shape())],
@@ -529,7 +551,7 @@ namespace numcpp {
             return m_fun(m_lhs[i1], m_rhs[i2]);
         }
 
-        const R operator[](size_t i) const {
+        R operator[](size_t i) const {
             static_assert(Rank == 1, "Unkown conversion from integral type");
             size_t i1 = (m_lhs.size() == 1) ? 0 : i;
             size_t i2 = (m_rhs.size() == 1) ? 0 : i;
@@ -621,10 +643,10 @@ namespace numcpp {
         shape_t<Rank> m_shape;
 
         /// First tensor argument.
-        const base_tensor<T, Rank, TagT> &m_lhs;
+        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagT> > m_lhs;
 
         /// Second tensor argument.
-        const base_tensor<U, Rank, TagU> &m_rhs;
+        detail::ConstRefIfNotExpression<base_tensor<U, Rank, TagU> > m_rhs;
     };
 
     /**
@@ -639,11 +661,9 @@ namespace numcpp {
                       lazy_binary_tag<Function, T, Tag, U, scalar_tag> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<
-            typename std::remove_reference<R>::type
-        >::type value_type;
+        typedef typename std::remove_cv<R>::type value_type;
         typedef R reference;
-        typedef const R const_reference;
+        typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_tensor_iterator<
@@ -728,7 +748,7 @@ namespace numcpp {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        const R operator()(Args... args) const {
+        R operator()(Args... args) const {
             return this->operator[](make_index(args...));
         }
 
@@ -736,7 +756,7 @@ namespace numcpp {
             return m_fun(m_lhs[index], m_val);
         }
 
-        const R operator[](const index_t<Rank> &index) const {
+        R operator[](const index_t<Rank> &index) const {
             return m_fun(m_lhs[index], m_val);
         }
 
@@ -745,7 +765,7 @@ namespace numcpp {
             return m_fun(m_lhs[i], m_val);
         }
 
-        const R operator[](size_t i) const {
+        R operator[](size_t i) const {
             static_assert(Rank == 1, "Unkown conversion from integral type");
             return m_fun(m_lhs[i], m_val);
         }
@@ -754,7 +774,7 @@ namespace numcpp {
             return Rank;
         }
 
-        const shape_t<Rank>& shape() const {
+        shape_t<Rank> shape() const {
             return m_lhs.shape();
         }
 
@@ -787,7 +807,7 @@ namespace numcpp {
         Function m_fun;
 
         /// First tensor argument.
-        const base_tensor<T, Rank, Tag> &m_lhs;
+        detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_lhs;
 
         /// Value to use as second argument.
         U m_val;
@@ -805,11 +825,9 @@ namespace numcpp {
                       lazy_binary_tag<Function, T, scalar_tag, U, Tag> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<
-            typename std::remove_reference<R>::type
-        >::type value_type;
+        typedef typename std::remove_cv<R>::type value_type;
         typedef R reference;
-        typedef const R const_reference;
+        typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_tensor_iterator<
@@ -894,7 +912,7 @@ namespace numcpp {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        const R operator()(Args... args) const {
+        R operator()(Args... args) const {
             return this->operator[](make_index(args...));
         }
 
@@ -902,7 +920,7 @@ namespace numcpp {
             return m_fun(m_val, m_rhs[index]);
         }
 
-        const R operator[](const index_t<Rank> &index) const {
+        R operator[](const index_t<Rank> &index) const {
             return m_fun(m_val, m_rhs[index]);
         }
 
@@ -920,7 +938,7 @@ namespace numcpp {
             return Rank;
         }
 
-        const shape_t<Rank>& shape() const {
+        shape_t<Rank> shape() const {
             return m_rhs.shape();
         }
 
@@ -956,7 +974,7 @@ namespace numcpp {
         T m_val;
 
         /// Second tensor argument.
-        const base_tensor<U, Rank, Tag> &m_rhs;
+        detail::ConstRefIfNotExpression<base_tensor<U, Rank, Tag> > m_rhs;
     };
 }
 
