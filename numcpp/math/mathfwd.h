@@ -29,6 +29,7 @@
 #include <utility>
 
 namespace numcpp {
+
 /// Namespace for mathematical functions.
 namespace math {
 
