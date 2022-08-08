@@ -997,6 +997,7 @@ int main() {
     np::array<int> a;
     int kth;
     std::cin >> a >> kth;
+    // Implicit conversion from index_t<1>.
     np::array<size_t> indices = a.argpartition(kth);
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Partitioned array:\n" << a[indices] << "\n";
@@ -1098,6 +1099,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
+    // Implicit conversion from index_t<1>.
     np::array<size_t> indices = a.argsort();
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Sorted array:\n" << a[indices] << "\n";
@@ -1189,6 +1191,7 @@ int main() {
     np::array<int> a;
     std::cin >> a;
     np::array<bool> is_positive = (a > 0);
+    // Implicit conversion from index_t<1>.
     np::array<size_t> indices = is_positive.nonzero();
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Values:\n" << a[indices] << "\n";
@@ -1890,6 +1893,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
+    // Explicit conversion from index_t<1>.
     std::cout << (size_t)a.argmax() << "\n";
     return 0;
 }
@@ -1997,6 +2001,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
+    // Explicit conversion from index_t<1>.
     std::cout << (size_t)a.argmin() << "\n";
     return 0;
 }
