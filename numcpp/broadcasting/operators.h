@@ -295,6 +295,11 @@ namespace math {
     };
 
     template <class T>
+    struct complex_traits< const std::complex<T> > {
+        typedef T value_type;
+    };
+
+    template <class T>
     using complex_scalar = typename complex_traits<T>::value_type;
 
     /**
