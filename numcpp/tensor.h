@@ -76,21 +76,20 @@ namespace detail {
     struct slice_index_rank {};
 
     template <>
-    struct slice_index_rank<> {
-        constexpr static size_t value = 0;
-    };
+    struct slice_index_rank<> : std::integral_constant<size_t, 0> {};
 
     template <class IntegralType, class... Args>
-    struct slice_index_rank<IntegralType, Args...> {
-        constexpr static typename std::enable_if<
-            std::is_integral<IntegralType>::value, size_t
-        >::type value = slice_index_rank<Args...>::value;
+    struct slice_index_rank<IntegralType, Args...>
+     : std::integral_constant<size_t, slice_index_rank<Args...>::value>
+    {
+        static_assert(std::is_integral<IntegralType>::value, "Index must be"
+                      " either an integer or a slice");
     };
 
     template <class... Args>
-    struct slice_index_rank<slice, Args...> {
-        constexpr static size_t value = 1 + slice_index_rank<Args...>::value;
-    };
+    struct slice_index_rank<slice, Args...>
+     : std::integral_constant<size_t, 1 + slice_index_rank<Args...>::value>
+     {};
 
     /// Type constraint to request at least one slice argument.
     template <class... Args>
