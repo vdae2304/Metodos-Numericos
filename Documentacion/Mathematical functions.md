@@ -8,6 +8,7 @@ Defined in `numcpp/math.h`
   - [Basic functions](#basic-functions)
     - [`abs`](#abs)
     - [`fmod`](#fmod)
+    - [`modf`](#modf)
     - [`fmax`](#fmax)
     - [`fmin`](#fmin)
   - [Trigonometric functions](#trigonometric-functions)
@@ -239,6 +240,59 @@ Output
 
 ```
 [0.14, 0.32, 1.29, 3.57, 1.87, 2.45, 0.74, 1.31, 1.83, 1.87]
+```
+
+### `modf`
+
+Descompose $x$ into integral and fractional parts, element-wise.
+```cpp
+template <class T, size_t Rank>
+tensor<std::pair<T, T>, Rank> modf(const tensor<T, Rank> &x);
+```
+
+Parameters
+
+* `x` A tensor-like object with the values to be decomposed.
+
+Returns
+
+* A light-weight object with the integral and fractional parts of each element
+in the tensor. This function does not create a new tensor, instead, an
+expression object is returned (see lazy-evaluation).
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<double> x;
+    std::cin >> x;
+    np::array<std::pair<double, double> > y = np::modf(x);
+    np::array<double> intpart(x.size());
+    np::array<double> fracpart(x.size());
+    for (unsigned i = 0; i < x.size(); ++i) {
+        intpart[i] = y[i].first;
+        fracpart[i] = y[i].second;
+    }
+    std::cout << intpart << "\n";
+    std::cout << fracpart << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[4.14, 12.32, 11.29, 11.57, 5.87, 2.45, 9.74, 9.31, 11.83, 3.87]
+```
+
+Output
+
+```
+[ 4, 12, 11, 11,  5,  2,  9,  9, 11,  3]
+[0.14, 0.32, 0.29, 0.57, 0.87, 0.45, 0.74, 0.31, 0.83, 0.87]
 ```
 
 ### `fmax`
