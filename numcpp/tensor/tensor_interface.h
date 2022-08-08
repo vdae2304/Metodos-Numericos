@@ -810,8 +810,8 @@ namespace numcpp {
     };
 }
 
-#include "numcpp/tensor/tensor_iterator.h"
-#include "numcpp/broadcasting/reduce_iterator.h"
+#include "numcpp/iterators/tensor_iterator.h"
+#include "numcpp/iterators/reduce_iterator.h"
 #include "numcpp/tensor/tensor_interface.tcc"
 
 #endif // C++11

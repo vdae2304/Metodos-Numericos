@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/tensor/tensor_iterator.h
+ /** @file include/numcpp/iterators/tensor_iterator.h
   *  This header defines a generic iterator for tensor class.
   */
 
@@ -373,6 +373,6 @@ namespace numcpp {
     );
 }
 
-#include "numcpp/tensor/tensor_iterator.tcc"
+#include "numcpp/iterators/tensor_iterator.tcc"
 
 #endif // NUMCPP_TENSOR_ITERATOR_H_INCLUDED

@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting/reduce_iterator.tcc
+ /** @file include/numcpp/iterators/reduce_iterator.tcc
   *  This is an internal header file, included by other library headers.
   *  Do not attempt to use it directly. @headername{numcpp/tensor.h}
   */

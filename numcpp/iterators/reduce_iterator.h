@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting/reduce_iterator.h
+ /** @file include/numcpp/iterators/reduce_iterator.h
   *  This header defines an iterator for reduction operations on tensor class.
   */
 
@@ -410,6 +410,6 @@ namespace numcpp {
     );
 }
 
-#include "numcpp/broadcasting/reduce_iterator.tcc"
+#include "numcpp/iterators/reduce_iterator.tcc"
 
 #endif // NUMCPP_TENSOR_REDUCE_ITERATOR_H_INCLUDED
