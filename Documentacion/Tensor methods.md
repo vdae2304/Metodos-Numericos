@@ -997,7 +997,7 @@ int main() {
     np::array<int> a;
     int kth;
     std::cin >> a >> kth;
-    np::array<np::index_t<1> > indices = a.argpartition(kth);
+    np::array<size_t> indices = a.argpartition(kth);
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Partitioned array:\n" << a[indices] << "\n";
     return 0;
@@ -1015,7 +1015,7 @@ Output
 
 ```
 Indices:
-[(1,), (7,), (6,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
+[1, 7, 6, 3, 8, 4, 0, 9, 5, 2]
 Partitioned array:
 [-2, -5, -3,  0,  3,  4, 12, 12, 18, 19]
 ```
@@ -1098,7 +1098,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
-    np::array<np::index_t<1> > indices = a.argsort();
+    np::array<size_t> indices = a.argsort();
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Sorted array:\n" << a[indices] << "\n";
     return 0;
@@ -1116,7 +1116,7 @@ Output
 
 ```
 Indices:
-[(7,), (6,), (1,), (3,), (8,), (4,), (0,), (9,), (5,), (2,)]
+[7, 6, 1, 3, 8, 4, 0, 9, 5, 2]
 Sorted array:
 [-5, -3, -2,  0,  3,  4, 12, 12, 18, 19]
 ```
@@ -1189,7 +1189,7 @@ int main() {
     np::array<int> a;
     std::cin >> a;
     np::array<bool> is_positive = (a > 0);
-    np::array<np::index_t<1> > indices = is_positive.nonzero();
+    np::array<size_t> indices = is_positive.nonzero();
     std::cout << "Indices:\n" << indices << "\n";
     std::cout << "Values:\n" << a[indices] << "\n";
     return 0;
@@ -1206,7 +1206,7 @@ Output
 
 ```
 Indices:
-[(0,), (2,), (3,), (7,), (9,)]
+[0, 2, 3, 7, 9]
 Values:
 [ 7,  5, 11,  8, 14]
 ```
@@ -1890,7 +1890,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
-    std::cout << a.argmax() << "\n";
+    std::cout << (size_t)a.argmax() << "\n";
     return 0;
 }
 ```
@@ -1904,7 +1904,7 @@ Input
 Output
 
 ```
-(2,)
+2
 ```
 
 ### `tensor::argmax(axis)`
@@ -1997,7 +1997,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
-    std::cout << a.argmin() << "\n";
+    std::cout << (size_t)a.argmin() << "\n";
     return 0;
 }
 ```
@@ -2011,7 +2011,7 @@ Input
 Output
 
 ```
-(7,)
+7
 ```
 
 ### `tensor::argmin(axis)`
