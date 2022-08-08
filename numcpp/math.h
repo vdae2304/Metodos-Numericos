@@ -30,9 +30,9 @@
 namespace numcpp {
     /// Basic functions.
     using std::abs;
-    using std::max;
-    using std::min;
     using std::fmod;
+    using std::fmax;
+    using std::fmin;
 
     /// Trigonometric functions.
     using std::cos;
@@ -98,13 +98,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the absolute value of each element in
-     *     the tensor. Convertible to a tensor object.
+     *     the tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_abs, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::abs, T, Tag> >
     abs(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_abs, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_abs(), x);
+        typedef lazy_unary_tag<math::abs, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::abs(), x);
     }
 
     /**
@@ -116,39 +117,126 @@ namespace numcpp {
      * @param y A tensor-like object with the values of the quotient
      *     denominator.
      *
-     * @return A light-weight object with the remainder of x/y. Convertible to
-     *     a tensor object.
+     * @return A light-weight object with the remainder of x/y, element-wise.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_fmod, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::fmod, T, Tag1, T, Tag2> >
     fmod(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<T, Rank, Tag2> &y
     ) {
-        typedef lazy_binary_tag<math_fmod, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_fmod(), x, y);
+        typedef lazy_binary_tag<math::fmod, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_fmod, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::fmod, T, Tag, T, scalar_tag>
     > fmod(
         const base_tensor<T, Rank, Tag> &x,
         const typename tensor<T, Rank>::value_type &y
     ) {
-        typedef lazy_binary_tag<math_fmod, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_fmod(), x, y);
+        typedef lazy_binary_tag<math::fmod, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_fmod, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::fmod, T, scalar_tag, T, Tag>
     > fmod(
         const typename tensor<T, Rank>::value_type &x,
         const base_tensor<T, Rank, Tag> &y
     ) {
-        typedef lazy_binary_tag<math_fmod, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_fmod(), x, y);
+        typedef lazy_binary_tag<math::fmod, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
+    }
+
+    /**
+     * @brief Return the maximum value, element-wise. If one of the elements
+     * being compared is a NaN, then the non-NaN element is returned.
+     *
+     * @param x A tensor-like object with floating point or integral values.
+     * @param y A tensor-like object with floating point or integral values.
+     *
+     * @return A light-weight object with the element-wise maximum. This
+     *     function does not create a new tensor, instead, an expression object
+     *     is returned (see lazy-evaluation).
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<T, Rank, lazy_binary_tag<math::fmax, T, Tag1, T, Tag2> >
+    fmax(
+        const base_tensor<T, Rank, Tag1> &x,
+        const base_tensor<T, Rank, Tag2> &y
+    ) {
+        typedef lazy_binary_tag<math::fmax, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<math::fmax, T, Tag, T, scalar_tag>
+    > fmax(
+        const base_tensor<T, Rank, Tag> &x,
+        const typename tensor<T, Rank>::value_type &y
+    ) {
+        typedef lazy_binary_tag<math::fmax, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<math::fmax, T, scalar_tag, T, Tag>
+    > fmax(
+        const typename tensor<T, Rank>::value_type &x,
+        const base_tensor<T, Rank, Tag> &y
+    ) {
+        typedef lazy_binary_tag<math::fmax, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+    }
+
+    /**
+     * @brief Return the minimum value, element-wise. If one of the elements
+     * being compared is a NaN, then the non-NaN element is returned.
+     *
+     * @param x A tensor-like object with floating point or integral values.
+     * @param y A tensor-like object with floating point or integral values.
+     *
+     * @return A light-weight object with the element-wise minimum. This
+     *     function does not create a new tensor, instead, an expression object
+     *     is returned (see lazy-evaluation).
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<T, Rank, lazy_binary_tag<math::fmin, T, Tag1, T, Tag2> >
+    fmin(
+        const base_tensor<T, Rank, Tag1> &x,
+        const base_tensor<T, Rank, Tag2> &y
+    ) {
+        typedef lazy_binary_tag<math::fmin, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<math::fmin, T, Tag, T, scalar_tag>
+    > fmin(
+        const base_tensor<T, Rank, Tag> &x,
+        const typename tensor<T, Rank>::value_type &y
+    ) {
+        typedef lazy_binary_tag<math::fmin, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<math::fmin, T, scalar_tag, T, Tag>
+    > fmin(
+        const typename tensor<T, Rank>::value_type &x,
+        const base_tensor<T, Rank, Tag> &y
+    ) {
+        typedef lazy_binary_tag<math::fmin, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
     }
 
     /// Trigonometric functions.
@@ -159,13 +247,14 @@ namespace numcpp {
      * @param x A tensor-like object with the angles in radians.
      *
      * @return A light-weight object with the cosine of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_cos, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::cos, T, Tag> >
     cos(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_cos, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_cos(), x);
+        typedef lazy_unary_tag<math::cos, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::cos(), x);
     }
 
     /**
@@ -174,13 +263,14 @@ namespace numcpp {
      * @param x A tensor-like object with the angles in radians.
      *
      * @return A light-weight object with the sine of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_sin, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::sin, T, Tag> >
     sin(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_sin, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_sin(), x);
+        typedef lazy_unary_tag<math::sin, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::sin(), x);
     }
 
     /**
@@ -189,13 +279,14 @@ namespace numcpp {
      * @param x A tensor-like object with the angles in radians.
      *
      * @return A light-weight object with the tangent of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_tan, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::tan, T, Tag> >
     tan(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_tan, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_tan(), x);
+        typedef lazy_unary_tag<math::tan, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::tan(), x);
     }
 
     /**
@@ -208,38 +299,39 @@ namespace numcpp {
      *     triangles.
      *
      * @return A light-weight object with the hypotenuse of the triangles.
-     *     Convertible to a tensor object.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_hypot, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::hypot, T, Tag1, T, Tag2> >
     hypot(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<T, Rank, Tag2> &y
     ) {
-        typedef lazy_binary_tag<math_hypot, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_hypot(), x, y);
+        typedef lazy_binary_tag<math::hypot, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_hypot, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::hypot, T, Tag, T, scalar_tag>
     > hypot(
         const base_tensor<T, Rank, Tag> &x,
         const typename tensor<T, Rank>::value_type &y
     ) {
-        typedef lazy_binary_tag<math_hypot, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_hypot(), x, y);
+        typedef lazy_binary_tag<math::hypot, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_hypot, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::hypot, T, scalar_tag, T, Tag>
     > hypot(
         const typename tensor<T, Rank>::value_type &x,
         const base_tensor<T, Rank, Tag> &y
     ) {
-        typedef lazy_binary_tag<math_hypot, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_hypot(), x, y);
+        typedef lazy_binary_tag<math::hypot, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
     }
 
     /**
@@ -249,13 +341,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the arc cosine, in radians, of each
-     *     value in the tensor. Convertible to a tensor object.
+     *     value in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_acos, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::acos, T, Tag> >
     acos(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_acos, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_acos(), x);
+        typedef lazy_unary_tag<math::acos, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::acos(), x);
     }
 
     /**
@@ -265,13 +358,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the arc sine, in radians, of each
-     *     value in the tensor. Convertible to a tensor object.
+     *     value in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_asin, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::asin, T, Tag> >
     asin(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_asin, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_asin(), x);
+        typedef lazy_unary_tag<math::asin, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::asin(), x);
     }
 
     /**
@@ -281,13 +375,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the arc tangent, in radians, of each
-     *     value in the tensor. Convertible to a tensor object.
+     *     value in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_atan, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::atan, T, Tag> >
     atan(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_atan, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_atan(), x);
+        typedef lazy_unary_tag<math::atan, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::atan(), x);
     }
 
     /**
@@ -299,38 +394,39 @@ namespace numcpp {
      * @param x A tensor-like object with the x-coordinates.
      *
      * @return A light-weight object with the arc tangent, in radians, of y/x.
-     *     Convertible to a tensor object.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_atan2, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::atan2, T, Tag1, T, Tag2> >
     atan2(
         const base_tensor<T, Rank, Tag1> &y,
         const base_tensor<T, Rank, Tag2> &x
     ) {
-        typedef lazy_binary_tag<math_atan2, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_atan2(), y, x);
+        typedef lazy_binary_tag<math::atan2, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_atan2, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::atan2, T, Tag, T, scalar_tag>
     > atan2(
         const base_tensor<T, Rank, Tag> &y,
         const typename tensor<T, Rank>::value_type &x
     ) {
-        typedef lazy_binary_tag<math_atan2, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_atan2(), y, x);
+        typedef lazy_binary_tag<math::atan2, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_atan2, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::atan2, T, scalar_tag, T, Tag>
     > atan2(
         const typename tensor<T, Rank>::value_type &y,
         const base_tensor<T, Rank, Tag> &x
     ) {
-        typedef lazy_binary_tag<math_atan2, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_atan2(), y, x);
+        typedef lazy_binary_tag<math::atan2, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
     }
 
     /**
@@ -339,13 +435,14 @@ namespace numcpp {
      * @param x A tensor-like object with the angles in radians.
      *
      * @return A light-weight object with the corresponding angles in degrees.
-     *     Convertible to a tensor object.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_degrees, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::degrees, T, Tag> >
     degrees(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_degrees, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_degrees(), x);
+        typedef lazy_unary_tag<math::degrees, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::degrees(), x);
     }
 
     /**
@@ -354,13 +451,14 @@ namespace numcpp {
      * @param x A tensor-like object with the angles in degrees.
      *
      * @return A light-weight object with the corresponding angles in radians.
-     *     Convertible to a tensor object.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_radians, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::radians, T, Tag> >
     radians(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_radians, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_radians(), x);
+        typedef lazy_unary_tag<math::radians, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::radians(), x);
     }
 
     /// Hyperbolic functions.
@@ -371,13 +469,14 @@ namespace numcpp {
      * @param x A tensor-like object with the hyperbolic angles.
      *
      * @return A light-weight object with the hyperbolic cosine of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_cosh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::cosh, T, Tag> >
     cosh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_cosh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_cosh(), x);
+        typedef lazy_unary_tag<math::cosh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::cosh(), x);
     }
 
     /**
@@ -386,13 +485,14 @@ namespace numcpp {
      * @param x A tensor-like object with the hyperbolic angles.
      *
      * @return A light-weight object with the hyperbolic sine of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_sinh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::sinh, T, Tag> >
     sinh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_sinh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_sinh(), x);
+        typedef lazy_unary_tag<math::sinh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::sinh(), x);
     }
 
     /**
@@ -401,13 +501,14 @@ namespace numcpp {
      * @param x A tensor-like object with the hyperbolic angles.
      *
      * @return A light-weight object with the hyperbolic tangent of each
-     *     element in the tensor. Convertible to a tensor object.
+     *     element in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_tanh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::tanh, T, Tag> >
     tanh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_tanh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_tanh(), x);
+        typedef lazy_unary_tag<math::tanh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::tanh(), x);
     }
 
     /**
@@ -417,13 +518,14 @@ namespace numcpp {
      *     cosine is computed.
      *
      * @return A light-weight object with the inverse hyperbolic cosine of each
-     *     element in the tensor. Convertible to a tensor object.
+     *     element in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_acosh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::acosh, T, Tag> >
     acosh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_acosh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_acosh(), x);
+        typedef lazy_unary_tag<math::acosh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::acosh(), x);
     }
 
     /**
@@ -433,13 +535,14 @@ namespace numcpp {
      *     sine is computed.
      *
      * @return A light-weight object with the inverse hyperbolic sine of each
-     *     element in the tensor. Convertible to a tensor object.
+     *     element in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_asinh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::asinh, T, Tag> >
     asinh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_asinh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_asinh(), x);
+        typedef lazy_unary_tag<math::asinh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::asinh(), x);
     }
 
     /**
@@ -449,13 +552,15 @@ namespace numcpp {
      *     tangent is computed.
      *
      * @return A light-weight object with the inverse hyperbolic tangent of
-     *     each element in the tensor. Convertible to a tensor object.
+     *     each element in the tensor. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_atanh, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::atanh, T, Tag> >
     atanh(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_atanh, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_atanh(), x);
+        typedef lazy_unary_tag<math::atanh, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::atanh(), x);
     }
 
     /// Exponential and logarithmic functions.
@@ -467,13 +572,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values of the exponents.
      *
      * @return A light-weight object with the exponential of each element in
-     *     the tensor. Convertible to a tensor object.
+     *     the tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_exp, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::exp, T, Tag> >
     exp(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_exp, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_exp(), x);
+        typedef lazy_unary_tag<math::exp, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::exp(), x);
     }
 
     /**
@@ -484,13 +590,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light weight-object with the natural logarithm of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_log, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::log, T, Tag> >
     log(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_log, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_log(), x);
+        typedef lazy_unary_tag<math::log, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::log(), x);
     }
 
     /**
@@ -500,13 +607,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the common logarithm of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an  expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_log10, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::log10, T, Tag> >
     log10(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_log10, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_log10(), x);
+        typedef lazy_unary_tag<math::log10, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::log10(), x);
     }
 
     /**
@@ -516,13 +624,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values of the exponents.
      *
      * @return A light-weight object with the base-2 exponential of each
-     *     element in the tensor. Convertible to a tensor object.
+     *     element in the tensor. This function does not create a new tensor,
+     *     instead, an  expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_exp2, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::exp2, T, Tag> >
     exp2(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_exp2, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_exp2(), x);
+        typedef lazy_unary_tag<math::exp2, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::exp2(), x);
     }
 
     /**
@@ -532,13 +641,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the binary logarithm of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_log2, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::log2, T, Tag> >
     log2(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_log2, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_log2(), x);
+        typedef lazy_unary_tag<math::log2, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::log2(), x);
     }
 
     /**
@@ -548,13 +658,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values of the exponent.
      *
      * @return A light-weight object with the exponential minus one of each
-     *     element in the tensor. Convertible to a tensor object.
+     *     element in the tensor. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_expm1, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::expm1, T, Tag> >
     expm1(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_expm1, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_expm1(), x);
+        typedef lazy_unary_tag<math::expm1, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::expm1(), x);
     }
 
     /**
@@ -565,13 +676,15 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the natural logarithm of (1 + x) for
-     *     each element in the tensor. Convertible to a tensor object.
+     *     each element in the tensor. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_log1p, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::log1p, T, Tag> >
     log1p(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_log1p, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_log1p(), x);
+        typedef lazy_unary_tag<math::log1p, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::log1p(), x);
     }
 
     /// Power functions.
@@ -583,38 +696,39 @@ namespace numcpp {
      * @param y A tensor-like object with the values of the exponent.
      *
      * @return A light-weight object with the result of rasing x to the power
-     *     y. Convertible to a tensor object.
+     *     y, element-wise. This function does not create a new tensor,
+     *     instead, an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_pow, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::pow, T, Tag1, T, Tag2> >
     pow(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<T, Rank, Tag2> &y
     ) {
-        typedef lazy_binary_tag<math_pow, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_pow(), x, y);
+        typedef lazy_binary_tag<math::pow, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::pow(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_pow, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::pow, T, Tag, T, scalar_tag>
     > pow(
         const base_tensor<T, Rank, Tag> &x,
         const typename tensor<T, Rank>::value_type &y
     ) {
-        typedef lazy_binary_tag<math_pow, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_pow(), x, y);
+        typedef lazy_binary_tag<math::pow, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::pow(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_pow, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::pow, T, scalar_tag, T, Tag>
     > pow(
         const typename tensor<T, Rank>::value_type &x,
         const base_tensor<T, Rank, Tag> &y
     ) {
-        typedef lazy_binary_tag<math_pow, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_pow(), x, y);
+        typedef lazy_binary_tag<math::pow, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::pow(), x, y);
     }
 
     /**
@@ -624,14 +738,15 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the square root of each element in
-     *     the tensor. Convertible to a tensor object.
+     *     the tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_unary_tag<math_sqrt, T, Tag>
+        T, Rank, lazy_unary_tag<math::sqrt, T, Tag>
     > sqrt(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_sqrt, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_sqrt(), x);
+        typedef lazy_unary_tag<math::sqrt, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::sqrt(), x);
     }
 
     /**
@@ -641,13 +756,14 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the cubic root of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_cbrt, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::cbrt, T, Tag> >
     cbrt(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_cbrt, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_cbrt(), x);
+        typedef lazy_unary_tag<math::cbrt, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::cbrt(), x);
     }
 
     /// Rounding.
@@ -659,13 +775,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values to round up.
      *
      * @return A light-weight object with the ceiling of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_ceil, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::ceil, T, Tag> >
     ceil(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_ceil, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_ceil(), x);
+        typedef lazy_unary_tag<math::ceil, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::ceil(), x);
     }
 
     /**
@@ -675,13 +792,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values to round down.
      *
      * @return A light-weight object with the floor of each element in the
-     *     tensor. Convertible to a tensor object.
+     *     tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_floor, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::floor, T, Tag> >
     floor(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_floor, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_floor(), x);
+        typedef lazy_unary_tag<math::floor, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::floor(), x);
     }
 
     /**
@@ -691,13 +809,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values to truncate.
      *
      * @return A light-weight object with the truncated value of each element
-     *     in the tensor. Convertible to a tensor object.
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     an expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_trunc, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::trunc, T, Tag> >
     trunc(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_trunc, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_trunc(), x);
+        typedef lazy_unary_tag<math::trunc, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::trunc(), x);
     }
 
     /**
@@ -707,13 +826,14 @@ namespace numcpp {
      * @param x A tensor-like object with the values to round.
      *
      * @return A light-weight object with the rounded value of each element in
-     *     the tensor. Convertible to a tensor object.
+     *     the tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_round, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::round, T, Tag> >
     round(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_round, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_round(), x);
+        typedef lazy_unary_tag<math::round, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::round(), x);
     }
 
     /// Floating-point manipulation functions.
@@ -725,16 +845,17 @@ namespace numcpp {
      * @param x A tensor-like object with the values to be decomposed.
      *
      * @return A light-weight object with the binary significand and the
-     *     exponent of each element in the tensor. Convertible to a tensor
-     *     object.
+     *     exponent of each element in the tensor. This function does not
+     *     create a new tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        std::pair<T, int>, Rank, lazy_unary_tag<math_frexp, T, Tag>
+        std::pair<T, int>, Rank, lazy_unary_tag<math::frexp, T, Tag>
     > frexp(const base_tensor<T, Rank, Tag> &x) {
         typedef std::pair<T, int> Rt;
-        typedef lazy_unary_tag<math_frexp, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math_frexp(), x);
+        typedef lazy_unary_tag<math::frexp, T, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(math::frexp(), x);
     }
 
     /**
@@ -744,37 +865,35 @@ namespace numcpp {
      * @param x A tensor-like object with the values of the significand.
      * @param exp A tensor-like object with the values of the exponent.
      *
-     * @return A light-weight object with the result of x*2^exp for each
-     *     element in the tensor. Convertible to a tensor object.
+     * @return A light-weight object with the result of x*2^exp, element-wise.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_ldexp, T, Tag1, int, Tag2>
+        T, Rank, lazy_binary_tag<math::ldexp, T, Tag1, int, Tag2>
     > ldexp(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<int, Rank, Tag2> &exp
     ) {
-        typedef lazy_binary_tag<math_ldexp, T, Tag1, int, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_ldexp(), x, exp);
+        typedef lazy_binary_tag<math::ldexp, T, Tag1, int, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_ldexp, T, Tag, int, scalar_tag>
+        T, Rank, lazy_binary_tag<math::ldexp, T, Tag, int, scalar_tag>
     > ldexp(const base_tensor<T, Rank, Tag> &x, int exp) {
-        typedef lazy_binary_tag<math_ldexp, T, Tag, int, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_ldexp(), x, exp);
+        typedef lazy_binary_tag<math::ldexp, T, Tag, int, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_ldexp, T, scalar_tag, int, Tag>
-    > ldexp(
-        const typename tensor<T, Rank>::value_type &x,
-        const base_tensor<int, Rank, Tag> &exp
-    ) {
-        typedef lazy_binary_tag<math_ldexp, T, scalar_tag, int, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_ldexp(), x, exp);
+        T, Rank, lazy_binary_tag<math::ldexp, T, scalar_tag, int, Tag>
+    > ldexp(const T &x, const base_tensor<int, Rank, Tag> &exp) {
+        typedef lazy_binary_tag<math::ldexp, T, scalar_tag, int, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
     }
 
     /**
@@ -784,40 +903,42 @@ namespace numcpp {
      * @param x A tensor-like object with the values to change the sign of.
      * @param y A tensor-like object with the values to copy the sign from.
      *
-     * @return A light-weight object with the values in the first array and the
-     *     signs in the second tensor. Convertible to a tensor object.
+     * @return A light-weight object with the values in the first tensor and
+     *     the signs in the second tensor. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_copysign, T, Tag1, T, Tag2>
+        T, Rank, lazy_binary_tag<math::copysign, T, Tag1, T, Tag2>
     > copysign(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<T, Rank, Tag2> &y
     ) {
-        typedef lazy_binary_tag<math_copysign, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_copysign(), x, y);
+        typedef lazy_binary_tag<math::copysign, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_copysign, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag>
     > copysign(
         const typename tensor<T, Rank>::value_type &x,
         const base_tensor<T, Rank, Tag> &y
     ) {
-        typedef lazy_binary_tag<math_copysign, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_copysign(), x, y);
+        typedef lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_copysign, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag>
     > copysign(
         const base_tensor<T, Rank, Tag> &x,
         const typename tensor<T, Rank>::value_type &y
     ) {
-        typedef lazy_binary_tag<math_copysign, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_copysign(), x, y);
+        typedef lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
     }
 
     /**
@@ -829,40 +950,41 @@ namespace numcpp {
      *     next representable values.
      *
      * @return A light-weight object with the next representable value of each
-     *     element in the first array in the direction of the second array.
-     *     Convertible to a tensor object.
+     *     element in the first tensor in the direction of the second tensor.
+     *     This function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_nextafter, T, Tag1, T, Tag2>
+        T, Rank, lazy_binary_tag<math::nextafter, T, Tag1, T, Tag2>
     > nextafter(
         const base_tensor<T, Rank, Tag1> &x,
         const base_tensor<T, Rank, Tag2> &y
     ) {
-        typedef lazy_binary_tag<math_nextafter, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_nextafter(), x, y);
+        typedef lazy_binary_tag<math::nextafter, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_nextafter, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag>
     > nextafter(
         const typename tensor<T, Rank>::value_type &x,
         const base_tensor<T, Rank, Tag> &y
     ) {
-        typedef lazy_binary_tag<math_nextafter, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_nextafter(), x, y);
+        typedef lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_nextafter, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag>
     > nextafter(
         const base_tensor<T, Rank, Tag> &x,
         const typename tensor<T, Rank>::value_type &y
     ) {
-        typedef lazy_binary_tag<math_nextafter, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_nextafter(), x, y);
+        typedef lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
     }
 
     /// Integer-valued functions.
@@ -874,39 +996,40 @@ namespace numcpp {
      * @param n A tensor-like object with integer values.
      *
      * @return A light-weight object with the greatest common divisor of |m|
-     *     and |n|. If both m and n are zero, return zero. Convertible to a
-     *     tensor object.
+     *     and |n|, element-wise. If both m and n are zero, return zero. This
+     *     function does not create a new tensor, instead, an expression object
+     *     is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_gcd, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::gcd, T, Tag1, T, Tag2> >
     gcd(
         const base_tensor<T, Rank, Tag1> &m,
         const base_tensor<T, Rank, Tag2> &n
     ) {
-        typedef lazy_binary_tag<math_gcd, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_gcd(), m, n);
+        typedef lazy_binary_tag<math::gcd, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_gcd, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::gcd, T, Tag, T, scalar_tag>
     > gcd(
         const base_tensor<T, Rank, Tag> &m,
         const typename tensor<T, Rank>::value_type &n
     ) {
-        typedef lazy_binary_tag<math_gcd, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_gcd(), m, n);
+        typedef lazy_binary_tag<math::gcd, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_gcd, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::gcd, T, scalar_tag, T, Tag>
     > gcd(
         const typename tensor<T, Rank>::value_type &m,
         const base_tensor<T, Rank, Tag> &n
     ) {
-        typedef lazy_binary_tag<math_gcd, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_gcd(), m, n);
+        typedef lazy_binary_tag<math::gcd, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
     }
 
     /**
@@ -916,39 +1039,40 @@ namespace numcpp {
      * @param n A tensor-like object with integer values.
      *
      * @return A light-weight object with the least common multiple of |m| and
-     *     |n|. If either m or n is zero, return zero. Convertible to a tensor
-     *     object.
+     *     |n|, element-wise. If either m or n is zero, return zero. This
+     *     function does not create a new tensor, instead, an expression
+     *     object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag1, class Tag2>
-    inline base_tensor<T, Rank, lazy_binary_tag<math_lcm, T, Tag1, T, Tag2> >
+    inline base_tensor<T, Rank, lazy_binary_tag<math::lcm, T, Tag1, T, Tag2> >
     lcm(
         const base_tensor<T, Rank, Tag1> &m,
         const base_tensor<T, Rank, Tag2> &n
     ) {
-        typedef lazy_binary_tag<math_lcm, T, Tag1, T, Tag2> Closure;
-        return base_tensor<T, Rank, Closure>(math_lcm(), m, n);
+        typedef lazy_binary_tag<math::lcm, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_lcm, T, Tag, T, scalar_tag>
+        T, Rank, lazy_binary_tag<math::lcm, T, Tag, T, scalar_tag>
     > lcm(
         const base_tensor<T, Rank, Tag> &m,
         const typename tensor<T, Rank>::value_type &n
     ) {
-        typedef lazy_binary_tag<math_lcm, T, Tag, T, scalar_tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_lcm(), m, n);
+        typedef lazy_binary_tag<math::lcm, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_binary_tag<math_lcm, T, scalar_tag, T, Tag>
+        T, Rank, lazy_binary_tag<math::lcm, T, scalar_tag, T, Tag>
     > lcm(
         const typename tensor<T, Rank>::value_type &m,
         const base_tensor<T, Rank, Tag> &n
     ) {
-        typedef lazy_binary_tag<math_lcm, T, scalar_tag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_lcm(), m, n);
+        typedef lazy_binary_tag<math::lcm, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
     }
 
     /// Complex numbers.
@@ -960,21 +1084,23 @@ namespace numcpp {
      *
      * @return A light-weight object with the real part of each element in the
      *     tensor. Non-complex types are treated as complex numbers with zero
-     *     imaginary part component. Convertible to a tensor object.
+     *     imaginary part component. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_unary_tag<math_real, std::complex<T>, Tag>
+        T, Rank, lazy_unary_tag<math::real, std::complex<T>, Tag>
     > real(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_real, std::complex<T>, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_real(), z);
+        typedef lazy_unary_tag<math::real, std::complex<T>, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::real(), z);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_real, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::real, T, Tag> >
     real(const base_tensor<T, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_real, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_real(), z);
+        typedef lazy_unary_tag<math::real, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::real(), z);
     }
 
     /**
@@ -984,40 +1110,43 @@ namespace numcpp {
      *
      * @return A light-weight object with the imaginary part of each element in
      *     the tensor. Non-complex types are treated as complex numbers with
-     *     zero imaginary part component. Convertible to a tensor object.
+     *     zero imaginary part component. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_unary_tag<math_imag, std::complex<T>, Tag>
+        T, Rank, lazy_unary_tag<math::imag, std::complex<T>, Tag>
     > imag(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_imag, std::complex<T>, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_imag(), z);
+        typedef lazy_unary_tag<math::imag, std::complex<T>, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::imag(), z);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_imag, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::imag, T, Tag> >
     imag(const base_tensor<T, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_imag, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_imag(), z);
+        typedef lazy_unary_tag<math::imag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::imag(), z);
     }
 
     /**
-     * @brief Return the complex conjugate, element-wise. The complex conjugate
-     * of a complex number is obtained by changing the sign of its imaginary
-     * part.
+     * @brief Return the complex conjugate, element-wise. The conjugate of a
+     * complex number is obtained by changing the sign of its imaginary part.
      *
      * @param z A tensor-like object with the values whose complex conjugate is
      *     computed.
      *
      * @return A light-weight object with the complex conjugate of each element
      *     in the tensor. Non-complex types are treated as complex numbers with
-     *     zero imaginary part component. Convertible to a tensor object.
+     *     zero imaginary part component. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_conj, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
     conj(const base_tensor<T, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_conj, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_conj(), z);
+        typedef lazy_unary_tag<math::conj, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::conj(), z);
     }
 
     /**
@@ -1027,14 +1156,15 @@ namespace numcpp {
      *     computed.
      *
      * @return A light-weight object with the absolute value of each element in
-     *     the tensor. Convertible to a tensor object.
+     *     the tensor. This function does not create a new tensor, instead, an
+     *     expression object is returned (see lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
     inline base_tensor<
-        T, Rank, lazy_unary_tag<math_abs, std::complex<T>, Tag>
+        T, Rank, lazy_unary_tag<math::abs, std::complex<T>, Tag>
     > abs(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_abs, std::complex<T>, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_abs(), z);
+        typedef lazy_unary_tag<math::abs, std::complex<T>, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::abs(), z);
     }
 
     /**
@@ -1046,20 +1176,23 @@ namespace numcpp {
      *
      * @return A light-weight object with the phase angle of each element in
      *     the tensor. Non-complex types are treated as complex numbers with
-     *     zero imaginary part component. Convertible to a tensor object.
+     *     zero imaginary part component. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_arg, std::complex<T>, Tag> >
-    arg(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_arg, std::complex<T>, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_arg(), z);
+    inline base_tensor<
+        T, Rank, lazy_unary_tag<math::arg, std::complex<T>, Tag>
+    > arg(const base_tensor<std::complex<T>, Rank, Tag> &z) {
+        typedef lazy_unary_tag<math::arg, std::complex<T>, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::arg(), z);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math_arg, T, Tag> >
+    inline base_tensor<T, Rank, lazy_unary_tag<math::arg, T, Tag> >
     arg(const base_tensor<T, Rank, Tag> &z) {
-        typedef lazy_unary_tag<math_arg, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math_arg(), z);
+        typedef lazy_unary_tag<math::arg, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(math::arg(), z);
     }
 
     /// Clasification functions.
@@ -1071,13 +1204,15 @@ namespace numcpp {
      * @param x A tensor-like object with floating point values.
      *
      * @return A light-weight object with each element set to true where x is
-     *     finite and false otherwise. Convertible to a tensor object.
+     *     finite and false otherwise. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<bool, Rank, lazy_unary_tag<math_isfinite, T, Tag> >
+    inline base_tensor<bool, Rank, lazy_unary_tag<math::isfinite, T, Tag> >
     isfinite(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_isfinite, T, Tag> Closure;
-        return base_tensor<bool, Rank, Closure>(math_isfinite(), x);
+        typedef lazy_unary_tag<math::isfinite, T, Tag> Closure;
+        return base_tensor<bool, Rank, Closure>(math::isfinite(), x);
     }
 
     /**
@@ -1087,13 +1222,15 @@ namespace numcpp {
      * @param x A tensor-like object with floating point values.
      *
      * @return A light-weight object with each element set to true where x is
-     *     infinity and false otherwise. Convertible to a tensor object.
+     *     infinity and false otherwise. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<bool, Rank, lazy_unary_tag<math_isinf, T, Tag> >
+    inline base_tensor<bool, Rank, lazy_unary_tag<math::isinf, T, Tag> >
     isinf(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_isinf, T, Tag> Closure;
-        return base_tensor<bool, Rank, Closure>(math_isinf(), x);
+        typedef lazy_unary_tag<math::isinf, T, Tag> Closure;
+        return base_tensor<bool, Rank, Closure>(math::isinf(), x);
     }
 
     /**
@@ -1105,13 +1242,15 @@ namespace numcpp {
      * @param x A tensor-like object with floating point values.
      *
      * @return A light-weight object with each element set to true where x is
-     *     NaN and false otherwise. Convertible to a tensor object.
+     *     NaN and false otherwise. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<bool, Rank, lazy_unary_tag<math_isnan, T, Tag> >
+    inline base_tensor<bool, Rank, lazy_unary_tag<math::isnan, T, Tag> >
     isnan(const base_tensor<T, Rank, Tag> &x) {
-        typedef lazy_unary_tag<math_isnan, T, Tag> Closure;
-        return base_tensor<bool, Rank, Closure>(math_isnan(), x);
+        typedef lazy_unary_tag<math::isnan, T, Tag> Closure;
+        return base_tensor<bool, Rank, Closure>(math::isnan(), x);
     }
 }
 
