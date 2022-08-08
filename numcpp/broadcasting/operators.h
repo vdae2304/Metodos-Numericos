@@ -290,6 +290,11 @@ namespace math {
     };
 
     template <class T>
+    struct complex_traits<const T> {
+        typedef T value_type;
+    };
+
+    template <class T>
     struct complex_traits< std::complex<T> > {
         typedef T value_type;
     };
