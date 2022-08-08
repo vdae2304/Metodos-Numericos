@@ -46,6 +46,16 @@ namespace math {
     };
 
     /**
+     * @brief Function object implementing std::fmod.
+     */
+    struct fmod {
+        template <class T, class U>
+        auto operator()(T x, U y) const -> decltype(std::fmod(x, y)) {
+            return std::fmod(x, y);
+        }
+    };
+
+    /**
      * @brief Function object implementing std::fmax.
      */
     struct fmax {
@@ -62,16 +72,6 @@ namespace math {
         template <class T, class U>
         auto operator()(T x, U y) const -> decltype(std::fmin(x, y)) {
             return std::fmin(x, y);
-        }
-    };
-
-    /**
-     * @brief Function object implementing std::fmod.
-     */
-    struct fmod {
-        template <class T, class U>
-        auto operator()(T x, U y) const -> decltype(std::fmod(x, y)) {
-            return std::fmod(x, y);
         }
     };
 
