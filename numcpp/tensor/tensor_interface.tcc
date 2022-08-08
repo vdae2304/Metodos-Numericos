@@ -398,10 +398,12 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
+    inline base_tensor<typename std::remove_cv<T>::type, Rank,
+                       lazy_unary_tag<math::conj, T, Tag> >
     tensor_interface<T, Rank, Tag>::conj() const {
+        typedef typename std::remove_cv<T>::type Rt;
         typedef lazy_unary_tag<math::conj, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math::conj(), *this->base());
+        return base_tensor<Rt, Rank, Closure>(math::conj(), *this->base());
     }
 
     template <class T, size_t Rank, class Tag>
@@ -679,7 +681,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::max() const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::max() const {
         ranges::max pred;
         return pred(this->begin(), this->end());
     }
@@ -699,7 +702,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::mean() const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::mean() const {
         ranges::mean pred;
         return pred(this->begin(), this->end());
     }
@@ -719,7 +723,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::min() const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::min() const {
         ranges::min pred;
         return pred(this->begin(), this->end());
     }
@@ -739,7 +744,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::prod() const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::prod() const {
         ranges::prod pred;
         return pred(this->begin(), this->end());
     }
@@ -759,7 +765,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::stddev(bool bias) const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::stddev(bool bias) const {
         ranges::stddev pred(bias);
         return pred(this->begin(), this->end());
     }
@@ -780,7 +787,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::sum() const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::sum() const {
         ranges::sum pred;
         return pred(this->begin(), this->end());
     }
@@ -800,7 +808,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline T tensor_interface<T, Rank, Tag>::var(bool bias) const {
+    inline typename std::remove_cv<T>::type
+    tensor_interface<T, Rank, Tag>::var(bool bias) const {
         ranges::var pred(bias);
         return pred(this->begin(), this->end());
     }

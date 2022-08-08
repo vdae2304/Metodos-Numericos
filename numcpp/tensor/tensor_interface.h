@@ -440,7 +440,8 @@ namespace numcpp {
          *     tensor, instead, it returns a readonly view with the complex
          *     conjugate of each element.
          */
-        base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
+        base_tensor<typename std::remove_cv<T>::type, Rank,
+                    lazy_unary_tag<math::conj, T, Tag> >
         conj() const;
 
         /**
@@ -481,7 +482,7 @@ namespace numcpp {
          *
          * @return The maximum value in the tensor.
          */
-        T max() const;
+        typename std::remove_cv<T>::type max() const;
 
         /**
          * @brief Return the maximum value contained in the tensor over the
@@ -510,7 +511,7 @@ namespace numcpp {
          *
          * @return The average of the tensor elements.
          */
-        T mean() const;
+        typename std::remove_cv<T>::type mean() const;
 
         /**
          * @brief Return the average of the tensor elements over the given
@@ -539,7 +540,7 @@ namespace numcpp {
          *
          * @return The minimum value in the tensor.
          */
-        T min() const;
+        typename std::remove_cv<T>::type min() const;
 
         /**
          * @brief Return the minimum value contained in the tensor over the
@@ -598,7 +599,7 @@ namespace numcpp {
          *
          * @return The product of the tensor elements.
          */
-        T prod() const;
+        typename std::remove_cv<T>::type prod() const;
 
         /**
          * @brief Return the product of the tensor elements over the given
@@ -684,7 +685,7 @@ namespace numcpp {
          *
          * @return The standard deviation of the tensor elements.
          */
-        T stddev(bool bias) const;
+        typename std::remove_cv<T>::type stddev(bool bias) const;
 
         /**
          * @brief Return the standard deviation of the tensor elements over the
@@ -715,7 +716,7 @@ namespace numcpp {
          *
          * @return The sum of the tensor elements.
          */
-        T sum() const;
+        typename std::remove_cv<T>::type sum() const;
 
         /**
          * @brief Return the sum of the tensor elements over the given axes.
@@ -754,7 +755,7 @@ namespace numcpp {
          *
          * @return The variance of the tensor elements.
          */
-        T var(bool bias) const;
+        typename std::remove_cv<T>::type var(bool bias) const;
 
         /**
          * @brief Return the variance of the tensor elements over the given
