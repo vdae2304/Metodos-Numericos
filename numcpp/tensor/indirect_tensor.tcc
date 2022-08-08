@@ -218,7 +218,8 @@ namespace numcpp {
                   << "output shape " << this->shape();
             throw std::invalid_argument(error.str());
         }
-        std::copy(other.begin(m_order), other.end(m_order), this->begin());
+        std::transform(other.begin(m_order), other.end(m_order), this->begin(),
+                       identity());
         return *this;
     }
 

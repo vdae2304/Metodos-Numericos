@@ -82,7 +82,7 @@ namespace numcpp {
      : m_size(other.size()), m_shape(other.shape())
     {
         m_data = new T[m_size];
-        std::copy(other.begin(true), other.end(true), m_data);
+        std::transform(other.begin(true), other.end(true), m_data, identity());
     }
 
     template <class T, size_t Rank>
@@ -487,7 +487,7 @@ namespace detail {
     tensor<T, Rank>&
     tensor<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
         this->resize(other.shape());
-        std::copy(other.begin(true), other.end(true), m_data);
+        std::transform(other.begin(true), other.end(true), m_data, identity());
         return *this;
     }
 
