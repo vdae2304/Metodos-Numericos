@@ -31,6 +31,7 @@ namespace numcpp {
     /// Basic functions.
     using std::abs;
     using std::fmod;
+    using std::modf;
     using std::fmax;
     using std::fmin;
 
@@ -151,6 +152,25 @@ namespace numcpp {
     ) {
         typedef lazy_binary_tag<math::fmod, T, scalar_tag, T, Tag> Closure;
         return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
+    }
+
+    /**
+     * @brief Descompose x into integral and fractional parts, element-wise.
+     *
+     * @param x A tensor-like object with the values to be decomposed.
+     *
+     * @return A light-weight object with the integral and fractional parts of
+     *     each element in the tensor. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
+     */
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        std::pair<T, T>, Rank, lazy_unary_tag<math::modf, T, Tag>
+    > modf(const base_tensor<T, Rank, Tag> &x) {
+        typedef std::pair<T, T> Rt;
+        typedef lazy_unary_tag<math::modf, T, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(math::modf(), x);
     }
 
     /**

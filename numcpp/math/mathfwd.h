@@ -56,6 +56,18 @@ namespace math {
     };
 
     /**
+     * @brief Function object implementing std::modf.
+     */
+    struct modf {
+        template <class T>
+        std::pair<T, T> operator()(T x) const {
+            T intpart;
+            T fracpart = std::modf(x, &intpart);
+            return std::make_pair(intpart, fracpart);
+        }
+    };
+
+    /**
      * @brief Function object implementing std::fmax.
      */
     struct fmax {
