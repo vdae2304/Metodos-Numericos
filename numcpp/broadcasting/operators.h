@@ -279,8 +279,8 @@ namespace numcpp {
         }
     };
 
-/// Namespace for implementation details.
-namespace detail {
+/// Namespace for mathematical functions.
+namespace math {
     /**
      * @brief Type traits for complex numbers.
      */
@@ -295,16 +295,15 @@ namespace detail {
     };
 
     template <class T>
-    using complex_value_type = typename complex_traits<T>::value_type;
-}
+    using complex_scalar = typename complex_traits<T>::value_type;
 
     /**
      * @brief Function object returning real part.
      */
-    struct math_real {
+    struct real {
         template <class T>
         T operator()(T &&x) const {
-            return x;
+            return std::forward<T>(x);
         }
 
         template <class T>
@@ -316,7 +315,7 @@ namespace detail {
     /**
      * @brief Function object returning imaginary part.
      */
-    struct math_imag {
+    struct imag {
         template <class T>
         T operator()(T&&) const {
             return T();
@@ -331,10 +330,10 @@ namespace detail {
     /**
      * @brief Function object implementing std::conj.
      */
-    struct math_conj {
+    struct conj {
         template <class T>
         T operator()(T &&x) const {
-            return x;
+            return std::forward<T>(x);
         }
 
         template <class T>
@@ -342,6 +341,7 @@ namespace detail {
             return std::conj(z);
         }
     };
+}
 }
 
 #endif // NUMCPP_OPERATORS_H_INCLUDED
