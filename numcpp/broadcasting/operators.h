@@ -32,8 +32,8 @@ namespace numcpp {
      */
     struct identity {
         template <class T>
-        constexpr T&& operator()(T &&arg) const {
-            return std::forward<T>(arg);
+        constexpr T operator()(const T &arg) const {
+            return arg;
         }
     };
 
