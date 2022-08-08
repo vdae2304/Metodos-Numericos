@@ -42,6 +42,7 @@ compiler options.
 #include <initializer_list>
 
 namespace numcpp {
+
 /// Namespace for implementation details.
 namespace detail {
     /// Type constraint to request input iterator.
