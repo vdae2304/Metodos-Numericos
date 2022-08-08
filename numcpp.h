@@ -26,7 +26,7 @@
 #include "numcpp/tensor.h"
 #include "numcpp/math.h"
 // #include "numcpp/routines.h"
-// #include "numcpp/broadcasting.h"
+#include "numcpp/broadcasting.h"
 #include "numcpp/random.h"
 #include "numcpp/io.h"
 
