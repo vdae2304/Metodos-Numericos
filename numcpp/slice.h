@@ -23,13 +23,11 @@
 #ifndef NUMCPP_SLICE_H_INCLUDED
 #define NUMCPP_SLICE_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
     /**
      * @brief A slice is a class that identifies a subset of elements in an
-     * array. It holds three values: the starting index, the stride and the
-     * number of elements in the subset.
+     * array. It holds three values: the starting index, the stop index and the
+     * stride.
      */
     class slice {
     public:
@@ -42,21 +40,33 @@ namespace numcpp {
         slice() : m_offset(0), m_size(0), m_stride(0) {}
 
         /**
-         * @brief Slice constructor. Constructs a slice object.
+         * @brief Slice constructor. Constructs a slice with values within the
+         * half-open interval [start, stop).
          *
-         * @param start The position of the first element in the slice.
-         *     Defaults to 0 if not provided.
-         * @param size The number of elements in the slice.
-         * @param stride The span that separates the elements selected into the
+         * @param start The position of the first element selected by the
+         *     slice. Defaults to 0 if not provided.
+         * @param stop The position at which the slice ends. The slice does not
+         *     include this position.
+         * @param stride The span that separates the elements selected by the
          *     slice. Defaults to 1 if not provided.
          */
-        slice(size_t size) : m_offset(0), m_size(size), m_stride(1) {}
+        slice(size_t stop) : m_offset(0), m_size(stop), m_stride(1) {}
 
-        slice(size_t start, size_t size)
-         : m_offset(start), m_size(size), m_stride(1) {}
+        slice(size_t start, size_t stop)
+         : m_offset(start), m_size(0), m_stride(1)
+        {
+            if (start < stop) {
+                m_size = stop - start;
+            }
+        }
 
-        slice(size_t start, size_t size, size_t stride)
-         : m_offset(start), m_size(size), m_stride(stride) {}
+        slice(size_t start, size_t stop, size_t stride)
+         : m_offset(start), m_size(0), m_stride(stride)
+        {
+            if (start < stop && stride > 0) {
+                m_size = 1 + (stop - start - 1) / stride;
+            }
+        }
 
         /**
          * @brief Copy constructor. Constructs a slice as a copy of other.
@@ -86,29 +96,29 @@ namespace numcpp {
         /// Public methods.
 
         /**
-         * @brief Returns the index of the first element in the slice.
+         * @brief Return the first element in the slice.
          */
         size_t start() const {
             return m_offset;
         }
 
         /**
-         * @brief Return the index of the last element in the slice. The
-         * behaviour is undefined if the slice is empty.
+         * @brief Return the last element in the slice. The behaviour is
+         * undefined if the slice is empty.
          */
         size_t last() const {
             return m_offset + (m_size - 1) * m_stride;
         }
 
         /**
-         * @brief Returns the number of elements in the slice.
+         * @brief Return the number of elements in the slice.
          */
         size_t size() const {
             return m_size;
         }
 
         /**
-         * @brief Returns the separation of the elements in the slice.
+         * @brief Return the separation of the elements in the slice.
          */
         size_t stride() const {
             return m_stride;
@@ -117,7 +127,7 @@ namespace numcpp {
         /// Indexing.
 
         /**
-         * @brief Returns the element at position i in the slice.
+         * @brief Return the element at position i in the slice.
          *
          * @param i Position of an element in the slice. This function does not
          *     check for out of bounds.
