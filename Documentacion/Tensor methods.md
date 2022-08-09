@@ -1893,8 +1893,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
-    // Explicit conversion from index_t<1>.
-    std::cout << (size_t)a.argmax() << "\n";
+    std::cout << a.argmax() << "\n";
     return 0;
 }
 ```
@@ -1908,7 +1907,7 @@ Input
 Output
 
 ```
-2
+(2,)
 ```
 
 ### `tensor::argmax(axis)`
@@ -2001,8 +2000,7 @@ namespace np = numcpp;
 int main() {
     np::array<int> a;
     std::cin >> a;
-    // Explicit conversion from index_t<1>.
-    std::cout << (size_t)a.argmin() << "\n";
+    std::cout << a.argmin() << "\n";
     return 0;
 }
 ```
@@ -2016,7 +2014,7 @@ Input
 Output
 
 ```
-7
+(7,)
 ```
 
 ### `tensor::argmin(axis)`
