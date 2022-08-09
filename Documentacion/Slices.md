@@ -20,8 +20,7 @@ Defined in `numcpp/slice.h`
     - [`operator!=`](#operator-1)
 
 A `slice` is a class that identifies a subset of elements in an array. It holds
-three values: the starting index, the stride and the number of elements in the
-subset.
+three values: the starting index, the stop index and the stride.
 ```cpp
 class slice;
 ```
@@ -37,7 +36,7 @@ slice();
 
 ### Slice constructor
 
-Constructs a slice object.
+Constructs a slice with values within the half-open interval [`start`, `stop`).
 ```cpp
 slice(size_t size);
 slice(size_t start, size_t size);
@@ -46,11 +45,12 @@ slice(size_t start, size_t size, size_t stride);
 
 Parameters
 
-* `start` The position of the first element in the slice. Defaults to 0 if not
-provided.
-* `size` The number of elements in the slice.
-* `stride` The span that separates the elements selected into the slice.
-Defaults to 1 if not provided.
+* `start` The position of the first element selected by the slice. Defaults to
+0 if not provided.
+* `stop` The position at which the slice ends. The slice does not include this
+position.
+* `stride` The span that separates the elements selected by the slice. Defaults
+to 1 if not provided.
 
 Example
 
@@ -63,9 +63,9 @@ int main() {
     // Selects indices 0, 1, 2, 3, 4.
     std::cout << arr(np::slice(5)) << '\n';
     // Selects indices 2, 3, 4, 5, 6.
-    std::cout << arr(np::slice(2, 5)) << '\n';
+    std::cout << arr(np::slice(2, 7)) << '\n';
     // Selects indices 1, 3, 5, 7, 9.
-    std::cout << arr(np::slice(1, 5, 2)) << '\n';
+    std::cout << arr(np::slice(1, 10, 2)) << '\n';
     return 0;
 }
 ```
@@ -110,7 +110,7 @@ Returns
 
 ### `slice::start`
 
-Returns the index of the first element in the slice.
+Return the first element in the slice.
 ```cpp
 size_t start() const
 ```
@@ -124,9 +124,9 @@ namespace np = numcpp;
 int main() {
     np::slice slc1(5);
     std::cout << slc1.start() << '\n';
-    np::slice slc2(2, 5);
+    np::slice slc2(2, 7);
     std::cout << slc2.start() << '\n';
-    np::slice slc3(1, 5, 2);
+    np::slice slc3(1, 10, 2);
     std::cout << slc3.start() << '\n';
     return 0;
 }
@@ -142,8 +142,8 @@ Output
 
 ### `slice::last`
 
-Return the index of the last element in the slice. The behaviour is undefined
-if the slice is empty.
+Return the last element in the slice. The behaviour is undefined if the slice
+is empty.
 ```cpp
 size_t last() const
 ```
@@ -157,9 +157,9 @@ namespace np = numcpp;
 int main() {
     np::slice slc1(5);
     std::cout << slc1.last() << '\n';
-    np::slice slc2(2, 5);
+    np::slice slc2(2, 7);
     std::cout << slc2.last() << '\n';
-    np::slice slc3(1, 5, 2);
+    np::slice slc3(1, 10, 2);
     std::cout << slc3.last() << '\n';
     return 0;
 }
@@ -175,7 +175,7 @@ Output
 
 ### `slice::size`
 
-Returns the number of elements in the slice.
+Return the number of elements in the slice.
 ```cpp
 size_t size() const
 ```
@@ -189,9 +189,9 @@ namespace np = numcpp;
 int main() {
     np::slice slc1(5);
     std::cout << slc1.size() << '\n';
-    np::slice slc2(2, 5);
+    np::slice slc2(2, 7);
     std::cout << slc2.size() << '\n';
-    np::slice slc3(1, 5, 2);
+    np::slice slc3(1, 10, 2);
     std::cout << slc3.size() << '\n';
     return 0;
 }
@@ -207,7 +207,7 @@ Output
 
 ### `slice::stride`
 
-Returns the separation of the elements in the slice.
+Return the separation of the elements in the slice.
 ```cpp
 size_t stride() const
 ```
@@ -221,9 +221,9 @@ namespace np = numcpp;
 int main() {
     np::slice slc1(5);
     std::cout << slc1.stride() << '\n';
-    np::slice slc2(2, 5);
+    np::slice slc2(2, 7);
     std::cout << slc2.stride() << '\n';
-    np::slice slc3(1, 5, 2);
+    np::slice slc3(1, 10, 2);
     std::cout << slc3.stride() << '\n';
     return 0;
 }
@@ -241,7 +241,7 @@ Output
 
 ### `slice::operator[]`
 
-Returns the element at position `i` in the slice.
+Return the element at position `i` in the slice.
 ```cpp
 size_t operator[](size_t i) const
 ```
@@ -263,7 +263,7 @@ Example
 namespace np = numcpp;
 int main() {
     int data[10] = {5, 8, 16, 16, 17, 20, 4, 10, 1, 6};
-    np::slice slc(1, 5, 2);
+    np::slice slc(1, 10, 2);
     for (unsigned i = 0; i < slc.size(); ++i) {
         std::cout << data[slc[i]] << ", ";
     }
