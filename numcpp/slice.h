@@ -93,6 +93,14 @@ namespace numcpp {
         }
 
         /**
+         * @brief Return the index of the last element in the slice. The
+         * behaviour is undefined if the slice is empty.
+         */
+        size_t last() const {
+            return m_offset + (m_size - 1) * m_stride;
+        }
+
+        /**
          * @brief Returns the number of elements in the slice.
          */
         size_t size() const {
