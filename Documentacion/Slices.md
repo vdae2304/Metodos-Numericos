@@ -39,8 +39,8 @@ slice();
 Constructs a slice with values within the half-open interval [`start`, `stop`).
 ```cpp
 slice(size_t size);
-slice(size_t start, size_t size);
-slice(size_t start, size_t size, size_t stride);
+slice(size_t start, size_t stop);
+slice(size_t start, size_t stop, size_t stride);
 ```
 
 Parameters
