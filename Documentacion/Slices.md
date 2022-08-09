@@ -11,6 +11,7 @@ Defined in `numcpp/slice.h`
     - [Copy assignment](#copy-assignment)
   - [Public methods](#public-methods)
     - [`slice::start`](#slicestart)
+    - [`slice::last`](#slicelast)
     - [`slice::size`](#slicesize)
     - [`slice::stride`](#slicestride)
   - [Operators](#operators)
@@ -137,6 +138,37 @@ Output
 0
 2
 1
+```
+
+### `slice::last`
+
+Return the index of the last element in the slice. The behaviour is undefined
+if the slice is empty.
+```cpp
+size_t last() const
+```
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::slice slc1(5);
+    std::cout << slc1.last() << '\n';
+    np::slice slc2(2, 5);
+    std::cout << slc2.last() << '\n';
+    np::slice slc3(1, 5, 2);
+    std::cout << slc3.last() << '\n';
+    return 0;
+}
+```
+
+Output
+
+```
+4
+6
+9
 ```
 
 ### `slice::size`
