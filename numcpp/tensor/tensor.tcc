@@ -238,7 +238,7 @@ namespace detail {
         else if (slc.start() >= shape[axis]) {
             slc = slice(0);
         }
-        else if (slc.size() > 0 && slc[slc.size() - 1] >= shape[axis]) {
+        else if (slc.size() > 0 && slc.last() >= shape[axis]) {
             size_t new_size = (shape[axis] - slc.start()) / slc.stride();
             slc = slice(slc.start(), new_size, slc.stride());
         }
@@ -282,7 +282,7 @@ namespace detail {
         else if (slc.start() >= shape[axis]) {
             slc = slice(0);
         }
-        else if (slc.size() > 0 && slc[slc.size() - 1] >= shape[axis]) {
+        else if (slc.size() > 0 && slc.last() >= shape[axis]) {
             size_t new_size = (shape[axis] - slc.start()) / slc.stride();
             slc = slice(slc.start(), new_size, slc.stride());
         }
