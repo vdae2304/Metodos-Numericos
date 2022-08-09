@@ -140,19 +140,19 @@ namespace numcpp {
     std::basic_istream<charT, traits>& operator>>(
         std::basic_istream<charT, traits> &istr, slice &slc
     ) {
-        size_t start, size, stride;
+        size_t start, stop, stride;
         charT ch;
         bool fail = true;
         if (istr >> ch) {
             if (traits::eq(ch, istr.widen('('))) {
-                if (istr >> size >> ch) {
+                if (istr >> stop >> ch) {
                     if (traits::eq(ch, istr.widen(','))) {
-                        start = size;
-                        if (istr >> size >> ch) {
+                        start = stop;
+                        if (istr >> stop >> ch) {
                             if (traits::eq(ch, istr.widen(','))) {
                                 if (istr >> stride >> ch) {
                                     if (traits::eq(ch, istr.widen(')'))) {
-                                        slc = slice(start, size, stride);
+                                        slc = slice(start, stop, stride);
                                         fail = false;
                                     }
                                     else {
@@ -161,7 +161,7 @@ namespace numcpp {
                                 }
                             }
                             else if (traits::eq(ch, istr.widen(')'))) {
-                                slc = slice(start, size);
+                                slc = slice(start, stop);
                                 fail = false;
                             }
                             else {
@@ -170,7 +170,7 @@ namespace numcpp {
                         }
                     }
                     else if (traits::eq(ch, istr.widen(')'))) {
-                        slc = slice(size);
+                        slc = slice(stop);
                         fail = false;
                     }
                     else {
