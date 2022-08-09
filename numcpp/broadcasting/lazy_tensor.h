@@ -93,8 +93,8 @@ namespace detail {
          * @param f The function to apply.
          * @param arg Tensor-like object.
          */
-        base_tensor(Function &&f, const base_tensor<T, Rank, Tag> &arg)
-         : m_fun(std::forward<Function>(f)), m_arg(arg) {}
+        base_tensor(Function f, const base_tensor<T, Rank, Tag> &arg)
+         : m_fun(f), m_arg(arg) {}
 
         /// Destructor.
         ~base_tensor() {}
@@ -373,10 +373,10 @@ namespace detail {
          * @param rhs Second tensor-like argument.
          */
         base_tensor(
-            Function &&f,
+            Function f,
             const base_tensor<T, Rank, TagT> &lhs,
             const base_tensor<U, Rank, TagU> &rhs
-        ) : m_fun(std::forward<Function>(f)),
+        ) : m_fun(f),
             m_shape(broadcast_shapes(lhs.shape(), rhs.shape())),
             m_lhs(lhs), m_rhs(rhs)
         {
@@ -679,10 +679,10 @@ namespace detail {
         /// Constructors.
 
         base_tensor(
-            Function &&f,
+            Function f,
             const base_tensor<T, Rank, Tag> &lhs,
             const U &val
-        ) : m_fun(std::forward<Function>(f)), m_lhs(lhs), m_val(val) {}
+        ) : m_fun(f), m_lhs(lhs), m_val(val) {}
 
         /// Destructor.
         ~base_tensor() {}
@@ -843,10 +843,10 @@ namespace detail {
         /// Constructors.
 
         base_tensor(
-            Function &&f,
+            Function f,
             const T &val,
             const base_tensor<U, Rank, Tag> &rhs
-        ) : m_fun(std::forward<Function>(f)), m_val(val), m_rhs(rhs) {}
+        ) : m_fun(f), m_val(val), m_rhs(rhs) {}
 
         /// Destructor.
         ~base_tensor() {}
