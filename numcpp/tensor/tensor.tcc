@@ -235,12 +235,8 @@ namespace detail {
         if (slc == slice()) {
             slc = slice(shape[axis]);
         }
-        else if (slc.start() >= shape[axis]) {
-            slc = slice(0);
-        }
         else if (slc.size() > 0 && slc.last() >= shape[axis]) {
-            size_t new_size = (shape[axis] - slc.start()) / slc.stride();
-            slc = slice(slc.start(), new_size, slc.stride());
+            slc = slice(slc.start(), shape[axis], slc.stride());
         }
         size_t I = N - 1;
         sizes[I] = slc.size();
@@ -279,12 +275,8 @@ namespace detail {
         if (slc == slice()) {
             slc = slice(shape[axis]);
         }
-        else if (slc.start() >= shape[axis]) {
-            slc = slice(0);
-        }
         else if (slc.size() > 0 && slc.last() >= shape[axis]) {
-            size_t new_size = (shape[axis] - slc.start()) / slc.stride();
-            slc = slice(slc.start(), new_size, slc.stride());
+            slc = slice(slc.start(), shape[axis], slc.stride());
         }
         size_t I = N - detail::slice_index_rank<Args...>::value - 1;
         size_t n = unpack_slices(shape, sizes, offset, strides, args...);
