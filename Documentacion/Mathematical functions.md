@@ -1199,7 +1199,7 @@ Output
 
 ### `exp`
 
-Return the base-$e$ exponential, which is $e$ raised to the power $x$: $e^x$,
+Return the base- $e$ exponential, which is $e$ raised to the power $x$: $e^x$,
 element-wise.
 ```cpp
 template <class T, size_t Rank>
