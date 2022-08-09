@@ -148,6 +148,8 @@ if the slice is empty.
 size_t last() const
 ```
 
+Example
+
 ```cpp
 #include <iostream>
 #include "numcpp.h"
