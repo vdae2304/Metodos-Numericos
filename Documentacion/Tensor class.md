@@ -771,9 +771,8 @@ int main() {
     np::array<int> array{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     // Select first 5 positions.
     std::cout << array(np::slice(5)) << "\n";
-    // Select 3 positions starting from 7 (i.e., positions 7, 8, 9), and set
-    // all of them to zero.
-    array(np::slice(7, 3)) = 0;
+    // Select positions 7, 8, 9, and set all of them to zero.
+    array(np::slice(7, 10)) = 0;
     std::cout << array << "\n";
     return 0;
 }
@@ -797,13 +796,11 @@ int main() {
                            {8, 11, 19, 0, -5, 14},
                            {16, 19, 9, 12, 12, 18},
                            {-5, 11, 5, 10, 8, 10}};
-    // Select all rows.
-    // Select 2 columns starting from 4 (i.e., columns 4 and 5).
-    std::cout << matrix(np::slice(), np::slice(4, 2)) << "\n";
-    // Select row 1 (i.e., second row).
-    // Select 3 columns starting from 0 with stride 2 (i.e., columns 0, 2, 4).
-    std::cout << matrix(1, np::slice(0, 3, 2)) << "\n";
-    // Set third column to zero.
+    // Select all rows. Select columns 4 and 5.
+    std::cout << matrix(np::slice(), np::slice(4, 6)) << "\n";
+    // Select row 1 (i.e., second row). Select columns 0, 2 and 4.
+    std::cout << matrix(1, np::slice(0, 5, 2)) << "\n";
+    // Set column 2 (i.e., third column) to zero.
     matrix(np::slice(), 2) = 0;
     std::cout << matrix << "\n";
     return 0;
@@ -839,8 +836,9 @@ int main() {
                              {6, 19, -2, 1}}};
     // Select first matrix block.
     std::cout << cube(0, np::slice(), np::slice()) << "\n";
-    // Set second and fourth columns of each matrix block to zero.
-    cube(np::slice(), np::slice(), np::slice(1, 2, 2)) = 0;
+    // Set columns 1 and 3 (i.e., second and fourth columns) of each matrix
+    // block to zero.
+    cube(np::slice(), np::slice(), np::slice(1, 4, 2)) = 0;
     std::cout << cube << "\n";
     return 0;
 }
