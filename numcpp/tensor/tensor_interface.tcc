@@ -617,9 +617,9 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(size_t axes)
+    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(size_t axis)
     const {
-        return this->all(make_shape(axes));
+        return this->all(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -637,9 +637,9 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(size_t axes)
+    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(size_t axis)
     const {
-        return this->any(make_shape(axes));
+        return this->any(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -689,8 +689,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::max(size_t axes) const {
-        return this->max(make_shape(axes));
+    tensor_interface<T, Rank, Tag>::max(size_t axis) const {
+        return this->max(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -710,8 +710,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::mean(size_t axes) const {
-        return this->mean(make_shape(axes));
+    tensor_interface<T, Rank, Tag>::mean(size_t axis) const {
+        return this->mean(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -731,8 +731,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::min(size_t axes) const {
-        return this->min(make_shape(axes));
+    tensor_interface<T, Rank, Tag>::min(size_t axis) const {
+        return this->min(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -752,8 +752,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::prod(size_t axes) const {
-        return this->prod(make_shape(axes));
+    tensor_interface<T, Rank, Tag>::prod(size_t axis) const {
+        return this->prod(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -773,8 +773,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::stddev(size_t axes, bool bias) const {
-        return this->stddev(make_shape(axes), bias);
+    tensor_interface<T, Rank, Tag>::stddev(size_t axis, bool bias) const {
+        return this->stddev(make_shape(axis), bias);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -795,8 +795,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::sum(size_t axes) const {
-        return this->sum(make_shape(axes));
+    tensor_interface<T, Rank, Tag>::sum(size_t axis) const {
+        return this->sum(make_shape(axis));
     }
 
     template <class T, size_t Rank, class Tag>
@@ -816,8 +816,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
-    tensor_interface<T, Rank, Tag>::var(size_t axes, bool bias) const {
-        return this->var(make_shape(axes), bias);
+    tensor_interface<T, Rank, Tag>::var(size_t axis, bool bias) const {
+        return this->var(make_shape(axis), bias);
     }
 
     template <class T, size_t Rank, class Tag>

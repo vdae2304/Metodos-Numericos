@@ -272,7 +272,7 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<bool, Rank> all(size_t axes) const;
+        tensor<bool, Rank> all(size_t axis) const;
         template <size_t N>
         tensor<bool, Rank> all(const shape_t<N> &axes) const;
 
@@ -298,7 +298,7 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<bool, Rank> any(size_t axes) const;
+        tensor<bool, Rank> any(size_t axis) const;
         template <size_t N>
         tensor<bool, Rank> any(const shape_t<N> &axes) const;
 
@@ -500,7 +500,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        max(size_t axes) const;
+        max(size_t axis) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -529,7 +529,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        mean(size_t axes) const;
+        mean(size_t axis) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -558,7 +558,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        min(size_t axes) const;
+        min(size_t axis) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -617,7 +617,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        prod(size_t axes) const;
+        prod(size_t axis) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -705,7 +705,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        stddev(size_t axes, bool bias) const;
+        stddev(size_t axis, bool bias) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -732,7 +732,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        sum(size_t axes) const;
+        sum(size_t axis) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
@@ -775,7 +775,7 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank>
-        var(size_t axes, bool bias) const;
+        var(size_t axis, bool bias) const;
 
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
