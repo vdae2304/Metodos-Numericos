@@ -1607,7 +1607,7 @@ false
 
 Test whether all tensor elements over the given axes evaluates to `true`.
 ```cpp
-tensor<bool, Rank> all(size_t axes) const;
+tensor<bool, Rank> all(size_t axis) const;
 template <size_t N>
 tensor<bool, Rank> all(const shape_t<N> &axes) const;
 ```
@@ -1769,7 +1769,7 @@ true
 
 Test whether any tensor element over the given axes evaluates to `true`.
 ```cpp
-tensor<bool, Rank> any(size_t axes) const;
+tensor<bool, Rank> any(size_t axis) const;
 template <size_t N>
 tensor<bool, Rank> any(const shape_t<N> &axes) const;
 ```
@@ -2132,7 +2132,7 @@ Output
 
 Return the maximum value contained in the tensor over the given axes.
 ```cpp
-tensor<T, Rank> max(size_t axes) const;
+tensor<T, Rank> max(size_t axis) const;
 template <size_t N>
 tensor<T, Rank> max(const shape_t<N> &axes) const;
 ```
@@ -2276,7 +2276,7 @@ Possible output
 
 Return the average of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> mean(size_t axes) const;
+tensor<T, Rank> mean(size_t axis) const;
 template <size_t N>
 tensor<T, Rank> mean(const shape_t<N> &axes) const;
 ```
@@ -2416,7 +2416,7 @@ Output
 
 Return the minimum value contained in the tensor over the given axes.
 ```cpp
-tensor<T, Rank> min(size_t axes) const;
+tensor<T, Rank> min(size_t axis) const;
 template <size_t N>
 tensor<T, Rank> min(const shape_t<N> &axes) const;
 ```
@@ -2561,7 +2561,7 @@ Output
 
 Return the product of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> prod(size_t axes) const;
+tensor<T, Rank> prod(size_t axis) const;
 template <size_t N>
 tensor<T, Rank> prod(const shape_t<N> &axes) const;
 ```
@@ -2718,7 +2718,7 @@ Possible output
 
 Return the standard deviation of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> stddev(size_t axes, bool bias) const;
+tensor<T, Rank> stddev(size_t axis, bool bias) const;
 template <size_t N>
 tensor<T, Rank> stddev(const shape_t<N> &axes, bool bias) const;
 ```
@@ -2861,7 +2861,7 @@ Output
 
 Return the sum of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> sum(size_t axes) const;
+tensor<T, Rank> sum(size_t axis) const;
 template <size_t N>
 tensor<T, Rank> sum(const shape_t<N> &axes) const;
 ```
@@ -3017,7 +3017,7 @@ Possible output
 
 Return the variance of the tensor elements over the given axes.
 ```cpp
-tensor<T, Rank> var(size_t axes, bool bias) const;
+tensor<T, Rank> var(size_t axis, bool bias) const;
 template <size_t N>
 tensor<T, Rank> var(const shape_t<N> &axes, bool bias) const;
 ```
