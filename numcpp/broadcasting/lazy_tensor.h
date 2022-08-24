@@ -571,6 +571,7 @@ namespace detail {
 
         R operator[](size_t i) {
             static_assert(Rank == 1, "Unkown conversion from integral type");
+            assert_within_bounds(m_size, i);
             size_t i1 = (m_lhs.size() == 1) ? 0 : i;
             size_t i2 = (m_rhs.size() == 1) ? 0 : i;
             return m_fun(m_lhs[i1], m_rhs[i2]);
@@ -578,6 +579,7 @@ namespace detail {
 
         R operator[](size_t i) const {
             static_assert(Rank == 1, "Unkown conversion from integral type");
+            assert_within_bounds(m_size, i);
             size_t i1 = (m_lhs.size() == 1) ? 0 : i;
             size_t i2 = (m_rhs.size() == 1) ? 0 : i;
             return m_fun(m_lhs[i], m_rhs[i]);
