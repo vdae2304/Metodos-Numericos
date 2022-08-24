@@ -180,8 +180,8 @@ namespace detail {
      * @brief Create an index_t object deducing its dimension from the number of
      * arguments.
      *
-     * @details index_t is just an alias of shape_t defined to distinguish
-     * between shapes and indices, improving readability.
+     * @note index_t is just an alias of shape_t defined to distinguish between
+     * shapes and indices, improving readability.
      *
      * @param args... Index arguments.
      *
@@ -224,7 +224,7 @@ namespace detail {
     );
 
     /**
-     * @brief Broadcast two shapes into a common shape. Throws a
+     * @brief Broadcast input shapes into a common shape. Throws a
      * std::invalid_argument exception if the shapes are not compatible and
      * cannot be broadcasted according to broadcasting rules.
      *
@@ -234,9 +234,9 @@ namespace detail {
      * The size of the resulting broadcasting is the size that is not 1 along
      * each axis of the shapes.
      */
-    template <size_t Rank>
+    template <size_t Rank, class... Args>
     shape_t<Rank> broadcast_shapes(
-        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
+        const shape_t<Rank> &shape1, const Args&... shapes
     );
 
     /**

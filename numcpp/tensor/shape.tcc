@@ -158,28 +158,36 @@ namespace numcpp {
         return multi_index;
     }
 
+namespace detail {
     template <size_t Rank>
-    shape_t<Rank> broadcast_shapes(
-        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
+    void broadcast_shapes(shape_t<Rank>&) {}
+
+    template <size_t Rank, class... Args>
+    void broadcast_shapes(
+        shape_t<Rank> &common_shape, const shape_t<Rank> &shape1,
+        const Args&... shapes
     ) {
-        shape_t<Rank> common_shape;
         for (size_t i = 0; i < shape1.ndim(); ++i) {
-            if (shape1[i] == shape2[i]) {
+            if (common_shape[i] == 1) {
                 common_shape[i] = shape1[i];
             }
-            else if (shape1[i] == 1) {
-                common_shape[i] = shape2[i];
-            }
-            else if (shape2[i] == 1) {
-                common_shape[i] = shape1[i];
-            }
-            else {
+            else if (shape1[i] != common_shape[i] && shape1[i] != 1) {
                 std::ostringstream error;
                 error << "operands could not be broadcast together with shapes "
-                      << shape1 << " " << shape2;
+                      << common_shape << " " << shape1;
                 throw std::invalid_argument(error.str());
             }
         }
+        broadcast_shapes(common_shape, shapes...);
+    }
+}
+
+    template <size_t Rank, class... Args>
+    shape_t<Rank> broadcast_shapes(
+        const shape_t<Rank> &shape1, const Args&... shapes
+    ) {
+        shape_t<Rank> common_shape = shape1;
+        detail::broadcast_shapes(common_shape, shapes...);
         return common_shape;
     }
 
