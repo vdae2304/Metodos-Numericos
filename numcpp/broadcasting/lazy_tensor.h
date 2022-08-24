@@ -275,7 +275,8 @@ namespace detail {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        shape_t<Rank> shape() const {
+        auto shape() const
+         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
             return m_arg.shape();
         }
 
@@ -798,7 +799,8 @@ namespace detail {
             return Rank;
         }
 
-        shape_t<Rank> shape() const {
+        auto shape() const
+         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
             return m_lhs.shape();
         }
 
@@ -969,7 +971,8 @@ namespace detail {
             return Rank;
         }
 
-        shape_t<Rank> shape() const {
+        auto shape() const
+         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
             return m_rhs.shape();
         }
 
