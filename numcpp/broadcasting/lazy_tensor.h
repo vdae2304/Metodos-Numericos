@@ -39,8 +39,8 @@ namespace detail {
         base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> >
     > : std::true_type {};
 
-    template <class R, size_t Rank,
-              class Function, class T, class TagT, class U, class TagU>
+    template <class R, size_t Rank, class Function,
+              class T, class TagT, class U, class TagU>
     struct is_expression<
         base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
     > : std::true_type {};
@@ -315,6 +315,15 @@ namespace detail {
         }
 
         /**
+         * @brief Cast each element to a specified type.
+         */
+        template <class U>
+        base_tensor<U, Rank, lazy_unary_tag<Function, T, Tag> > astype() const {
+            typedef lazy_unary_tag<Function, T, Tag> Closure;
+            return base_tensor<U, Rank, Closure>(m_fun, m_arg);
+        }
+
+        /**
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
@@ -328,6 +337,22 @@ namespace detail {
         /// Tensor object where the function is applied.
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
     };
+
+namespace detail {
+    /**
+     * @brief Return the element at the given position in a tensor after
+     * broadcasting the index.
+     */
+    template <class T, size_t Rank, class Tag>
+    T broadcast_index(const base_tensor<T, Rank, Tag> &a, index_t<Rank> index) {
+        for (size_t i = 0; i < a.ndim(); ++i) {
+            if (a.shape(i) == 1) {
+                index[i] = 0;
+            }
+        }
+        return a[index];
+    }
+}
 
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
@@ -343,8 +368,8 @@ namespace detail {
      * @tparam U Type of the elements contained in the second tensor.
      * @tparam TagU Type of the second base_tensor container.
      */
-    template <class R, size_t Rank,
-              class Function, class T, class TagT, class U, class TagU>
+    template <class R, size_t Rank, class Function,
+              class T, class TagT, class U, class TagU>
     class base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> > {
     public:
         /// Member types.
@@ -376,9 +401,8 @@ namespace detail {
             Function f,
             const base_tensor<T, Rank, TagT> &lhs,
             const base_tensor<U, Rank, TagU> &rhs
-        ) : m_fun(f),
-            m_shape(broadcast_shapes(lhs.shape(), rhs.shape())),
-            m_lhs(lhs), m_rhs(rhs)
+        ) : m_fun(f), m_lhs(lhs), m_rhs(rhs),
+            m_shape(broadcast_shapes(lhs.shape(), rhs.shape()))
         {
             m_size = m_shape.size();
         }
@@ -532,16 +556,16 @@ namespace detail {
         R operator[](const index_t<Rank> &index) {
             assert_within_bounds(m_shape, index);
             return m_fun(
-                m_lhs[this->broadcast_index(index, m_lhs.shape())],
-                m_rhs[this->broadcast_index(index, m_rhs.shape())]
+                detail::broadcast_index(m_lhs, index),
+                detail::broadcast_index(m_rhs, index)
             );
         }
 
         R operator[](const index_t<Rank> &index) const {
             assert_within_bounds(m_shape, index);
             return m_fun(
-                m_lhs[this->broadcast_index(index, m_lhs.shape())],
-                m_rhs[this->broadcast_index(index, m_rhs.shape())]
+                detail::broadcast_index(m_lhs, index),
+                detail::broadcast_index(m_rhs, index)
             );
         }
 
@@ -614,6 +638,16 @@ namespace detail {
         }
 
         /**
+         * @brief Cast each element to a specified type.
+         */
+        template <class Rt>
+        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
+        astype() const {
+            typedef lazy_binary_tag<Function, T, TagT, U, TagU> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
+        }
+
+        /**
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
@@ -621,33 +655,20 @@ namespace detail {
         }
 
     private:
-        /**
-         * @brief Broadcasts an index into the appropriate shape.
-         */
-        index_t<Rank> broadcast_index(
-            const index_t<Rank> &index, const shape_t<Rank> &shape
-        ) const {
-            index_t<Rank> out;
-            for (size_t i = 0; i < Rank; ++i) {
-                out[i] = (shape[i] == 1) ? 0 : index[i];
-            }
-            return out;
-        }
-
         /// Function to apply.
         Function m_fun;
-
-        /// Common size.
-        size_t m_size;
-
-        /// Common shape.
-        shape_t<Rank> m_shape;
 
         /// First tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagT> > m_lhs;
 
         /// Second tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<U, Rank, TagU> > m_rhs;
+
+        /// Common size.
+        size_t m_size;
+
+        /// Common shape.
+        shape_t<Rank> m_shape;
     };
 
     /**
@@ -656,10 +677,10 @@ namespace detail {
      * appropriate size. The function is evaluated only when required. A
      * lazy_tensor is convertible to a tensor object.
      */
-    template <class R, size_t Rank,
-              class Function, class T, class Tag, class U>
-    class base_tensor<R, Rank,
-                      lazy_binary_tag<Function, T, Tag, U, scalar_tag> > {
+    template <class R, size_t Rank, class Function, class T, class Tag, class U>
+    class base_tensor<
+        R, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag>
+    > {
     public:
         /// Member types.
         typedef typename std::remove_cv<R>::type value_type;
@@ -799,6 +820,13 @@ namespace detail {
             return m_lhs.colmajor();
         }
 
+        template <class Rt>
+        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag> >
+        astype() const {
+            typedef lazy_binary_tag<Function, T, Tag, U, scalar_tag> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_val);
+        }
+
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(this->shape(), this->begin());
         }
@@ -820,10 +848,10 @@ namespace detail {
      * appropriate size. The function is evaluated only when required. A
      * lazy_tensor is convertible to a tensor object.
      */
-    template <class R, size_t Rank,
-              class Function, class T, class U, class Tag>
-    class base_tensor<R, Rank,
-                      lazy_binary_tag<Function, T, scalar_tag, U, Tag> > {
+    template <class R, size_t Rank, class Function, class T, class U, class Tag>
+    class base_tensor<
+        R, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag>
+    > {
     public:
         /// Member types.
         typedef typename std::remove_cv<R>::type value_type;
@@ -961,6 +989,13 @@ namespace detail {
 
         bool colmajor() const {
             return m_rhs.colmajor();
+        }
+
+        template <class Rt>
+        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag> >
+        astype() const {
+            typedef lazy_binary_tag<Function, T, scalar_tag, U, Tag> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_val, m_rhs);
         }
 
         tensor<value_type, Rank> copy() const {
