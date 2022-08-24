@@ -529,13 +529,13 @@ Output
 
 ### `broadcast_shapes`
 
-Broadcast two shapes into a common shape. Throws a `std::invalid_argument`
+Broadcast input shapes into a common shape. Throws a `std::invalid_argument`
 exception if the shapes are not compatible and cannot be broadcasted according
 to broadcasting rules.
 ```cpp
-template <size_t Rank>
+template <size_t Rank, class... Args>
 shape_t<Rank> broadcast_shapes(
-    const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
+    const shape_t<Rank> &shape1, const Args&... shapes
 );
 ```
 
