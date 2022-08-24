@@ -972,7 +972,7 @@ namespace detail {
         }
 
         auto shape() const
-         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
+         -> decltype(std::declval<base_tensor<U, Rank, Tag> >().shape()) {
             return m_rhs.shape();
         }
 
