@@ -285,7 +285,7 @@ namespace detail {
 
         /**
          * @brief Returns the number of elements in the tensor (i.e., the
-         * product of the sizes along all the axis).
+         * product of the sizes along all the axes).
          */
         size_t size() const {
             return m_arg.size();
@@ -608,7 +608,7 @@ namespace detail {
 
         /**
          * @brief Returns the number of elements in the tensor (i.e., the
-         * product of the sizes along all the axis).
+         * product of the sizes along all the axes).
          */
         size_t size() const {
             return m_size;
