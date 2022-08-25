@@ -391,10 +391,10 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     template <class U>
-    inline base_tensor<U, Rank, lazy_unary_tag<identity, T, Tag> >
+    inline base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
     tensor_interface<T, Rank, Tag>::astype() const {
-        typedef lazy_unary_tag<identity, T, Tag> Closure;
-        return base_tensor<U, Rank, Closure>(identity(), *this->base());
+        typedef lazy_unary_tag<cast_to<U>, T, Tag> Closure;
+        return base_tensor<U, Rank, Closure>(cast_to<U>(), *this->base());
     }
 
     template <class T, size_t Rank, class Tag>

@@ -416,7 +416,7 @@ namespace numcpp {
          *     its elements casted to the specified type.
          */
         template <class U>
-        base_tensor<U, Rank, lazy_unary_tag<identity, T, Tag> >
+        base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
         astype() const;
 
         /**

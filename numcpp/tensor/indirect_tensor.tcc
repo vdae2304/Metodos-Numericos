@@ -219,7 +219,7 @@ namespace numcpp {
             throw std::invalid_argument(error.str());
         }
         std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                       identity());
+                       cast_to<T>());
         return *this;
     }
 
