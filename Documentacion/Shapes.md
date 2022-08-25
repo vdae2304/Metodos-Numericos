@@ -10,7 +10,6 @@ Defined in `numcpp/shape.h`
     - [Copy constructor](#copy-constructor)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
-    - [Integer assignment](#integer-assignment)
   - [Public methods](#public-methods)
     - [`shape_t::ndim`](#shape_tndim)
     - [`shape_t::size`](#shape_tsize)
@@ -18,8 +17,10 @@ Defined in `numcpp/shape.h`
   - [Operators](#operators)
     - [`shape_t::operator[]`](#shape_toperator)
     - [`shape_t::operator size_t`](#shape_toperator-size_t)
-    - [`operator==`](#operator)
-    - [`operator!=`](#operator-1)
+    - [`shape_t::operator size_t*`](#shape_toperator-size_t-1)
+    - [`operator+`](#operator)
+    - [`operator==`](#operator-1)
+    - [`operator!=`](#operator-2)
   - [Routines](#routines)
     - [`make_shape`](#make_shape)
     - [`make_index`](#make_index)
@@ -105,20 +106,6 @@ shape_t& operator=(const shape_t &other);
 Parameters
 
 * `other` A `shape_t` object with the same dimension to copy.
-
-Returns
-
-* `*this`
-
-### Integer assignment
-
-```cpp
-shape_t& operator=(size_t val);
-```
-
-Parameters
-
-* `val` An integer to copy. Dimension must be one.
 
 Returns
 
@@ -270,7 +257,58 @@ Columns: 6
 
 Integer conversion. Dimension must be one.
 ```cpp
-operator size_t();
+explicit operator size_t() const;
+```
+
+### `shape_t::operator size_t*`
+
+Pointer to `size_t` conversion.
+```cpp
+explicit operator size_t*();
+explicit operator const size_t*() const;
+```
+
+### `operator+`
+
+Concatenates two `shape_t` objects or a `shape_t` and an integer.
+```cpp
+template <size_t Rank1, size_t Rank2>
+inline shape_t<Rank1 + Rank2> operator+(
+    const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
+);
+
+template <size_t Rank>
+inline shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
+
+template <size_t Rank>
+inline shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<3> shape1, shape2;
+    std::cin >> shape1 >> shape2;
+    std::cout << shape1 + shape2 << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+(1, 4, 2)
+(3, 5, 6)
+```
+
+Output
+
+```
+(1, 4, 2, 3, 5, 6)
 ```
 
 ### `operator==`
