@@ -111,18 +111,15 @@ namespace detail {
         shape_t& operator=(const shape_t &other);
 
         /**
-         * @brief Integer assignment.
-         *
-         * @param val An integer to copy. Dimension must be one.
-         *
-         * @return *this
-         */
-        shape_t& operator=(size_t val);
-
-        /**
          * @brief Integer conversion. Dimension must be one.
          */
-        operator size_t();
+        explicit operator size_t() const;
+
+        /**
+         * @brief Pointer to size_t conversion.
+         */
+        explicit operator size_t*();
+        explicit operator const size_t*() const;
 
         /**
          * @brief Return the dimension of the shape.
@@ -254,6 +251,20 @@ namespace detail {
     inline void assert_within_bounds(
         const shape_t<Rank> &shape, size_t index, size_t axis
     );
+
+    /**
+     * @brief Concatenates two shape_t objects or a shape_t and an integer.
+     */
+    template <size_t Rank1, size_t Rank2>
+    inline shape_t<Rank1 + Rank2> operator+(
+        const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
+    );
+
+    template <size_t Rank>
+    inline shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
+
+    template <size_t Rank>
+    inline shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
 
     /**
      * @brief Compares two shape_t objects. Returns true if they have the same
