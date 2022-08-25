@@ -28,12 +28,13 @@
 
 namespace numcpp {
     /**
-     * @brief Function object that returns arg unchanged.
+     * @brief Function object implementing static_cast.
      */
-    struct identity {
+    template <class U>
+    struct cast_to {
         template <class T>
-        constexpr T operator()(const T &arg) const {
-            return arg;
+        constexpr U operator()(T &&arg) const {
+            return static_cast<U>(arg);
         }
     };
 
