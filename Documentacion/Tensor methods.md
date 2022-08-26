@@ -702,7 +702,7 @@ elements in `*this`.
 void apply(T f(T));
 void apply(T f(const T&));
 template <class Function>
-void apply(Function f);
+void apply(Function &&f);
 ```
 
 Parameters
