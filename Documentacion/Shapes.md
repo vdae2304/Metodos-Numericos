@@ -273,15 +273,15 @@ explicit operator const size_t*() const;
 Concatenates two `shape_t` objects or a `shape_t` and an integer.
 ```cpp
 template <size_t Rank1, size_t Rank2>
-inline shape_t<Rank1 + Rank2> operator+(
+shape_t<Rank1 + Rank2> operator+(
     const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
 );
 
 template <size_t Rank>
-inline shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
+shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
 
 template <size_t Rank>
-inline shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
+shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
 ```
 
 Example
