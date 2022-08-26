@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting/operators.h
+ /** @file include/numcpp/functional/operators.h
   *  This header defines function objects for operators.
   */
 

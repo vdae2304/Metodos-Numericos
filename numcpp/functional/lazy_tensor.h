@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting/lazy_tensor.h
+ /** @file include/numcpp/functional/lazy_tensor.h
   *  This is an internal header file, included by other library headers.
   *  Do not attempt to use it directly. @headername{numcpp/tensor.h}
   */
@@ -39,7 +39,8 @@ namespace detail {
         base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> >
     > : std::true_type {};
 
-    template <class R, size_t Rank, class Function,
+    template <class R, size_t Rank,
+              class Function,
               class T, class TagT, class U, class TagU>
     struct is_expression<
         base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
@@ -250,16 +251,6 @@ namespace detail {
             return m_fun(m_arg[index]);
         }
 
-        R operator[](size_t i) {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_arg[i]);
-        }
-
-        R operator[](size_t i) const {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_arg[i]);
-        }
-
         /**
          * @brief Return the dimension of the tensor.
          */
@@ -332,10 +323,10 @@ namespace detail {
         }
 
     private:
-        /// Function to apply.
+        // Function to apply.
         Function m_fun;
 
-        /// Tensor object where the function is applied.
+        // Tensor object where the function is applied.
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
     };
 
@@ -369,7 +360,8 @@ namespace detail {
      * @tparam U Type of the elements contained in the second tensor.
      * @tparam TagU Type of the second base_tensor container.
      */
-    template <class R, size_t Rank, class Function,
+    template <class R, size_t Rank,
+              class Function,
               class T, class TagT, class U, class TagU>
     class base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> > {
     public:
@@ -403,10 +395,8 @@ namespace detail {
             const base_tensor<T, Rank, TagT> &lhs,
             const base_tensor<U, Rank, TagU> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs),
-            m_shape(broadcast_shapes(lhs.shape(), rhs.shape()))
-        {
-            m_size = m_shape.size();
-        }
+            m_shape(broadcast_shapes(lhs.shape(), rhs.shape())),
+            m_size(m_shape.size()) {}
 
         /// Destructor.
         ~base_tensor() {}
@@ -570,22 +560,6 @@ namespace detail {
             );
         }
 
-        R operator[](size_t i) {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            assert_within_bounds(m_size, i);
-            size_t i1 = (m_lhs.size() == 1) ? 0 : i;
-            size_t i2 = (m_rhs.size() == 1) ? 0 : i;
-            return m_fun(m_lhs[i1], m_rhs[i2]);
-        }
-
-        R operator[](size_t i) const {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            assert_within_bounds(m_size, i);
-            size_t i1 = (m_lhs.size() == 1) ? 0 : i;
-            size_t i2 = (m_rhs.size() == 1) ? 0 : i;
-            return m_fun(m_lhs[i], m_rhs[i]);
-        }
-
         /**
          * @brief Return the dimension of the tensor.
          */
@@ -658,20 +632,20 @@ namespace detail {
         }
 
     private:
-        /// Function to apply.
+        // Function to apply.
         Function m_fun;
 
-        /// First tensor argument.
+        // First tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagT> > m_lhs;
 
-        /// Second tensor argument.
+        // Second tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<U, Rank, TagU> > m_rhs;
 
-        /// Common size.
-        size_t m_size;
-
-        /// Common shape.
+        // Common shape.
         shape_t<Rank> m_shape;
+
+        // Common size.
+        size_t m_size;
     };
 
     /**
@@ -785,16 +759,6 @@ namespace detail {
             return m_fun(m_lhs[index], m_val);
         }
 
-        R operator[](size_t i) {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_lhs[i], m_val);
-        }
-
-        R operator[](size_t i) const {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_lhs[i], m_val);
-        }
-
         constexpr size_t ndim() const {
             return Rank;
         }
@@ -836,13 +800,13 @@ namespace detail {
         }
 
     private:
-        /// Function to apply.
+        // Function to apply.
         Function m_fun;
 
-        /// First tensor argument.
+        // First tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_lhs;
 
-        /// Value to use as second argument.
+        // Value to use as second argument.
         U m_val;
     };
 
@@ -957,16 +921,6 @@ namespace detail {
             return m_fun(m_val, m_rhs[index]);
         }
 
-        R operator[](size_t i) {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_val, m_rhs[i]);
-        }
-
-        const R operator[](size_t i) const {
-            static_assert(Rank == 1, "Unkown conversion from integral type");
-            return m_fun(m_val, m_rhs[i]);
-        }
-
         constexpr size_t ndim() const {
             return Rank;
         }
@@ -1008,13 +962,13 @@ namespace detail {
         }
 
     private:
-        /// Function to apply.
+        // Function to apply.
         Function m_fun;
 
-        /// Value to use as first argument.
+        // Value to use as first argument.
         T m_val;
 
-        /// Second tensor argument.
+        // Second tensor argument.
         detail::ConstRefIfNotExpression<base_tensor<U, Rank, Tag> > m_rhs;
     };
 }
