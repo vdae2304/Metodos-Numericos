@@ -117,18 +117,16 @@ namespace np = numcpp;
 int main() {
     int data1d[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index1d[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> array(5, data1d, index1d,
-                                  /*order = */true, /*mode = */0);
-    std::cout << "1 dimensional:\n" << array << "\n";
+    np::indirect_array<int> arr(5, data1d, index1d, /*order=*/true, /*mode=*/0);
+    std::cout << "1 dimensional:\n" << arr << "\n";
     int data2d[12] = {0, 10, -4, 5,
                       6, 10, 8, 12,
                       2, 11, 0, -1};
     size_t index2d[6] = {0, 1,
                          5, 6,
                          10, 11};
-    np::indirect_matrix<int> matrix({3, 2}, data2d, index2d,
-                                    /*order = */true, /*mode = */0);
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    np::indirect_matrix<int> mat({3, 2}, data2d, index2d, /*order=*/true, /*mode=*/0);
+    std::cout << "2 dimensional:\n" << mat << "\n";
     return 0;
 }
 ```
@@ -218,11 +216,10 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> array(5, data, index,
-                                  /*order = */true, /*mode = */0);
-    for (unsigned i = 0; i < array.size(); ++i) {
+    np::indirect_array<int> arr(5, data, index, /*order=*/true, /*mode=*/0);
+    for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[index[i]]
-        std::cout << array(i) << ", ";
+        std::cout << arr(i) << ", ";
     }
     std::cout << "\n";
     return 0;
@@ -248,12 +245,11 @@ int main() {
     size_t index[6] = {0, 1,
                        5, 6,
                        10, 11};
-    np::indirect_matrix<int> matrix({3, 2}, data, index,
-                                    /*order = */true, /*mode = */0);
-    for (unsigned i = 0; i < matrix.shape(0); ++i) {
-        for (unsigned j = 0; j < matrix.shape(1); ++j) {
-            // Prints data[index[np::ravel_index({i, j}, matrix.shape())]]
-            std::cout << matrix(i, j) << ", ";
+    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    for (unsigned i = 0; i < mat.shape(0); ++i) {
+        for (unsigned j = 0; j < mat.shape(1); ++j) {
+            // Prints data[index[np::ravel_index({i, j}, mat.shape())]]
+            std::cout << mat(i, j) << ", ";
         }
         std::cout << "\n";
     }
@@ -305,11 +301,10 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> array(5, data, index,
-                                  /*order = */true, /*mode = */0);
-    for (unsigned i = 0; i < array.size(); ++i) {
+    np::indirect_array<int> arr(5, data, index, /*order=*/true, /*mode=*/0);
+    for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[index[i]]
-        std::cout << array[i] << ", ";
+        std::cout << arr[i] << ", ";
     }
     std::cout << "\n";
     return 0;
@@ -335,12 +330,11 @@ int main() {
     size_t index[6] = {0, 1,
                        5, 6,
                        10, 11};
-    np::indirect_matrix<int> matrix({3, 2}, data, index,
-                                    /*order = */true, /*mode = */0);
-    for (unsigned i = 0; i < matrix.shape(0); ++i) {
-        for (unsigned j = 0; j < matrix.shape(1); ++j) {
-            // Prints data[index[np::ravel_index({i, j}, matrix.shape())]]
-            std::cout << matrix[{i, j}] << ", ";
+    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    for (unsigned i = 0; i < mat.shape(0); ++i) {
+        for (unsigned j = 0; j < mat.shape(1); ++j) {
+            // Prints data[index[np::ravel_index({i, j}, mat.shape())]]
+            std::cout << mat[{i, j}] << ", ";
         }
         std::cout << "\n";
     }
@@ -372,12 +366,10 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> array(6, data, index,
-                                  /*order = */true, /*mode = */0);
-    std::cout << array.ndim() << "\n";
-    np::indirect_matrix<int> matrix({3, 2}, data, index,
-                                    /*order = */true, /*mode = */0);
-    std::cout << matrix.ndim() << "\n";
+    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
+    std::cout << arr.ndim() << "\n";
+    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    std::cout << mat.ndim() << "\n";
     return 0;
 }
 ```
@@ -412,17 +404,15 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> array(6, data, index,
-                                  /*order = */true, /*mode = */0);
+    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
     std::cout << "1 dimensional:\n";
-    std::cout << "Shape: " << array.shape() << "\n";
-    std::cout << "Length: " << array.shape(0) << "\n\n";
-    np::indirect_matrix<int> matrix({3, 2}, data, index,
-                                    /*order = */true, /*mode = */0);
+    std::cout << "Shape: " << arr.shape() << "\n";
+    std::cout << "Length: " << arr.shape(0) << "\n\n";
+    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
     std::cout << "2 dimensional:\n";
-    std::cout << "Shape: " << matrix.shape() << "\n";
-    std::cout << "Rows: " << matrix.shape(0) << "\n";
-    std::cout << "Columns: " << matrix.shape(1) << "\n";
+    std::cout << "Shape: " << mat.shape() << "\n";
+    std::cout << "Rows: " << mat.shape(0) << "\n";
+    std::cout << "Columns: " << mat.shape(1) << "\n";
     return 0;
 }
 ```
@@ -461,12 +451,10 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> array(6, data, index,
-                                  /*order = */true, /*mode = */0);
-    std::cout << array.size() << "\n";
-    np::indirect_matrix<int> matrix({3, 2}, data, index,
-                                    /*order = */true, /*mode = */0);
-    std::cout << matrix.size() << "\n";
+    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
+    std::cout << arr.size() << "\n";
+    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    std::cout << mat.size() << "\n";
     return 0;
 }
 ```
