@@ -121,10 +121,10 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
-    std::cout << array.shape() << "\n";
-    np::matrix<int> matrix(3, 4);
-    std::cout << matrix.shape() << "\n";
+    np::array<int> arr(10);
+    std::cout << arr.shape() << "\n";
+    np::matrix<int> mat(3, 4);
+    std::cout << mat.shape() << "\n";
     np::tensor<int, 3> cube(2, 3, 4);
     std::cout << cube.shape() << "\n";
     return 0;
@@ -163,10 +163,10 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10, 0);
-    std::cout << "1 dimensional:\n" << array << "\n";
-    np::matrix<int> matrix({3, 4}, 0);
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    np::array<int> arr(10, 0);
+    std::cout << "1 dimensional:\n" << arr << "\n";
+    np::matrix<int> mat({3, 4}, 0);
+    std::cout << "2 dimensional:\n" << mat << "\n";
     np::tensor<int, 3> cube({2, 3, 4}, 0);
     std::cout << "3 dimensional:\n" << cube << "\n";
     return 0;
@@ -219,10 +219,10 @@ Example
 namespace np = numcpp;
 int main() {
     int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array<int> array(12, ptr);
-    std::cout << "1 dimensional:\n" << array << "\n";
-    np::matrix<int> matrix({3, 4}, ptr);
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    np::array<int> arr(12, ptr);
+    std::cout << "1 dimensional:\n" << arr << "\n";
+    np::matrix<int> mat({3, 4}, ptr);
+    std::cout << "2 dimensional:\n" << mat << "\n";
     np::tensor<int, 3> cube({2, 2, 3}, ptr);
     std::cout << "3 dimensional:\n" << cube << "\n";
     return 0;
@@ -301,12 +301,12 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
-    std::cout << "1 dimensional:\n" << array << "\n";
-    np::matrix<int> matrix{{0, 10, -4, 5},
-                           {6, 10, 8, 12},
-                           {2, 11, 0, -1}};
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    np::array<int> arr{-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
+    std::cout << "1 dimensional:\n" << arr << "\n";
+    np::matrix<int> mat{{0, 10, -4, 5},
+                        {6, 10, 8, 12},
+                        {2, 11, 0, -1}};
+    std::cout << "2 dimensional:\n" << mat << "\n";
     np::tensor<int, 3> cube{{{1, 18, 11, 10},
                              {9, 19, 12, 10},
                              {13, 8, -4, 16}},
@@ -378,21 +378,21 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
+    np::array<int> arr(10);
     int value = 0;
-    for (unsigned i = 0; i < array.size(); ++i) {
-        array(i) = value++;
+    for (unsigned i = 0; i < arr.size(); ++i) {
+        arr(i) = value++;
     }
-    std::cout << "1 dimensional:\n" << array << "\n";
+    std::cout << "1 dimensional:\n" << arr << "\n";
 
-    np::matrix<int> matrix(3, 4);
+    np::matrix<int> mat(3, 4);
     value = 0;
-    for (unsigned i = 0; i < matrix.shape(0); ++i) {
-        for (unsigned j = 0; j < matrix.shape(1); ++j) {
-            matrix(i, j) = value++;
+    for (unsigned i = 0; i < mat.shape(0); ++i) {
+        for (unsigned j = 0; j < mat.shape(1); ++j) {
+            mat(i, j) = value++;
         }
     }
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    std::cout << "2 dimensional:\n" << mat << "\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
     value = 0;
@@ -460,21 +460,21 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
+    np::array<int> arr(10);
     int value = 0;
-    for (unsigned i = 0; i < array.size(); ++i) {
-        array[i] = value++;
+    for (unsigned i = 0; i < arr.size(); ++i) {
+        arr[i] = value++;
     }
-    std::cout << "1 dimensional:\n" << array << "\n";
+    std::cout << "1 dimensional:\n" << arr << "\n";
 
-    np::matrix<int> matrix(3, 4);
+    np::matrix<int> mat(3, 4);
     value = 0;
-    for (unsigned i = 0; i < matrix.shape(0); ++i) {
-        for (unsigned j = 0; j < matrix.shape(1); ++j) {
-            matrix[{i, j}] = value++;
+    for (unsigned i = 0; i < mat.shape(0); ++i) {
+        for (unsigned j = 0; j < mat.shape(1); ++j) {
+            mat[{i, j}] = value++;
         }
     }
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    std::cout << "2 dimensional:\n" << mat << "\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
     value = 0;
@@ -523,10 +523,10 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
-    std::cout << array.ndim() << "\n";
-    np::matrix<int> matrix(3, 4);
-    std::cout << matrix.ndim() << "\n";
+    np::array<int> arr(10);
+    std::cout << arr.ndim() << "\n";
+    np::matrix<int> mat(3, 4);
+    std::cout << mat.ndim() << "\n";
     np::tensor<int, 3> cube(2, 3, 4);
     std::cout << cube.ndim() << "\n";
     return 0;
@@ -562,16 +562,16 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
+    np::array<int> arr(10);
     std::cout << "1 dimensional:\n";
-    std::cout << "Shape: " << array.shape() << "\n";
-    std::cout << "Length: " << array.shape(0) << "\n\n";
+    std::cout << "Shape: " << arr.shape() << "\n";
+    std::cout << "Length: " << arr.shape(0) << "\n\n";
 
-    np::matrix<int> matrix(3, 4);
+    np::matrix<int> mat(3, 4);
     std::cout << "2 dimensional:\n";
-    std::cout << "Shape: " << matrix.shape() << "\n";
-    std::cout << "Rows: " << matrix.shape(0) << "\n";
-    std::cout << "Columns: " << matrix.shape(1) << "\n\n";
+    std::cout << "Shape: " << mat.shape() << "\n";
+    std::cout << "Rows: " << mat.shape(0) << "\n";
+    std::cout << "Columns: " << mat.shape(1) << "\n\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
     std::cout << "3 dimensional:\n";
@@ -621,10 +621,10 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
-    std::cout << array.size() << "\n";
-    np::matrix<int> matrix(3, 4);
-    std::cout << matrix.size() << "\n";
+    np::array<int> arr(10);
+    std::cout << arr.size() << "\n";
+    np::matrix<int> mat(3, 4);
+    std::cout << mat.size() << "\n";
     np::tensor<int, 3> cube(2, 3, 4);
     std::cout << cube.size() << "\n";
     return 0;
@@ -669,19 +669,19 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
+    np::array<int> arr(10);
     int value = 0;
-    for (unsigned i = 0; i < array.size(); ++i) {
-        array.data()[i] = value++;
+    for (unsigned i = 0; i < arr.size(); ++i) {
+        arr.data()[i] = value++;
     }
-    std::cout << "1 dimensional:\n" << array << "\n";
+    std::cout << "1 dimensional:\n" << arr << "\n";
 
-    np::matrix<int> matrix(3, 4);
+    np::matrix<int> mat(3, 4);
     value = 0;
-    for (unsigned i = 0; i < matrix.size(); ++i) {
-        matrix.data()[i] = value++;
+    for (unsigned i = 0; i < mat.size(); ++i) {
+        mat.data()[i] = value++;
     }
-    std::cout << "2 dimensional:\n" << matrix << "\n";
+    std::cout << "2 dimensional:\n" << mat << "\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
     value = 0;
@@ -768,12 +768,12 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
+    np::array<int> arr{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     // Select first 5 positions.
-    std::cout << array(np::slice(5)) << "\n";
+    std::cout << arr(np::slice(5)) << "\n";
     // Select positions 7, 8, 9, and set all of them to zero.
-    array(np::slice(7, 10)) = 0;
-    std::cout << array << "\n";
+    arr(np::slice(7, 10)) = 0;
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -792,17 +792,17 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix{{15, -4, 3, 18, -2, 7},
-                           {8, 11, 19, 0, -5, 14},
-                           {16, 19, 9, 12, 12, 18},
-                           {-5, 11, 5, 10, 8, 10}};
+    np::matrix<int> mat{{15, -4, 3, 18, -2, 7},
+                        {8, 11, 19, 0, -5, 14},
+                        {16, 19, 9, 12, 12, 18},
+                        {-5, 11, 5, 10, 8, 10}};
     // Select all rows. Select columns 4 and 5.
-    std::cout << matrix(np::slice(), np::slice(4, 6)) << "\n";
+    std::cout << mat(np::slice(), np::slice(4, 6)) << "\n";
     // Select row 1 (i.e., second row). Select columns 0, 2 and 4.
-    std::cout << matrix(1, np::slice(0, 5, 2)) << "\n";
+    std::cout << mat(1, np::slice(0, 5, 2)) << "\n";
     // Set column 2 (i.e., third column) to zero.
-    matrix(np::slice(), 2) = 0;
-    std::cout << matrix << "\n";
+    mat(np::slice(), 2) = 0;
+    std::cout << mat << "\n";
     return 0;
 }
 ```
@@ -901,11 +901,11 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
+    np::array<int> arr{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     np::array<int> indices{1, 2, 3, 5, 7};
-    std::cout << array[indices] << "\n";
-    array[indices] = 0;
-    std::cout << array << "\n";
+    std::cout << arr[indices] << "\n";
+    arr[indices] = 0;
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -924,15 +924,15 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix{{15, -4, 3, 18, -2, 7},
-                           {8, 11, 19, 0, -5, 14},
-                           {16, 19, 9, 12, 12, 18},
-                           {-5, 11, 5, 10, 8, 10}};
+    np::matrix<int> mat{{15, -4, 3, 18, -2, 7},
+                        {8, 11, 19, 0, -5, 14},
+                        {16, 19, 9, 12, 12, 18},
+                        {-5, 11, 5, 10, 8, 10}};
     np::array<np::index_t<2> > indices{{0,0}, {0,1}, {1,1}, {1,2}, {2,2}, {2,3},
                                        {3,3}};
-    std::cout << matrix[indices] << "\n";
-    matrix[indices] = 0;
-    std::cout << matrix;
+    std::cout << mat[indices] << "\n";
+    mat[indices] = 0;
+    std::cout << mat;
     return 0;
 }
 ```
@@ -1017,12 +1017,12 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
+    np::array<int> arr{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     np::array<bool> mask = (array > 10);
     std::cout << std::boolalpha << mask << "\n";
-    std::cout << array[mask] << "\n";
-    array[mask] = 0;
-    std::cout << array << "\n";
+    std::cout << arr[mask] << "\n";
+    arr[mask] = 0;
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -1042,15 +1042,15 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix{{15, -4, 3, 18, -2, 7},
-                           {8, 11, 19, 0, -5, 14},
-                           {16, 19, 9, 12, 12, 18},
-                           {-5, 11, 5, 10, 8, 10}};
-    np::matrix<bool> mask = (matrix <= 0);
+    np::matrix<int> mat{{15, -4, 3, 18, -2, 7},
+                        {8, 11, 19, 0, -5, 14},
+                        {16, 19, 9, 12, 12, 18},
+                        {-5, 11, 5, 10, 8, 10}};
+    np::matrix<bool> mask = (mat <= 0);
     std::cout << std::boolalpha << mask << "\n";
-    std::cout << matrix[mask] << "\n";
-    matrix[mask] = 0;
-    std::cout << matrix;
+    std::cout << mat[mask] << "\n";
+    mat[mask] = 0;
+    std::cout << mat;
     return 0;
 }
 ```
@@ -1228,10 +1228,10 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix{{1, 14, 12, -3},
-                           {-5, -3, 11, 11},
-                           {-1, 18, -3, -1}};
-    std::cout << matrix.flatten() << "\n";
+    np::matrix<int> mat{{1, 14, 12, -3},
+                        {-5, -3, 11, 11},
+                        {-1, 18, -3, -1}};
+    std::cout << mat.flatten() << "\n";
     np::tensor<int, 3> cube{{{16, 15, 14, -1},
                              {5, 14, 9, 10},
                              {18, 15, 2, 5}},
@@ -1289,11 +1289,11 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{4, 9, 5, 0, 10, 3};
-    std::cout << "1 dimensional:\n" << array << "\n";
-    std::cout << "As row vector:\n" << array.reshape(1, array.size()) << "\n";
-    std::cout << "As column vector:\n" << array.reshape(array.size(), 1) << "\n";
-    std::cout << "As 2 x 3 matrix:\n" << array.reshape(2, 3) << "\n";
+    np::array<int> arr{4, 9, 5, 0, 10, 3};
+    std::cout << "1 dimensional:\n" << arr << "\n";
+    std::cout << "As row vector:\n" << arr.reshape(1, arr.size()) << "\n";
+    std::cout << "As column vector:\n" << arr.reshape( arrsize(), 1) << "\n";
+    std::cout << "As 2 x 3 matrix:\n" << arr.reshape(2, 3) << "\n";
     return 0;
 }
 ```
@@ -1349,16 +1349,16 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix{{1, 14, 12, -3},
-                           {-5, -3, 11, 11},
-                           {-1, 18, -3, -1}};
-    std::cout << matrix << "\n";
+    np::matrix<int> mat{{1, 14, 12, -3},
+                        {-5, -3, 11, 11},
+                        {-1, 18, -3, -1}};
+    std::cout << mat << "\n";
     // Keeps previous contents.
-    matrix.resize(2, 6);
-    std::cout << matrix << "\n";
+    mat.resize(2, 6);
+    std::cout << mat << "\n";
     // Realloactes memory.
-    matrix.resize(3, 3);
-    std::cout << matrix << "\n";
+    mat.resize(3, 3);
+    std::cout << mat << "\n";
     return 0;
 }
 ```
@@ -1472,15 +1472,15 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{0, 14, -4, 5, 1, 1, -3, 1, 5, 0};
-    np::array_view<int> view1 = array.t();
+    np::array<int> arr{0, 14, -4, 5, 1, 1, -3, 1, 5, 0};
+    np::array_view<int> view1 = arr.t();
     std::cout << "1 dimensional:\n";
     std::cout << view1.shape() << "\n";
     std::cout << view1 << "\n";
-    np::matrix<int> matrix{{1, 14, 12, -3},
-                           {-5, -3, 11, 11},
-                           {-1, 18, -3, -1}};
-    np::matrix_view<int> view2 = matrix.t();
+    np::matrix<int> mat{{1, 14, 12, -3},
+                        {-5, -3, 11, 11},
+                        {-1, 18, -3, -1}};
+    np::matrix_view<int> view2 = mat.t();
     std::cout << "2 dimensional:\n";
     std::cout << view2.shape() << "\n";
     std::cout << view2 << "\n";
