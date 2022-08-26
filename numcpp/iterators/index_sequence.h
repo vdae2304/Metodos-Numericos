@@ -95,10 +95,10 @@ namespace numcpp {
             }
 
         private:
-            /// Number of elements along each axis.
+            // Number of elements along each axis.
             shape_t<Rank> m_shape;
 
-            /// Flat index.
+            // Flat index.
             size_t m_index;
         };
 
@@ -148,10 +148,10 @@ namespace numcpp {
         }
 
     private:
-        /// Number of elements.
+        // Number of elements.
         size_t m_size;
 
-        /// Number of elements along each axis.
+        // Number of elements along each axis.
         shape_t<Rank> m_shape;
     };
 

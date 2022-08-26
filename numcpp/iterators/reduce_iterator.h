@@ -122,16 +122,16 @@ namespace numcpp {
         const shape_t<N>& axes() const;
 
     private:
-        /// Pointer to the base_tensor associated to the iterator.
+        // Pointer to the base_tensor associated to the iterator.
         base_tensor<T, Rank, Tag> *m_ptr;
 
-        /// Indices to fix.
+        // Indices to fix.
         index_t<Rank> m_indices;
 
-        /// Axes to iterate over.
+        // Axes to iterate over.
         shape_t<N> m_axes;
 
-        /// Flat index over the reduction axes.
+        // Flat index over the reduction axes.
         size_t m_flat;
     };
 
@@ -317,16 +317,16 @@ namespace numcpp {
         const shape_t<N>& axes() const;
 
     private:
-        /// Pointer to the base_tensor associated to the iterator.
+        // Pointer to the base_tensor associated to the iterator.
         const base_tensor<T, Rank, Tag> *m_ptr;
 
-        /// Indices to fix.
+        // Indices to fix.
         index_t<Rank> m_indices;
 
-        /// Axes to iterate over.
+        // Axes to iterate over.
         shape_t<N> m_axes;
 
-        /// Flat index over the reduction axes.
+        // Flat index over the reduction axes.
         size_t m_flat;
     };
 

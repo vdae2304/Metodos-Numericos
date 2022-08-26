@@ -113,13 +113,13 @@ namespace numcpp {
         bool colmajor() const;
 
     private:
-        /// Pointer to the base_tensor associated to the iterator.
+        // Pointer to the base_tensor associated to the iterator.
         base_tensor<T, Rank, Tag> *m_ptr;
 
-        /// Index associated to the iterator.
+        // Index associated to the iterator.
         size_t m_index;
 
-        /// Row-major (true) or column-major (false) order.
+        // Row-major (true) or column-major (false) order.
         bool m_order;
     };
 
@@ -290,13 +290,13 @@ namespace numcpp {
         bool colmajor() const;
 
     private:
-        /// Pointer to the base_tensor associated to the iterator.
+        // Pointer to the base_tensor associated to the iterator.
         const base_tensor<T, Rank, Tag> *m_ptr;
 
-        /// Index associated to the iterator.
+        // Index associated to the iterator.
         size_t m_index;
 
-        /// Row-major (true) or column-major (false) order.
+        // Row-major (true) or column-major (false) order.
         bool m_order;
     };
 
