@@ -23,7 +23,7 @@
 #ifndef NUMCPP_ROUTINES_ALGO_H_INCLUDED
 #define NUMCPP_ROUTINES_ALGO_H_INCLUDED
 
-#include "numcpp/broadcasting/operators.h"
+#include "numcpp/functional/operators.h"
 
 #include <algorithm>
 #include <cmath>
@@ -31,17 +31,18 @@
 #include <iterator>
 #include <numeric>
 #include <stdexcept>
+#include <type_traits>
 
 namespace numcpp {
 
-/// Namespace for implementation details.
-namespace detail {
+/// Namespace for range functions.
+namespace ranges {
     /**
      * @brief Function object implementing clamp.
      */
     template <class T>
     struct clamp {
-        /// Lower and upper boundary.
+        // Lower and upper boundary.
         T a_min, a_max;
 
         /**
@@ -74,7 +75,9 @@ namespace detail {
         }
     };
 
-    /// Specialization of clamp for complex values.
+    /**
+     * @brief Specialization of clamp for complex values.
+     */
     template <class T>
     struct clamp< std::complex<T> > {
         clamp<T> clamp_real, clamp_imag;
@@ -90,10 +93,7 @@ namespace detail {
             return std::complex<T>(x, y);
         }
     };
-}
 
-/// Namespace for range functions.
-namespace ranges {
     /**
      * @brief Function object implementing all of range.
      */
@@ -324,7 +324,7 @@ namespace ranges {
      * @brief Function object implementing sample variance.
      */
     struct var {
-        /// Whether to use a biased estimator.
+        // Whether to use a biased estimator.
         bool bias;
 
         /**
@@ -399,6 +399,69 @@ namespace ranges {
             InputIterator first, InputIterator last
         ) const {
             return std::sqrt(var::operator()(first, last));
+        }
+    };
+
+    /**
+     * @brief Function object implementing reduce.
+     */
+    template <class Function>
+    struct reduce {
+        // Underlying function.
+        Function f;
+
+        /**
+         * @brief Constructor.
+         *
+         * @tparam f Function to apply.
+         */
+        reduce(Function f) : f(f) {}
+
+        /**
+         * Returns the result of accumulating all the values in the range
+         * [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The result of accumulating all the elements in the range
+         *     [first, last).
+         */
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type operator()(
+            InputIterator first, InputIterator last
+        ) const {
+            return __invoke(first, last, has_identity<Function>());
+        }
+
+    private:
+        template <class F, typename = void>
+        struct has_identity : std::false_type {};
+
+        template <class F>
+        struct has_identity<F, decltype(void(F::identity))> : std::true_type {};
+
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type __invoke(
+            InputIterator first, InputIterator last, std::true_type
+        ) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            return std::accumulate(first, last, T(f.identity), f);
+        }
+
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type __invoke(
+            InputIterator first, InputIterator last, std::false_type
+        ) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            if (first == last) {
+                char error[] = "attempt to call reduce on an empty sequence"
+                    " with no identity";
+                throw std::invalid_argument(error);
+            }
+            T init = *first;
+            ++first;
+            return std::accumulate(first, last, init, f);
         }
     };
 }
