@@ -106,15 +106,15 @@ Example
 namespace np = numcpp;
 int main() {
     int data1d[10] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
-    np::array_view<int> array(10, data1d);
-    std::cout << "1 dimensional:\n" << array << "\n";
+    np::array_view<int> arr(10, data1d);
+    std::cout << "1 dimensional:\n" << arr << "\n";
     int data2d[12] = {0, 10, -4, 5,
                       6, 10, 8, 12,
                       2, 11, 0, -1};
-    np::matrix_view<int> matrix_rowmajor({3, 4}, data2d);
-    std::cout << "2 dimensional (row-major):\n" << matrix_rowmajor << "\n";
-    np::matrix_view<int> matrix_colmajor({3, 4}, data2d, false);
-    std::cout << "2 dimensional (column-major):\n" << matrix_colmajor << "\n";
+    np::matrix_view<int> mat_rowmajor({3, 4}, data2d);
+    std::cout << "2 dimensional (row-major):\n" << mat_rowmajor << "\n";
+    np::matrix_view<int> mat_colmajor({3, 4}, data2d, false);
+    std::cout << "2 dimensional (column-major):\n" << mat_colmajor << "\n";
     int data3d[24] = {1, 18, 11, 10,
                       9, 19, 12, 10,
                       13, 8, -4, 16,
@@ -589,10 +589,10 @@ Example
 namespace np = numcpp;
 int main() {
     int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array_view<int> array(12, ptr);
-    std::cout << array.ndim() << "\n";
-    np::matrix_view<int> matrix({3, 4}, ptr);
-    std::cout << matrix.ndim() << "\n";
+    np::array_view<int> arr(12, ptr);
+    std::cout << arr.ndim() << "\n";
+    np::matrix_view<int> mat({3, 4}, ptr);
+    std::cout << mat.ndim() << "\n";
     np::tensor_view<int, 3> cube({2, 2, 3}, ptr);
     std::cout << cube.ndim() << "\n";
     return 0;
@@ -629,16 +629,16 @@ Example
 namespace np = numcpp;
 int main() {
     int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array_view<int> array(12, ptr);
+    np::array_view<int> arr(12, ptr);
     std::cout << "1 dimensional:\n";
-    std::cout << "Shape: " << array.shape() << "\n";
-    std::cout << "Length: " << array.shape(0) << "\n\n";
+    std::cout << "Shape: " << arr.shape() << "\n";
+    std::cout << "Length: " << arr.shape(0) << "\n\n";
 
-    np::matrix_view<int> matrix({3, 4}, ptr);
+    np::matrix_view<int> mat({3, 4}, ptr);
     std::cout << "2 dimensional:\n";
-    std::cout << "Shape: " << matrix.shape() << "\n";
-    std::cout << "Rows: " << matrix.shape(0) << "\n";
-    std::cout << "Columns: " << matrix.shape(1) << "\n\n";
+    std::cout << "Shape: " << mat.shape() << "\n";
+    std::cout << "Rows: " << mat.shape(0) << "\n";
+    std::cout << "Columns: " << mat.shape(1) << "\n\n";
 
     np::tensor_view<int, 3> cube({2, 2, 3}, ptr);
     std::cout << "3 dimensional:\n";
@@ -689,10 +689,10 @@ Example
 namespace np = numcpp;
 int main() {
     int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array_view<int> array(12, ptr);
-    std::cout << array.size() << "\n";
-    np::matrix_view<int> matrix({3, 4}, ptr);
-    std::cout << matrix.size() << "\n";
+    np::array_view<int> arr(12, ptr);
+    std::cout << arr.size() << "\n";
+    np::matrix_view<int> mat({3, 4}, ptr);
+    std::cout << mat.size() << "\n";
     np::tensor_view<int, 3> cube({2, 2, 3}, ptr);
     std::cout << cube.size() << "\n";
     return 0;
@@ -914,11 +914,11 @@ int main() {
     int data2d[3*4] = {1, 14, 12, -3,
                        -5, -3, 11, 11,
                        -1, 18, -3, -1};
-    np::matrix_view<int> matrix({3, 4}, data2d);
+    np::matrix_view<int> mat({3, 4}, data2d);
     std::cout << "2 dimensional:\n";
-    std::cout << matrix << "\n";
-    matrix.swapaxes(0, 1);
-    std::cout << matrix << "\n";
+    std::cout << mat << "\n";
+    mat.swapaxes(0, 1);
+    std::cout << mat << "\n";
 
     int data3d[2*3*4] = {16, 15, 14, -1,
                          5, 14, 9, 10,
@@ -995,10 +995,10 @@ int main() {
     int data2d[3*4] = {1, 14, 12, -3,
                        -5, -3, 11, 11,
                        -1, 18, -3, -1};
-    np::matrix_view<int> matrix({3, 4}, data2d);
+    np::matrix_view<int> mat({3, 4}, data2d);
     std::cout << "2 dimensional:\n";
-    std::cout << matrix << "\n";
-    std::cout << matrix.t() << "\n";
+    std::cout << mat << "\n";
+    std::cout << mat.t() << "\n";
 
     int data3d[2*3*4] = {16, 15, 14, -1,
                          5, 14, 9, 10,
