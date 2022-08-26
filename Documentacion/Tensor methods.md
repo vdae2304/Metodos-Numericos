@@ -100,13 +100,13 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array(10);
+    np::array<int> arr(10);
     int value = 0;
     np::array<int>::iterator it;
-    for (it = array.begin(); it != array.end(); ++it) {
+    for (it = arr.begin(); it != arr.end(); ++it) {
         *it = value++;
     }
-    std::cout << array << "\n";
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -124,18 +124,18 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix(3, 4);
+    np::matrix<int> mat(3, 4);
     int value = 0;
     np::matrix<int>::iterator it;
-    for (it = matrix.begin(); it != matrix.end(); ++it) {
+    for (it = mat.begin(); it != mat.end(); ++it) {
         *it = value++;
     }
-    std::cout << "Row-major:\n" << matrix << "\n";
+    std::cout << "Row-major:\n" << mat << "\n";
     value = 0;
-    for (it = matrix.begin(false); it != matrix.end(false); ++it) {
+    for (it = mat.begin(false); it != mat.end(false); ++it) {
         *it = value++;
     }
-    std::cout << "Column-major:\n" << matrix << "\n";
+    std::cout << "Column-major:\n" << mat << "\n";
     return 0;
 }
 ```
@@ -302,8 +302,8 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> array{18, 13, 17, 17, 13, 14, -1, 2, 11, -3};
-    np::array<int>::iterator it = array.begin();
+    np::array<int> arr{18, 13, 17, 17, 13, 14, -1, 2, 11, -3};
+    np::array<int>::iterator it = arr.begin();
     std::cout << *it.base() << "\n";
     return 0;
 }
@@ -445,9 +445,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix(3, 4);
-    np::matrix<int>::iterator it1 = matrix.begin();
-    np::matrix<int>::iterator it2 = matrix.begin(false);
+    np::matrix<int> mat(3, 4);
+    np::matrix<int>::iterator it1 = mat.begin();
+    np::matrix<int>::iterator it2 = mat.begin(false);
     if (it1.rowmajor()) {
         std::cout << "it1 iterates in row-major order\n";
     }
@@ -490,9 +490,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::matrix<int> matrix(3, 4);
-    np::matrix<int>::iterator it1 = matrix.begin();
-    np::matrix<int>::iterator it2 = matrix.begin(false);
+    np::matrix<int> mat(3, 4);
+    np::matrix<int>::iterator it1 = mat.begin();
+    np::matrix<int>::iterator it2 = mat.begin(false);
     if (it1.colmajor()) {
         std::cout << "it1 iterates in column-major order\n";
     }
