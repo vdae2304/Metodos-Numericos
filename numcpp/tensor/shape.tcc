@@ -30,27 +30,12 @@
 
 namespace numcpp {
     template <size_t Rank>
-    shape_t<Rank>::shape_t() {
-        std::fill_n(m_shape, Rank, 0);
-    }
+    shape_t<Rank>::shape_t() : m_shape{0} {}
 
     template <size_t Rank>
     template <class... Args, typename, typename>
-    shape_t<Rank>::shape_t(Args... args) {
-        __initialize(args...);
-    }
-
-    template <size_t Rank>
-    void shape_t<Rank>::__initialize(size_t arg0) {
-        m_shape[Rank - 1] = arg0;
-    }
-
-    template <size_t Rank>
-    template <class... Args>
-    void shape_t<Rank>::__initialize(size_t arg0, Args... args) {
-        m_shape[Rank - 1 - sizeof...(Args)] = arg0;
-        __initialize(args...);
-    }
+    shape_t<Rank>::shape_t(Args... args)
+     : m_shape{static_cast<size_t>(args)...} {}
 
     template <size_t Rank>
     shape_t<Rank>::shape_t(const shape_t &other) {

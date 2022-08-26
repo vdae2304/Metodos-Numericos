@@ -150,14 +150,6 @@ namespace detail {
         shape_t transpose() const;
 
     private:
-        /**
-         * @brief Fill a shape_t from variadic arguments.
-         */
-        void __initialize(size_t arg0);
-
-        template <class... Args>
-        void __initialize(size_t arg0, Args... args);
-
         // Shape elements.
         size_t m_shape[Rank];
     };
