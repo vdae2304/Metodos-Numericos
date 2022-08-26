@@ -24,6 +24,7 @@
 #ifndef NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 #define NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 
+#include "numcpp/routines/ranges.h"
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
@@ -329,8 +330,11 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     template <class Function>
-    inline void tensor_interface<T, Rank, Tag>::apply(Function f) {
-        std::transform(this->begin(), this->end(), this->begin(), f);
+    inline void tensor_interface<T, Rank, Tag>::apply(Function &&f) {
+        std::transform(
+            this->begin(), this->end(), this->begin(),
+            std::forward<Function>(f)
+        );
     }
 
     template <class T, size_t Rank, class Tag>
@@ -410,7 +414,7 @@ namespace numcpp {
     inline void tensor_interface<T, Rank, Tag>::clamp(
         const T &a_min, const T &a_max
     ) {
-        this->apply(detail::clamp<T>(a_min, a_max));
+        this->apply(ranges::clamp<T>(a_min, a_max));
     }
 
     template <class T, size_t Rank, class Tag>

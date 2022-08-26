@@ -31,13 +31,12 @@ compiler options.
 
 #include "numcpp/shape.h"
 #include "numcpp/slice.h"
-#include "numcpp/broadcasting/operators.h"
-#include "numcpp/routines/ranges.h"
 
+#include "numcpp/functional/operators.h"
 #include "numcpp/tensor/tensor_interface.h"
-#include "numcpp/broadcasting/lazy_tensor.h"
 #include "numcpp/tensor/tensor_view.h"
 #include "numcpp/tensor/indirect_tensor.h"
+#include "numcpp/functional/lazy_tensor.h"
 
 #include <initializer_list>
 
