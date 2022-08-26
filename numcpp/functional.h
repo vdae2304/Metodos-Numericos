@@ -14,9 +14,8 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting.h
-  *  This header defines routines for broadcasting, functional programming and
-  *  indexing.
+ /** @file include/numcpp/functional.h
+  *  This header defines routines for functional programming.
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
