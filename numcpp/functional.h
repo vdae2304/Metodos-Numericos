@@ -385,15 +385,15 @@ namespace detail {
      *     evaluated or assigned to a tensor object.
      */
     template <class Function,
-              class T, size_t RankT, class TagT,
-              class U, size_t RankU, class TagU>
+              class T, size_t M, class TagT,
+              class U, size_t N, class TagU>
     base_tensor<
-        detail::result_of_t<Function, T, U>, RankT + RankU,
-        lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
+        detail::result_of_t<Function, T, U>, M + N,
+        lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
     > outer(
         Function &&f,
-        const base_tensor<T, RankT, TagT> &arg1,
-        const base_tensor<U, RankU, TagU> &arg2
+        const base_tensor<T, M, TagT> &arg1,
+        const base_tensor<U, N, TagU> &arg2
     );
 
     /**
@@ -410,13 +410,13 @@ namespace detail {
      */
     template <class R, class TagR,
               class Function,
-              class T, size_t RankT, class TagT,
-              class U, size_t RankU, class TagU>
+              class T, size_t M, class TagT,
+              class U, size_t N, class TagU>
     void outer(
-        base_tensor<R, RankT + RankU, TagR> &out,
+        base_tensor<R, M + N, TagR> &out,
         Function &&f,
-        const base_tensor<T, RankT, TagT> &arg1,
-        const base_tensor<U, RankU, TagU> &arg2
+        const base_tensor<T, M, TagT> &arg1,
+        const base_tensor<U, N, TagU> &arg2
     );
 }
 

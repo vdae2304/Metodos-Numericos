@@ -28,8 +28,8 @@
 
 namespace numcpp {
     template <class Function,
-              class T, size_t RankT, class TagT,
-              class U, size_t RankU, class TagU>
+              class T, size_t M, class TagT,
+              class U, size_t N, class TagU>
     struct lazy_outer_tag;
 
 /// Namespace for implementation details.
@@ -37,12 +37,10 @@ namespace detail {
     /// Checks whether a tensor subclass is an expression object.
     template <class R, size_t Rank,
               class Function,
-              class T, size_t RankT, class TagT,
-              class U, size_t RankU, class TagU>
+              class T, size_t M, class TagT,
+              class U, size_t N, class TagU>
     struct is_expression<
-        base_tensor<
-            R, Rank, lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
-        >
+        base_tensor<R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU> >
     > : std::true_type {};
 
     /**
@@ -69,22 +67,22 @@ namespace detail {
      * @tparam R Result type of the function.
      * @tparam Function Type of the applied function.
      * @tparam T Type of the elements contained in the first tensor.
-     * @tparam RankT Dimension of the first tensor. It must be a positive
+     * @tparam M Dimension of the first tensor. It must be a positive
      *     integer.
      * @tparam TagT Type of the first base_tensor container.
      * @tparam U Type of the elements contained in the second tensor.
-     * @tparam RankU Dimension of the second tensor. It must be a positive
+     * @tparam N Dimension of the second tensor. It must be a positive
      *     integer.
      * @tparam TagU Type of the second base_tensor container.
      */
     template <class R, size_t Rank,
               class Function,
-              class T, size_t RankT, class TagT,
-              class U, size_t RankU, class TagU>
+              class T, size_t M, class TagT,
+              class U, size_t N, class TagU>
     class base_tensor<
-        R, Rank, lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
+        R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
     > {
-        static_assert(Rank == RankT + RankU, "Invalid Rank value");
+        static_assert(Rank == M + N, "Invalid Rank value");
 
     public:
         /// Member types.
@@ -94,10 +92,10 @@ namespace detail {
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
         typedef base_tensor_iterator<
-            R, Rank, lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
+            R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
         > iterator;
         typedef base_tensor_const_iterator<
-            R, Rank, lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
+            R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
         > const_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
@@ -114,8 +112,8 @@ namespace detail {
          */
         base_tensor(
             Function f,
-            const base_tensor<T, RankT, TagT> &lhs,
-            const base_tensor<U, RankU, TagU> &rhs
+            const base_tensor<T, M, TagT> &lhs,
+            const base_tensor<U, N, TagU> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs),
             m_shape(lhs.shape() + rhs.shape()),
             m_size(m_shape.size()) {}
@@ -267,16 +265,16 @@ namespace detail {
          */
         R operator[](const index_t<Rank> &index) {
             assert_within_bounds(m_shape, index);
-            index_t<RankT> i;
-            index_t<RankU> j;
+            index_t<M> i;
+            index_t<N> j;
             detail::split_indices(index, i, j);
             return m_fun(m_lhs[i], m_rhs[j]);
         }
 
         R operator[](const index_t<Rank> &index) const {
             assert_within_bounds(m_shape, index);
-            index_t<RankT> i;
-            index_t<RankU> j;
+            index_t<M> i;
+            index_t<N> j;
             detail::split_indices(index, i, j);
             return m_fun(m_lhs[i], m_rhs[j]);
         }
@@ -339,11 +337,9 @@ namespace detail {
          * @brief Cast each element to a specified type.
          */
         template <class Rt>
-        base_tensor<
-            Rt, Rank, lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
-        > astype() const {
-            typedef lazy_outer_tag<Function, T, RankT, TagT, U, RankU, TagU>
-                Closure;
+        base_tensor<Rt, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU> >
+        astype() const {
+            typedef lazy_outer_tag<Function, T, M, TagT, U, N, TagU> Closure;
             return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
         }
 
@@ -359,10 +355,10 @@ namespace detail {
         Function m_fun;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, RankT, TagT> > m_lhs;
+        detail::ConstRefIfNotExpression<base_tensor<T, M, TagT> > m_lhs;
 
         // Second tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<U, RankU, TagU> > m_rhs;
+        detail::ConstRefIfNotExpression<base_tensor<U, N, TagU> > m_rhs;
 
         // Common shape.
         shape_t<Rank> m_shape;
