@@ -338,7 +338,7 @@ namespace detail {
     template <class Function, class T, size_t Rank, class Tag>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     accumulate(
-        Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
+        Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis = 0
     );
 
     /**
@@ -359,7 +359,7 @@ namespace detail {
               class T, class Tag>
     void accumulate(
         base_tensor<R, Rank, TagR> &out,
-        Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
+        Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis = 0
     );
 
     /**
