@@ -23,7 +23,6 @@
 #ifndef NUMCPP_OPERATORS_H_INCLUDED
 #define NUMCPP_OPERATORS_H_INCLUDED
 
-#include <complex>
 #include <utility>
 
 namespace numcpp {
@@ -279,80 +278,6 @@ namespace numcpp {
             return std::forward<T>(lhs) >= std::forward<U>(rhs);
         }
     };
-
-/// Namespace for mathematical functions.
-namespace math {
-    /**
-     * @brief Type traits for complex numbers.
-     */
-    template <class T>
-    struct complex_traits {
-        typedef T value_type;
-    };
-
-    template <class T>
-    struct complex_traits<const T> {
-        typedef T value_type;
-    };
-
-    template <class T>
-    struct complex_traits< std::complex<T> > {
-        typedef T value_type;
-    };
-
-    template <class T>
-    struct complex_traits< const std::complex<T> > {
-        typedef T value_type;
-    };
-
-    template <class T>
-    using complex_scalar = typename complex_traits<T>::value_type;
-
-    /**
-     * @brief Function object returning real part.
-     */
-    struct real {
-        template <class T>
-        T operator()(const T &x) const {
-            return x;
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &z) const {
-            return z.real();
-        }
-    };
-
-    /**
-     * @brief Function object returning imaginary part.
-     */
-    struct imag {
-        template <class T>
-        T operator()(const T&) const {
-            return T();
-        }
-
-        template <class T>
-        T operator()(const std::complex<T> &z) const {
-            return z.imag();
-        }
-    };
-
-    /**
-     * @brief Function object implementing std::conj.
-     */
-    struct conj {
-        template <class T>
-        T operator()(const T &x) const {
-            return x;
-        }
-
-        template <class T>
-        std::complex<T> operator()(const std::complex<T> &z) const {
-            return std::conj(z);
-        }
-    };
-}
 }
 
 #endif // NUMCPP_OPERATORS_H_INCLUDED
