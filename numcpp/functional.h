@@ -182,7 +182,7 @@ namespace detail {
      *     size one.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
-     *     throw an exception
+     *     throw an exception.
      */
     template <class Function, class T, size_t Rank, class Tag>
     tensor<
@@ -276,7 +276,7 @@ namespace detail {
      *     the axes which are reduced are left as dimensions of size one.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
-     *     throw an exception
+     *     throw an exception.
      */
     template <class Function, class T, size_t Rank, class Tag>
     inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
