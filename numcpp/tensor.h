@@ -34,6 +34,7 @@ compiler options.
 
 #include "numcpp/functional/operators.h"
 #include "numcpp/tensor/tensor_interface.h"
+#include "numcpp/tensor/complex_interface.h"
 #include "numcpp/tensor/tensor_view.h"
 #include "numcpp/tensor/indirect_tensor.h"
 #include "numcpp/functional/lazy_tensor.h"
@@ -114,7 +115,8 @@ namespace detail {
      */
     template <class T, size_t Rank>
     class base_tensor<T, Rank, tensor_tag>
-     : public tensor_interface<T, Rank, tensor_tag> {
+     : public tensor_interface<T, Rank, tensor_tag>,
+       public complex_interface<T, Rank, tensor_tag> {
     public:
         /// Member types.
         typedef T value_type;
