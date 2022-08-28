@@ -5,9 +5,11 @@ Defined in `numcpp/tensor.h`
 - [Tensor methods](#tensor-methods)
   - [Template parameters](#template-parameters)
   - [Complex numbers](#complex-numbers)
-    - [`tensor::conj`](#tensorconj)
     - [`tensor::real`](#tensorreal)
+    - [`tensor::real(val)`](#tensorrealval)
     - [`tensor::imag`](#tensorimag)
+    - [`tensor::imag(val)`](#tensorimagval)
+    - [`tensor::conj`](#tensorconj)
   - [Miscellaneous](#miscellaneous)
     - [`tensor::apply`](#tensorapply)
     - [`tensor::astype`](#tensorastype)
@@ -54,6 +56,222 @@ type or a class that behaves like one (such as `std::complex`).
 
 ## Complex numbers
 
+The following methods are defined only for complex-valued tensors such as
+`tensor<std::complex<T>, Rank>`, `tensor_view<std::complex<T>, Rank>` and
+`indirect_tensor<std::complex<T>, Rank>`.
+
+### `tensor::real`
+
+<h3><code>tensor_view::real</code></h3>
+
+<h3><code>indirect_tensor::real</code></h3>
+
+Return the real part, element-wise.
+```cpp
+tensor<T, Rank> real() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* A light-weight object with the real part of each element in the tensor. This
+function does not create a new tensor, instead, it returns a readonly view with
+the real part of each element.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<std::complex<double> > z;
+    std::cin >> z;
+    std::cout << z.real() << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+```
+
+Output
+
+```
+[ 8, 12,  8,  5,  1, 12,  0, -1,  6,  0]
+```
+
+### `tensor::real(val)`
+
+<h3><code>tensor_view::real(val)</code></h3>
+
+<h3><code>indirect_tensor::real(val)</code></h3>
+
+Set the real part, element-wise.
+```cpp
+void real(const tensor<T, Rank> &arg);
+void real(const T &val);
+```
+
+Parameters
+
+* `arg` A tensor-like object with the values to set the real part to.
+* `val` Value to set the real part to.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes are different.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<double> x;
+    std::cin >> x;
+    np::array<std::complex<double> > z(x.size(), 0);
+    z.real(x);
+    std::cout << z << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[8, 12, 8, 5, 1, 12, 0, -1, 6, 0]
+```
+
+Output
+
+```
+[ 8+0i, 12+0i,  8+0i,  5+0i,  1+0i, 12+0i,  0+0i, -1+0i,  6+0i,  0+0i]
+```
+
+### `tensor::imag`
+
+<h3><code>tensor_view::imag</code></h3>
+
+<h3><code>indirect_tensor::imag</code></h3>
+
+Return the imaginary part, element-wise.
+```cpp
+tensor<T, Rank> imag() const;
+```
+
+Parameters
+
+* None
+
+Returns
+
+* A light-weight object with the imaginary part of each element in the tensor.
+This function does not create a new tensor, instead, it returns a readonly view
+with the imaginary part of each element.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<std::complex<double> > z;
+    std::cin >> z;
+    std::cout << z.imag() << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+```
+
+Output
+
+```
+[-1, -3,  9,  0,  2,  1, -3,  9,  0, 10]
+```
+
+### `tensor::imag(val)`
+
+<h3><code>tensor_view::imag(val)</code></h3>
+
+<h3><code>indirect_tensor::imag(val)</code></h3>
+
+Set the imaginary part, element-wise.
+```cpp
+void imag(const tensor<T, Rank> &arg);
+void imag(const T &val);
+```
+
+Parameters
+
+* `arg` A tensor-like object with the values to set the imaginary part to.
+* `val` Value to set the imaginary part to.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes are different.
+
+Example
+
+```cpp
+#include <iostream>
+#include <complex>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::printoptions;
+    complexmode = complexmode_t::algebraic;
+    np::array<double> y;
+    std::cin >> y;
+    np::array<std::complex<double> > z(y.size(), 0);
+    z.imag(y);
+    std::cout << z << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[-1, -3, 9, 0, 2, 1, -3, 9, 0, 10]
+```
+
+Output
+
+```
+[ 0-1i,  0-3i,  0+9i,  0+0i,  0+2i,  0+1i,  0-3i,  0+9i,  0+0i, 0+10i]
+```
+
 ### `tensor::conj`
 
 <h3><code>tensor_view::conj</code></h3>
@@ -62,7 +280,7 @@ type or a class that behaves like one (such as `std::complex`).
 
 Return the complex conjugate, element-wise.
 ```cpp
-tensor<T, Rank> conj() const;
+tensor<std::complex<T>, Rank> conj() const;
 ```
 
 Parameters
@@ -85,9 +303,9 @@ namespace np = numcpp;
 int main() {
     using namespace np::printoptions;
     complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.conj() << "\n";
+    np::array<std::complex<double> > z;
+    std::cin >> z;
+    std::cout << z.conj() << "\n";
     return 0;
 }
 ```
@@ -102,126 +320,6 @@ Output
 
 ```
 [ 8+1i, 12+3i,  8-9i,  5-0i,  1-2i, 12-1i,  0+3i, -1-9i,  6-0i, 0-10i]
-```
-
-### `tensor::real`
-
-<h3><code>tensor_view::real</code></h3>
-
-<h3><code>indirect_tensor::real</code></h3>
-
-Return or set the real part, element-wise. Non-complex types are treated as
-complex numbers with zero imaginary part component.
-```cpp
-/// If T = std::complex<U>.
-tensor<U, Rank> real() const;
-void real(const tensor<U, Rank> &arg);
-void real(const U &val);
-
-/// Non-complex types
-tensor<T, Rank> real() const;
-```
-
-Parameters
-
-* `arg` A tensor-like object with the values to set the real part to.
-* `val` Value to set the real part to.
-
-Returns
-
-* A light-weight object with the real part of each element in the tensor. This
-function does not create a new tensor, instead, it returns a readonly view with
-the real part of each element.
-
-Example
-
-```cpp
-#include <iostream>
-#include <complex>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.real() << "\n";
-    a.real(0);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-Input
-
-```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
-```
-
-Output
-
-```
-[ 8, 12,  8,  5,  1, 12,  0, -1,  6,  0]
-[ 0-1i,  0-3i,  0+9i,  0+0i,  0+2i,  0+1i,  0-3i,  0+9i,  0+0i, 0+10i]
-```
-
-### `tensor::imag`
-
-<h3><code>tensor_view::imag</code></h3>
-
-<h3><code>indirect_tensor::imag</code></h3>
-
-Return or set the imaginary part, element-wise. Non-complex types are treated
-as complex numbers with zero imaginary part component.
-```cpp
-/// If T = std::complex<U>.
-tensor<U, Rank> imag() const;
-void imag(const tensor<U, Rank> &arg);
-void imag(const U &val);
-
-/// Non-complex types
-tensor<T, Rank> imag() const;
-```
-
-Parameters
-
-* `arg` A tensor-like object with the values to set the imaginary part to.
-* `val` Value to set the imaginary part to.
-
-Returns
-
-* A light-weight object with the imaginary part of each element in the tensor.
-This function does not create a new tensor, instead, it returns a readonly view
-with the imaginary part of each element.
-
-Example
-
-```cpp
-#include <iostream>
-#include <complex>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
-    np::array<std::complex<double> > a;
-    std::cin >> a;
-    std::cout << a.imag() << "\n";
-    a.imag(0);
-    std::cout << a << "\n";
-    return 0;
-}
-```
-Input
-
-```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
-```
-
-Output
-
-```
-[-1, -3,  9,  0,  2,  1, -3,  9,  0, 10]
-[ 8+0i, 12+0i,  8+0i,  5+0i,  1+0i, 12+0i,  0+0i, -1+0i,  6+0i,  0+0i]
 ```
 
 ## Miscellaneous
@@ -280,6 +378,47 @@ Output
 
 ```
 [16,  4, 16,  4, 64, 25, 49, 16, 36,  9]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+
+struct iota_t {
+    int value;
+
+    iota_t(int value = 0) : value(value) {}
+
+    int operator()(int) {
+        return value++;
+    }
+};
+
+int main() {
+    int n;
+    std::cin >> n;
+    np::array<int> a(n);
+    // Unlike function pointers, functors allows to contain internal state of
+    // the function.
+    a.apply(iota_t());
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+10
+```
+
+Output
+
+```
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
 ### `tensor::astype`
@@ -642,7 +781,6 @@ int main() {
     return 0;
 }
 ```
-
 
 Input
 
