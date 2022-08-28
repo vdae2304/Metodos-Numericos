@@ -32,14 +32,15 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor<std::complex<T>, Rank, Tag>*
     complex_interface<std::complex<T>, Rank, Tag>::base() {
-        return static_cast<base_tensor<std::complex<T>, Rank, Tag>*>(this);
+        typedef base_tensor<std::complex<T>, Rank, Tag> Derived;
+        return static_cast<Derived*>(this);
     }
 
     template <class T, size_t Rank, class Tag>
     inline const base_tensor<std::complex<T>, Rank, Tag>*
     complex_interface<std::complex<T>, Rank, Tag>::base() const {
-        return
-            static_cast<const base_tensor<std::complex<T>, Rank, Tag>*>(this);
+        typedef base_tensor<std::complex<T>, Rank, Tag> Derived;
+        return static_cast<const Derived*>(this);
     }
 
     /// Public methods.
