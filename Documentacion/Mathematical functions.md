@@ -64,6 +64,7 @@ Defined in `numcpp/math.h`
     - [`isfinite`](#isfinite)
     - [`isinf`](#isinf)
     - [`isnan`](#isnan)
+    - [`signbit`](#signbit)
 
 ## Template parameters
 
@@ -310,8 +311,8 @@ tensor<T, Rank> fmax(
 
 Parameters
 
-* `x` A tensor-like object with floating point or integral values.
-* `y` A tensor-like object with floating point or integral values.
+* `x` A tensor-like object with floating point or integer values.
+* `y` A tensor-like object with floating point or integer values.
 
 Returns
 
@@ -367,8 +368,8 @@ tensor<T, Rank> fmin(
 
 Parameters
 
-* `x` A tensor-like object with floating point or integral values.
-* `y` A tensor-like object with floating point or integral values.
+* `x` A tensor-like object with floating point or integer values.
+* `y` A tensor-like object with floating point or integer values.
 
 Returns
 
@@ -2328,7 +2329,10 @@ Return the complex conjugate, element-wise. The conjugate of a complex number
 is obtained by changing the sign of its imaginary part.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, Rank> conj(const tensor<T, Rank> &z);
+tensor<std::complex<T>, Rank> conj(const tensor<std::complex<T>, Rank> &z);
+
+template <class T, size_t Rank>
+tensor<std::complex<T>, Rank> conj(const tensor<T, Rank> &z);
 ```
 
 Parameters
@@ -2594,4 +2598,48 @@ x:
 [   0,  nan,    1,   -1,  nan,  inf, -inf]
 isnan(x):
 [false,  true, false, false,  true, false, false]
+```
+
+### `signbit`
+
+Return whether the sign of $x$ is negative, element-wise.
+```cpp
+template <class T, size_t Rank>
+tensor<bool, Rank> signbit(const tensor<T, Rank> &x);
+```
+
+Parameters
+
+* `x` A tensor-like object with floating point or integer values.
+
+Returns
+
+* A light-weight object with each element set to `true` where `x` is negative
+and `false` otherwise. This function does not create a new tensor, instead, an
+expression object is returned (see lazy-evaluation).
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> x;
+    std::cin >> x;
+    std::cout << std::boolalpha << np::signbit(x) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 7, -3, 1, 0, 8, -1, 9, -5, 12]
+```
+
+Output
+
+```
+[false, false,  true, false, false, false,  true, false,  true, false]
 ```
