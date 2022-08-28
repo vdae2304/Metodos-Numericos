@@ -229,6 +229,8 @@ namespace detail {
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
         const shape_t<N> &axes
     ) {
+        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
+                      " tensor dimension");
         shape_t<Rank> shape = arg.shape();
         size_t size = 1;
         for (size_t i = 0; i < axes.ndim(); ++i) {
