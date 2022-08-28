@@ -402,15 +402,6 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<typename std::remove_cv<T>::type, Rank,
-                       lazy_unary_tag<math::conj, T, Tag> >
-    tensor_interface<T, Rank, Tag>::conj() const {
-        typedef typename std::remove_cv<T>::type Rt;
-        typedef lazy_unary_tag<math::conj, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math::conj(), *this->base());
-    }
-
-    template <class T, size_t Rank, class Tag>
     inline void tensor_interface<T, Rank, Tag>::clamp(
         const T &a_min, const T &a_max
     ) {
@@ -422,44 +413,6 @@ namespace numcpp {
     tensor_interface<T, Rank, Tag>::copy() const {
         typedef typename std::remove_cv<T>::type Rt;
         return tensor<Rt, Rank>(*this->base());
-    }
-
-    template <class T, size_t Rank, class Tag>
-    inline base_tensor<math::complex_scalar<T>, Rank,
-                       lazy_unary_tag<math::imag, T, Tag> >
-    tensor_interface<T, Rank, Tag>::imag() const {
-        typedef math::complex_scalar<T> Rt;
-        typedef lazy_unary_tag<math::imag, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math::imag(), *this->base());
-    }
-
-    template <class T, size_t Rank, class Tag>
-    template <class Tag2>
-    void tensor_interface<T, Rank, Tag>::imag(
-        const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg
-    ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        if (this->shape() != arg.shape()) {
-            std::ostringstream error;
-            error << "input shape " << arg.shape() << " doesn't match the "
-                  << "output shape " << this->shape();
-            throw std::invalid_argument(error.str());
-        }
-        auto first = arg.begin(this->base()->rowmajor());
-        for (iterator it = this->begin(); it != this->end(); ++it) {
-            it->imag(*first);
-            ++first;
-        }
-    }
-
-    template <class T, size_t Rank, class Tag>
-    void tensor_interface<T, Rank, Tag>::imag(
-        const math::complex_scalar<T> &val
-    ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        for (iterator it = this->begin(); it != this->end(); ++it) {
-            it->imag(val);
-        }
     }
 
     template <class T, size_t Rank, class Tag>
@@ -501,44 +454,6 @@ namespace numcpp {
             iterator first = make_reduce_iterator(this->base(),indices,axes,0);
             iterator last = make_reduce_iterator(this->base(),indices,axes,n);
             std::nth_element(first, first + kth, last, comp);
-        }
-    }
-
-    template <class T, size_t Rank, class Tag>
-    inline base_tensor<math::complex_scalar<T>, Rank,
-                       lazy_unary_tag<math::real, T, Tag> >
-    tensor_interface<T, Rank, Tag>::real() const {
-        typedef math::complex_scalar<T> Rt;
-        typedef lazy_unary_tag<math::real, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math::real(), *this->base());
-    }
-
-    template <class T, size_t Rank, class Tag>
-    template <class Tag2>
-    void tensor_interface<T, Rank, Tag>::real(
-        const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg
-    ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        if (this->shape() != arg.shape()) {
-            std::ostringstream error;
-            error << "input shape " << arg.shape() << " doesn't match the "
-                  << "output shape " << this->shape();
-            throw std::invalid_argument(error.str());
-        }
-        auto first = arg.begin(this->base()->rowmajor());
-        for (iterator it = this->begin(); it != this->end(); ++it) {
-            it->real(*first);
-            ++first;
-        }
-    }
-
-    template <class T, size_t Rank, class Tag>
-    void tensor_interface<T, Rank, Tag>::real(
-        const math::complex_scalar<T> &val
-    ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        for (iterator it = this->begin(); it != this->end(); ++it) {
-            it->real(val);
         }
     }
 

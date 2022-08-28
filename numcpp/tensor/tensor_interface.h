@@ -433,18 +433,6 @@ namespace numcpp {
         void clamp(const T &a_min, const T &a_max);
 
         /**
-         * @brief Return the complex conjugate, element-wise.
-         *
-         * @return A light-weight object with the complex conjugate of each
-         *     element in the tensor. This function does not create a new
-         *     tensor, instead, it returns a readonly view with the complex
-         *     conjugate of each element.
-         */
-        base_tensor<typename std::remove_cv<T>::type, Rank,
-                    lazy_unary_tag<math::conj, T, Tag> >
-        conj() const;
-
-        /**
          * @brief Return a copy of the tensor.
          *
          * @return A new tensor with a copy of each of the elements in the
@@ -454,28 +442,6 @@ namespace numcpp {
          *     may throw an exception.
          */
         tensor<typename std::remove_cv<T>::type, Rank> copy() const;
-
-        /**
-         * @brief Return or set the imaginary part, element-wise. Non-complex
-         * types are treated as complex numbers with zero imaginary part
-         * component.
-         *
-         * @param arg A tensor-like object with the values to set the imaginary
-         *     part to.
-         * @param val Value to set the imaginary part to.
-         *
-         * @return A light-weight object with the imaginary part of each
-         *     element in the tensor. This function does not create a new
-         *     tensor, instead, it returns a readonly view with the imaginary
-         *     part of each element.
-         */
-        base_tensor<math::complex_scalar<T>, Rank,
-                    lazy_unary_tag<math::imag, T, Tag> >
-        imag() const;
-
-        template <class Tag2>
-        void imag(const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg);
-        void imag(const math::complex_scalar<T> &val);
 
         /**
          * @brief Return the maximum value contained in the tensor.
@@ -622,26 +588,6 @@ namespace numcpp {
         template <size_t N>
         tensor<typename std::remove_cv<T>::type, Rank>
         prod(const shape_t<N> &axes) const;
-
-        /**
-         * @brief Return or set the real part, element-wise. Non-complex types
-         * are treated as complex numbers with zero imaginary part component.
-         *
-         * @param arg A tensor-like object with the values to set the real part
-         *     to.
-         * @param val Value to set the real part to.
-         *
-         * @return A light-weight object with the real part of each element in
-         *     the tensor. This function does not create a new tensor, instead,
-         *     it returns a readonly view with the real part of each element.
-         */
-        base_tensor<math::complex_scalar<T>, Rank,
-                    lazy_unary_tag<math::real, T, Tag> >
-        real() const;
-
-        template <class Tag2>
-        void real(const base_tensor<math::complex_scalar<T>, Rank, Tag2> &arg);
-        void real(const math::complex_scalar<T> &val);
 
         /**
          * @brief Reverse the order of the elements in-place.
