@@ -633,6 +633,16 @@ namespace math {
             return std::isnan(x);
         }
     };
+
+    /**
+     * @brief Function object implementing std::signbit.
+     */
+    struct signbit {
+        template <class T>
+        bool operator()(T x) const {
+            return std::signbit(x);
+        }
+    };
 }
 }
 

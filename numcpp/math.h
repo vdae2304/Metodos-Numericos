@@ -89,6 +89,7 @@ namespace numcpp {
     using std::isfinite;
     using std::isinf;
     using std::isnan;
+    using std::signbit;
 
     /// Basic functions.
 
@@ -177,8 +178,8 @@ namespace numcpp {
      * @brief Return the maximum value, element-wise. If one of the elements
      * being compared is a NaN, then the non-NaN element is returned.
      *
-     * @param x A tensor-like object with floating point or integral values.
-     * @param y A tensor-like object with floating point or integral values.
+     * @param x A tensor-like object with floating point or integer values.
+     * @param y A tensor-like object with floating point or integer values.
      *
      * @return A light-weight object with the element-wise maximum. This
      *     function does not create a new tensor, instead, an expression object
@@ -220,8 +221,8 @@ namespace numcpp {
      * @brief Return the minimum value, element-wise. If one of the elements
      * being compared is a NaN, then the non-NaN element is returned.
      *
-     * @param x A tensor-like object with floating point or integral values.
-     * @param y A tensor-like object with floating point or integral values.
+     * @param x A tensor-like object with floating point or integer values.
+     * @param y A tensor-like object with floating point or integer values.
      *
      * @return A light-weight object with the element-wise minimum. This
      *     function does not create a new tensor, instead, an expression object
@@ -1163,10 +1164,21 @@ namespace numcpp {
      *     lazy-evaluation).
      */
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
-    conj(const base_tensor<T, Rank, Tag> &z) {
+    inline base_tensor<
+        std::complex<T>, Rank, lazy_unary_tag<math::conj, std::complex<T>, Tag>
+    > conj(const base_tensor<std::complex<T>, Rank, Tag> &z) {
+        typedef std::complex<T> Rt;
+        typedef lazy_unary_tag<math::conj, std::complex<T>, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(math::conj(), z);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        std::complex<T>, Rank, lazy_unary_tag<math::conj, T, Tag>
+    > conj(const base_tensor<T, Rank, Tag> &z) {
+        typedef std::complex<T> Rt;
         typedef lazy_unary_tag<math::conj, T, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(math::conj(), z);
+        return base_tensor<Rt, Rank, Closure>(math::conj(), z);
     }
 
     /**
@@ -1271,6 +1283,23 @@ namespace numcpp {
     isnan(const base_tensor<T, Rank, Tag> &x) {
         typedef lazy_unary_tag<math::isnan, T, Tag> Closure;
         return base_tensor<bool, Rank, Closure>(math::isnan(), x);
+    }
+
+    /**
+     * @brief Return whether the sign of x is negative, element-wise.
+     *
+     * @param x A tensor-like object with floating point or integer values.
+     *
+     * @return A light-weight object with each element set to true where x is
+     *     negative and false otherwise. This function does not create a new
+     *     tensor, instead, an expression object is returned (see
+     *     lazy-evaluation).
+     */
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<bool, Rank, lazy_unary_tag<math::signbit, T, Tag> >
+    signbit(const base_tensor<T, Rank, Tag> &x) {
+        typedef lazy_unary_tag<math::signbit, T, Tag> Closure;
+        return base_tensor<bool, Rank, Closure>(math::signbit(), x);
     }
 }
 
