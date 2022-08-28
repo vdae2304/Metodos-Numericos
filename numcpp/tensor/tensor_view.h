@@ -37,7 +37,8 @@ namespace numcpp {
      */
     template <class T, size_t Rank>
     class base_tensor<T, Rank, view_tag>
-     : public tensor_interface<T, Rank, view_tag> {
+     : public tensor_interface<T, Rank, view_tag>,
+       public complex_interface<T, Rank, view_tag> {
     public:
         /// Member types.
         typedef typename std::remove_cv<T>::type value_type;
