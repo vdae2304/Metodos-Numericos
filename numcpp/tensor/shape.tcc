@@ -177,11 +177,10 @@ namespace detail {
         shape_t<OutRank> &cat_shape, size_t offset,
         const shape_t<Rank> &shape1, const Args&... shapes
     ) {
-        std::copy_n(
-            static_cast<const size_t*>(shape1), Rank,
-            static_cast<size_t*>(cat_shape) + offset
-        );
-        concatenate_shapes(cat_shape, offset + Rank, shapes...);
+        for (size_t i = 0; i < shape1.ndim(); ++i) {
+            cat_shape[offset + i] = shape1[i];
+        }
+        concatenate_shapes(cat_shape, offset + shape1.ndim(), shapes...);
     }
 }
 
