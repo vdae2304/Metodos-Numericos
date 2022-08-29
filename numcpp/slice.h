@@ -139,7 +139,7 @@ namespace numcpp {
         }
 
     private:
-        /// Offset, size and stride of the slice.
+        // Offset, size and stride of the slice.
         size_t m_offset, m_size, m_stride;
     };
 
