@@ -27,7 +27,7 @@
 #include "numcpp/iterators/index_sequence.h"
 
 namespace numcpp {
-    /// Iterators.
+    /// Public methods.
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor<std::complex<T>, Rank, Tag>*
@@ -42,8 +42,6 @@ namespace numcpp {
         typedef base_tensor<std::complex<T>, Rank, Tag> Derived;
         return static_cast<const Derived*>(this);
     }
-
-    /// Public methods.
 
     template <class T, size_t Rank, class Tag>
     inline
