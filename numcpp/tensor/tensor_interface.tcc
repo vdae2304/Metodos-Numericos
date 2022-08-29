@@ -24,8 +24,9 @@
 #ifndef NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 #define NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 
-#include "numcpp/routines/ranges.h"
+#include "numcpp/functional/operators.h"
 #include "numcpp/iterators/index_sequence.h"
+#include "numcpp/routines/ranges.h"
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
