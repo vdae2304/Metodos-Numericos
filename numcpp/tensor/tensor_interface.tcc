@@ -25,6 +25,7 @@
 #define NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 
 #include "numcpp/routines/ranges.h"
+#include "numcpp/iterators/index_sequence.h"
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
@@ -38,8 +39,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    const base_tensor<T, Rank, Tag>* tensor_interface<T, Rank, Tag>::base()
-    const {
+    const base_tensor<T, Rank, Tag>*
+    tensor_interface<T, Rank, Tag>::base() const {
         return static_cast<const base_tensor<T, Rank, Tag>*>(this);
     }
 
@@ -123,30 +124,39 @@ namespace numcpp {
 
     /// Compound assignment operator.
 
+namespace detail {
+    /**
+     * @brief Return the element at the given position in a tensor after
+     * broadcasting the index.
+     */
+    template <class T, size_t Rank, class Tag>
+    T broadcast_index(const base_tensor<T, Rank, Tag> &a, index_t<Rank> index) {
+        for (size_t i = 0; i < a.ndim(); ++i) {
+            if (a.shape(i) == 1) {
+                index[i] = 0;
+            }
+        }
+        return a[index];
+    }
+}
+
     template <class T, size_t Rank, class Tag>
     template <class Function, class U, class TagU>
     base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::apply_binary_function(
         Function f, const base_tensor<U, Rank, TagU> &rhs
     ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        shape_t<Rank> output_shape = this->base()->shape();
-        shape_t<Rank> common_shape = broadcast_shapes(output_shape,rhs.shape());
-        if (output_shape != common_shape) {
+        shape_t<Rank> shape = this->base()->shape();
+        shape_t<Rank> common_shape = broadcast_shapes(shape, rhs.shape());
+        if (shape != common_shape) {
             std::ostringstream error;
-            error << "non-broadcastable output operand with shape "
-                  << output_shape << " doesn't match the broadcast shape "
-                  << common_shape;
+            error << "non-broadcastable output operand with shape " << shape
+                  << " doesn't match the broadcast shape " << common_shape;
             throw std::invalid_argument(error.str());
         }
-        iterator first = this->begin(), last = this->end();
-        while (first != last) {
-            index_t<Rank> index = first.coords();
-            for (size_t i = 0; i < Rank; ++i) {
-                index[i] = (rhs.shape(i) == 1) ? 0 : index[i];
-            }
-            *first = f(*first, rhs[index]);
-            ++first;
+        for (index_t<Rank> i : make_indices(shape)) {
+            (*this->base())[i] =
+                f((*this->base())[i], detail::broadcast_index(rhs, i));
         }
         return *this->base();
     }
@@ -157,11 +167,9 @@ namespace numcpp {
     tensor_interface<T, Rank, Tag>::apply_binary_function(
         Function f, const T &val
     ) {
-        typedef typename tensor_interface<T, Rank, Tag>::iterator iterator;
-        iterator first1 = this->begin(), last1 = this->end();
-        while (first1 != last1) {
-            *first1 = f(*first1, val);
-            ++first1;
+        shape_t<Rank> shape = this->base()->shape();
+        for (index_t<Rank> i : make_indices(shape)) {
+            (*this->base())[i] = f((*this->base())[i], val);
         }
         return *this->base();
     }
@@ -349,23 +357,18 @@ namespace numcpp {
         size_t kth, Compare comp
     ) const {
         shape_t<Rank> shape = this->base()->shape();
-        size_t size = shape.size();
-        tensor<index_t<Rank>, 1> out(size);
-        for (size_t i = 0; i < size; ++i) {
-            out[i] = unravel_index(i, shape);
-        }
+        size_t size = this->base()->size();
+        tensor<index_t<Rank>, 1> out(size, make_indices(shape).begin());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp(this->base()->operator[](i),
-                        this->base()->operator[](j));
+            return comp((*this->base())[i], (*this->base())[j]);
         };
         std::nth_element(out.begin(), out.begin() + kth, out.end(), comparator);
         return out;
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::argsort(
-        bool stable
-    ) const {
+    inline tensor<index_t<Rank>, 1>
+    tensor_interface<T, Rank, Tag>::argsort(bool stable) const {
         return this->argsort(less(), stable);
     }
 
@@ -375,14 +378,10 @@ namespace numcpp {
         Compare comp, bool stable
     ) const {
         shape_t<Rank> shape = this->base()->shape();
-        size_t size = shape.size();
-        tensor<index_t<Rank>, 1> out(size);
-        for (size_t i = 0; i < size; ++i) {
-            out[i] = unravel_index(i, shape);
-        }
+        size_t size = this->base()->size();
+        tensor<index_t<Rank>, 1> out(size, make_indices(shape).begin());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp(this->base()->operator[](i),
-                        this->base()->operator[](j));
+            return comp((*this->base())[i], (*this->base())[j]);
         };
         if (stable) {
             std::stable_sort(out.begin(), out.end(), comparator);
@@ -417,14 +416,14 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::nonzero() const {
-        typedef typename tensor_interface<T,Rank,Tag>::const_iterator iterator;
+        shape_t<Rank> shape = this->base()->shape();
         size_t size = this->base()->size();
-        size -= std::count(this->begin(), this->end(), T(0));
+        size -= std::count(this->begin(), this->end(), T());
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (iterator it = this->begin(); it != this->end(); ++it) {
-            if (*it != T(0)) {
-                out[n++] = it.coords();
+        for (index_t<Rank> i : make_indices(shape)) {
+            if ((*this->base())[i] != T()) {
+                out[n++] = i;
             }
         }
         return out;
@@ -442,39 +441,33 @@ namespace numcpp {
     void tensor_interface<T, Rank, Tag>::partition(
         size_t kth, size_t axis, Compare comp
     ) {
-        typedef base_tensor_reduce_iterator<T, Rank, Tag, 1> iterator;
         shape_t<Rank> shape = this->base()->shape();
         assert_within_bounds(shape, kth, axis);
-        size_t n = shape[axis];
+        size_t size = shape[axis];
         shape[axis] = 1;
-        size_t size = shape.size();
-        for (size_t i = 0; i < size; ++i) {
-            index_t<Rank> indices = unravel_index(i, shape);
-            shape_t<1> axes(axis);
-            iterator first = make_reduce_iterator(this->base(),indices,axes,0);
-            iterator last = make_reduce_iterator(this->base(),indices,axes,n);
+        for (index_t<Rank> index : make_indices(shape)) {
+            auto first = make_reduce_iterator(this->base(), index, axis, 0);
+            auto last = make_reduce_iterator(this->base(), index, axis, size);
             std::nth_element(first, first + kth, last, comp);
         }
     }
 
     template <class T, size_t Rank, class Tag>
-    inline void tensor_interface<T, Rank, Tag>::reverse(size_t axis) {
-        typedef base_tensor_reduce_iterator<T, Rank, Tag, 1> iterator;
+    void tensor_interface<T, Rank, Tag>::reverse(size_t axis) {
         shape_t<Rank> shape = this->base()->shape();
-        size_t n = shape[axis];
+        size_t size = shape[axis];
         shape[axis] = 1;
-        size_t size = shape.size();
-        for (size_t i = 0; i < size; ++i) {
-            index_t<Rank> indices = unravel_index(i, shape);
-            shape_t<1> axes(axis);
-            iterator first = make_reduce_iterator(this->base(),indices,axes,0);
-            iterator last = make_reduce_iterator(this->base(),indices,axes,n);
+        for (index_t<Rank> index : make_indices(shape)) {
+            auto first = make_reduce_iterator(this->base(), index, axis, 0);
+            auto last = make_reduce_iterator(this->base(), index, axis, size);
             std::reverse(first, last);
         }
     }
 
     template <class T, size_t Rank, class Tag>
-    inline void tensor_interface<T, Rank, Tag>::sort(size_t axis, bool stable) {
+    inline void tensor_interface<T, Rank, Tag>::sort(
+        size_t axis, bool stable
+    ) {
         this->sort(axis, less(), stable);
     }
 
@@ -483,16 +476,12 @@ namespace numcpp {
     void tensor_interface<T, Rank, Tag>::sort(
         size_t axis, Compare comp, bool stable
     ) {
-        typedef base_tensor_reduce_iterator<T, Rank, Tag, 1> iterator;
         shape_t<Rank> shape = this->base()->shape();
-        size_t n = shape[axis];
+        size_t size = shape[axis];
         shape[axis] = 1;
-        size_t size = shape.size();
-        for (size_t i = 0; i < size; ++i) {
-            index_t<Rank> indices = unravel_index(i, shape);
-            shape_t<1> axes(axis);
-            iterator first = make_reduce_iterator(this->base(),indices,axes,0);
-            iterator last = make_reduce_iterator(this->base(),indices,axes,n);
+        for (index_t<Rank> index : make_indices(shape)) {
+            auto first = make_reduce_iterator(this->base(), index, axis, 0);
+            auto last = make_reduce_iterator(this->base(), index, axis, size);
             if (stable) {
                 std::stable_sort(first, last, comp);
             }
@@ -505,25 +494,41 @@ namespace numcpp {
     /// Reductions.
 
     template <class T, size_t Rank, class Tag>
+    template <class R, class Function>
+    tensor<R, Rank> tensor_interface<T, Rank, Tag>::apply_along_axis(
+        Function f, size_t axis
+    ) const {
+        shape_t<Rank> shape = this->base()->shape();
+        size_t size = shape[axis];
+        shape[axis] = 1;
+        tensor<R, Rank> out(shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            out[out_index] = f(
+                make_const_reduce_iterator(this->base(), out_index, axis, 0),
+                make_const_reduce_iterator(this->base(), out_index, axis, size)
+            );
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
     template <class R, class Function, size_t N>
-    tensor<R, Rank> tensor_interface<T, Rank, Tag>::reduce(
+    tensor<R, Rank> tensor_interface<T, Rank, Tag>::apply_over_axes(
         Function f, const shape_t<N> &axes
     ) const {
-        typedef typename tensor<R, Rank>::iterator iterator;
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
-        size_t size = 1;
         shape_t<Rank> shape = this->base()->shape();
-        for (size_t i = 0; i < N; ++i) {
+        size_t size = 1;
+        for (size_t i = 0; i < axes.ndim(); ++i) {
             size *= shape[axes[i]];
             shape[axes[i]] = 1;
         }
         tensor<R, Rank> out(shape);
-        for (iterator it = out.begin(); it != out.end(); ++it) {
-            index_t<Rank> indices = it.coords();
-            *it = f(
-                make_const_reduce_iterator(this->base(), indices, axes, 0),
-                make_const_reduce_iterator(this->base(), indices, axes, size)
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            out[out_index] = f(
+                make_const_reduce_iterator(this->base(), out_index, axes, 0),
+                make_const_reduce_iterator(this->base(), out_index, axes, size)
             );
         }
         return out;
@@ -538,7 +543,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(size_t axis)
     const {
-        return this->all(make_shape(axis));
+        return this->apply_along_axis<bool>(ranges::all(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -546,7 +551,7 @@ namespace numcpp {
     inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(
         const shape_t<N> &axes
     ) const {
-        return this->reduce<bool>(ranges::all(), axes);
+        return this->apply_over_axes<bool>(ranges::all(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -558,7 +563,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(size_t axis)
     const {
-        return this->any(make_shape(axis));
+        return this->apply_along_axis<bool>(ranges::any(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -566,7 +571,7 @@ namespace numcpp {
     inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(
         const shape_t<N> &axes
     ) const {
-        return this->reduce<bool>(ranges::any(), axes);
+        return this->apply_over_axes<bool>(ranges::any(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -581,7 +586,7 @@ namespace numcpp {
     inline tensor<size_t, Rank> tensor_interface<T, Rank, Tag>::argmax(
         size_t axis
     ) const {
-        return this->reduce<size_t>(ranges::argmax(), make_shape(axis));
+        return this->apply_along_axis<size_t>(ranges::argmax(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -596,7 +601,7 @@ namespace numcpp {
     inline tensor<size_t, Rank> tensor_interface<T, Rank, Tag>::argmin(
         size_t axis
     ) const {
-        return this->reduce<size_t>(ranges::argmin(), make_shape(axis));
+        return this->apply_along_axis<size_t>(ranges::argmin(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -609,7 +614,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::max(size_t axis) const {
-        return this->max(make_shape(axis));
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::max(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -617,7 +623,7 @@ namespace numcpp {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::max(const shape_t<N> &axes) const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::max(), axes);
+        return this->apply_over_axes<Rt>(ranges::max(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -630,7 +636,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::mean(size_t axis) const {
-        return this->mean(make_shape(axis));
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::mean(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -638,7 +645,7 @@ namespace numcpp {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::mean(const shape_t<N> &axes) const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::mean(), axes);
+        return this->apply_over_axes<Rt>(ranges::mean(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -651,7 +658,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::min(size_t axis) const {
-        return this->min(make_shape(axis));
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::min(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -659,7 +667,7 @@ namespace numcpp {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::min(const shape_t<N> &axes) const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::min(), axes);
+        return this->apply_over_axes<Rt>(ranges::min(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -672,7 +680,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::prod(size_t axis) const {
-        return this->prod(make_shape(axis));
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::prod(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -680,7 +689,7 @@ namespace numcpp {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::prod(const shape_t<N> &axes) const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::prod(), axes);
+        return this->apply_over_axes<Rt>(ranges::prod(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -693,7 +702,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::stddev(size_t axis, bool bias) const {
-        return this->stddev(make_shape(axis), bias);
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::stddev(bias), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -702,7 +712,7 @@ namespace numcpp {
     tensor_interface<T, Rank, Tag>::stddev(const shape_t<N> &axes, bool bias)
     const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::stddev(bias), axes);
+        return this->apply_over_axes<Rt>(ranges::stddev(bias), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -715,7 +725,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::sum(size_t axis) const {
-        return this->sum(make_shape(axis));
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::sum(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -723,7 +734,7 @@ namespace numcpp {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::sum(const shape_t<N> &axes) const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::sum(), axes);
+        return this->apply_over_axes<Rt>(ranges::sum(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -736,7 +747,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::var(size_t axis, bool bias) const {
-        return this->var(make_shape(axis), bias);
+        typedef typename std::remove_cv<T>::type Rt;
+        return this->apply_along_axis<Rt>(ranges::var(bias), axis);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -745,7 +757,7 @@ namespace numcpp {
     tensor_interface<T, Rank, Tag>::var(const shape_t<N> &axes, bool bias)
     const {
         typedef typename std::remove_cv<T>::type Rt;
-        return this->reduce<Rt>(ranges::var(bias), axes);
+        return this->apply_over_axes<Rt>(ranges::var(bias), axes);
     }
 }
 

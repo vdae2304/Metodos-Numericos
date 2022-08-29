@@ -735,24 +735,29 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag>* base() const;
 
         /**
-         * @brief Helper function. Apply a binary function with other tensor or
-         * with a value.
+         * @brief Helper function. Apply a binary function with another tensor
+         * or with a value.
          */
         template <class Function, class U, class TagU>
         base_tensor<T, Rank, Tag>& apply_binary_function(
             Function f, const base_tensor<U, Rank, TagU> &rhs
         );
+
         template <class Function>
         base_tensor<T, Rank, Tag>& apply_binary_function(
             Function f, const T &val
         );
 
         /**
-         * @brief Helper function. Apply a reduction function over multiple
-         * axes.
+         * @brief Helper function. Apply a function over multiple axes.
          */
+        template <class R, class Function>
+        tensor<R, Rank> apply_along_axis(Function f, size_t axis) const;
+
         template <class R, class Function, size_t N>
-        tensor<R, Rank> reduce(Function f, const shape_t<N> &axes) const;
+        tensor<R, Rank> apply_over_axes(
+            Function f, const shape_t<N> &axes
+        ) const;
     };
 }
 
