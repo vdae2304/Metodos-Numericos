@@ -38,6 +38,19 @@ namespace numcpp {
         );
     }
 
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor_reduce_iterator<T, Rank, Tag, 1>
+    make_reduce_iterator(
+        base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
+        size_t flat
+    ) {
+        return base_tensor_reduce_iterator<T, Rank, Tag, 1>(
+            ptr, indices, axis, flat
+        );
+    }
+
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor_reduce_iterator<T, Rank, Tag, N>::base_tensor_reduce_iterator()
      : m_ptr(NULL), m_indices(), m_axes(), m_flat(0) {}
@@ -261,6 +274,19 @@ namespace numcpp {
     ) {
         return base_tensor_const_reduce_iterator<T, Rank, Tag, N>(
             ptr, indices, axes, flat
+        );
+    }
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
+    make_const_reduce_iterator(
+        const base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
+        size_t flat
+    ) {
+        return base_tensor_const_reduce_iterator<T, Rank, Tag, 1>(
+            ptr, indices, axis, flat
         );
     }
 

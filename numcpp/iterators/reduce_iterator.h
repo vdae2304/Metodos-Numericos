@@ -148,6 +148,15 @@ namespace numcpp {
         size_t flat
     );
 
+    template <class T, size_t Rank, class Tag>
+    base_tensor_reduce_iterator<T, Rank, Tag, 1>
+    make_reduce_iterator(
+        base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
+        size_t flat
+    );
+
     /// Arithmetic operators for base_tensor_reduce_iterator (non member
     /// functions).
 
@@ -340,6 +349,15 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag> *ptr,
         const index_t<Rank> &indices,
         const shape_t<N> &axes,
+        size_t flat
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
+    make_const_reduce_iterator(
+        const base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
         size_t flat
     );
 
