@@ -18,15 +18,15 @@ Defined in `numcpp/shape.h`
     - [`shape_t::operator[]`](#shape_toperator)
     - [`shape_t::operator size_t`](#shape_toperator-size_t)
     - [`shape_t::operator size_t*`](#shape_toperator-size_t-1)
-    - [`operator+`](#operator)
-    - [`operator==`](#operator-1)
-    - [`operator!=`](#operator-2)
+    - [`operator==`](#operator)
+    - [`operator!=`](#operator-1)
   - [Routines](#routines)
     - [`make_shape`](#make_shape)
     - [`make_index`](#make_index)
     - [`ravel_index`](#ravel_index)
     - [`unravel_index`](#unravel_index)
     - [`broadcast_shapes`](#broadcast_shapes)
+    - [`shape_cat`](#shape_cat)
 
 A `shape_t` is a class that identifies the size of a tensor along each
 dimension.
@@ -266,49 +266,6 @@ Pointer to `size_t` conversion.
 ```cpp
 explicit operator size_t*();
 explicit operator const size_t*() const;
-```
-
-### `operator+`
-
-Concatenates two `shape_t` objects or a `shape_t` and an integer.
-```cpp
-template <size_t Rank1, size_t Rank2>
-shape_t<Rank1 + Rank2> operator+(
-    const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
-);
-
-template <size_t Rank>
-shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
-
-template <size_t Rank>
-shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
-```
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::shape_t<3> shape1, shape2;
-    std::cin >> shape1 >> shape2;
-    std::cout << shape1 + shape2 << "\n";
-    return 0;
-}
-```
-
-Input
-
-```
-(1, 4, 2)
-(3, 5, 6)
-```
-
-Output
-
-```
-(1, 4, 2, 3, 5, 6)
 ```
 
 ### `operator==`
@@ -624,4 +581,41 @@ Possible output
 ```
 terminate called after throwing an instance of 'std::invalid_argument'
   what():  operands could not be broadcast together with shapes (3, 4, 6) (2, 1, 6)
+```
+
+### `shape_cat`
+
+Concatenates one or more `shape_t` objects.
+```cpp
+template <size_t Rank, class... Args>
+shape_t</*Rank of concatenation*/> shape_cat(
+    const shape_t<Rank> &shape1, const Args&... shapes
+);
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<3> shape1, shape2;
+    std::cin >> shape1 >> shape2;
+    std::cout << np::shape_cat(shape1, shape2) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+(1, 4, 2)
+(3, 5, 6)
+```
+
+Output
+
+```
+(1, 4, 2, 3, 5, 6)
 ```
