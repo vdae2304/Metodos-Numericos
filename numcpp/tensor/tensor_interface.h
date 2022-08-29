@@ -30,6 +30,7 @@ compiler options.
 #else
 
 #include "numcpp/shape.h"
+#include "numcpp/functional/operators.h"
 #include <type_traits>
 
 namespace numcpp {
