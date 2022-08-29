@@ -358,10 +358,12 @@ namespace detail {
         const base_tensor<T, M, TagT> &arg1,
         const base_tensor<U, N, TagU> &arg2
     ) {
-        detail::resize(out, arg1.shape() + arg2.shape());
+        detail::resize(out, shape_cat(arg1.shape(), arg2.shape()));
         for (index_t<M> i : make_indices(arg1.shape())) {
             for (index_t<N> j : make_indices(arg2.shape())) {
-                out[i + j] = std::forward<Function>(f)(arg1[i], arg2[j]);
+                out[shape_cat(i, j)] = std::forward<Function>(f)(
+                    arg1[i], arg2[j]
+                );
             }
         }
     }
