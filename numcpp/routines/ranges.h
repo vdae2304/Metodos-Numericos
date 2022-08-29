@@ -23,8 +23,6 @@
 #ifndef NUMCPP_ROUTINES_ALGO_H_INCLUDED
 #define NUMCPP_ROUTINES_ALGO_H_INCLUDED
 
-#include "numcpp/functional/operators.h"
-
 #include <algorithm>
 #include <cmath>
 #include <complex>
