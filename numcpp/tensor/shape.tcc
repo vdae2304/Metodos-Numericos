@@ -168,6 +168,21 @@ namespace detail {
         }
         broadcast_shapes(common_shape, shapes...);
     }
+
+    template <size_t Rank>
+    void concatenate_shapes(shape_t<Rank>&, size_t) {}
+
+    template <size_t OutRank, size_t Rank, class... Args>
+    void concatenate_shapes(
+        shape_t<OutRank> &cat_shape, size_t offset,
+        const shape_t<Rank> &shape1, const Args&... shapes
+    ) {
+        std::copy_n(
+            static_cast<const size_t*>(shape1), Rank,
+            static_cast<size_t*>(cat_shape) + offset
+        );
+        concatenate_shapes(cat_shape, offset + Rank, shapes...);
+    }
 }
 
     template <size_t Rank, class... Args>
@@ -177,6 +192,17 @@ namespace detail {
         shape_t<Rank> common_shape = shape1;
         detail::broadcast_shapes(common_shape, shapes...);
         return common_shape;
+    }
+
+    template <size_t Rank, class... Args>
+    shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+    shape_cat(
+        const shape_t<Rank> &shape1, const Args&... shapes
+    ) {
+        shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+        cat_shape;
+        detail::concatenate_shapes(cat_shape, 0, shape1, shapes...);
+        return cat_shape;
     }
 
     inline void assert_within_bounds(size_t size, size_t i) {
@@ -211,36 +237,6 @@ namespace detail {
                   << axis << " with size " << shape[axis];
             throw std::out_of_range(error.str());
         }
-    }
-
-    template <size_t Rank1, size_t Rank2>
-    inline shape_t<Rank1 + Rank2> operator+(
-        const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
-    ) {
-        shape_t<Rank1 + Rank2> shape_cat;
-        std::copy_n(static_cast<const size_t*>(shape1), Rank1,
-                    static_cast<size_t*>(shape_cat));
-        std::copy_n(static_cast<const size_t*>(shape2), Rank2,
-                    static_cast<size_t*>(shape_cat) + Rank1);
-        return shape_cat;
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n) {
-        shape_t<Rank + 1> shape_cat;
-        std::copy_n(static_cast<const size_t*>(shape), Rank,
-                    static_cast<size_t*>(shape_cat));
-        shape_cat[Rank] = n;
-        return shape_cat;
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape) {
-        shape_t<Rank + 1> shape_cat;
-        shape_cat[0] = n;
-        std::copy_n(static_cast<const size_t*>(shape), Rank,
-                    static_cast<size_t*>(shape_cat) + 1);
-        return shape_cat;
     }
 
     template <size_t Rank1, size_t Rank2>

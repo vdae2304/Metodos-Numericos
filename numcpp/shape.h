@@ -33,6 +33,14 @@ compiler options.
 #include <type_traits>
 
 namespace numcpp {
+    /// Forward declarations.
+    using std::size_t;
+    using std::ptrdiff_t;
+    using std::nullptr_t;
+
+    template <size_t Rank> class shape_t;
+
+    template <size_t Rank> using index_t = shape_t<Rank>;
 
 /// Namespace for implementation details.
 namespace detail {
@@ -44,9 +52,22 @@ namespace detail {
 
     template <class T, class... Args>
     struct are_integral<T, Args...>
-    : std::integral_constant<
+     : std::integral_constant<
         bool, std::is_integral<T>::value && are_integral<Args...>::value
       > {};
+
+    /// Rank of concatenation.
+    template <class... Args>
+    struct concatenation_rank;
+
+    template <size_t Rank>
+    struct concatenation_rank<shape_t<Rank> >
+     : std::integral_constant<size_t, Rank> {};
+
+    template <size_t Rank, class... Args>
+    struct concatenation_rank<shape_t<Rank>, Args...>
+     : std::integral_constant<size_t, Rank + concatenation_rank<Args...>::value>
+     {};
 
     /// Type constraint to request N arguments.
     template <size_t N, class... Args>
@@ -58,15 +79,6 @@ namespace detail {
     using RequiresIntegral =
         typename std::enable_if<are_integral<Args...>::value, bool>::type;
 }
-
-    /// Forward declarations.
-    using std::size_t;
-    using std::ptrdiff_t;
-    using std::nullptr_t;
-
-    template <size_t Rank> class shape_t;
-
-    template <size_t Rank> using index_t = shape_t<Rank>;
 
     /**
      * @brief A shape_t is a class that identifies the size of a tensor along
@@ -229,6 +241,15 @@ namespace detail {
     );
 
     /**
+     * @brief Concatenates one or more shape_t objects.
+     */
+    template <size_t Rank, class... Args>
+    shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+    shape_cat(
+        const shape_t<Rank> &shape1, const Args&... shapes
+    );
+
+    /**
      * @brief Asserts whether an index is within the bounds of a tensor. Throws
      * an std::out_of_range exception if assertion fails.
      */
@@ -243,20 +264,6 @@ namespace detail {
     inline void assert_within_bounds(
         const shape_t<Rank> &shape, size_t index, size_t axis
     );
-
-    /**
-     * @brief Concatenates two shape_t objects or a shape_t and an integer.
-     */
-    template <size_t Rank1, size_t Rank2>
-    inline shape_t<Rank1 + Rank2> operator+(
-        const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
-    );
-
-    template <size_t Rank>
-    inline shape_t<Rank + 1> operator+(const shape_t<Rank> &shape, size_t n);
-
-    template <size_t Rank>
-    inline shape_t<Rank + 1> operator+(size_t n, const shape_t<Rank> &shape);
 
     /**
      * @brief Compares two shape_t objects. Returns true if they have the same
