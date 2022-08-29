@@ -209,14 +209,13 @@ namespace detail {
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
         shape_t<Rank> shape = arg.shape();
-        shape_t<1> axes = axis;
         size_t size = shape[axis];
         shape[axis] = 1;
         detail::resize(out, shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = std::forward<Function>(f)(
-                make_const_reduce_iterator(&arg, out_index, axes, 0),
-                make_const_reduce_iterator(&arg, out_index, axes, size)
+                make_const_reduce_iterator(&arg, out_index, axis, 0),
+                make_const_reduce_iterator(&arg, out_index, axis, size)
             );
         }
     }
@@ -316,15 +315,14 @@ namespace detail {
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
         shape_t<Rank> shape = arg.shape();
-        shape_t<1> axes = axis;
         detail::resize(out, shape);
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
             std::partial_sum(
-                make_const_reduce_iterator(&arg, out_index, axes, 0),
-                make_const_reduce_iterator(&arg, out_index, axes, size),
-                make_reduce_iterator(&out, out_index, axes, 0),
+                make_const_reduce_iterator(&arg, out_index, axis, 0),
+                make_const_reduce_iterator(&arg, out_index, axis, size),
+                make_reduce_iterator(&out, out_index, axis, 0),
                 std::forward<Function>(f)
             );
         }
