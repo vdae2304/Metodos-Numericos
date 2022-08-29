@@ -23,7 +23,6 @@
 #ifndef NUMCPP_INDEX_SEQUENCE_H_INCLUDED
 #define NUMCPP_INDEX_SEQUENCE_H_INCLUDED
 
-#include "numcpp/shape.h"
 #include <iterator>
 
 namespace numcpp {
