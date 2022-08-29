@@ -330,22 +330,6 @@ namespace detail {
         detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
     };
 
-namespace detail {
-    /**
-     * @brief Return the element at the given position in a tensor after
-     * broadcasting the index.
-     */
-    template <class T, size_t Rank, class Tag>
-    T broadcast_index(const base_tensor<T, Rank, Tag> &a, index_t<Rank> index) {
-        for (size_t i = 0; i < a.ndim(); ++i) {
-            if (a.shape(i) == 1) {
-                index[i] = 0;
-            }
-        }
-        return a[index];
-    }
-}
-
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
      * applying a binary function on each element in two tensor objects. The
