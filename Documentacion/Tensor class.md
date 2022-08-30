@@ -714,7 +714,7 @@ Output
 
 ### `tensor::rowmajor`
 
-Returns whether the elements are stored in row-major order. For tensor objects,
+Returns whether the elements are stored in row-major order. For tensor class,
 always returns `true`.
 ```cpp
 bool rowmajor() const;
@@ -723,7 +723,7 @@ bool rowmajor() const;
 ### `tensor::colmajor`
 
 Returns whether the elements are stored in column-major order. For tensor
-objects, always returns `false`.
+class, always returns `false`.
 ```cpp
 bool colmajor() const;
 ```
@@ -865,20 +865,20 @@ Returns an `indirect_tensor` that selects the elements specified by the tensor
 of indices.
 ```cpp
 template <size_t N>
-indirect_tensor<T, N> operator[](const tensor<index_t<Rank>, N> &index);
+indirect_tensor<T, N> operator[](const tensor<index_t<Rank>, N> &indices);
 template <size_t N>
-tensor<T, N> operator[](const tensor<index_t<Rank>, N> &index) const;
+tensor<T, N> operator[](const tensor<index_t<Rank>, N> &indices) const;
 
 template <class IntegralType, size_t N>
-indirect_tensor<T, N> operator[](const tensor<IntegralType, N> &index);
+indirect_tensor<T, N> operator[](const tensor<IntegralType, N> &indices);
 template <class IntegralType, size_t N>
-tensor<T, N> operator[](const tensor<IntegralType, N> &index) const;
+tensor<T, N> operator[](const tensor<IntegralType, N> &indices) const;
 ```
 
 Parameters
 
-* `index` A tensor-like object of `index_t` with its elements identifying which
-elements of the tensor are selected. If the tensor is one dimensional, a
+* `indices` A tensor-like object of `index_t` with its elements identifying
+which elements of the tensor are selected. If the tensor is one dimensional, a
 tensor-like object of integers can be used instead.
 
 Returns
@@ -1018,7 +1018,7 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> arr{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
-    np::array<bool> mask = (array > 10);
+    np::array<bool> mask = (arr > 10);
     std::cout << std::boolalpha << mask << "\n";
     std::cout << arr[mask] << "\n";
     arr[mask] = 0;
