@@ -32,7 +32,6 @@ compiler options.
 #include "numcpp/shape.h"
 #include "numcpp/slice.h"
 
-#include "numcpp/functional/operators.h"
 #include "numcpp/tensor/tensor_interface.h"
 #include "numcpp/tensor/complex_interface.h"
 #include "numcpp/tensor/tensor_view.h"
@@ -68,34 +67,32 @@ namespace detail {
     };
 
     template <class T, size_t Depth>
-    using RequiresDepthInitializerList
+    using nested_initializer_list_t
         = typename nested_initializer_list<T, Depth>::type;
 
     /// Return the number of slice arguments.
     template <class... Args>
-    struct slice_index_rank;
+    struct slicing_rank;
 
     template <>
-    struct slice_index_rank<> : std::integral_constant<size_t, 0> {};
+    struct slicing_rank<> : std::integral_constant<size_t, 0> {};
+
+    template <class... Args>
+    struct slicing_rank<slice, Args...>
+     : std::integral_constant<size_t, 1 + slicing_rank<Args...>::value> {};
 
     template <class IntegralType, class... Args>
-    struct slice_index_rank<IntegralType, Args...>
-     : std::integral_constant<size_t, slice_index_rank<Args...>::value>
+    struct slicing_rank<IntegralType, Args...>
+     : std::integral_constant<size_t, slicing_rank<Args...>::value>
     {
         static_assert(std::is_integral<IntegralType>::value, "Index must be"
                       " either an integer or a slice");
     };
 
-    template <class... Args>
-    struct slice_index_rank<slice, Args...>
-     : std::integral_constant<size_t, 1 + slice_index_rank<Args...>::value>
-     {};
-
     /// Type constraint to request at least one slice argument.
     template <class... Args>
-    using RequiresSlice = typename std::enable_if<
-        (slice_index_rank<Args...>::value > 0), bool
-    >::type;
+    using RequiresSlicing =
+        typename std::enable_if<(slicing_rank<Args...>::value > 0), bool>::type;
 }
 
     /**
@@ -211,7 +208,7 @@ namespace detail {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        base_tensor(detail::RequiresDepthInitializerList<T, Rank> il);
+        base_tensor(detail::nested_initializer_list_t<T, Rank> il);
 
         /// Destructor.
         ~base_tensor();
@@ -281,21 +278,21 @@ namespace detail {
          */
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresSlice<Args...> = true>
-        tensor_view<T, detail::slice_index_rank<Args...>::value>
+                  detail::RequiresSlicing<Args...> = true>
+        tensor_view<T, detail::slicing_rank<Args...>::value>
         operator()(Args... args);
 
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresSlice<Args...> = true>
-        tensor_view<const T, detail::slice_index_rank<Args...>::value>
+                  detail::RequiresSlicing<Args...> = true>
+        tensor_view<const T, detail::slicing_rank<Args...>::value>
         operator()(Args... args) const;
 
         /**
          * @brief Coordinate tensor indexing. Returns an indirect_tensor that
          * selects the elements specified by the tensor of indices.
          *
-         * @param index A tensor-like object of index_t with its elements
+         * @param indices A tensor-like object of index_t with its elements
          *     identifying which elements of the tensor are selected. If the
          *     tensor is one dimensional, a tensor-like object of integers can
          *     be used instead.
@@ -312,22 +309,22 @@ namespace detail {
          */
         template <size_t N, class Tag>
         indirect_tensor<T, N> operator[](
-            const base_tensor<index_t<Rank>, N, Tag> &index
+            const base_tensor<index_t<Rank>, N, Tag> &indices
         );
         template <size_t N, class Tag>
         tensor<T, N> operator[](
-            const base_tensor<index_t<Rank>, N, Tag> &index
+            const base_tensor<index_t<Rank>, N, Tag> &indices
         ) const;
 
         template <class IntegralType, size_t N, class Tag,
                   detail::RequiresIntegral<IntegralType> = true>
         indirect_tensor<T, N> operator[](
-            const base_tensor<IntegralType, N, Tag> &index
+            const base_tensor<IntegralType, N, Tag> &indices
         );
         template <class IntegralType, size_t N, class Tag,
                   detail::RequiresIntegral<IntegralType> = true>
         tensor<T, N> operator[](
-            const base_tensor<IntegralType, N, Tag> &index
+            const base_tensor<IntegralType, N, Tag> &indices
         ) const;
 
         /**
@@ -402,13 +399,13 @@ namespace detail {
 
         /**
          * @brief Returns whether the elements are stored in row-major order.
-         * For tensor objects, always returns true.
+         * For tensor class, always returns true.
          */
         bool rowmajor() const;
 
         /**
          * @brief Returns whether the elements are stored in column-major
-         * order. For tensor objects, always returns false.
+         * order. For tensor class, always returns false.
          */
         bool colmajor() const;
 
@@ -472,8 +469,7 @@ namespace detail {
          *     references and views to elements of the tensor. Otherwise, valid
          *     iterators, references and views keep their validity.
          */
-        base_tensor&
-        operator=(detail::RequiresDepthInitializerList<T, Rank> il);
+        base_tensor& operator=(detail::nested_initializer_list_t<T, Rank> il);
 
         /// Public methods.
 
@@ -613,12 +609,12 @@ namespace detail {
         typename std::enable_if<(Depth > 1)>::type
         __initializer_list_shape(
             shape_t<Rank> &shape,
-            const detail::RequiresDepthInitializerList<T, Depth> &il
+            const detail::nested_initializer_list_t<T, Depth> &il
         );
 
         /**
-         * @brief Fill the tensor with the elements from a nested
-         * initializer_list recursively.
+         * @brief Fill the tensor with elements from a nested initializer_list
+         * recursively.
          */
         template <size_t Depth>
         typename std::enable_if<(Depth == 1)>::type
@@ -630,8 +626,30 @@ namespace detail {
         typename std::enable_if<(Depth > 1)>::type
         __fill_from_initializer_list(
             index_t<Rank> &index,
-            const detail::RequiresDepthInitializerList<T, Depth> &il
+            const detail::nested_initializer_list_t<T, Depth> &il
         );
+
+        /**
+         * @brief Constructs the shape, offset and strides of the slice
+         * indexing. Removes out of bound elements if possible, otherwise
+         * throws a std::out_of_range error.
+         */
+        template <size_t N>
+        size_t __unpack_slices(
+            shape_t<N> &shape, size_t &offset, shape_t<N> &strides
+        ) const;
+
+        template <size_t N, class... Args>
+        size_t __unpack_slices(
+            shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
+            size_t i, Args... args
+        ) const;
+
+        template <size_t N, class... Args>
+        size_t __unpack_slices(
+            shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
+            slice slc, Args... args
+        ) const;
 
         // Pointer to data.
         T *m_data;
