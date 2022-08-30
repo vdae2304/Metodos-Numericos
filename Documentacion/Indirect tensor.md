@@ -88,22 +88,23 @@ Parameters
 
 * `shape` Number of elements along each axis.
 * `data` Pointer to the memory array used by the `indirect_tensor`.
-* `index` Pointer to the array of indices with its elements identifying which
+* `indptr` Pointer to the array of indices with its elements identifying which
 elements of `data` are selected.
 * `order` If `true` (default), the elements are stored in row-major order (from
 first axis to last axis). Otherwise, the elements are stored in column-major
 order (from last axis to first axis).
-* `mode` If positive, creates a copy of `index`. If zero, stores the pointer
-directly without making a copy. If negative, acquires the ownership of `index`,
-which will be deleted along with the `indirect_tensor`. Defaults to make a copy.
+* `mode` If positive, creates a copy of `indptr`. If zero, stores the pointer
+directly without making a copy of it. If negative, acquires the ownership of
+`indptr`, which will be deleted along with the `indirect_tensor`. Defaults to
+make a copy.
 
 ```cpp
 indirect_tensor(
-    const shape_t<Rank> &shape, T *data, size_t *index,
+    const shape_t<Rank> &shape, T *data, size_t *indptr,
     bool order = true, int mode = 1
 );
 indirect_tensor(
-    const shape_t<Rank> &shape, T *data, const size_t *index,
+    const shape_t<Rank> &shape, T *data, const size_t *indptr,
     bool order = true
 );
 ```
@@ -181,10 +182,10 @@ Returns a reference to the element at the given position. The elements in an
 `indirect_tensor` are given by
 
 ```
-    data[index[ravel_index(indices, shape, order)]]
+    data[indptr[ravel_index(index, shape, order)]]
 ```
 
-where `data` is the memory array and `index` is the array of indices.
+where `data` is the memory array and `indptr` is the array of indices.
 ```cpp
 template <class... Args>
 T& operator()(Args... args);
@@ -492,8 +493,8 @@ the `indirect_tensor` is const-qualified, the function returns a pointer to
 Returns a pointer to the array of indices used internally by the
 `indirect_tensor`.
 ```cpp
-size_t* index();
-const size_t* index() const;
+size_t* indices();
+const size_t* indices() const;
 ```
 
 Returns
