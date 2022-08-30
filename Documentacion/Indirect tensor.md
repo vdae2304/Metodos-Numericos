@@ -20,7 +20,7 @@ Defined in `numcpp/tensor.h`
     - [`indirect_tensor::size`](#indirect_tensorsize)
     - [`indirect_tensor::empty`](#indirect_tensorempty)
     - [`indirect_tensor::data`](#indirect_tensordata)
-    - [`indirect_tensor::index`](#indirect_tensorindex)
+    - [`indirect_tensor::indices`](#indirect_tensorindices)
     - [`indirect_tensor::rowmajor`](#indirect_tensorrowmajor)
     - [`indirect_tensor::colmajor`](#indirect_tensorcolmajor)
     - [`indirect_tensor::is_owner`](#indirect_tensoris_owner)
@@ -488,7 +488,7 @@ Returns
 the `indirect_tensor` is const-qualified, the function returns a pointer to
 `const T`. Otherwise, it returns a pointer to `T`.
 
-### `indirect_tensor::index`
+### `indirect_tensor::indices`
 
 Returns a pointer to the array of indices used internally by the
 `indirect_tensor`.
