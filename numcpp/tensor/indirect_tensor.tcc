@@ -37,29 +37,29 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, size_t *index,
+        const shape_t<Rank> &shape, T *data, size_t *indptr,
         bool order, int mode
     ) : m_data(data), m_size(shape.size()), m_shape(shape), m_order(order)
     {
         if (mode > 0) {
             m_index = new size_t[m_size];
-            std::copy_n(index, m_size, m_index);
+            std::copy_n(indptr, m_size, m_index);
             m_owner = true;
         }
         else {
-            m_index = index;
+            m_index = indptr;
             m_owner = (mode < 0);
         }
     }
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, const size_t *index,
+        const shape_t<Rank> &shape, T *data, const size_t *indptr,
         bool order
     ) : m_data(data), m_size(shape.size()), m_shape(shape), m_order(order)
     {
         m_index = new size_t[m_size];
-        std::copy_n(index, m_size, m_index);
+        std::copy_n(indptr, m_size, m_index);
         m_owner = true;
     }
 
@@ -105,7 +105,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class... Args,
               detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...>>
+              detail::RequiresIntegral<Args...> >
     inline T& indirect_tensor<T, Rank>::operator()(Args... args) {
         return this->operator[](make_index(args...));
     }
@@ -113,7 +113,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class... Args,
               detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...>>
+              detail::RequiresIntegral<Args...> >
     inline const T& indirect_tensor<T, Rank>::operator()(Args... args) const {
         return this->operator[](make_index(args...));
     }
@@ -181,12 +181,12 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    inline size_t* indirect_tensor<T, Rank>::index() {
+    inline size_t* indirect_tensor<T, Rank>::indices() {
         return m_index;
     }
 
     template <class T, size_t Rank>
-    inline const size_t* indirect_tensor<T, Rank>::index() const {
+    inline const size_t* indirect_tensor<T, Rank>::indices() const {
         return m_index;
     }
 
@@ -214,12 +214,14 @@ namespace numcpp {
     ) {
         if (this->shape() != other.shape()) {
             std::ostringstream error;
-            error << "input shape " << other.shape() << " doesn't match the "
+            error << "input shape " << other.shape() << " does not match the "
                   << "output shape " << this->shape();
             throw std::invalid_argument(error.str());
         }
-        std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                       cast_to<T>());
+        std::transform(
+            other.begin(m_order), other.end(m_order), this->begin(),
+            cast_to<T>()
+        );
         return *this;
     }
 

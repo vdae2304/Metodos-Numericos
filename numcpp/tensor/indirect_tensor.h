@@ -65,22 +65,22 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the indirect_tensor.
-         * @param index Pointer to the array of indices with its elements
+         * @param indptr Pointer to the array of indices with its elements
          *     identifying which elements of data are selected.
          * @param order If true (default), the elements are stored in row-major
          *     order (from first axis to last axis). Otherwise, the elements
          *     are stored in column-major order (from last axis to first axis).
-         * @param mode If positive, creates a copy of index. If zero, stores
-         *     the pointer directly without making a copy. If negative,
-         *     acquires the ownership of index, which will be deleted
+         * @param mode If positive, creates a copy of indptr. If zero, stores
+         *     the pointer directly without making a copy of it. If negative,
+         *     acquires the ownership of indptr, which will be deleted
          *     along with the indirect_tensor. Defaults to make a copy.
          */
         base_tensor(
-            const shape_t<Rank> &shape, T *data, size_t *index,
+            const shape_t<Rank> &shape, T *data, size_t *indptr,
             bool order = true, int mode = 1
         );
         base_tensor(
-            const shape_t<Rank> &shape, T *data, const size_t *index,
+            const shape_t<Rank> &shape, T *data, const size_t *indptr,
             bool order = true
         );
 
@@ -112,8 +112,8 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns a reference to the element at the
          * given position. The elements in an indirect_tensor are given by
-         *     data[index[ravel_index(indices, shape, order)]]
-         * where data is the memory array and index is the array of indices.
+         *     data[indptr[ravel_index(index, shape, order)]]
+         * where data is the memory array and indptr is the array of indices.
          *
          * @param args... Index arguments.
          *
@@ -204,8 +204,8 @@ namespace numcpp {
          *     function returns a pointer to const size_t. Otherwise, it
          *     returns a pointer to size_t.
          */
-        size_t* index();
-        const size_t* index() const;
+        size_t* indices();
+        const size_t* indices() const;
 
         /**
          * @brief Returns whether the elements are stored in row-major order.
@@ -270,13 +270,13 @@ namespace numcpp {
         // Number of elements along each axis.
         shape_t<Rank> m_shape;
 
-        /// Array of indices.
+        // Array of indices.
         size_t *m_index;
 
-        /// Row-major (true) or column-major (false) order.
+        // Row-major (true) or column-major (false) order.
         bool m_order;
 
-        /// Ownership of the array of indices.
+        // Ownership of the array of indices.
         bool m_owner;
     };
 }
