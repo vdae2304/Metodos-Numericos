@@ -41,21 +41,18 @@ namespace numcpp {
     tensor_view<T, Rank>::base_tensor(
         const shape_t<Rank> &shape, T *data, bool order
     ) : m_data(data), m_size(shape.size()), m_shape(shape),
-        m_offset(0), m_stride(), m_order(order)
+        m_offset(0), m_order(order)
     {
-        if (m_order) {
-            m_stride[Rank - 1] = 1;
-        }
-        else {
-            m_stride[0] = 1;
-        }
-        for (size_t i = 0; i < Rank - 1; ++i) {
+        size_t size = 1;
+        for (size_t i = 0; i < Rank; ++i) {
             if (m_order) {
                 size_t j = Rank - 1 - i;
-                m_stride[j - 1] = m_stride[j] * m_shape[j];
+                m_stride[j] = size;
+                size *= m_shape[j];
             }
             else {
-                m_stride[i + 1] = m_stride[i] * m_shape[i];
+                m_stride[i] = size;
+                size *= m_shape[i];
             }
         }
     }
@@ -99,7 +96,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class... Args,
               detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...>>
+              detail::RequiresIntegral<Args...> >
     inline T& tensor_view<T, Rank>::operator()(Args... args) {
         return this->operator[](make_index(args...));
     }
@@ -107,7 +104,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class... Args,
               detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...>>
+              detail::RequiresIntegral<Args...> >
     inline const T& tensor_view<T, Rank>::operator()(Args... args) const {
         return this->operator[](make_index(args...));
     }
@@ -219,8 +216,10 @@ namespace numcpp {
                   << "output shape " << this->shape();
             throw std::invalid_argument(error.str());
         }
-        std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                       cast_to<T>());
+        std::transform(
+            other.begin(m_order), other.end(m_order), this->begin(),
+            cast_to<T>()
+        );
         return *this;
     }
 
@@ -287,7 +286,7 @@ namespace numcpp {
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) {
         static_assert(N < Rank, "Reduction dimension must be less than tensor"
                       " dimension");
-        shape_t<Rank - N> new_shape, new_stride;
+        shape_t<Rank - N> shape, strides;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
         for (size_t i = 0; i < N; ++i) {
@@ -296,17 +295,17 @@ namespace numcpp {
         size_t n = 0;
         for (size_t i = 0; i < Rank; ++i) {
             if (keep_axis[i]) {
-                new_shape[n] = m_shape[i];
-                new_stride[n++] = m_stride[i];
+                shape[n] = m_shape[i];
+                strides[n++] = m_stride[i];
             }
             else if (m_shape[i] != 1) {
                 char error[] = "cannot select an axis to squeeze out which has "
-                               "size not equal to one";
+                    "size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
         return tensor_view<T, Rank - N>(
-            new_shape, m_data, m_offset, new_stride, m_order
+            shape, m_data, m_offset, strides, m_order
         );
     }
 
@@ -323,7 +322,7 @@ namespace numcpp {
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) const {
         static_assert(N < Rank, "Reduction dimension must be less than tensor"
                       " dimension");
-        shape_t<Rank - N> new_shape, new_stride;
+        shape_t<Rank - N> shape, strides;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
         for (size_t i = 0; i < N; ++i) {
@@ -332,17 +331,17 @@ namespace numcpp {
         size_t n = 0;
         for (size_t i = 0; i < Rank; ++i) {
             if (keep_axis[i]) {
-                new_shape[n] = m_shape[i];
-                new_stride[n++] = m_stride[i];
+                shape[n] = m_shape[i];
+                strides[n++] = m_stride[i];
             }
             else if (m_shape[i] != 1) {
                 char error[] = "cannot select an axis to squeeze out which has "
-                               "size not equal to one";
+                    "size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
         return tensor_view<const T, Rank - N>(
-            new_shape, m_data, m_offset, new_stride, m_order
+            shape, m_data, m_offset, strides, m_order
         );
     }
 

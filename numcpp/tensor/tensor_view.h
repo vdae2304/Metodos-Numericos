@@ -337,7 +337,7 @@ namespace numcpp {
         // Strides of data in memory.
         shape_t<Rank> m_stride;
 
-        /// Row-major (true) or column-major (false) order.
+        // Row-major (true) or column-major (false) order.
         bool m_order;
     };
 }
