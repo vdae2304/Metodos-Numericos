@@ -125,8 +125,8 @@ namespace detail {
         detail::resize(out, broadcast_shapes(arg1.shape(), arg2.shape()));
         for (index_t<Rank> i : make_indices(out.shape())) {
             out[i] = std::forward<Function>(f)(
-                detail::broadcast_index(arg1, i),
-                detail::broadcast_index(arg2, i)
+                arg1[detail::broadcast_index(i, arg1.shape())],
+                arg2[detail::broadcast_index(i, arg2.shape())]
             );
         }
     }
