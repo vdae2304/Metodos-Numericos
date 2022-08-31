@@ -665,7 +665,7 @@ namespace numcpp {
 
 namespace detail {
     /**
-     * @brief Helper function. Asserts that the corresponding axis are aligned
+     * @brief Helper function. Asserts that the corresponding axes are aligned
      * for matrix multiplication.
      */
     template <size_t Rank1, size_t Rank2>
@@ -681,6 +681,31 @@ namespace detail {
                   << ") != " << shape2[axis2] << " (dim " << axis2 << ")";
             throw std::invalid_argument(error.str());
         }
+    }
+
+    /**
+     * @brief Helper function. Returns the common shape of the first Rank - 2
+     * dimensions.
+     */
+    template <size_t Rank>
+    shape_t<Rank> broadcast_matmul(
+        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
+    ) {
+        shape_t<Rank> common_shape = shape1;
+        for (size_t i = 0; i < shape1.ndim() - 2; ++i) {
+            if (shape1[i] == 1) {
+                common_shape[i] = shape2[i];
+            }
+            else if (shape2[i] != shape1[i] && shape2[i] != 1) {
+                std::ostringstream error;
+                error << "operands could not be broadcast together with shapes "
+                      << shape1 << " " << shape2;
+                throw std::invalid_argument(error.str());
+            }
+        }
+        common_shape[shape1.ndim() - 2] = shape1[shape1.ndim() - 2];
+        common_shape[shape2.ndim() - 1] = shape2[shape2.ndim() - 1];
+        return common_shape;
     }
 
     /**
@@ -715,37 +740,6 @@ namespace detail {
             new_shape[i + 1] = shape[i];
         }
         return new_shape;
-    }
-
-    /**
-     * @brief Helper function. Returns the common shape of the first Rank - 2
-     * dimensions.
-     */
-    template <size_t Rank>
-    shape_t<Rank> broadcast_matmul(
-        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
-    ) {
-        shape_t<Rank> common_shape;
-        for (size_t i = 0; i < shape1.ndim() - 2; ++i) {
-            if (shape1[i] == shape2[i]) {
-                common_shape[i] = shape1[i];
-            }
-            else if (shape1[i] == 1) {
-                common_shape[i] = shape2[i];
-            }
-            else if (shape2[i] == 1) {
-                common_shape[i] = shape1[i];
-            }
-            else {
-                std::ostringstream error;
-                error << "operands could not be broadcast together with shapes "
-                      << shape1 << " " << shape2;
-                throw std::invalid_argument(error.str());
-            }
-        }
-        common_shape[Rank - 2] = shape1[Rank - 2];
-        common_shape[Rank - 1] = shape2[Rank - 1];
-        return common_shape;
     }
 }
 
@@ -785,18 +779,17 @@ namespace detail {
     tensor<T, Rank - 1> matmul(
         const base_tensor<T, Rank, Tag1> &a, const base_tensor<T, 1, Tag2> &b
     ) {
-        typedef typename tensor<T, Rank - 1>::iterator iterator;
         detail::assert_matmul_shapes(a.shape(), b.shape());
-        size_t axis = Rank - 1;
+        size_t axis = a.ndim() - 1;
         size_t n = a.shape(axis);
         tensor<T, Rank - 1> out(detail::remove_axis(a.shape(), axis));
-        for (iterator it = out.begin(); it != out.end(); ++it) {
-            index_t<Rank> index = detail::insert_axis(it.coords(), axis);
+        for (index_t<Rank - 1> out_index : make_indices(out.shape())) {
+            index_t<Rank> index = detail::insert_axis(out_index, axis);
             T val = 0;
             for (index[axis] = 0; index[axis] < n; ++index[axis]) {
                 val += a[index] * b[index[axis]];
             }
-            *it = val;
+            out[out_index] = val;
         }
         return out;
     }
@@ -805,18 +798,17 @@ namespace detail {
     tensor<T, Rank - 1> matmul(
         const base_tensor<T, 1, Tag1> &a, const base_tensor<T, Rank, Tag2> &b
     ) {
-        typedef typename tensor<T, Rank - 1>::iterator iterator;
         detail::assert_matmul_shapes(a.shape(), b.shape());
-        size_t axis = Rank - 2;
+        size_t axis = b.ndim() - 2;
         size_t n = b.shape(axis);
         tensor<T, Rank - 1> out(detail::remove_axis(b.shape(), axis));
-        for (iterator it = out.begin(); it != out.end(); ++it) {
-            index_t<Rank> index = detail::insert_axis(it.coords(), axis);
+        for (index_t<Rank - 1> out_index : make_indices(out.shape())) {
+            index_t<Rank> index = detail::insert_axis(out_index, axis);
             T val = 0;
             for (index[axis] = 0; index[axis] < n; ++index[axis]) {
                 val += a[index[axis]] * b[index];
             }
-            *it = val;
+            out[out_index] = val;
         }
         return out;
     }
@@ -826,24 +818,21 @@ namespace detail {
         const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b
     ) {
-        typedef typename tensor<T, Rank>::iterator iterator;
         detail::assert_matmul_shapes(a.shape(), b.shape());
-        size_t axis1 = Rank - 1, axis2 = Rank - 2;
+        size_t axis1 = a.ndim() - 1, axis2 = b.ndim() - 2;
         size_t n = a.shape(axis1);
         tensor<T, Rank> out(detail::broadcast_matmul(a.shape(), b.shape()));
-        for (iterator it = out.begin(); it != out.end(); ++it) {
-            index_t<Rank> a_index = it.coords();
-            index_t<Rank> b_index = a_index;
-            for (size_t i = 0; i < Rank - 2; ++i) {
-                a_index[i] = (a.shape(i) == 1) ? 0 : a_index[i];
-                b_index[i] = (b.shape(i) == 1) ? 0 : b_index[i];
-            }
+        for (index_t<Rank> out_index : make_indices(out.shape())) {
+            index_t<Rank> a_index =
+                detail::broadcast_index(out_index, a.shape());
+            index_t<Rank> b_index =
+                detail::broadcast_index(out_index, b.shape());
             T val = 0;
             for (a_index[axis1] = 0; a_index[axis1] < n; ++a_index[axis1]) {
                 b_index[axis2] = a_index[axis1];
                 val += a[a_index] * b[b_index];
             }
-            *it = val;
+            out[out_index] = val;
         }
         return out;
     }
