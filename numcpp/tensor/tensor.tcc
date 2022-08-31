@@ -468,9 +468,9 @@ namespace numcpp {
     tensor<T, Rank>& tensor<T, Rank>::operator=(
         detail::nested_initializer_list_t<T, Rank> il
     ) {
-        shape_t<Rank> new_shape;
-        __initializer_list_shape<Rank>(new_shape, il);
-        this->resize(new_shape);
+        shape_t<Rank> shape;
+        __initializer_list_shape<Rank>(shape, il);
+        this->resize(shape);
         index_t<Rank> index;
         __fill_from_initializer_list<Rank>(index, il);
         return *this;
@@ -581,7 +581,7 @@ namespace numcpp {
     tensor_view<T, Rank - N> tensor<T, Rank>::squeeze(const shape_t<N> &axes) {
         static_assert(N < Rank, "Reduction dimension must be less than tensor"
                       " dimension");
-        shape_t<Rank - N> new_shape;
+        shape_t<Rank - N> shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
         for (size_t i = 0; i < N; ++i) {
@@ -590,7 +590,7 @@ namespace numcpp {
         size_t n = 0;
         for (size_t i = 0; i < Rank; ++i) {
             if (keep_axis[i]) {
-                new_shape[n++] = m_shape[i];
+                shape[n++] = m_shape[i];
             }
             else if (m_shape[i] != 1) {
                 char error[] = "cannot select an axis to squeeze out which has "
@@ -598,7 +598,7 @@ namespace numcpp {
                 throw std::invalid_argument(error);
             }
         }
-        return tensor_view<T, Rank - N>(new_shape, m_data);
+        return tensor_view<T, Rank - N>(shape, m_data);
     }
 
     template <class T, size_t Rank>
@@ -614,7 +614,7 @@ namespace numcpp {
     tensor<T, Rank>::squeeze(const shape_t<N> &axes) const {
         static_assert(N < Rank, "Reduction dimension must be less than tensor"
                       " dimension");
-        shape_t<Rank - N> new_shape;
+        shape_t<Rank - N> shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
         for (size_t i = 0; i < N; ++i) {
@@ -623,7 +623,7 @@ namespace numcpp {
         size_t n = 0;
         for (size_t i = 0; i < Rank; ++i) {
             if (keep_axis[i]) {
-                new_shape[n++] = m_shape[i];
+                shape[n++] = m_shape[i];
             }
             else if (m_shape[i] != 1) {
                 char error[] = "cannot select an axis to squeeze out which has "
@@ -631,7 +631,7 @@ namespace numcpp {
                 throw std::invalid_argument(error);
             }
         }
-        return tensor_view<const T, Rank - N>(new_shape, m_data);
+        return tensor_view<const T, Rank - N>(shape, m_data);
     }
 
     template <class T, size_t Rank>
