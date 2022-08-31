@@ -46,9 +46,11 @@ namespace detail {
         base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
     > : std::true_type {};
 
-    /// If a tensor subclass is an expression, return the template unchanged.
-    /// Otherwise, return a const reference to it. Useful to avoid dangling
-    /// references when returning expression objects.
+    /**
+     * @brief If a tensor subclass is an expression, return the template
+     * unchanged. Otherwise, return a const reference to it. Useful to avoid
+     * dangling references when returning expression objects.
+     */
     template <class Tensor>
     using ConstRefIfNotExpression = typename std::conditional<
         is_expression<Tensor>::value, Tensor, const Tensor&
@@ -76,7 +78,7 @@ namespace detail {
         typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_iterator<
+        typedef base_tensor_const_iterator<
             R, Rank, lazy_unary_tag<Function, T, Tag>
         > iterator;
         typedef base_tensor_const_iterator<
@@ -113,20 +115,10 @@ namespace detail {
          *     specified by row_major. Otherwise, the elements are iterated in
          *     the same order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the tensor. If
-         *     the tensor is const-qualified, the function returns a
-         *     const_iterator. Otherwise, it returns an iterator.
+         * @return A random access iterator to the beginning of the tensor.
          */
-        iterator begin() {
-            return this->begin(this->rowmajor());
-        }
-
         const_iterator begin() const {
             return this->begin(this->rowmajor());
-        }
-
-        iterator begin(bool row_major) {
-            return make_tensor_iterator(this, 0, row_major);
         }
 
         const_iterator begin(bool row_major) const {
@@ -146,64 +138,13 @@ namespace detail {
          *     the same order as stored in memory.
          *
          * @return A random access iterator to the element past the end of the
-         *     tensor. If the tensor is const-qualified, the function returns a
-         *     const_iterator. Otherwise, it returns an iterator.
+         *     tensor.
          */
-        iterator end() {
-            return this->end(this->rowmajor());
-        }
-
         const_iterator end() const {
             return this->end(this->rowmajor());
         }
 
-        iterator end(bool row_major) {
-            return make_tensor_iterator(this, this->size(), row_major);
-        }
-
         const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
-        }
-
-        /**
-         * @brief Returns a const_iterator pointing to the first element in the
-         * tensor.
-         *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
-         *
-         * @return A const_iterator to the beginning of the tensor.
-         */
-        const_iterator cbegin() const {
-            return this->cbegin(this->rowmajor());
-        }
-
-        const_iterator cbegin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
-        }
-
-        /**
-         * @brief Returns a const_iterator pointing to the past-the-end element
-         * in the tensor.
-         *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
-         *
-         * @return A const_iterator to the element past the end of the tensor.
-         */
-        const_iterator cend() const {
-            return this->cend(this->rowmajor());
-        }
-
-        const_iterator cend(bool row_major) const {
             return make_tensor_const_iterator(this, this->size(), row_major);
         }
 
@@ -218,13 +159,6 @@ namespace detail {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) {
-            return this->operator[](make_index(args...));
-        }
-
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
@@ -243,10 +177,6 @@ namespace detail {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        R operator[](const index_t<Rank> &index) {
-            return m_fun(m_arg[index]);
-        }
-
         R operator[](const index_t<Rank> &index) const {
             return m_fun(m_arg[index]);
         }
@@ -355,7 +285,7 @@ namespace detail {
         typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_iterator<
+        typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU>
         > iterator;
         typedef base_tensor_const_iterator<
@@ -398,20 +328,10 @@ namespace detail {
          *     specified by row_major. Otherwise, the elements are iterated in
          *     the same order as stored in memory.
          *
-         * @return A random access iterator to the beginning of the tensor. If
-         *     the tensor is const-qualified, the function returns a
-         *     const_iterator. Otherwise, it returns an iterator.
+         * @return A random access iterator to the beginning of the tensor.
          */
-        iterator begin() {
-            return this->begin(this->rowmajor());
-        }
-
         const_iterator begin() const {
             return this->begin(this->rowmajor());
-        }
-
-        iterator begin(bool row_major) {
-            return make_tensor_iterator(this, 0, row_major);
         }
 
         const_iterator begin(bool row_major) const {
@@ -431,64 +351,13 @@ namespace detail {
          *     the same order as stored in memory.
          *
          * @return A random access iterator to the element past the end of the
-         *     tensor. If the tensor is const-qualified, the function returns a
-         *     const_iterator. Otherwise, it returns an iterator.
+         *     tensor.
          */
-        iterator end() {
-            return this->end(this->rowmajor());
-        }
-
         const_iterator end() const {
             return this->end(this->rowmajor());
         }
 
-        iterator end(bool row_major) {
-            return make_tensor_iterator(this, this->size(), row_major);
-        }
-
         const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
-        }
-
-        /**
-         * @brief Returns a const_iterator pointing to the first element in the
-         * tensor.
-         *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
-         *
-         * @return A const_iterator to the beginning of the tensor.
-         */
-        const_iterator cbegin() const {
-            return this->cbegin(this->rowmajor());
-        }
-
-        const_iterator cbegin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
-        }
-
-        /**
-         * @brief Returns a const_iterator pointing to the past-the-end element
-         * in the tensor.
-         *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
-         *
-         * @return A const_iterator to the element past the end of the tensor.
-         */
-        const_iterator cend() const {
-            return this->cend(this->rowmajor());
-        }
-
-        const_iterator cend(bool row_major) const {
             return make_tensor_const_iterator(this, this->size(), row_major);
         }
 
@@ -503,13 +372,6 @@ namespace detail {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) {
-            return this->operator[](make_index(args...));
-        }
-
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
@@ -528,14 +390,6 @@ namespace detail {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        R operator[](const index_t<Rank> &index) {
-            assert_within_bounds(m_shape, index);
-            return m_fun(
-                detail::broadcast_index(m_lhs, index),
-                detail::broadcast_index(m_rhs, index)
-            );
-        }
-
         R operator[](const index_t<Rank> &index) const {
             assert_within_bounds(m_shape, index);
             return m_fun(
@@ -649,7 +503,7 @@ namespace detail {
         typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_iterator<
+        typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag>
         > iterator;
         typedef base_tensor_const_iterator<
@@ -671,51 +525,19 @@ namespace detail {
 
         /// Iterators.
 
-        iterator begin() {
-            return this->begin(this->rowmajor());
-        }
-
         const_iterator begin() const {
             return this->begin(this->rowmajor());
-        }
-
-        iterator begin(bool row_major) {
-            return make_tensor_iterator(this, 0, row_major);
         }
 
         const_iterator begin(bool row_major) const {
             return make_tensor_const_iterator(this, 0, row_major);
         }
 
-        iterator end() {
-            return this->end(this->rowmajor());
-        }
-
         const_iterator end() const {
             return this->end(this->rowmajor());
         }
 
-        iterator end(bool row_major) {
-            return make_tensor_iterator(this, this->size(), row_major);
-        }
-
         const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
-        }
-
-        const_iterator cbegin() const {
-            return this->cbegin(this->rowmajor());
-        }
-
-        const_iterator cbegin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
-        }
-
-        const_iterator cend() const {
-            return this->cend(this->rowmajor());
-        }
-
-        const_iterator cend(bool row_major) const {
             return make_tensor_const_iterator(this, this->size(), row_major);
         }
 
@@ -724,19 +546,8 @@ namespace detail {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) {
-            return this->operator[](make_index(args...));
-        }
-
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
         R operator()(Args... args) const {
             return this->operator[](make_index(args...));
-        }
-
-        R operator[](const index_t<Rank> &index) {
-            return m_fun(m_lhs[index], m_val);
         }
 
         R operator[](const index_t<Rank> &index) const {
@@ -811,7 +622,7 @@ namespace detail {
         typedef R const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_iterator<
+        typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag>
         > iterator;
         typedef base_tensor_const_iterator<
@@ -833,51 +644,19 @@ namespace detail {
 
         /// Iterators.
 
-        iterator begin() {
-            return this->begin(this->rowmajor());
-        }
-
         const_iterator begin() const {
             return this->begin(this->rowmajor());
-        }
-
-        iterator begin(bool row_major) {
-            return make_tensor_iterator(this, 0, row_major);
         }
 
         const_iterator begin(bool row_major) const {
             return make_tensor_const_iterator(this, 0, row_major);
         }
 
-        iterator end() {
-            return this->end(this->rowmajor());
-        }
-
         const_iterator end() const {
             return this->end(this->rowmajor());
         }
 
-        iterator end(bool row_major) {
-            return make_tensor_iterator(this, this->size(), row_major);
-        }
-
         const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
-        }
-
-        const_iterator cbegin() const {
-            return this->cbegin(this->rowmajor());
-        }
-
-        const_iterator cbegin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
-        }
-
-        const_iterator cend() const {
-            return this->cend(this->rowmajor());
-        }
-
-        const_iterator cend(bool row_major) const {
             return make_tensor_const_iterator(this, this->size(), row_major);
         }
 
@@ -886,19 +665,8 @@ namespace detail {
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) {
-            return this->operator[](make_index(args...));
-        }
-
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
         R operator()(Args... args) const {
             return this->operator[](make_index(args...));
-        }
-
-        R operator[](const index_t<Rank> &index) {
-            return m_fun(m_val, m_rhs[index]);
         }
 
         R operator[](const index_t<Rank> &index) const {
