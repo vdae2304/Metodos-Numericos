@@ -126,17 +126,19 @@ namespace numcpp {
 
 namespace detail {
     /**
-     * @brief Return the element at the given position in a tensor after
-     * broadcasting the index.
+     * @brief Broadcast an index to match the given shape.
      */
-    template <class T, size_t Rank, class Tag>
-    T broadcast_index(const base_tensor<T, Rank, Tag> &a, index_t<Rank> index) {
-        for (size_t i = 0; i < a.ndim(); ++i) {
-            if (a.shape(i) == 1) {
-                index[i] = 0;
+    template <size_t Rank>
+    index_t<Rank> broadcast_index(
+        const index_t<Rank> &index, const shape_t<Rank> &shape
+    ) {
+        index_t<Rank> out_index = index;
+        for (size_t i = 0; i < shape.ndim(); ++i) {
+            if (shape[i] == 1) {
+                out_index[i] = 0;
             }
         }
-        return a[index];
+        return out_index;
     }
 }
 
@@ -155,8 +157,10 @@ namespace detail {
             throw std::invalid_argument(error.str());
         }
         for (index_t<Rank> i : make_indices(shape)) {
-            (*this->base())[i] =
-                f((*this->base())[i], detail::broadcast_index(rhs, i));
+            (*this->base())[i] = f(
+                (*this->base())[i],
+                rhs[detail::broadcast_index(i, rhs.shape())]
+            );
         }
         return *this->base();
     }
