@@ -14,18 +14,15 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/broadcasting/broadcasting.tcc
+ /** @file include/numcpp/functional/functional.tcc
   *  This is an internal header file, included by other library headers.
-  *  Do not attempt to use it directly. @headername{numcpp/broadcasting.h}
+  *  Do not attempt to use it directly. @headername{numcpp/functional.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_FUNCTIONAL_TCC_INCLUDED
 #define NUMCPP_FUNCTIONAL_TCC_INCLUDED
-
-#include "numcpp/routines/ranges.h"
-#include "numcpp/iterators/index_sequence.h"
 
 namespace numcpp {
     /// Functional programming.
