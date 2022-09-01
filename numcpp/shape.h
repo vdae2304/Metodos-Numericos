@@ -250,22 +250,6 @@ namespace detail {
     );
 
     /**
-     * @brief Asserts whether an index is within the bounds of a tensor. Throws
-     * an std::out_of_range exception if assertion fails.
-     */
-    inline void assert_within_bounds(size_t size, size_t i);
-
-    template <size_t Rank>
-    inline void assert_within_bounds(
-        const shape_t<Rank> &shape, const index_t<Rank> &index
-    );
-
-    template <size_t Rank>
-    inline void assert_within_bounds(
-        const shape_t<Rank> &shape, size_t index, size_t axis
-    );
-
-    /**
      * @brief Compares two shape_t objects. Returns true if they have the same
      * dimension and the same sizes along each axis.
      */

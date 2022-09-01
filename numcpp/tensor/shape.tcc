@@ -78,15 +78,55 @@ namespace numcpp {
         return m_size;
     }
 
+namespace detail {
+    /**
+     * @brief Asserts whether an index is within the bounds of a tensor. Throws
+     * a std::out_of_range exception if assertion fails.
+     */
+    inline void assert_within_bounds(size_t size, size_t i) {
+        if (i >= size) {
+            std::ostringstream error;
+            error << "index " << i <<  " is out of bounds with size " << size;
+            throw std::out_of_range(error.str());
+        }
+    }
+
+    template <size_t Rank>
+    inline void assert_within_bounds(
+        const shape_t<Rank> &shape, const index_t<Rank> &index
+    ) {
+        for (size_t i = 0; i < index.ndim(); ++i) {
+            if (index[i] >= shape[i]) {
+                std::ostringstream error;
+                error << "index " << index <<  " is out of bounds with size "
+                      << shape;
+                throw std::out_of_range(error.str());
+            }
+        }
+    }
+
+    template <size_t Rank>
+    inline void assert_within_bounds(
+        const shape_t<Rank> &shape, size_t index, size_t axis
+    ) {
+        if (index >= shape[axis]) {
+            std::ostringstream error;
+            error << "index " << index << " is out of bounds for axis "
+                  << axis << " with size " << shape[axis];
+            throw std::out_of_range(error.str());
+        }
+    }
+}
+
     template <size_t Rank>
     inline size_t& shape_t<Rank>::operator[](size_t i) {
-        assert_within_bounds(Rank, i);
+        detail::assert_within_bounds(Rank, i);
         return m_shape[i];
     }
 
     template <size_t Rank>
     inline size_t shape_t<Rank>::operator[](size_t i) const {
-        assert_within_bounds(Rank, i);
+        detail::assert_within_bounds(Rank, i);
         return m_shape[i];
     }
 
@@ -147,6 +187,9 @@ namespace numcpp {
     }
 
 namespace detail {
+    /**
+     * @brief Broadcast shapes into a common shape.
+     */
     template <size_t Rank>
     void broadcast_shapes(shape_t<Rank>&) {}
 
@@ -169,6 +212,9 @@ namespace detail {
         broadcast_shapes(common_shape, shapes...);
     }
 
+    /**
+     * @brief Concatenate one or more shapes.
+     */
     template <size_t Rank>
     void concatenate_shapes(shape_t<Rank>&, size_t) {}
 
@@ -202,40 +248,6 @@ namespace detail {
         cat_shape;
         detail::concatenate_shapes(cat_shape, 0, shape1, shapes...);
         return cat_shape;
-    }
-
-    inline void assert_within_bounds(size_t size, size_t i) {
-        if (i >= size) {
-            std::ostringstream error;
-            error << "index " << i <<  " is out of bounds with size " << size;
-            throw std::out_of_range(error.str());
-        }
-    }
-
-    template <size_t Rank>
-    inline void assert_within_bounds(
-        const shape_t<Rank> &shape, const index_t<Rank> &index
-    ) {
-        for (size_t i = 0; i < index.ndim(); ++i) {
-            if (index[i] >= shape[i]) {
-                std::ostringstream error;
-                error << "index " << index <<  " is out of bounds with size "
-                      << shape;
-                throw std::out_of_range(error.str());
-            }
-        }
-    }
-
-    template <size_t Rank>
-    inline void assert_within_bounds(
-        const shape_t<Rank> &shape, size_t index, size_t axis
-    ) {
-        if (index >= shape[axis]) {
-            std::ostringstream error;
-            error << "index " << index << " is out of bounds for axis "
-                  << axis << " with size " << shape[axis];
-            throw std::out_of_range(error.str());
-        }
     }
 
     template <size_t Rank1, size_t Rank2>
