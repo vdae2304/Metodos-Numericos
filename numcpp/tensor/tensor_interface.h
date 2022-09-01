@@ -599,6 +599,17 @@ namespace numcpp {
         void reverse(size_t axis = Rank - 1);
 
         /**
+         * @brief Shift the elements in-place. The elements are circularly
+         * shifted in such a way that the element at position count becomes the
+         * first element.
+         *
+         * @param count Number of positions to shift the elements by.
+         * @param axis Axis along which to shift. Defaults to Rank - 1, which
+         *     means shift along the last axis.
+         */
+        void shift(size_t count, size_t axis = Rank - 1);
+
+        /**
          * @brief Sort the elements in-place.
          *
          * @param axis Axis along which to sort. Defaults to Rank - 1, which
