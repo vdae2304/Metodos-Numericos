@@ -446,7 +446,7 @@ namespace detail {
         size_t kth, size_t axis, Compare comp
     ) {
         shape_t<Rank> shape = this->base()->shape();
-        assert_within_bounds(shape, kth, axis);
+        detail::assert_within_bounds(shape, kth, axis);
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
@@ -471,7 +471,7 @@ namespace detail {
     template <class T, size_t Rank, class Tag>
     void tensor_interface<T, Rank, Tag>::shift(size_t count, size_t axis) {
         shape_t<Rank> shape = this->base()->shape();
-        assert_within_bounds(shape, count, axis);
+        detail::assert_within_bounds(shape, count, axis);
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
