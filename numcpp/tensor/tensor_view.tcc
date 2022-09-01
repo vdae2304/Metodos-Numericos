@@ -111,7 +111,7 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     T& tensor_view<T, Rank>::operator[](const index_t<Rank> &index) {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         size_t m_index = m_offset;
         for (size_t i = 0; i < Rank; ++i) {
             m_index += index[i] * m_stride[i];
@@ -122,7 +122,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     const T& tensor_view<T, Rank>::operator[](const index_t<Rank> &index)
     const {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         size_t m_index = m_offset;
         for (size_t i = 0; i < Rank; ++i) {
             m_index += index[i] * m_stride[i];
@@ -133,14 +133,14 @@ namespace numcpp {
     template <class T, size_t Rank>
     inline T& tensor_view<T, Rank>::operator[](size_t i) {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[m_offset + i * m_stride[0]];
     }
 
     template <class T, size_t Rank>
     inline const T& tensor_view<T, Rank>::operator[](size_t i) const {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[m_offset + i * m_stride[0]];
     }
 
