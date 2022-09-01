@@ -183,28 +183,28 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     inline T& tensor<T, Rank>::operator[](const index_t<Rank> &index) {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         return m_data[ravel_index(index, m_shape)];
     }
 
     template <class T, size_t Rank>
     inline const T& tensor<T, Rank>::operator[](const index_t<Rank> &index)
     const {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         return m_data[ravel_index(index, m_shape)];
     }
 
     template <class T, size_t Rank>
     inline T& tensor<T, Rank>::operator[](size_t i) {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[i];
     }
 
     template <class T, size_t Rank>
     inline const T& tensor<T, Rank>::operator[](size_t i) const {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[i];
     }
 
@@ -224,7 +224,7 @@ namespace numcpp {
         size_t i, Args... args
     ) const {
         size_t axis = Rank - sizeof...(Args) - 1;
-        assert_within_bounds(m_shape, i, axis);
+        detail::assert_within_bounds(m_shape, i, axis);
         size_t n = __unpack_slices(shape, offset, strides, args...);
         offset += i * n;
         return m_shape[axis] * n;
@@ -285,7 +285,7 @@ namespace numcpp {
         size_t *indptr = new size_t[indices.size()];
         size_t n = 0;
         for (index_t<N> i : make_indices(indices.shape())) {
-            assert_within_bounds(m_shape, indices[i]);
+            detail::assert_within_bounds(m_shape, indices[i]);
             indptr[n++] = ravel_index(indices[i], m_shape);
         }
         return indirect_tensor<T, N>(indices.shape(), m_data, indptr, true, -1);
@@ -313,7 +313,7 @@ namespace numcpp {
         size_t *indptr = new size_t[indices.size()];
         size_t n = 0;
         for (index_t<N> i : make_indices(indices.shape())) {
-            assert_within_bounds(m_size, indices[i]);
+            detail::assert_within_bounds(m_size, indices[i]);
             indptr[n++] = indices[i];
         }
         return indirect_tensor<T, N>(indices.shape(), m_data, indptr, true, -1);
