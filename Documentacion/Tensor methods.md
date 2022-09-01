@@ -23,6 +23,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor::nonzero`](#tensornonzero)
     - [`tensor::partition(axis)`](#tensorpartitionaxis)
     - [`tensor::reverse(axis)`](#tensorreverseaxis)
+    - [`tensor::shift(axis)`](#tensorshiftaxis)
     - [`tensor::sort(axis)`](#tensorsortaxis)
   - [Reductions](#reductions)
     - [`tensor::all`](#tensorall)
@@ -1114,6 +1115,102 @@ Axis 1:
  [-3,  3,  4, -1,  3,  9],
  [-5,  0,  1, 15, -4, 10],
  [15, -2, 13, -3, 18, 11]]
+```
+
+### `tensor::shift(axis)`
+
+<h3><code>tensor_view::shift(axis)</code></h3>
+
+<h3><code>indirect_tensor::shift(axis)</code></h3>
+
+Shift the elements in-place. The elements are circularly shifted in such a way
+that the element at position `count` becomes the first element.
+```cpp
+void shift(size_t count, size_t axis = Rank - 1);
+```
+
+Parameters
+
+* `count` Number of positions to shift the elements by.
+* `axis` Axis along which to shift. Defaults to `Rank - 1`, which means shift
+along the last axis.
+
+Returns
+
+* None
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    int count;
+    std::cin >> a >> count;
+    a.shift(count);
+    std::cout << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[12, -2, 19, 0, 4, 18, -3, -5, 3, 12]
+3
+```
+
+Output
+
+```
+[ 0,  4, 18, -3, -5,  3, 12, 12, -2, 19]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> a;
+    int count;
+    std::cin >> a >> count;
+    a.shift(count, 0);
+    std::cout << "Axis 0:\n" << a << "\n";
+    std::cin >> count;
+    a.shift(count, 1);
+    std::cout << "Axis 1:\n" << a << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[11, 18, -3, 13, -2, 15],
+ [10, -4, 15,  1,  0, -5],
+ [ 9,  3, -1,  4,  3, -3],
+ [-1, -3, 12,  2, 18, -1]]
+3
+2
+```
+
+Output
+
+```
+Axis 0:
+[[-1, -3, 12,  2, 18, -1],
+ [11, 18, -3, 13, -2, 15],
+ [10, -4, 15,  1,  0, -5],
+ [ 9,  3, -1,  4,  3, -3]]
+Axis 1:
+[[12,  2, 18, -1, -1, -3],
+ [-3, 13, -2, 15, 11, 18],
+ [15,  1,  0, -5, 10, -4],
+ [-1,  4,  3, -3,  9,  3]]
 ```
 
 ### `tensor::sort(axis)`
