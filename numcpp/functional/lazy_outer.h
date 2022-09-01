@@ -182,7 +182,7 @@ namespace detail {
          *     position in the tensor.
          */
         R operator[](const index_t<Rank> &index) const {
-            assert_within_bounds(m_shape, index);
+            detail::assert_within_bounds(m_shape, index);
             index_t<M> i;
             for (size_t k = 0; k < M; ++k) {
                 i[k] = index[k];

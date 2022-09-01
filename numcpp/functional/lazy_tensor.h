@@ -391,7 +391,7 @@ namespace detail {
          *     position in the tensor.
          */
         R operator[](const index_t<Rank> &index) const {
-            assert_within_bounds(m_shape, index);
+            detail::assert_within_bounds(m_shape, index);
             return m_fun(
                 m_lhs[detail::broadcast_index(index, m_lhs.shape())],
                 m_rhs[detail::broadcast_index(index, m_rhs.shape())]
