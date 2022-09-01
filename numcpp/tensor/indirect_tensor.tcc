@@ -120,28 +120,28 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     inline T& indirect_tensor<T, Rank>::operator[](const index_t<Rank> &index) {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         return m_data[m_index[ravel_index(index, m_shape, m_order)]];
     }
 
     template <class T, size_t Rank>
     inline const T&
     indirect_tensor<T, Rank>::operator[](const index_t<Rank> &index) const {
-        assert_within_bounds(m_shape, index);
+        detail::assert_within_bounds(m_shape, index);
         return m_data[m_index[ravel_index(index, m_shape, m_order)]];
     }
 
     template <class T, size_t Rank>
     inline T& indirect_tensor<T, Rank>::operator[](size_t i) {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[m_index[i]];
     }
 
     template <class T, size_t Rank>
     inline const T& indirect_tensor<T, Rank>::operator[](size_t i) const {
         static_assert(Rank == 1, "Unkown conversion from integral type");
-        assert_within_bounds(m_size, i);
+        detail::assert_within_bounds(m_size, i);
         return m_data[m_index[i]];
     }
 
