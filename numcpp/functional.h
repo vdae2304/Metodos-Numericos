@@ -24,6 +24,7 @@
 #define NUMCPP_FUNCTIONAL_H_INCLUDED
 
 #include "numcpp/tensor.h"
+#include "numcpp/functional/lazy_tensor.h"
 #include "numcpp/functional/lazy_outer.h"
 
 namespace numcpp {
@@ -420,6 +421,6 @@ namespace detail {
     );
 }
 
-#include "functional/functional.tcc"
+#include "numcpp/functional/functional.tcc"
 
 #endif // NUMCPP_FUNCTIONAL_H_INCLUDED
