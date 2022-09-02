@@ -36,7 +36,7 @@ namespace detail {
     struct zip {
         template <class T, class U>
         std::pair<T, U> operator()(const T &arg1, const U &arg2) const {
-            return std::make_pair(arg1, arg2);
+            return std::pair<T, U>(arg1, arg2);
         }
     };
 
@@ -44,11 +44,77 @@ namespace detail {
      * @brief Function object implementing unzip.
      */
     template <size_t I>
-    struct unzip {
+    struct unzip;
+
+    template <>
+    struct unzip<0> {
         template <class T, class U>
-        typename std::tuple_element<I, std::pair<T, U> >::type
-        operator()(const std::pair<T, U> &arg) const {
-            return std::get<I>(arg);
+        T operator()(const std::pair<T, U> &arg) const {
+            return arg.first;
+        }
+    };
+
+    template <>
+    struct unzip<1> {
+        template <class T, class U>
+        U operator()(const std::pair<T, U> &arg) const {
+            return arg.second;
+        }
+    };
+
+    /**
+     * @brief Function object implementing np::ravel_index.
+     */
+    template <size_t Rank>
+    struct ravel_index {
+        // Shape used for raveling.
+        shape_t<Rank> shape;
+
+        // Whether the indices should be viewed as indexing in row-major order
+        // or column-major order
+        bool order;
+
+        /**
+         * @brief Constructor.
+         */
+        ravel_index(const shape_t<Rank> &shape, bool order = true)
+         : shape(shape), order(order) {}
+
+        /**
+         * @brief Converts a tuple of indices into a flat index.
+         *
+         * @param index A tuple of indices to flatten.
+         */
+        size_t operator()(const index_t<Rank> &index) const {
+            return numcpp::ravel_index(index, shape, order);
+        }
+    };
+
+    /**
+     * @brief Function object implementing np::unravel_index.
+     */
+    template <size_t Rank>
+    struct unravel_index {
+        // Shape used for unraveling.
+        shape_t<Rank> shape;
+
+        // Whether the indices should be viewed as indexing in row-major order
+        // or column-major order
+        bool order;
+
+        /**
+         * @brief Constructor.
+         */
+        unravel_index(const shape_t<Rank> &shape, bool order = true)
+         : shape(shape), order(order) {}
+
+        /**
+         * @brief Converts a flat index into a tuple of indices.
+         *
+         * @param index Index to unravel.
+         */
+        index_t<Rank> operator()(size_t index) const {
+            return numcpp::unravel_index(index, shape, order);
         }
     };
 }
