@@ -530,6 +530,4 @@ namespace numcpp {
     }
 }
 
-// #include "numcpp/tensor/tensor_iterator.tcc"
-
 #endif // NUMCPP_TENSOR_REDUCE_ITERATOR_TCC_INCLUDED
