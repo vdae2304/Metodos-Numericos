@@ -188,9 +188,10 @@ namespace numcpp {
      * @param a First tensor-like argument.
      * @param b Second tensor-like argument.
      *
-     * @return A light-weight object of pairs constructed from the elements of
-     *     two tensors. This function does not create a new tensor, instead, it
-     *     returns a readonly view with the pairs constructed from both tensors.
+     * @return A light-weight object with the pairs constructed from the
+     *     elements of two tensors. This function does not create a new tensor,
+     *     instead, it returns a readonly view with the pairs constructed from
+     *     both tensors.
      */
     template <class T, class U, size_t Rank, class TagT, class TagU>
     base_tensor<
