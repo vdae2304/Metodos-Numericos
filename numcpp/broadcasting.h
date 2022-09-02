@@ -235,6 +235,8 @@ namespace numcpp {
      *     must have the same data type and the same shape, except in the
      *     dimension corresponding to axis.
      *
+     * @return The concatenated tensors.
+     *
      * @throw std::invalid_argument Thrown if the tensors do not have the same
      *     shape along all the axes other than axis.
      * @throw std::bad_alloc If the function fails to allocate storage it may
@@ -257,6 +259,8 @@ namespace numcpp {
      *     be stacked. Default is 0.
      * @param arg1, arg2... Tensor-like objects to stack. The tensors must have
      *     the same data type and the same shape.
+     *
+     * @return The stacked tensors.
      *
      * @throw std::invalid_argument Thrown if the tensors do not have the same
      *     shape.
