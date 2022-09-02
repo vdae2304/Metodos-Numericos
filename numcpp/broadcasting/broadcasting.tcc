@@ -326,6 +326,13 @@ namespace detail {
 }
 
     template <class T, size_t Rank, class Tag, class... Args>
+    inline tensor<T, Rank> concatenate(
+        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+    ) {
+        return concatenate(0, arg1, arg2...);
+    }
+
+    template <class T, size_t Rank, class Tag, class... Args>
     tensor<T, Rank> concatenate(
         size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
     ) {
@@ -334,6 +341,13 @@ namespace detail {
         tensor<T, Rank> out(shape);
         detail::concatenate_tensors(out, axis, 0, arg1, arg2...);
         return out;
+    }
+
+    template <class T, size_t Rank, class Tag, class... Args>
+    inline tensor<T, Rank + 1> stack(
+        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+    ) {
+        return stack(0, arg1, arg2...);
     }
 
     template <class T, size_t Rank, class Tag, class... Args>

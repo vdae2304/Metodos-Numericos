@@ -230,6 +230,7 @@ namespace numcpp {
      * @brief Concatenate one or more tensors.
      *
      * @param axis The axis along which the tensors will be concatenated.
+     *     Default is 0.
      * @param arg1, arg2... Tensor-like objects to concatenate. The tensors
      *     must have the same data type and the same shape, except in the
      *     dimension corresponding to axis.
@@ -241,6 +242,11 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag, class... Args>
     tensor<T, Rank> concatenate(
+        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+    );
+
+    template <class T, size_t Rank, class Tag, class... Args>
+    tensor<T, Rank> concatenate(
         size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
     );
 
@@ -248,7 +254,7 @@ namespace numcpp {
      * @brief Concatenate one or more tensors along a new axis.
      *
      * @param axis The axis in the result tensor along which the tensors will
-     *     be stacked.
+     *     be stacked. Default is 0.
      * @param arg1, arg2... Tensor-like objects to stack. The tensors must have
      *     the same data type and the same shape.
      *
@@ -257,6 +263,11 @@ namespace numcpp {
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
+    template <class T, size_t Rank, class Tag, class... Args>
+    tensor<T, Rank + 1> stack(
+        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+    );
+
     template <class T, size_t Rank, class Tag, class... Args>
     tensor<T, Rank + 1> stack(
         size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
