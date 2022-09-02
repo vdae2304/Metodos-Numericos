@@ -203,7 +203,7 @@ namespace numcpp {
 
     /**
      * @brief Return a tensor with each element constructed from taking the
-     * I-th element of the corresponding pair in a tensor object.
+     * I-th element of the corresponding pair in a tensor.
      *
      * @tparam I Element index. It shall be 0 or 1.
      * @param a A tensor-like object of pairs.
