@@ -25,8 +25,6 @@
 
 #include "numcpp/tensor.h"
 #include "numcpp/broadcasting/utilities.h"
-#include "numcpp/broadcasting/lazy_reverse.h"
-#include "numcpp/broadcasting/lazy_shift.h"
 
 namespace numcpp {
     /// Broadcasting.
@@ -323,59 +321,6 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, 1, TagReps> &reps,
         size_t axis = 0
-    );
-
-    /// Rearranging elements.
-
-    /**
-     * @brief Reverse the order of the elements in a tensor along the given
-     * axes.
-     *
-     * @param arg A tensor-like object to reverse.
-     * @param axes Axis or axes along which to reverse over. The default is
-     *     Rank - 1, which reverses along the last axis.
-     *
-     * @return A light-weight object with the elements in the tensor in
-     *     reversed order. This function does not create a new tensor, instead,
-     *     it returns a readonly view of the tensor with its elements in
-     *     reversed order over the given axes.
-     */
-    template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, size_t axis = Rank - 1
-    );
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, const shape_t<N> &axes
-    );
-
-    /**
-     * @brief Shift the elements in a tensor along the given axes. The elements
-     * are circularly shifted in such a way that the element at position count
-     * becomes the first element.
-     *
-     * @param arg A tensor-like object to shift.
-     * @param count Number of positions to shift the elements by along each
-     *     axis.
-     * @param axes Axis or axes along which the elements are shifted. The
-     *     default is Rank - 1, which shifts along the last axis.
-     *
-     * @return A light-weight object with the elements in the tensor circularly
-     *     shifted. This function does not create a new tensor, instead, it
-     *     returns a readonly view of the tensor with its elements circularly
-     *     shifted over the given axes.
-     */
-    template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
-        size_t count, size_t axis = Rank - 1
-    );
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
-        const index_t<N> &count, const shape_t<N> &axes
     );
 
     /// Padding.
@@ -758,12 +703,12 @@ namespace numcpp {
 
     /**
      * @brief Return the elements of a tensor that satisfy some condition. For
-     * tensor class, a call such as np::extract(a, condition) is equivalent to
+     * tensor class, a call such as np::compress(a, condition) is equivalent to
      * a[condition], except that a copy is always returned.
      *
      * @param a The input tensor.
      * @param condition A tensor-like object of bool whose true entries
-     *     indicate the elements of a to extract.
+     *     indicate the elements of a to return.
      *
      * @return A new tensor with the elements from a where condition is true.
      *
@@ -773,7 +718,7 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, 1> extract(
+    tensor<T, 1> compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition
     );
@@ -784,21 +729,21 @@ namespace numcpp {
      *
      * @param a The input tensor.
      * @param condition A tensor-like object of bool whose true entries
-     *     indicate the elements of a to extract.
+     *     indicate the elements of a to return.
      * @param axis The axis over which to select values.
      *
      * @return A new tensor with the elements from a where condition is true.
      *     The output tensor and the input tensor will have the same dimension
      *     and the same shape, except for the axis over which the values are
-     *     extracted.
+     *     selected.
      *
-     * @throw std::invalid_argument Thrown if the size of condition doesn't
+     * @throw std::invalid_argument Thrown if the size of condition does not
      *     match the size of a along the given axis.
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, Rank> extract(
+    tensor<T, Rank> compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, 1, TagCond> &condition,
         size_t axis

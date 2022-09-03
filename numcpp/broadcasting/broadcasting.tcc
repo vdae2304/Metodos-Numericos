@@ -428,42 +428,6 @@ namespace detail {
         return out;
     }
 
-    /// Rearranging elements.
-
-    template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, size_t axis
-    ) {
-        typedef lazy_reverse_tag<Tag, 1> Closure;
-        return base_tensor<T, Rank, Closure>(arg, axis);
-    }
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, const shape_t<N> &axes
-    ) {
-        typedef lazy_reverse_tag<Tag, N> Closure;
-        return base_tensor<T, Rank, Closure>(arg, axes);
-    }
-
-    template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
-        size_t count, size_t axis
-    ) {
-        typedef lazy_shift_tag<Tag, 1> Closure;
-        return base_tensor<T, Rank, Closure>(arg, count, axis);
-    }
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
-        const index_t<N> &count, const shape_t<N> &axes
-    ) {
-        typedef lazy_shift_tag<Tag, N> Closure;
-        return base_tensor<T, Rank, Closure>(arg, count, axes);
-    }
-
     /// Padding.
 
     template <class T, size_t Rank, class Tag>
@@ -921,7 +885,7 @@ namespace detail {
 }
 
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, 1> extract(
+    tensor<T, 1> compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition
     ) {
@@ -938,7 +902,7 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, Rank> extract(
+    tensor<T, Rank> compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, 1, TagCond> &condition,
         size_t axis
