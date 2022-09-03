@@ -404,7 +404,9 @@ namespace numcpp {
      * @param arg The tensor to pad.
      * @param before Number of elements to pad at the beginning of each axis.
      * @param after Number of elements to pad at the end of each axis.
-     * @param func Padding function. The signature of the padding function
+     * @param func Padding function. For tensors with rank greater than 1, the
+     * padding of later axes depends on the padding of previous axes. The
+     * signature of the padding function
      *     should be equivalent to the following:
      *         void func(tensor_view<T, 1> &view, size_t before, size_t after,
      *                   size_t axis, Args&&... args);
@@ -413,8 +415,7 @@ namespace numcpp {
      *       values.
      *     - before Number of elements padded at the beginning of view.
      *     - after Number of elements padded at the end of view.
-     *     - axis The axis currently being calculated. The padding is done from
-     *       the first axis to the last axis.
+     *     - axis The axis currently being calculated.
      * @param args... Additional arguments to pass to func.
      *
      * @return The padded tensor.
