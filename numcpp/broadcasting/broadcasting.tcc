@@ -520,14 +520,14 @@ namespace detail {
     }
 
     template <class T>
-    void pad_constant::operator()(
+    inline void pad_constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
     ) const {
         this->operator()(view, before, after, axis, T(), T());
     }
 
     template <class T>
-    void pad_constant::operator()(
+    inline void pad_constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const typename tensor<T, 1>::value_type &val
     ) const {
@@ -549,7 +549,7 @@ namespace detail {
     }
 
     template <class T, class Tag>
-    void pad_constant::operator()(
+    inline void pad_constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const base_tensor<T, 2, Tag> &values
     ) const {
@@ -570,14 +570,14 @@ namespace detail {
     }
 
     template <class T>
-    void pad_linear_ramp::operator()(
+    inline void pad_linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
     ) const {
         this->operator()(view, before, after, axis, T(), T());
     }
 
     template <class T>
-    void pad_linear_ramp::operator()(
+    inline void pad_linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const typename tensor<T, 1>::value_type &end
     ) const {
@@ -603,7 +603,7 @@ namespace detail {
     }
 
     template <class T, class Tag>
-    void pad_linear_ramp::operator()(
+    inline void pad_linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const base_tensor<T, 2, Tag> &end_values
     ) const {
