@@ -222,8 +222,10 @@ namespace detail {
      * successful.
      */
     template <class charT, class traits, class T>
-    inline bool read_value(std::basic_istream<charT, traits> &istr, T &rhs) {
-        return bool(istr >> rhs);
+    inline std::basic_istream<charT, traits>& read_value(
+        std::basic_istream<charT, traits> &istr, T &rhs
+    ) {
+        return istr >> rhs;
     }
 
     /**
@@ -231,13 +233,13 @@ namespace detail {
      * numbers.
      */
     template <class charT, class traits, class T>
-    bool read_value(
+    std::basic_istream<charT, traits>& read_value(
         std::basic_istream<charT, traits> &istr, std::complex<T> &rhs
     ) {
         using namespace printoptions;
         switch (complexmode) {
         case complexmode_t::defaultmode:
-            return bool(istr >> rhs);
+            return istr >> rhs;
         case complexmode_t::algebraic:
             T x, y;
             charT ch;
@@ -247,10 +249,10 @@ namespace detail {
                     charT plus = istr.widen('+'), minus = istr.widen('-');
                     istr >> ch;
                     if (traits::eq(ch, plus) || traits::eq(ch, minus)) {
-                        istr.putback(ch);
+                        bool sign = traits::eq(ch, minus);
                         if (istr >> y >> ch) {
                             if (traits::eq(ch, istr.widen('i'))) {
-                                rhs = std::complex<T>(x, y);
+                                rhs = std::complex<T>(x, sign ? -y : y);
                                 fail = false;
                             }
                             else {
@@ -277,7 +279,7 @@ namespace detail {
                 istr.setstate(std::ios_base::failbit);
             }
         }
-        return bool(istr);
+        return istr;
     }
 
     /**
