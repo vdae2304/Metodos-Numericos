@@ -102,6 +102,9 @@ namespace numcpp {
             }
             else {
                 istr.putback(ch);
+                if (istr >> shape[0]) {
+                    fail = false;
+                }
             }
         }
         if (fail) {

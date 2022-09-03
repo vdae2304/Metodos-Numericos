@@ -102,7 +102,7 @@ namespace numcpp {
     /**
      * @brief Overloads input stream for shape_t objects. The supported format
      * for input extraction is (elem1, elem2, ..., elemN) if N > 1 and (elem1,)
-     * if N == 1.
+     * or elem1 if N == 1.
      */
     template <class charT, class traits, size_t Rank>
     std::basic_istream<charT, traits>& operator>>(
