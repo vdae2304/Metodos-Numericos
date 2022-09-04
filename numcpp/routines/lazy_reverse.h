@@ -197,14 +197,6 @@ namespace detail {
         }
 
         /**
-         * @brief Returns whether the tensor is empty (i.e., whether its size
-         * is 0).
-         */
-        bool empty() const {
-            return m_arg.empty();
-        }
-
-        /**
          * @brief Returns whether the elements are stored in row-major order.
          */
         bool rowmajor() const {

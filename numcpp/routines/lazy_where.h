@@ -168,7 +168,6 @@ namespace detail {
          * @return The element at the specified position.
          */
         T operator[](const index_t<Rank> &index) const {
-            detail::assert_within_bounds(m_shape, index);
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true[detail::broadcast_index(index, m_true.shape())]
                 : m_false[detail::broadcast_index(index, m_false.shape())];
@@ -203,14 +202,6 @@ namespace detail {
          */
         size_t size() const {
             return m_size;
-        }
-
-        /**
-         * @brief Returns whether the tensor is empty (i.e., whether its size
-         * is 0).
-         */
-        bool empty() const {
-            return (m_size == 0);
         }
 
         /**
@@ -323,7 +314,6 @@ namespace detail {
         }
 
         T operator[](const index_t<Rank> &index) const {
-            detail::assert_within_bounds(m_shape, index);
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true[detail::broadcast_index(index, m_true.shape())]
                 : m_false;
@@ -343,10 +333,6 @@ namespace detail {
 
         size_t size() const {
             return m_size;
-        }
-
-        bool empty() const {
-            return (m_size == 0);
         }
 
         bool rowmajor() const {
@@ -444,7 +430,6 @@ namespace detail {
         }
 
         T operator[](const index_t<Rank> &index) const {
-            detail::assert_within_bounds(m_shape, index);
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true
                 : m_false[detail::broadcast_index(index, m_false.shape())];
@@ -464,10 +449,6 @@ namespace detail {
 
         size_t size() const {
             return m_size;
-        }
-
-        bool empty() const {
-            return (m_size == 0);
         }
 
         bool rowmajor() const {
@@ -583,10 +564,6 @@ namespace detail {
 
         size_t size() const {
             return m_cond.size();
-        }
-
-        bool empty() const {
-            return m_cond.empty();
         }
 
         bool rowmajor() const {
