@@ -125,7 +125,9 @@ namespace detail {
         /**
          * @brief Integer conversion. Dimension must be one.
          */
-        explicit operator size_t() const;
+        template <class IntegralType,
+                  detail::RequiresIntegral<IntegralType> = true>
+        explicit operator IntegralType() const;
 
         /**
          * @brief Pointer to size_t conversion.

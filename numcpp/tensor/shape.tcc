@@ -49,7 +49,8 @@ namespace numcpp {
     }
 
     template <size_t Rank>
-    inline shape_t<Rank>::operator size_t() const {
+    template <class IntegralType, detail::RequiresIntegral<IntegralType> >
+    inline shape_t<Rank>::operator IntegralType() const {
         static_assert(Rank == 1, "Unknown conversion to integral type");
         return m_shape[0];
     }
