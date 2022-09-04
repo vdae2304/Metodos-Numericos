@@ -29,6 +29,18 @@ Defined in `numcpp/broadcasting.h`
     - [`pad_reflect`](#pad_reflect)
     - [`pad_symmetric`](#pad_symmetric)
     - [`pad_wrap`](#pad_wrap)
+  - [Indexing routines](#indexing-routines)
+    - [`ravel_index`](#ravel_index)
+    - [`unravel_index`](#unravel_index)
+    - [`take`](#take)
+    - [`take(axis)`](#takeaxis)
+    - [`take_along_axis`](#take_along_axis)
+    - [`put`](#put)
+    - [`put_along_axis`](#put_along_axis)
+    - [`compress`](#compress)
+    - [`compress(axis)`](#compressaxis)
+    - [`place`](#place)
+    - [`putmask`](#putmask)
 
 ## Broadcasting
 
@@ -61,9 +73,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
+    int val;
     np::shape_t<1> shape1;
     np::shape_t<2> shape2;
-    int val;
     std::cin >> shape1 >> val;
     // Return array_view<int>. All the elements are references to val.
     std::cout << np::broadcast_to(val, shape1) << "\n";
@@ -235,15 +247,19 @@ int main() {
     np::array<int> arr;
     std::cin >> arr;
     std::cout << "Original: " << arr.shape() << "\n";
+    // Expand first axis.
     np::matrix_view<int> view1 = np::expand_dims(arr, 0);
     std::cout << "Expanded: " << view1.shape() << "\n";
     std::cout << view1 << "\n";
+    // Expand second axis.
     np::matrix_view<int> view2 = np::expand_dims(arr, 1);
     std::cout << "Expanded: " << view2.shape() << "\n";
     std::cout << view2 << "\n";
+    // Expand first two axes.
     np::tensor_view<int, 3> view3 = np::expand_dims(arr, np::make_shape(0, 1));
     std::cout << "Expanded: " << view3.shape() << "\n";
     std::cout << view3 << "\n";
+    // Expand first and last axes.
     np::tensor_view<int, 3> view4 = np::expand_dims(arr, np::make_shape(0, 2));
     std::cout << "Expanded: " << view4.shape() << "\n";
     std::cout << view4 << "\n";
@@ -1037,9 +1053,9 @@ namespace np = numcpp;
 int main() {
     np::array<int> arr;
     int n;
+    np::array<int> reps;
     std::cin >> arr >> n;
     std::cout << np::repeat(arr, n) << "\n";
-    np::array<int> reps;
     std::cin >> reps;
     std::cout << np::repeat(arr, reps) << "\n";
     return 0;
@@ -1097,15 +1113,9 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> arr;
-    np::shape_t<1> before1, after1;
-    std::cin >> arr >> before1 >> after1;
-    std::cout << "Padding an array:\n";
-    std::cout << np::pad(arr, before1, after1) << "\n";
-    np::matrix<int> mat;
-    np::shape_t<2> before2, after2;
-    std::cin >> mat >> before2 >> after2;
-    std::cout << "Padding a matrix:\n";
-    std::cout << np::pad(mat, before2, after2) << "\n";
+    np::shape_t<1> before, after;
+    std::cin >> arr >> before >> after;
+    std::cout << np::pad(arr, before, after) << "\n";
     return 0;
 }
 ```
@@ -1116,7 +1126,33 @@ Input
 [1, 2, 3, 4, 5]
 3
 2
+```
 
+Possible output
+
+```
+[524229392,       306, 524222800,         1,         2,         3,         4,
+         5,         0,        -1]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::shape_t<2> before, after;
+    std::cin >> mat >> before >> after;
+    std::cout << np::pad(mat, before, after) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
 [[1,  2 , 3,  4],
  [5,  6 , 7,  8],
  [9, 10, 11, 12]]
@@ -1127,17 +1163,13 @@ Input
 Possible output
 
 ```
-Padding an array:
-[247995152,       687, 247988560,         1,         2,         3,         4,
-         5,         0,        -1]
-Padding a matrix:
-[[248128656,       687, 247996384,       687,         0,         0],
- [        0,         0,         0,         0,         0,         0],
- [        0,         1,         2,         3,         4,         0],
- [        0,         5,         6,         7,         8,         0],
- [        0,         9,        10,        11,        12,         0],
- [        0,         0,         0,         0,         0,         0],
- [        0,         0,         0,         0,         0,         0]]
+[[-756127952,        522, -756154032,        522,         -1,          6],
+ [         0,          8,          9,         10, 1375731794,       2823],
+ [-756127952,          1,          2,          3,          4,         -1],
+ [1342177360,          5,          6,          7,          8,        522],
+ [1163151688,          9,         10,         11,         12, 1330860869],
+ [1145659218, 1230261829, 1380272454, 1953384765,  875981925, 1835091488],
+ [ 544828521, 1867325494,  543974756,  540554545, 1885697107, 1735289200]]
 ```
 
 ### `pad`
@@ -1555,4 +1587,1008 @@ Pad wrap:
  [12,  9, 10, 11, 12,  9],
  [ 4,  1,  2,  3,  4,  1],
  [ 8,  5,  6,  7,  8,  5]]
+```
+
+## Indexing routines
+
+### `ravel_index`
+
+Converts a tuple of indices into a flat index, element-wise.
+```cpp
+template <size_t Rank, size_t N>
+tensor<size_t, N> ravel_index(
+    const tensor<index_t<Rank>, N> &index,
+    const shape_t<Rank> &shape, bool order = true
+);
+```
+
+Parameters
+
+* `index` A tensor-like object with the indices to flatten.
+* `shape` The shape of the tensor used for raveling.
+* `order` Determines whether the indices should be viewed as indexing in
+row-major order (`true`) or column-major order (`false`). Defaults to row-major
+order.
+
+Returns
+
+* A light-weight object with the flattened indices. This function does not
+create a new tensor, instead, an expression object is returned.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<2> shape;
+    np::array<np::shape_t<2> > indices;
+    std::cin >> shape >> indices;
+    std::cout << "Row-major (default):\n";
+    std::cout << np::ravel_index(indices, shape) << "\n";
+    std::cout << "Column-major:\n";
+    std::cout << np::ravel_index(indices, shape, false) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+(3, 4)
+[(0, 0), (0, 1), (0, 2), (0, 3),
+ (1, 0), (1, 1), (1, 2), (1, 3),
+ (2, 0), (2, 1), (2, 2), (2, 3)]
+```
+
+Output
+
+```
+Row-major (default):
+[ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11]
+Column-major:
+[ 0,  3,  6,  9,  1,  4,  7, 10,  2,  5,  8, 11]
+```
+
+### `unravel_index`
+
+Converts a flat index into a tuple of indices, element-wise.
+```cpp
+template <class IntegralType, size_t Rank, size_t N>
+tensor<index_t<Rank>, N> unravel_index(
+    const tensor<IntegralType, N> &index,
+    const shape_t<Rank> &shape, bool order = true
+);
+```
+
+Parameters
+
+* `index` A tensor-like object with the indices to unravel.
+* `shape` The shape of the tensor used for unraveling.
+* `order` Determines whether the indices should be viewed as indexing in
+row-major order (`true`) or column-major order (`false`). Defaults to row-major
+order.
+
+Returns
+
+* A light-weight object with the unraveled indices. This function does not
+create a new tensor, instead, an expression object is returned.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<2> shape;
+    np::array<size_t> indices;
+    std::cin >> shape >> indices;
+    std::cout << "Row-major (default):\n";
+    std::cout << np::unravel_index(indices, shape) << "\n";
+    std::cout << "Column-major:\n";
+    std::cout << np::unravel_index(indices, shape, false) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+(3, 4)
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+```
+
+Output
+
+```
+Row-major (default):
+[(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3), (2, 0), (2, 1),
+ (2, 2), (2, 3)]
+Column-major:
+[(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2), (0, 3),
+ (1, 3), (2, 3)]
+```
+
+### `take`
+
+Take elements from a tensor. For `tensor` class, a call such as
+`np::take(a, indices)` is equivalent to `a[indices]`, except that a copy is
+always returned.
+```cpp
+template <class T, size_t Rank, size_t N>
+tensor<T, N> take(
+    const tensor<T, Rank> &a, const tensor<index_t<Rank>, N> &indices
+);
+
+template <class T, class IntegralType, size_t N>
+tensor<T, N> take(
+    const tensor<T, 1> &a, const tensor<IntegralType, N> &indices
+);
+```
+
+Parameters
+
+* `a` The source tensor.
+* `indices` A tensor-like object of `index_t` with the indices of the values to
+take. If the source tensor is one dimensional, a tensor-like object of integers
+can be used instead.
+
+Returns
+
+* A new tensor with the elements from `a` at the given positions.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> arr;
+    np::array<size_t> indices;
+    std::cin >> arr >> indices;
+    std::cout << np::take(arr, indices) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[7, 13, 19, 11, 5, 8, -2, 7, 11, 3]
+[1, 2, 3, 5, 7]
+```
+
+Output
+
+```
+[13, 19, 11,  8,  7]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::array<np::index_t<2> > indices;
+    std::cin >> mat >> indices;
+    std::cout << np::take(mat, indices) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3)]
+```
+
+Output
+
+```
+[15, -4, 11, 19,  9, 12, 10]
+```
+
+### `take(axis)`
+
+Take elements from a tensor along an axis.
+```cpp
+template <class T, size_t Rank, class IntegralType>
+tensor<T, Rank> take(
+    const tensor<T, Rank> &a,
+    const tensor<IntegralType, 1> &indices,
+    size_t axis
+);
+
+template <class T, size_t Rank>
+tensor<T, Rank - 1> take(
+    const tensor<T, Rank> &a, size_t index, size_t axis
+);
+```
+
+Parameters
+
+* `a` The source tensor.
+* `indices` A tensor-like object with the indices of the values to take.
+* `axis` The axis over which to select values.
+
+Returns
+
+* A new tensor with the elements from `a` at the given positions. If a single
+index is given instead, the output tensor will have a dimension less than the
+source tensor. Otherwise, the output tensor and the source tensor will have the
+same dimension and the same shape, except for the axis over which the values
+are taken.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::array<size_t> indices;
+    size_t axis;
+    std::cin >> mat >> indices >> axis;
+    if (indices.size() == 1) {
+        std::cout << np::take(mat, indices[0], axis) << "\n";
+    }
+    else {
+        std::cout << np::take(mat, indices, axis) << "\n";
+    }
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[1]
+0
+```
+
+Output
+
+```
+[ 8, 11, 19,  0, -5, 14]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[3]
+1
+```
+
+Output
+
+```
+[18,  0, 12, 10]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[1, 2]
+0
+```
+
+Output
+
+```
+[[ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18]]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[0, 2, 3]
+1
+```
+
+Output
+
+```
+[[15,  3, 18],
+ [ 8, 19,  0],
+ [16,  9, 12],
+ [-5,  5, 10]]
+```
+
+### `take_along_axis`
+
+Take values from the input tensor by matching 1d index and data slices.
+Functions returning an index along an axis, like `argsort` and `argpartition`,
+produce suitable indices for this function.
+```cpp
+template <class T, size_t Rank, class IntegralType>
+tensor<T, Rank> take_along_axis(
+    const tensor<T, Rank> &a,
+    const tensor<IntegralType, Rank> &indices,
+    size_t axis
+);
+```
+
+Parameters
+
+* `a` The source tensor.
+* `indices` A tensor-like object with the indices to take along each 1d slice
+of `a`. This must match the shape of `a` for all dimensions other than `axis`.
+* `axis` The axis to take 1d slices along.
+
+Returns
+
+* A new tensor with the elements from `a` at the given positions.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shape of `indices` is not compatible
+with the shape of `a`.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::matrix<size_t> indices;
+    size_t axis;
+    std::cin >> mat >> indices >> axis;
+    std::cout << np::take_along_axis(mat, indices, axis) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[[3, 0, 0, 1, 1, 0],
+ [2, 2, 1, 0, 2, 2]]
+0
+```
+
+Output
+
+```
+[[-5, -4,  3,  0, -5,  7],
+ [16, 19, 19, 18, 12, 18]]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[[1, 3],
+ [4, 2],
+ [2, 1],
+ [0, 1]]
+1
+```
+
+Output
+
+```
+[[-4, 18],
+ [-5, 19],
+ [ 9, 19],
+ [-5, 11]]
+```
+
+### `put`
+
+Replaces specified elements of a tensor with given values. For `tensor` class,
+a call such as `np::put(a, indices, values)` is equivalent to
+`a[indices] = values`.
+```cpp
+template <class T, size_t Rank>
+void put(
+    tensor<T, Rank> &a, const tensor<index_t<Rank>, 1> &indices,
+    const tensor<T, 1> &values
+);
+
+template <class T, size_t Rank>
+void put(
+    tensor<T, Rank> &a, const tensor<index_t<Rank>, 1> &indices,
+    const typename tensor<T, 1>::value_type &value
+);
+
+template <class T, class IntegralType>
+void put(
+    tensor<T, 1> &a, const tensor<IntegralType, 1> &indices,
+    const tensor<T, 1> &values
+);
+
+template <class T, class IntegralType>
+void put(
+    tensor<T, 1, Tag> &a, const tensor<IntegralType, 1> &indices,
+    const typename tensor<T, 1>::value_type &value
+);
+```
+
+Parameters
+
+* `a` Target tensor.
+* `indices` A tensor-like object of `index_t` with the target indices. If the
+source tensor is one dimensional, a tensor-like object of integers can be used
+instead.
+* `values` A single value or a tensor-like object with the values to put into
+`a` at target indices.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if `indices` and `values` have different
+shapes.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> arr;
+    np::array<size_t> indices;
+    np::array<int> values;
+    std::cin >> arr >> indices >> values;
+    np::put(arr, indices, values);
+    std::cout << arr << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[7, 13, 19, 11, 5, 8, -2, 7, 11, 3]
+[1, 2, 3, 5, 7]
+[1, 4, 7, 2, 11]
+```
+
+Output
+
+```
+[ 7,  1,  4,  7,  5,  2, -2, 11, 11,  3]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::array<np::index_t<2> > indices;
+    np::array<int> values;
+    std::cin >> mat >> indices >> values;
+    np::put(mat, indices, values);
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[(0, 0), (0, 1), (1, 1), (1, 2), (2, 2), (2, 3), (3, 3)]
+[12, -5, 7, 3, 13, -2, -1]
+```
+
+Output
+
+```
+[[12, -5,  3, 18, -2,  7],
+ [ 8,  7,  3,  0, -5, 14],
+ [16, 19, 13, -2, 12, 18],
+ [-5, 11,  5, -1,  8, 10]]
+```
+
+### `put_along_axis`
+
+Put values into the destination tensor by matching 1d index and data slices.
+Functions returning an index along an axis, like `argsort` and `argpartition`,
+produce suitable indices for this function.
+```cpp
+template <class T, size_t Rank, class IntegralType>
+void put_along_axis(
+    tensor<T, Rank> &a,
+    const tensor<IntegralType, Rank> &indices,
+    const tensor<T, Rank> &values,
+    size_t axis
+);
+```
+
+Parameters
+
+* `a` Destination tensor.
+* `indices` A tensor-like object with the indices to change along each 1d slice
+of `a`. This must match the shape of `a` for all dimensions other than `axis`.
+* `values` A tensor-like object with the values to insert at those indices.
+This must match the shape of `indices`.
+* `axis` The axis to take 1d slices along.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes of `indices` and `values` are
+not compatible with the shape of `a`.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::matrix<size_t> indices;
+    np::matrix<int> values;
+    size_t axis;
+    std::cin >> mat >> indices >> values >> axis;
+    np::put_along_axis(mat, indices, values, axis);
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[[3, 0, 0, 1, 1, 0],
+ [2, 2, 1, 0, 2, 2]]
+[[ 0, 10, 1 , 1,  0, 10],
+ [10, 15, 9, 12, 10, 10]]
+0
+```
+
+Output
+
+```
+[[15, 10,  1, 12, -2, 10],
+ [ 8, 11,  9,  1,  0, 14],
+ [10, 15,  9, 12, 10, 10],
+ [ 0, 11,  5, 10,  8, 10]]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[[1, 3],
+ [4, 2],
+ [2, 1],
+ [0, 1]]
+[[ 1, 15],
+ [ 0, 10],
+ [11, 20],
+ [ 1,  9]]
+1
+```
+
+Output
+
+```
+[[15,  1,  3, 15, -2,  7],
+ [ 8, 11, 10,  0,  0, 14],
+ [16, 20, 11, 12, 12, 18],
+ [ 1,  9,  5, 10,  8, 10]]
+```
+
+### `compress`
+
+Return the elements of a tensor that satisfy some condition. For `tensor`
+class, a call such as `np::compress(a, condition)` is equivalent to
+`a[condition]`, except that a copy is always returned.
+```cpp
+template <class T, size_t Rank>
+tensor<T, 1> compress(
+    const tensor<T, Rank> &a, const tensor<bool, Rank> &condition
+);
+```
+
+Parameters
+
+* `a` The input tensor.
+* `condition` A tensor-like object of `bool` whose `true` entries indicate the
+elements of `a` to return.
+
+Returns
+
+* A new tensor with the elements from `a` where `condition` is `true`.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if `a` and `condition` have different shapes.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> arr;
+    std::cin >> arr;
+    std::cout << np::compress(arr, arr > 10) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[7, 13, 19, 11, 5, 8, -2, 7, 11, 3]
+```
+
+Output
+
+```
+[13, 19, 11, 11]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    std::cin >> mat;
+    std::cout << np::compress(mat, mat <= 0) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+```
+
+Output
+
+```
+[-4, -2,  0, -5, -5]
+```
+
+### `compress(axis)`
+
+Return the elements of a tensor that satisfy some condition along given axis.
+```cpp
+template <class T, size_t Rank>
+tensor<T, Rank> compress(
+    const tensor<T, Rank> &a, const tensor<bool, 1> &condition, size_t axis
+);
+```
+
+Parameters
+
+* `a` The input tensor.
+* `condition` A tensor-like object of `bool` whose `true` entries indicate the
+elements of `a` to return.
+* `axis` The axis over which to select values.
+
+Returns
+
+* A new tensor with the elements from `a` where `condition` is `true`. The
+output tensor and the input tensor will have the same dimension and the same
+shape, except for the axis over which the values are selected.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the size of `condition` does not match the
+size of `a` along the given axis.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::array<bool> condition;
+    size_t axis;
+    std::cin >> mat >> std::boolalpha >> condition >> axis;
+    std::cout << np::compress(mat, condition, axis) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[false, true, true, false]
+0
+```
+
+Output
+
+```
+[[ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18]]
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[true, false, true, true, false, false]
+1
+```
+
+Output
+
+```
+[[15,  3, 18],
+ [ 8, 19,  0],
+ [16,  9, 12],
+ [-5,  5, 10]]
+```
+
+### `place`
+
+Change elements of a tensor based on conditional and input values.
+```cpp
+template <class T, size_t Rank>
+void place(
+    tensor<T, Rank> &a, const tensor<bool, Rank> &condition,
+    const tensor<T, 1> &values
+);
+
+template <class T, size_t Rank>
+void place(
+    tensor<T, Rank> &a, const tensor<bool, Rank> &condition,
+    const typename tensor<T, 1>::value_type &value
+);
+```
+
+Parameters
+
+* `a` Tensor to put data into.
+* `condition` Boolean mask tensor.
+* `values` A single value or a tensor-like object with the values to place in
+`a`. Only the first N elements are used, where N is the number of `true` values
+in `condition`.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if `a` and `condition` have different shapes.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> arr;
+    np::array<int> values;
+    std::cin >> arr >> values;
+    np::place(arr, arr > 10, values);
+    std::cout << arr << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[7, 13, 19, 11, 5, 8, -2, 7, 11, 3]
+[1, 4, 7, 2, 11]
+```
+
+Output
+
+```
+[ 7,  1,  4,  7,  5,  8, -2,  7,  2,  3]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    np::array<int> values;
+    std::cin >> mat >> values;
+    np::place(mat, mat <= 0, values);
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+[12, -5, 7, 3, 13, -2, -1]
+```
+
+Output
+
+```
+[[15, 12,  3, 18, -5,  7],
+ [ 8, 11, 19,  7,  3, 14],
+ [16, 19,  9, 12, 12, 18],
+ [13, 11,  5, 10,  8, 10]]
+```
+
+### `putmask`
+
+Change elements of a tensor based on conditional and input values. Similar to
+`place`, the difference is that `place` uses the first N elements of `values`,
+where N is the number of `true` values in `condition`, while `putmask` uses the
+elements where `condition` is `true`.
+```cpp
+template <class T, size_t Rank>
+void putmask(
+    tensor<T, Rank> &a, const tensor<bool, Rank> &condition,
+    const tensor<T, Rank> &values
+);
+```
+
+Parameters
+
+* `a` Tensor to put data into.
+* `condition` Boolean mask tensor.
+* `values` A tensor-like object with the values to put into `a` where
+`condition` is `true`.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if `a`, `condition` or `values` have different
+shapes.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> arr;
+    std::cin >> arr;
+    np::putmask(arr, arr > 10, arr - 10);
+    std::cout << arr << "\n";
+    return 0;
+}
+```
+Input
+
+```
+[7, 13, 19, 11, 5, 8, -2, 7, 11, 3]
+```
+
+Output
+
+```
+[ 7,  3,  9,  1,  5,  8, -2,  7,  1,  3]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat;
+    std::cin >> mat;
+    np::putmask(mat, mat <= 0, -mat);
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[15, -4,  3, 18, -2,  7],
+ [ 8, 11, 19,  0, -5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [-5, 11,  5, 10,  8, 10]]
+```
+
+Output
+
+```
+[[15,  4,  3, 18,  2,  7],
+ [ 8, 11, 19,  0,  5, 14],
+ [16, 19,  9, 12, 12, 18],
+ [ 5, 11,  5, 10,  8, 10]]
 ```
