@@ -30,6 +30,51 @@
 #include <stdexcept>
 
 namespace numcpp {
+    /// Tensor creation routines.
+
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> empty(const shape_t<Rank> &shape) {
+        return tensor<T, Rank>(shape);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, Rank> empty_like(const base_tensor<T, Rank, Tag> &like) {
+        return tensor<T, Rank>(like.shape());
+    }
+
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> zeros(const shape_t<Rank> &shape) {
+        return tensor<T, Rank>(shape, T());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, Rank> zeros_like(const base_tensor<T, Rank, Tag> &like) {
+        return tensor<T, Rank>(like.shape(), T());
+    }
+
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> ones(const shape_t<Rank> &shape) {
+        return tensor<T, Rank>(shape, T(1));
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, Rank> ones_like(const base_tensor<T, Rank, Tag> &like) {
+        return tensor<T, Rank>(like.shape(), T(1));
+    }
+
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> full(const shape_t<Rank> &shape, const T &val) {
+        return tensor<T, Rank>(shape, val);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, Rank> full_like(
+        const base_tensor<T, Rank, Tag> &like,
+        const typename tensor<T, Rank>::value_type &val
+    ) {
+        return tensor<T, Rank>(like.shape(), val);
+    }
+
     /// Sorting and searching.
 
     template <class T, size_t Rank,

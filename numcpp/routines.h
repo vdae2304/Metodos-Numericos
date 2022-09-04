@@ -29,6 +29,134 @@
 #include "numcpp/routines/lazy_shift.h"
 
 namespace numcpp {
+    /// Tensor creation routines.
+
+    /**
+     * @brief Return a new tensor of given shape without initializing entries.
+     *
+     * @tparam T Type of the elements contained in the tensor.
+     * @tparam Rank Dimension of the tensor.
+     *
+     * @param shape Shape of the empty tensor.
+     *
+     * @return A tensor of uninitialized data with the given shape.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> empty(const shape_t<Rank> &shape);
+
+    /**
+     * @brief Return a new tensor with the same shape and type as a given
+     * tensor.
+     *
+     * @param like Tensor-like object defining the shape and data type.
+     *
+     * @return A tensor of uninitialized data with the same shape and type as
+     *     like.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> empty_like(const base_tensor<T, Rank, Tag> &like);
+
+    /**
+     * @brief Return a new tensor of given shape filled with zeros.
+     *
+     * @tparam T Type of the elements contained in the tensor.
+     * @tparam Rank Dimension of the tensor.
+     *
+     * @param shape Shape of the new tensor.
+     *
+     * @return A tensor of zeros with the given shape.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> zeros(const shape_t<Rank> &shape);
+
+    /**
+     * @brief Return a new tensor of zeros with the same shape and type as a
+     * given tensor.
+     *
+     * @param like Tensor-like object defining the shape and data type.
+     *
+     * @return A tensor of zeros with the same shape and type as like.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> zeros_like(const base_tensor<T, Rank, Tag> &like);
+
+    /**
+     * @brief Return a new tensor of given shape filled with ones.
+     *
+     * @tparam T Type of the elements contained in the tensor.
+     * @tparam Rank Dimension of the tensor.
+     *
+     * @param shape Shape of the new tensor.
+     *
+     * @return A tensor of ones with the given shape.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> ones(const shape_t<Rank> &shape);
+
+    /**
+     * @brief Return a new tensor of ones with the same shape and type as a
+     * given tensor.
+     *
+     * @param like Tensor-like object defining the shape and data type.
+     *
+     * @return A tensor of ones with the same shape and type as like.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> ones_like(const base_tensor<T, Rank, Tag> &like);
+
+    /**
+     * @brief Return a new tensor of given shape filled with val.
+     *
+     * @tparam T Type of the elements contained in the tensor.
+     * @tparam Rank Dimension of the tensor.
+     *
+     * @param shape Shape of the new tensor.
+     * @param val Fill value.
+     *
+     * @return A tensor of val with the given shape.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> full(const shape_t<Rank> &shape, const T &val);
+
+    /**
+     * @brief Return a new tensor with the same shape and type as a given
+     * tensor filled with val.
+     *
+     * @param like Tensor-like object defining the shape and data type.
+     * @param val Fill value.
+     *
+     * @return A tensor of val with the same shape and type as like.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> full_like(
+        const base_tensor<T, Rank, Tag> &like,
+        const typename tensor<T, Rank>::value_type &val
+    );
+
     /// Sorting and searching.
 
     /**
