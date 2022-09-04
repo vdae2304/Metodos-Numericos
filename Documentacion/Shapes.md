@@ -16,8 +16,8 @@ Defined in `numcpp/shape.h`
     - [`shape_t::transpose`](#shape_ttranspose)
   - [Operators](#operators)
     - [`shape_t::operator[]`](#shape_toperator)
-    - [`shape_t::operator size_t`](#shape_toperator-size_t)
-    - [`shape_t::operator size_t*`](#shape_toperator-size_t-1)
+    - [`shape_t::operator IntegralType`](#shape_toperator-integraltype)
+    - [`shape_t::operator size_t*`](#shape_toperator-size_t)
     - [`operator==`](#operator)
     - [`operator!=`](#operator-1)
   - [Routines](#routines)
@@ -253,7 +253,7 @@ Rows: 4
 Columns: 6
 ```
 
-### `shape_t::operator size_t`
+### `shape_t::operator IntegralType`
 
 Integer conversion. Dimension must be one.
 ```cpp
