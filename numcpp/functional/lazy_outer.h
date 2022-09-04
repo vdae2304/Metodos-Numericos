@@ -225,14 +225,6 @@ namespace detail {
         }
 
         /**
-         * @brief Returns whether the tensor is empty (i.e., whether its size
-         * is 0).
-         */
-        bool empty() const {
-            return (m_size == 0);
-        }
-
-        /**
          * @brief Returns whether the elements are stored in row-major order.
          */
         bool rowmajor() const {
@@ -245,16 +237,6 @@ namespace detail {
          */
         bool colmajor() const {
             return (m_lhs.colmajor() && m_rhs.colmajor());
-        }
-
-        /**
-         * @brief Cast each element to a specified type.
-         */
-        template <class Rt>
-        base_tensor<Rt, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU> >
-        astype() const {
-            typedef lazy_outer_tag<Function, T, M, TagT, U, N, TagU> Closure;
-            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
         }
 
         /**

@@ -214,14 +214,6 @@ namespace detail {
         }
 
         /**
-         * @brief Returns whether the tensor is empty (i.e., whether its size
-         * is 0).
-         */
-        bool empty() const {
-            return m_arg.empty();
-        }
-
-        /**
          * @brief Returns whether the elements are stored in row-major order.
          */
         bool rowmajor() const {
@@ -234,15 +226,6 @@ namespace detail {
          */
         bool colmajor() const {
             return m_arg.colmajor();
-        }
-
-        /**
-         * @brief Cast each element to a specified type.
-         */
-        template <class U>
-        base_tensor<U, Rank, lazy_unary_tag<Function, T, Tag> > astype() const {
-            typedef lazy_unary_tag<Function, T, Tag> Closure;
-            return base_tensor<U, Rank, Closure>(m_fun, m_arg);
         }
 
         /**
@@ -429,14 +412,6 @@ namespace detail {
         }
 
         /**
-         * @brief Returns whether the tensor is empty (i.e., whether its size
-         * is 0).
-         */
-        bool empty() const {
-            return (m_size == 0);
-        }
-
-        /**
          * @brief Returns whether the elements are stored in row-major order.
          */
         bool rowmajor() const {
@@ -449,16 +424,6 @@ namespace detail {
          */
         bool colmajor() const {
             return (m_lhs.colmajor() && m_rhs.colmajor());
-        }
-
-        /**
-         * @brief Cast each element to a specified type.
-         */
-        template <class Rt>
-        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
-        astype() const {
-            typedef lazy_binary_tag<Function, T, TagT, U, TagU> Closure;
-            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
         }
 
         /**
@@ -570,23 +535,12 @@ namespace detail {
             return m_lhs.size();
         }
 
-        bool empty() const {
-            return m_lhs.empty();
-        }
-
         bool rowmajor() const {
             return m_lhs.rowmajor();
         }
 
         bool colmajor() const {
             return m_lhs.colmajor();
-        }
-
-        template <class Rt>
-        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag> >
-        astype() const {
-            typedef lazy_binary_tag<Function, T, Tag, U, scalar_tag> Closure;
-            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_val);
         }
 
         tensor<value_type, Rank> copy() const {
@@ -689,23 +643,12 @@ namespace detail {
             return m_rhs.size();
         }
 
-        bool empty() const {
-            return m_rhs.empty();
-        }
-
         bool rowmajor() const {
             return m_rhs.rowmajor();
         }
 
         bool colmajor() const {
             return m_rhs.colmajor();
-        }
-
-        template <class Rt>
-        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag> >
-        astype() const {
-            typedef lazy_binary_tag<Function, T, scalar_tag, U, Tag> Closure;
-            return base_tensor<Rt, Rank, Closure>(m_fun, m_val, m_rhs);
         }
 
         tensor<value_type, Rank> copy() const {
