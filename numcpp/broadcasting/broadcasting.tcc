@@ -872,7 +872,6 @@ namespace detail {
      * @brief Throws a std::invalid_argument exception if the size of the
      * boolean mask does not match the size of a tensor along the given axis.
      */
-    template <size_t Rank>
     void assert_mask_shape(size_t size, size_t mask_size, size_t axis) {
         if (size != mask_size) {
             std::ostringstream error;
