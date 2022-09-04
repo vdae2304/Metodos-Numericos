@@ -196,45 +196,45 @@ namespace numcpp {
          * @throw std::invalid_argument Thrown if the shapes are not compatible
          *     and cannot be broadcasted according to broadcasting rules.
          */
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator+=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator-=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator*=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator/=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator%=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator&=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator|=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator^=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator<<=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
-        template <class U, class TagU>
+        template <class TagOp>
         base_tensor<T, Rank, Tag>& operator>>=(
-            const base_tensor<U, Rank, TagU> &rhs
+            const base_tensor<T, Rank, TagOp> &rhs
         );
 
         base_tensor<T, Rank, Tag>& operator+=(const T &val);
@@ -750,9 +750,9 @@ namespace numcpp {
          * @brief Helper function. Apply a binary function with another tensor
          * or with a value.
          */
-        template <class Function, class U, class TagU>
+        template <class Function, class TagOp>
         base_tensor<T, Rank, Tag>& apply_binary_function(
-            Function f, const base_tensor<U, Rank, TagU> &rhs
+            Function f, const base_tensor<T, Rank, TagOp> &rhs
         );
 
         template <class Function>

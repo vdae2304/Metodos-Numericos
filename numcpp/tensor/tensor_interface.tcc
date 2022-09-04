@@ -143,10 +143,10 @@ namespace detail {
 }
 
     template <class T, size_t Rank, class Tag>
-    template <class Function, class U, class TagU>
+    template <class Function, class TagOp>
     base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::apply_binary_function(
-        Function f, const base_tensor<U, Rank, TagU> &rhs
+        Function f, const base_tensor<T, Rank, TagOp> &rhs
     ) {
         shape_t<Rank> shape = this->base()->shape();
         shape_t<Rank> common_shape = broadcast_shapes(shape, rhs.shape());
@@ -179,91 +179,91 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator+=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(plus(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator-=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(minus(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator*=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(multiplies(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator/=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(divides(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator%=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(modulus(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator&=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(bit_and(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator|=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(bit_or(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator^=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(bit_xor(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator<<=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(left_shift(), rhs);
     }
 
     template <class T, size_t Rank, class Tag>
-    template <class U, class TagU>
+    template <class TagOp>
     inline base_tensor<T, Rank, Tag>&
     tensor_interface<T, Rank, Tag>::operator>>=(
-        const base_tensor<U, Rank, TagU> &rhs
+        const base_tensor<T, Rank, TagOp> &rhs
     ) {
         return this->apply_binary_function(right_shift(), rhs);
     }
