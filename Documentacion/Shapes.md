@@ -257,7 +257,8 @@ Columns: 6
 
 Integer conversion. Dimension must be one.
 ```cpp
-explicit operator size_t() const;
+template <class IntegralType>
+explicit operator IntegralType() const;
 ```
 
 ### `shape_t::operator size_t*`
