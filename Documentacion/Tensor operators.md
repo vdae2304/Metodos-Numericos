@@ -32,26 +32,16 @@ of the left one with the right one, the second with the second, and so on...)
 When the right-hand side argument is a value, the operation is applied to all
 the elements in the tensor against that value.
 ```cpp
-template <class U>
-tensor& operator+=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator-=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator*=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator/=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator%=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator&=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator|=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator^=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator<<=(const tensor<U, Rank> &rhs);
-template <class U>
-tensor& operator>>=(const tensor<U, Rank> &rhs);
+tensor& operator+=(const tensor<T, Rank> &rhs);
+tensor& operator-=(const tensor<T, Rank> &rhs);
+tensor& operator*=(const tensor<T, Rank> &rhs);
+tensor& operator/=(const tensor<T, Rank> &rhs);
+tensor& operator%=(const tensor<T, Rank> &rhs);
+tensor& operator&=(const tensor<T, Rank> &rhs);
+tensor& operator|=(const tensor<T, Rank> &rhs);
+tensor& operator^=(const tensor<T, Rank> &rhs);
+tensor& operator<<=(const tensor<T, Rank> &rhs);
+tensor& operator>>=(const tensor<T, Rank> &rhs);
 
 tensor& operator+=(const T &val);
 tensor& operator-=(const T &val);
