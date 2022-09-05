@@ -24,10 +24,7 @@
 #ifndef NUMCPP_ROUTINES_TCC_INCLUDED
 #define NUMCPP_ROUTINES_TCC_INCLUDED
 
-#include <algorithm>
-#include <numeric>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/functional.h"
 
 namespace numcpp {
     /// Tensor creation routines.
@@ -177,19 +174,19 @@ namespace numcpp {
     }
 
     template <class T, class Tag>
-    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k) {
-        tensor<T, 2> out(mat.shape(), T());
+    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        tensor<T, 2> out(a.shape(), T());
         if (k >= 0) {
-            for (size_t i = 0; i < mat.shape(0); ++i) {
-                for (size_t j = 0; j <= i + k && j < mat.shape(1); ++j) {
-                    out(i, j) = mat(i, j);
+            for (size_t i = 0; i < a.shape(0); ++i) {
+                for (size_t j = 0; j <= i + k && j < a.shape(1); ++j) {
+                    out(i, j) = a(i, j);
                 }
             }
         }
         else {
-            for (size_t j = 0; j < mat.shape(1); ++j) {
-                for (size_t i = j - k; i < mat.shape(0); ++i) {
-                    out(i, j) = mat(i, j);
+            for (size_t j = 0; j < a.shape(1); ++j) {
+                for (size_t i = j - k; i < a.shape(0); ++i) {
+                    out(i, j) = a(i, j);
                 }
             }
         }
@@ -197,19 +194,19 @@ namespace numcpp {
     }
 
     template <class T, class Tag>
-    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k) {
-        tensor<T, 2> out(mat.shape(), T());
+    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        tensor<T, 2> out(a.shape(), T());
         if (k >= 0) {
-            for (size_t i = 0; i < mat.shape(0); ++i) {
-                for (size_t j = i + k; j < mat.shape(1); ++j) {
-                    out(i, j) = mat(i, j);
+            for (size_t i = 0; i < a.shape(0); ++i) {
+                for (size_t j = i + k; j < a.shape(1); ++j) {
+                    out(i, j) = a(i, j);
                 }
             }
         }
         else {
-            for (size_t j = 0; j < mat.shape(1); ++j) {
-                for (size_t i = 0; i <= j - k && i < mat.shape(0); ++i) {
-                    out(i, j) = mat(i, j);
+            for (size_t j = 0; j < a.shape(1); ++j) {
+                for (size_t i = 0; i <= j - k && i < a.shape(0); ++i) {
+                    out(i, j) = a(i, j);
                 }
             }
         }
@@ -238,6 +235,228 @@ namespace numcpp {
                 pow *= x[i];
             }
         }
+        return out;
+    }
+
+    /// Maximums and minimums.
+
+    template <class T, size_t Rank, class Tag>
+    index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a) {
+        ranges::argmax pred;
+        size_t index = pred(a.begin(), a.end());
+        bool order = a.rowmajor();
+        return unravel_index(index, a.shape(), order);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    argmax(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        tensor<size_t, Rank> out;
+        apply_along_axis(out, ranges::argmax(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a) {
+        ranges::argmin pred;
+        size_t index = pred(a.begin(), a.end());
+        bool order = a.rowmajor();
+        return unravel_index(index, a.shape(), order);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    argmin(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        tensor<size_t, Rank> out;
+        apply_along_axis(out, ranges::argmin(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    amax(const base_tensor<T, Rank, Tag> &a) {
+        ranges::max pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amax(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::max(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amax(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::max(), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    amin(const base_tensor<T, Rank, Tag> &a) {
+        ranges::min pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amin(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::min(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amin(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::min(), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::maximum, T, Tag1, T, Tag2>
+    > maximum(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    ) {
+        typedef lazy_binary_tag<ranges::maximum, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::maximum(), a, b);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag>
+    > maximum(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val
+    ) {
+        typedef lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::maximum(), a, val);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag>
+    > maximum(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b
+    ) {
+        typedef lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::maximum(), val, b);
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::minimum, T, Tag1, T, Tag2>
+    > minimum(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    ) {
+        typedef lazy_binary_tag<ranges::minimum, T, Tag1, T, Tag2> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::minimum(), a, b);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag>
+    > minimum(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val
+    ) {
+        typedef lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::minimum(), a, val);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag>
+    > minimum(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b
+    ) {
+        typedef lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::minimum(), val, b);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<T, Rank, lazy_unary_tag<ranges::clamp<T>, T, Tag> >
+    clamp(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &a_min,
+        const typename tensor<T, Rank>::value_type &a_max
+    ) {
+        typedef lazy_unary_tag<ranges::clamp<T>, T, Tag> Closure;
+        return base_tensor<T, Rank, Closure>(ranges::clamp<T>(a_min, a_max), a);
+    }
+
+    /// Sums and products.
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    sum(const base_tensor<T, Rank, Tag> &a) {
+        ranges::sum pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sum(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::sum(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sum(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::sum(), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    prod(const base_tensor<T, Rank, Tag> &a) {
+        ranges::prod pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    prod(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::prod(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    prod(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::prod(), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    cumsum(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        accumulate(out, plus(), a, axis);
         return out;
     }
 

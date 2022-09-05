@@ -24,8 +24,11 @@
 #define NUMCPP_ROUTINES_H_INCLUDED
 
 #include "numcpp/tensor.h"
+
+#include "numcpp/routines/ranges.h"
 #include "numcpp/routines/lazy_sequence.h"
 #include "numcpp/routines/lazy_diagonal.h"
+
 #include "numcpp/routines/lazy_where.h"
 #include "numcpp/routines/lazy_reverse.h"
 #include "numcpp/routines/lazy_shift.h"
@@ -330,7 +333,7 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, class Tag>
-    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k = 0);
+    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 
     /**
      * @brief Return the upper triangle of a matrix.
@@ -346,7 +349,7 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, class Tag>
-    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k = 0);
+    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 
     /**
      * @brief Generate a Vandermonde matrix.
@@ -374,6 +377,343 @@ namespace numcpp {
     tensor<T, 2> vander(
         const base_tensor<T, 1, Tag> &x, size_t N, bool increasing = false
     );
+
+    /// Maximums and minimums.
+
+    /**
+     * @brief Return the indices of the maximum value in the tensor.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The indices of the maximum value in the tensor. In case of
+     *     multiple occurrences of the maximum value, return the index
+     *     corresponding to the first occurrence.
+     */
+    template <class T, size_t Rank, class Tag>
+    index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the indices of the maximum value in the tensor along the
+     * given axis.
+     *
+     * @param a A tensor-like object.
+     * @param axis Axis along which the maximum value is selected.
+     *
+     * @return A new tensor with the indices of the maximum value along an axis.
+     *     The output tensor will have the same dimension and the same shape,
+     *     except that the axis which is reduced is left as a dimension of size
+     *     one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    argmax(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    /**
+     * @brief Return the indices of the minimum value in the tensor.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The indices of the minimum value in the tensor. In case of
+     *     multiple occurrences of the minimum value, return the index
+     *     corresponding to the first occurrence.
+     */
+    template <class T, size_t Rank, class Tag>
+    index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the indices of the minimum value in the tensor along the
+     * given axis.
+     *
+     * @param a A tensor-like object.
+     * @param axis Axis along which the minimum value is selected.
+     *
+     * @return A new tensor with the indices of the minimum value along an axis.
+     *     The output tensor will have the same dimension and the same shape,
+     *     except that the axis which is reduced is left as a dimension of size
+     *     one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    argmin(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    /**
+     * @brief Return the maximum value contained in the tensor.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The maximum value in the tensor.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    amax(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the maximum value contained in the tensor over the given
+     * axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the maximum value
+     *     is selected.
+     *
+     * @return A new tensor with the maximum value over the axes. The output
+     *     tensor will have the same dimension and the same shape, except that
+     *     the axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amax(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amax(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the minimum value contained in the tensor.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The minimum value in the tensor.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    amin(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the minimum value contained in the tensor over the given
+     * axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the minimum value
+     *     is selected.
+     *
+     * @return A new tensor with the minimum value over the axes. The output
+     *     tensor will have the same dimension and the same shape, except that
+     *     the axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amin(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    amin(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the element-wise maximum of two tensors.
+     *
+     * @param a First tensor-like object to compare.
+     * @param b Second tensor-like object to compare.
+     * @param val Value to use either as first argument or second argument.
+     *     Values are broadcasted to an appropriate size.
+     *
+     * @return A light-weight object with the element-wise maximum of two
+     *     tensors. This function does not create a new tensor, instead, it
+     *     returns an expression object with the element-wise maximum of the
+     *     tensor arguments.
+     *
+     * @throw std::invalid_argument Thrown if the shapes are not compatible and
+     *     cannot be broadcasted according to broadcasting rules.
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    base_tensor<T, Rank, lazy_binary_tag<ranges::maximum, T, Tag1, T, Tag2> >
+    maximum(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        T, Rank, lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag>
+    > maximum(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        T, Rank, lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag>
+    > maximum(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b
+    );
+
+    /**
+     * @brief Return the element-wise minimum of two tensors.
+     *
+     * @param a First tensor-like object to compare.
+     * @param b Second tensor-like object to compare.
+     * @param val Value to use either as first argument or second argument.
+     *     Values are broadcasted to an appropriate size.
+     *
+     * @return A light-weight object with the element-wise minimum of two
+     *     tensors. This function does not create a new tensor, instead, it
+     *     returns an expression object with the element-wise minimum of the
+     *     tensor arguments.
+     *
+     * @throw std::invalid_argument Thrown if the shapes are not compatible and
+     *     cannot be broadcasted according to broadcasting rules.
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    base_tensor<T, Rank, lazy_binary_tag<ranges::minimum, T, Tag1, T, Tag2> >
+    minimum(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        T, Rank, lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag>
+    > minimum(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        T, Rank, lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag>
+    > minimum(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b
+    );
+
+    /**
+     * @brief Clamp the values in the tensor. Given an interval [a_min, a_max],
+     * values smaller than a_min become a_min, and values larger than a_max
+     * become a_max. For complex types, the real and imaginary parts are
+     * clamped separately.
+     *
+     * @param a A tensor-like object with the elements to clamp.
+     * @param a_min The lower boundary to clamp.
+     * @param a_max The upper boundary to clamp.
+     *
+     * @return A light-weight object with the tensor formed by clamping the
+     *     values in the given tensor. This function does not create a new
+     *     tensor, instead, it returns a readonly view with the clamped values
+     *     in the tensor.
+     *
+     * @note The behavior is undefined if a_min is greater than a_max.
+     */
+    template <class T, size_t Rank, class Tag>
+    base_tensor<T, Rank, lazy_unary_tag<ranges::clamp<T>, T, Tag> >
+    clamp(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &a_min,
+        const typename tensor<T, Rank>::value_type &a_max
+    );
+
+    /// Sums and products.
+
+    /**
+     * @brief Return the sum of the tensor elements.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The sum of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    sum(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the sum of the tensor elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the sum is
+     *     performed.
+     *
+     * @return A new tensor with the sum over the axes. The output tensor will
+     *     have the same dimension and the same shape, except that the axes
+     *     which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sum(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sum(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the product of the tensor elements.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The product of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    prod(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the product of the tensor elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the product is
+     *     performed.
+     *
+     * @return A new tensor with the product over the axes. The output tensor
+     *     will have the same dimension and the same shape, except that the
+     *     axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    prod(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    prod(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the cumulative sum of the tensor elements along a given
+     * axis.
+     *
+     * @param a A tensor-like object.
+     * @param axis Axis along which the cumulative sum is computed. Default is
+     *     zero.
+     *
+     * @return The cumulative sum of the tensor elements.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    cumsum(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
+
+    /**
+     * @brief Return the cumulative product of the tensor elements along a
+     * given axis.
+     *
+     * @param a A tensor-like object.
+     * @param axis Axis along which the cumulative product is computed. Default
+     *     is zero.
+     *
+     * @return The cumulative product of the tensor elements.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    cumprod(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
 
     /// Sorting and searching.
 

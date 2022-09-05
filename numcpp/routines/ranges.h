@@ -36,6 +36,26 @@ namespace numcpp {
 /// Namespace for range functions.
 namespace ranges {
     /**
+     * @brief Function object implementing std::max.
+     */
+    struct maximum {
+        template <class T>
+        T operator()(const T &lhs, const T &rhs) const {
+            return std::max(lhs, rhs);
+        }
+    };
+
+    /**
+     * @brief Function object implementing std::min.
+     */
+    struct minimum {
+        template <class T>
+        T operator()(const T &lhs, const T &rhs) const {
+            return std::min(lhs, rhs);
+        }
+    };
+
+    /**
      * @brief Function object implementing clamp.
      */
     template <class T>
