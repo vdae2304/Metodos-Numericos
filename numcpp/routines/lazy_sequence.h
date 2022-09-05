@@ -25,17 +25,9 @@
 #define NUMCPP_LAZY_SEQUENCE_H_INCLUDED
 
 #include <cmath>
-#include <type_traits>
 
 namespace numcpp {
     struct sequence_tag;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class T>
-    struct is_expression<base_tensor<T, 1, sequence_tag> > : std::true_type {};
-}
 
     /**
      * @brief A lazy_sequence is a light-weight object which stores a sequence

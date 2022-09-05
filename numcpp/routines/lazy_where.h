@@ -24,21 +24,9 @@
 #ifndef NUMCPP_LAZY_WHERE_H_INCLUDED
 #define NUMCPP_LAZY_WHERE_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
     template <class TagCond, class TagTrue, class TagFalse>
     struct lazy_where_tag;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class T, size_t Rank,
-              class TagCond, class TagTrue, class TagFalse>
-    struct is_expression<
-        base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse> >
-    > : std::true_type {};
-}
 
     /**
      * @brief A lazy_where is a light-weight object which selects elements from
@@ -232,16 +220,13 @@ namespace detail {
 
     private:
         // Condition tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<bool, Rank, TagCond> >
-        m_cond;
+        const base_tensor<bool, Rank, TagCond> &m_cond;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagTrue> >
-        m_true;
+        const base_tensor<T, Rank, TagTrue> &m_true;
 
         // Second tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagFalse> >
-        m_false;
+        const base_tensor<T, Rank, TagFalse> &m_false;
 
         // Common shape.
         shape_t<Rank> m_shape;
@@ -349,12 +334,10 @@ namespace detail {
 
     private:
         // Condition tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<bool, Rank, TagCond> >
-        m_cond;
+        const base_tensor<bool, Rank, TagCond> &m_cond;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagTrue> >
-        m_true;
+        const base_tensor<T, Rank, TagTrue> &m_true;
 
         // Second argument.
         T m_false;
@@ -465,15 +448,13 @@ namespace detail {
 
     private:
         // Condition tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<bool, Rank, TagCond> >
-        m_cond;
+        const base_tensor<bool, Rank, TagCond> &m_cond;
 
         // First tensor argument.
         T m_true;
 
         // Second argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagFalse> >
-        m_false;
+        const base_tensor<T, Rank, TagFalse> &m_false;
 
         // Common shape.
         shape_t<Rank> m_shape;
@@ -580,8 +561,7 @@ namespace detail {
 
     private:
         // Condition tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<bool, Rank, TagCond> >
-        m_cond;
+        const base_tensor<bool, Rank, TagCond> &m_cond;
 
         // First tensor argument.
         T m_true;

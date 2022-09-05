@@ -24,28 +24,11 @@
 #ifndef NUMCPP_LAZY_DIAGONAL_H_INCLUDED
 #define NUMCPP_LAZY_DIAGONAL_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
     struct lazy_eye_tag;
 
     template <class Tag>
     struct lazy_diagonal_tag;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class T>
-    struct is_expression<base_tensor<T, 2, lazy_eye_tag> > : std::true_type {};
-
-    template <class T, class Tag>
-    struct is_expression<base_tensor<T, 2, lazy_diagonal_tag<Tag> > >
-     : std::true_type {};
-
-    template <class T, class Tag>
-    struct is_expression<base_tensor<T, 1, lazy_diagonal_tag<Tag> > >
-     : std::true_type {};
-}
 
     /**
      * @brief A lazy_eye is a light-weight object with ones on the diagonal and
@@ -404,7 +387,7 @@ namespace detail {
 
     private:
         // Elements on the diagonal.
-        detail::ConstRefIfNotExpression<base_tensor<T, 1, Tag> > m_arg;
+        const base_tensor<T, 1, Tag> &m_arg;
 
         // Offset from the main diagonal.
         ptrdiff_t m_offset;
@@ -575,7 +558,7 @@ namespace detail {
 
     private:
         // Matrix from which the diagonal is taken.
-        detail::ConstRefIfNotExpression<base_tensor<T, 2, Tag> > m_arg;
+        const base_tensor<T, 2, Tag> &m_arg;
 
         // Offset from the main diagonal.
         ptrdiff_t m_offset;

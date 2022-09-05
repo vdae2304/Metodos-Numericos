@@ -24,19 +24,9 @@
 #ifndef NUMCPP_LAZY_REVERSE_H_INCLUDED
 #define NUMCPP_LAZY_REVERSE_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
     template <class Tag, size_t N>
     struct lazy_reverse_tag;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class T, size_t Rank, class Tag, size_t N>
-    struct is_expression<base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > >
-     : std::true_type {};
-}
 
     /**
      * @brief A lazy_reverse is a light-weight object which stores the elements
@@ -157,7 +147,7 @@ namespace detail {
          */
         T operator[](const index_t<Rank> &index) const {
             index_t<Rank> a_index = index;
-            for (size_t i = 0; i < N; ++i) {
+            for (size_t i = 0; i < m_axes.ndim(); ++i) {
                 a_index[m_axes[i]] =
                     m_arg.shape(m_axes[i]) - 1 - index[m_axes[i]];
             }
@@ -220,7 +210,7 @@ namespace detail {
 
     private:
         // Tensor object to reverse.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
+        const base_tensor<T, Rank, Tag> &m_arg;
 
         // Axes along which to reverse over.
         shape_t<N> m_axes;
