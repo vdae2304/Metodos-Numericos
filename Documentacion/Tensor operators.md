@@ -608,35 +608,6 @@ Example
 #include <iostream>
 #include "numcpp.h"
 namespace np = numcpp;
-
-// It is also possible to return expression objects.
-auto f(np::array<int> &x) -> decltype(2*x + 1) {
-    return 2*x + 1;
-}
-
-int main() {
-    np::array<int> x{-4,  4, 16,  1,  9, -4, 13,  8,  8, -1};
-    std::cout << "x:\n" << x << "\n";
-    std::cout << "f(x):\n" << f(x) << "\n";
-    return 0;
-}
-```
-
-Output
-
-```
-x:
-[-4,  4, 16,  1,  9, -4, 13,  8,  8, -1]
-f(x):
-[-7,  9, 33,  3, 19, -7, 27, 17, 17, -1]
-```
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a{{{17}, { 6}, {16}, {18}},
                          {{18}, {19}, {13}, {10}},
