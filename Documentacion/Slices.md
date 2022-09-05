@@ -61,11 +61,11 @@ namespace np = numcpp;
 int main() {
     np::array<int> arr{5, 8, 16, 16, 17, 20, 4, 10, 1, 6};
     // Selects indices 0, 1, 2, 3, 4.
-    std::cout << arr(np::slice(5)) << '\n';
+    std::cout << arr(np::slice(5)) << "\n";
     // Selects indices 2, 3, 4, 5, 6.
-    std::cout << arr(np::slice(2, 7)) << '\n';
+    std::cout << arr(np::slice(2, 7)) << "\n";
     // Selects indices 1, 3, 5, 7, 9.
-    std::cout << arr(np::slice(1, 10, 2)) << '\n';
+    std::cout << arr(np::slice(1, 10, 2)) << "\n";
     return 0;
 }
 ```
@@ -123,11 +123,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::slice slc1(5);
-    std::cout << slc1.start() << '\n';
+    std::cout << slc1.start() << "\n";
     np::slice slc2(2, 7);
-    std::cout << slc2.start() << '\n';
+    std::cout << slc2.start() << "\n";
     np::slice slc3(1, 10, 2);
-    std::cout << slc3.start() << '\n';
+    std::cout << slc3.start() << "\n";
     return 0;
 }
 ```
@@ -156,11 +156,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::slice slc1(5);
-    std::cout << slc1.last() << '\n';
+    std::cout << slc1.last() << "\n";
     np::slice slc2(2, 7);
-    std::cout << slc2.last() << '\n';
+    std::cout << slc2.last() << "\n";
     np::slice slc3(1, 10, 2);
-    std::cout << slc3.last() << '\n';
+    std::cout << slc3.last() << "\n";
     return 0;
 }
 ```
@@ -188,11 +188,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::slice slc1(5);
-    std::cout << slc1.size() << '\n';
+    std::cout << slc1.size() << "\n";
     np::slice slc2(2, 7);
-    std::cout << slc2.size() << '\n';
+    std::cout << slc2.size() << "\n";
     np::slice slc3(1, 10, 2);
-    std::cout << slc3.size() << '\n';
+    std::cout << slc3.size() << "\n";
     return 0;
 }
 ```
@@ -220,11 +220,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::slice slc1(5);
-    std::cout << slc1.stride() << '\n';
+    std::cout << slc1.stride() << "\n";
     np::slice slc2(2, 7);
-    std::cout << slc2.stride() << '\n';
+    std::cout << slc2.stride() << "\n";
     np::slice slc3(1, 10, 2);
-    std::cout << slc3.stride() << '\n';
+    std::cout << slc3.stride() << "\n";
     return 0;
 }
 ```
