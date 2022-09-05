@@ -24,25 +24,11 @@
 #ifndef NUMCPP_LAZY_OUTER_H_INCLUDED
 #define NUMCPP_LAZY_OUTER_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
     template <class Function,
               class T, size_t M, class TagT,
               class U, size_t N, class TagU>
     struct lazy_outer_tag;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class R, size_t Rank,
-              class Function,
-              class T, size_t M, class TagT,
-              class U, size_t N, class TagU>
-    struct is_expression<
-        base_tensor<R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU> >
-    > : std::true_type {};
-}
 
     /**
      * @brief A lazy_outer is a light-weight object which stores the result of
@@ -68,11 +54,11 @@ namespace detail {
     class base_tensor<
         R, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
     > {
+    public:
         static_assert(Rank == M + N, "Invalid Rank value for lazy_outer class");
 
-    public:
         /// Member types.
-        typedef typename std::remove_cv<R>::type value_type;
+        typedef typename std::decay<R>::type value_type;
         typedef R reference;
         typedef R const_reference;
         typedef nullptr_t pointer;
@@ -183,12 +169,12 @@ namespace detail {
          */
         R operator[](const index_t<Rank> &index) const {
             index_t<M> i;
-            for (size_t k = 0; k < M; ++k) {
+            for (size_t k = 0; k < i.ndim(); ++k) {
                 i[k] = index[k];
             }
             index_t<N> j;
-            for (size_t k = 0; k < N; ++k) {
-                j[k] = index[M + k];
+            for (size_t k = 0; k < j.ndim(); ++k) {
+                j[k] = index[i.ndim() + k];
             }
             return m_fun(m_lhs[i], m_rhs[j]);
         }
@@ -251,10 +237,10 @@ namespace detail {
         Function m_fun;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, M, TagT> > m_lhs;
+        const base_tensor<T, M, TagT> &m_lhs;
 
         // Second tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<U, N, TagU> > m_rhs;
+        const base_tensor<U, N, TagU> &m_rhs;
 
         // Common shape.
         shape_t<Rank> m_shape;

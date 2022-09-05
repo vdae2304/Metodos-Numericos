@@ -24,39 +24,7 @@
 #ifndef NUMCPP_LAZY_TENSOR_H_INCLUDED
 #define NUMCPP_LAZY_TENSOR_H_INCLUDED
 
-#include <type_traits>
-
 namespace numcpp {
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Checks whether a tensor subclass is an expression object.
-    template <class Tensor>
-    struct is_expression : std::false_type {};
-
-    template <class R, size_t Rank, class Function, class T, class Tag>
-    struct is_expression<
-        base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> >
-    > : std::true_type {};
-
-    template <class R, size_t Rank,
-              class Function,
-              class T, class TagT, class U, class TagU>
-    struct is_expression<
-        base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
-    > : std::true_type {};
-
-    /**
-     * @brief If a tensor subclass is an expression, return the template
-     * unchanged. Otherwise, return a const reference to it. Useful to avoid
-     * dangling references when returning expression objects.
-     */
-    template <class Tensor>
-    using ConstRefIfNotExpression = typename std::conditional<
-        is_expression<Tensor>::value, Tensor, const Tensor&
-    >::type;
-}
-
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
      * applying an unary function on each element in a tensor object. The
@@ -73,7 +41,7 @@ namespace detail {
     class base_tensor<R, Rank, lazy_unary_tag<Function, T, Tag> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<R>::type value_type;
+        typedef typename std::decay<R>::type value_type;
         typedef R reference;
         typedef R const_reference;
         typedef nullptr_t pointer;
@@ -240,7 +208,7 @@ namespace detail {
         Function m_fun;
 
         // Tensor object where the function is applied.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_arg;
+        const base_tensor<T, Rank, Tag> &m_arg;
     };
 
     /**
@@ -263,7 +231,7 @@ namespace detail {
     class base_tensor<R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<R>::type value_type;
+        typedef typename std::decay<R>::type value_type;
         typedef R reference;
         typedef R const_reference;
         typedef nullptr_t pointer;
@@ -438,10 +406,10 @@ namespace detail {
         Function m_fun;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, TagT> > m_lhs;
+        const base_tensor<T, Rank, TagT> &m_lhs;
 
         // Second tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<U, Rank, TagU> > m_rhs;
+        const base_tensor<U, Rank, TagU> &m_rhs;
 
         // Common shape.
         shape_t<Rank> m_shape;
@@ -462,7 +430,7 @@ namespace detail {
     > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<R>::type value_type;
+        typedef typename std::decay<R>::type value_type;
         typedef R reference;
         typedef R const_reference;
         typedef nullptr_t pointer;
@@ -552,7 +520,7 @@ namespace detail {
         Function m_fun;
 
         // First tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<T, Rank, Tag> > m_lhs;
+        const base_tensor<T, Rank, Tag> &m_lhs;
 
         // Value to use as second argument.
         U m_val;
@@ -570,7 +538,7 @@ namespace detail {
     > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<R>::type value_type;
+        typedef typename std::decay<R>::type value_type;
         typedef R reference;
         typedef R const_reference;
         typedef nullptr_t pointer;
@@ -663,7 +631,7 @@ namespace detail {
         T m_val;
 
         // Second tensor argument.
-        detail::ConstRefIfNotExpression<base_tensor<U, Rank, Tag> > m_rhs;
+        const base_tensor<U, Rank, Tag> &m_rhs;
     };
 }
 
