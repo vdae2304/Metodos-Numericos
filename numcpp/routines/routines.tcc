@@ -75,6 +75,172 @@ namespace numcpp {
         return tensor<T, Rank>(like.shape(), val);
     }
 
+    /// Numerical ranges.
+
+    template <class T>
+    base_tensor<T, 1, sequence_tag> arange(const T &stop) {
+        size_t size = 0;
+        if (stop > 0) {
+            size = std::ceil(stop);
+        }
+        return base_tensor<T, 1, sequence_tag>(T(), size, T(1));
+    }
+
+    template <class T, class U>
+    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    arange(const T &start, const U &stop) {
+        typedef typename std::common_type<T, U>::type Rt;
+        size_t size = 0;
+        if (start < stop) {
+            size = std::ceil(stop - start);
+        }
+        return base_tensor<Rt, 1, sequence_tag>(start, size, Rt(1));
+    }
+
+    template <class T, class U, class V>
+    base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
+    arange(const T &start, const U &stop, const V &step) {
+        typedef typename std::common_type<T, U, V>::type Rt;
+        size_t size = 0;
+        if ((start < stop && step > 0) || (start > stop && step < 0)) {
+            size = std::ceil((double)(stop - start) / step);
+        }
+        return base_tensor<Rt, 1, sequence_tag>(start, size, step);
+    }
+
+    template <class T, class U>
+    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    linspace(const T &start, const U &stop, size_t num, bool endpoint) {
+        typedef typename std::common_type<T, U>::type Rt;
+        Rt step = stop - start;
+        step /= num - endpoint;
+        return base_tensor<Rt, 1, sequence_tag>(start, num, step);
+    }
+
+    template <class T, class U>
+    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    logspace(const T &start, const U &stop, size_t num, bool endpoint) {
+        typedef typename std::common_type<T, U>::type Rt;
+        Rt step = stop - start;
+        step /= num - endpoint;
+        return base_tensor<Rt, 1, sequence_tag>(start, num, step, Rt(10));
+    }
+
+    template <class T, class U, class V>
+    base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
+    logspace(
+        const T &start, const U &stop, size_t num, bool endpoint,
+        const V &base
+    ) {
+        typedef typename std::common_type<T, U, V>::type Rt;
+        Rt step = stop - start;
+        step /= num - endpoint;
+        return base_tensor<Rt, 1, sequence_tag>(start, num, step, base);
+    }
+
+    template <class T, class U>
+    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    geomspace(const T &start, const U &stop, size_t num, bool endpoint) {
+        typedef typename std::common_type<T, U>::type Rt;
+        Rt logstart = std::log10(Rt(start));
+        Rt logstop = std::log10(Rt(stop));
+        Rt logstep = logstop - logstart;
+        logstep /= num - endpoint;
+        return base_tensor<Rt, 1, sequence_tag>(logstart, num, logstep, Rt(10));
+    }
+
+    /// Building matrices.
+
+    template <class T>
+    inline base_tensor<T, 2, lazy_eye_tag> eye(size_t n) {
+        return base_tensor<T, 2, lazy_eye_tag>(n, n);
+    }
+
+    template <class T>
+    inline base_tensor<T, 2, lazy_eye_tag>
+    eye(size_t m, size_t n, ptrdiff_t k) {
+        return base_tensor<T, 2, lazy_eye_tag>(m, n, k);
+    }
+
+    template <class T, class Tag>
+    inline base_tensor<T, 1, lazy_diagonal_tag<Tag> >
+    diag(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        typedef lazy_diagonal_tag<Tag> Closure;
+        return base_tensor<T, 1, Closure>(a, k);
+    }
+
+    template <class T, class Tag>
+    inline base_tensor<T, 2, lazy_diagonal_tag<Tag> >
+    diag(const base_tensor<T, 1, Tag> &a, ptrdiff_t k) {
+        typedef lazy_diagonal_tag<Tag> Closure;
+        return base_tensor<T, 2, Closure>(a, k);
+    }
+
+    template <class T, class Tag>
+    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k) {
+        tensor<T, 2> out(mat.shape(), T());
+        if (k >= 0) {
+            for (size_t i = 0; i < mat.shape(0); ++i) {
+                for (size_t j = 0; j <= i + k && j < mat.shape(1); ++j) {
+                    out(i, j) = mat(i, j);
+                }
+            }
+        }
+        else {
+            for (size_t j = 0; j < mat.shape(1); ++j) {
+                for (size_t i = j - k; i < mat.shape(0); ++i) {
+                    out(i, j) = mat(i, j);
+                }
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag>
+    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &mat, ptrdiff_t k) {
+        tensor<T, 2> out(mat.shape(), T());
+        if (k >= 0) {
+            for (size_t i = 0; i < mat.shape(0); ++i) {
+                for (size_t j = i + k; j < mat.shape(1); ++j) {
+                    out(i, j) = mat(i, j);
+                }
+            }
+        }
+        else {
+            for (size_t j = 0; j < mat.shape(1); ++j) {
+                for (size_t i = 0; i <= j - k && i < mat.shape(0); ++i) {
+                    out(i, j) = mat(i, j);
+                }
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag>
+    inline tensor<T, 2> vander(const base_tensor<T, 1, Tag> &x) {
+        return vander(x, x.size());
+    }
+
+    template <class T, class Tag>
+    tensor<T, 2> vander(
+        const base_tensor<T, 1, Tag> &x, size_t N, bool increasing
+    ) {
+        tensor<T, 2> out(x.size(), N);
+        for (size_t i = 0; i < x.size(); ++i) {
+            T pow = T(1);
+            for (size_t j = 0; j < N; ++j) {
+                if (increasing) {
+                    out(i, j) = pow;
+                }
+                else {
+                    out(i, N - 1 - j) = pow;
+                }
+                pow *= x[i];
+            }
+        }
+        return out;
+    }
+
     /// Sorting and searching.
 
     template <class T, size_t Rank,

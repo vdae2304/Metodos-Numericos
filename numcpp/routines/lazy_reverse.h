@@ -52,7 +52,7 @@ namespace detail {
     class base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > {
     public:
         /// Member types.
-        typedef typename std::remove_cv<T>::type value_type;
+        typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
         typedef T reference;
         typedef T const_reference;
         typedef nullptr_t pointer;
