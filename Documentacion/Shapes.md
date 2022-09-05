@@ -68,11 +68,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);
-    std::cout << shape1 << '\n';
+    std::cout << shape1 << "\n";
     np::shape_t<2> shape2(4, 6);
-    std::cout << shape2 << '\n';
+    std::cout << shape2 << "\n";
     np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3 << '\n';
+    std::cout << shape3 << "\n";
     return 0;
 }
 ```
@@ -128,11 +128,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);
-    std::cout << shape1.ndim() << '\n';
+    std::cout << shape1.ndim() << "\n";
     np::shape_t<2> shape2(4, 6);
-    std::cout << shape2.ndim() << '\n';
+    std::cout << shape2.ndim() << "\n";
     np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3.ndim() << '\n';
+    std::cout << shape3.ndim() << "\n";
     return 0;
 }
 ```
@@ -164,11 +164,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);
-    std::cout << shape1.size() << '\n';
+    std::cout << shape1.size() << "\n";
     np::shape_t<2> shape2(4, 6);
-    std::cout << shape2.size() << '\n';
+    std::cout << shape2.size() << "\n";
     np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3.size() << '\n';
+    std::cout << shape3.size() << "\n";
     return 0;
 }
 ```
