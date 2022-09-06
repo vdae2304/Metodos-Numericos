@@ -27,18 +27,18 @@
 namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag> make_tensor_iterator(
-        base_tensor<T, Rank, Tag> *ptr, size_t index, bool order
+        base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
     ) {
         return base_tensor_iterator<T, Rank, Tag>(ptr, index, order);
     }
 
     template <class T, size_t Rank, class Tag>
     base_tensor_iterator<T, Rank, Tag>::base_tensor_iterator()
-     : m_ptr(NULL), m_index(0), m_order(true) {}
+     : m_ptr(NULL), m_index(0), m_order(row_major) {}
 
     template <class T, size_t Rank, class Tag>
     base_tensor_iterator<T, Rank, Tag>::base_tensor_iterator(
-        base_tensor<T, Rank, Tag> *ptr, size_t index, bool order
+        base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
     ) : m_ptr(ptr), m_index(index), m_order(order) {}
 
     template <class T, size_t Rank, class Tag>
@@ -138,13 +138,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline bool base_tensor_iterator<T, Rank, Tag>::rowmajor() const {
+    inline layout_t base_tensor_iterator<T, Rank, Tag>::layout() const {
         return m_order;
-    }
-
-    template <class T, size_t Rank, class Tag>
-    inline bool base_tensor_iterator<T, Rank, Tag>::colmajor() const {
-        return !m_order;
     }
 
     template <class T, size_t Rank, class Tag>
@@ -229,24 +224,24 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
-        const base_tensor<T, Rank, Tag> *ptr, size_t index, bool order
+        const base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
     ) {
         return base_tensor_const_iterator<T, Rank, Tag>(ptr, index, order);
     }
 
     template <class T, size_t Rank, class Tag>
     base_tensor_const_iterator<T, Rank, Tag>::base_tensor_const_iterator()
-     : m_ptr(NULL), m_index(0), m_order(true) {}
+     : m_ptr(NULL), m_index(0), m_order(row_major) {}
 
     template <class T, size_t Rank, class Tag>
     base_tensor_const_iterator<T, Rank, Tag>::base_tensor_const_iterator(
-        const base_tensor<T, Rank, Tag> *ptr, size_t index, bool order
+        const base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
     ) : m_ptr(ptr), m_index(index), m_order(order) {}
 
     template <class T, size_t Rank, class Tag>
     base_tensor_const_iterator<T, Rank, Tag>::base_tensor_const_iterator(
         const base_tensor_iterator<T, Rank, Tag> &other
-    ) : m_ptr(other.base()), m_index(other.index()), m_order(other.rowmajor())
+    ) : m_ptr(other.base()), m_index(other.index()), m_order(other.layout())
      {}
 
     template <class T, size_t Rank, class Tag>
@@ -261,7 +256,7 @@ namespace numcpp {
     ) {
         m_ptr = other.base();
         m_index = other.index();
-        m_order = other.rowmajor();
+        m_order = other.layout();
         return *this;
     }
 
@@ -358,13 +353,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline bool base_tensor_const_iterator<T, Rank, Tag>::rowmajor() const {
+    inline layout_t base_tensor_const_iterator<T, Rank, Tag>::layout() const {
         return m_order;
-    }
-
-    template <class T, size_t Rank, class Tag>
-    inline bool base_tensor_const_iterator<T, Rank, Tag>::colmajor() const {
-        return !m_order;
     }
 
     template <class T, size_t Rank, class Tag>

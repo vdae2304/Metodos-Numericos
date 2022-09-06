@@ -162,7 +162,8 @@ namespace numcpp {
      *
      * @return An index_sequence object which iterates over the indices of a
      *     tensor. At each iteration, a new index is returned. The elements are
-     *     iterated in row-major order, i.e., from first axis to last axis.
+     *     iterated in row-major order, i.e., with the last index varying the
+     *     fastest.
      */
     template <size_t Rank>
     index_sequence<Rank> make_indices(const shape_t<Rank> &shape) {

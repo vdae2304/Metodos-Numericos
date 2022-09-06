@@ -56,7 +56,8 @@ namespace numcpp {
          * @brief Flat index constructor.
          */
         base_tensor_iterator(
-            base_tensor<T, Rank, Tag> *ptr, size_t index, bool order = true
+            base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+            layout_t order = row_major
         );
 
         /**
@@ -102,15 +103,9 @@ namespace numcpp {
         index_t<Rank> coords() const;
 
         /**
-         * @brief Returns whether the elements are iterated in row-major order.
+         * @brief Returns the order in which elements are iterated.
          */
-        bool rowmajor() const;
-
-        /**
-         * @brief Returns whether the elements are iterated in column-major
-         * order.
-         */
-        bool colmajor() const;
+        layout_t layout() const;
 
     private:
         // Pointer to the base_tensor associated to the iterator.
@@ -119,8 +114,8 @@ namespace numcpp {
         // Index associated to the iterator.
         size_t m_index;
 
-        // Row-major (true) or column-major (false) order.
-        bool m_order;
+        // Layout iteration.
+        layout_t m_order;
     };
 
     /**
@@ -129,7 +124,8 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag>
     base_tensor_iterator<T, Rank, Tag> make_tensor_iterator(
-        base_tensor<T, Rank, Tag> *ptr, size_t index, bool order = true
+        base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+        layout_t order = row_major
     );
 
     /// Arithmetic operators for base_tensor_iterator (non member functions).
@@ -224,8 +220,8 @@ namespace numcpp {
          * @brief Flat index constructor.
          */
         base_tensor_const_iterator(
-            const base_tensor<T, Rank, Tag> *ptr, size_t index,
-            bool order = true
+            const base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+            layout_t order = row_major
         );
 
         /**
@@ -279,15 +275,9 @@ namespace numcpp {
         index_t<Rank> coords() const;
 
         /**
-         * @brief Returns whether the elements are iterated in row-major order.
+         * @brief Returns the order in which elements are iterated.
          */
-        bool rowmajor() const;
-
-        /**
-         * @brief Returns whether the elements are iterated in column-major
-         * order.
-         */
-        bool colmajor() const;
+        layout_t layout() const;
 
     private:
         // Pointer to the base_tensor associated to the iterator.
@@ -296,8 +286,8 @@ namespace numcpp {
         // Index associated to the iterator.
         size_t m_index;
 
-        // Row-major (true) or column-major (false) order.
-        bool m_order;
+        // Layout iteration.
+        layout_t m_order;
     };
 
     /**
@@ -306,7 +296,8 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag>
     base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
-        const base_tensor<T, Rank, Tag> *ptr, size_t index, bool order = true
+        const base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+        layout_t order = row_major
     );
 
     /// Arithmetic operators for base_tensor_const_iterator (non member
