@@ -70,20 +70,22 @@ namespace detail {
         // Shape used for raveling.
         shape_t<Rank> shape;
 
-        // Whether the indices should be viewed as indexing in row-major order
-        // or column-major order
-        bool order;
+        // Whether the indices should be viewed as indexing in row-major or
+        // column-major order
+        layout_t order;
 
         /**
          * @brief Constructor.
          */
-        ravel_index(const shape_t<Rank> &shape, bool order = true)
+        ravel_index(const shape_t<Rank> &shape, layout_t order = row_major)
          : shape(shape), order(order) {}
 
         /**
          * @brief Converts a tuple of indices into a flat index.
          *
          * @param index A tuple of indices to flatten.
+         *
+         * @return The flattened index.
          */
         size_t operator()(const index_t<Rank> &index) const {
             return numcpp::ravel_index(index, shape, order);
@@ -98,20 +100,22 @@ namespace detail {
         // Shape used for unraveling.
         shape_t<Rank> shape;
 
-        // Whether the indices should be viewed as indexing in row-major order
-        // or column-major order
-        bool order;
+        // Whether the indices should be viewed as indexing in row-major or
+        // column-major order
+        layout_t order;
 
         /**
          * @brief Constructor.
          */
-        unravel_index(const shape_t<Rank> &shape, bool order = true)
+        unravel_index(const shape_t<Rank> &shape, layout_t order = row_major)
          : shape(shape), order(order) {}
 
         /**
          * @brief Converts a flat index into a tuple of indices.
          *
          * @param index Index to unravel.
+         *
+         * @return The unraveled index.
          */
         index_t<Rank> operator()(size_t index) const {
             return numcpp::unravel_index(index, shape, order);

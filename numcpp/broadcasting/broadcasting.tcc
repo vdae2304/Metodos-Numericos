@@ -219,9 +219,9 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-    flatten(const base_tensor<T, Rank, Tag> &a, bool row_major) {
+    flatten(const base_tensor<T, Rank, Tag> &a, layout_t order) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
-        return tensor<Rt, 1>(a.size(), a.begin(row_major));
+        return tensor<Rt, 1>(a.size(), a.begin(order));
     }
 
     template <class T, class U, size_t Rank, class TagT, class TagU>
@@ -641,7 +641,7 @@ namespace detail {
         lazy_unary_tag<detail::ravel_index<Rank>, index_t<Rank>, Tag>
     > ravel_index(
         const base_tensor<index_t<Rank>, N, Tag> &index,
-        const shape_t<Rank> &shape, bool order
+        const shape_t<Rank> &shape, layout_t order
     ) {
         typedef size_t Rt;
         typedef lazy_unary_tag<detail::ravel_index<Rank>, index_t<Rank>, Tag>
@@ -658,7 +658,7 @@ namespace detail {
         lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>
     > unravel_index(
         const base_tensor<IntegralType, N, Tag> &index,
-        const shape_t<Rank> &shape, bool order
+        const shape_t<Rank> &shape, layout_t order
     ) {
         typedef index_t<Rank> Rt;
         typedef lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>

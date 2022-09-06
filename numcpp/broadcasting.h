@@ -161,10 +161,8 @@ namespace numcpp {
      * @brief Return a copy of the tensor flattened into one dimension.
      *
      * @param a Tensor-like object to flatten.
-     * @param row_major Whether to flatten the elements in row-major order
-     *     (i.e., from first axis to last axis) or column-major order (i.e.,
-     *     from last axis to first axis). Defaults to the same order as stored
-     *     in memory.
+     * @param order Whether to flatten the elements in row-major order or
+     *     column-major order. Defaults to the same layout as stored in memory.
      *
      * @return The flattened tensor.
      *
@@ -177,7 +175,7 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-    flatten(const base_tensor<T, Rank, Tag> &a, bool row_major);
+    flatten(const base_tensor<T, Rank, Tag> &a, layout_t order);
 
     /**
      * @brief Return a tensor of pairs with each pair constructed from the
@@ -504,8 +502,7 @@ namespace numcpp {
      * @param index A tensor-like object with the indices to flatten.
      * @param shape The shape of the tensor used for raveling.
      * @param order Determines whether the indices should be viewed as indexing
-     *     in row-major order (true) or column-major order (false). Defaults to
-     *     row-major order.
+     *     in row-major or column-major order. Defaults to row-major order.
      *
      * @return A light-weight object with the flattened indices. This function
      *     does not create a new tensor, instead, an expression object is
@@ -517,7 +514,7 @@ namespace numcpp {
         lazy_unary_tag<detail::ravel_index<Rank>, index_t<Rank>, Tag>
     > ravel_index(
         const base_tensor<index_t<Rank>, N, Tag> &index,
-        const shape_t<Rank> &shape, bool order = true
+        const shape_t<Rank> &shape, layout_t order = row_major
     );
 
     /**
@@ -526,8 +523,7 @@ namespace numcpp {
      * @param index A tensor-like object with the indices to unravel.
      * @param shape The shape of the tensor used for unraveling.
      * @param order Determines whether the indices should be viewed as indexing
-     *     in row-major order (true) or column-major order (false). Defaults to
-     *     row-major order.
+     *     in row-major or column-major order. Defaults to row-major order.
      *
      * @return A light-weight object with the unraveled indices. This function
      *     does not create a new tensor, instead, an expression object is
@@ -540,7 +536,7 @@ namespace numcpp {
         lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>
     > unravel_index(
         const base_tensor<IntegralType, N, Tag> &index,
-        const shape_t<Rank> &shape, bool order = true
+        const shape_t<Rank> &shape, layout_t order = row_major
     );
 
     /**
