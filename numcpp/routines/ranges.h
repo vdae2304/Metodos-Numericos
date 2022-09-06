@@ -14,14 +14,15 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/tensor.h
-  *  This header defines the tensor class.
+ /** @file include/numcpp/routines/ranges.h
+  *  This is an internal header file, included by other library headers.
+  *  Do not attempt to use it directly. @headername{numcpp/routines.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_ROUTINES_ALGO_H_INCLUDED
-#define NUMCPP_ROUTINES_ALGO_H_INCLUDED
+#ifndef NUMCPP_RANGES_H_INCLUDED
+#define NUMCPP_RANGES_H_INCLUDED
 
 #include <algorithm>
 #include <cmath>
@@ -113,6 +114,63 @@ namespace ranges {
     };
 
     /**
+     * @brief Function object implementing isclose.
+     */
+    template <class T>
+    struct isclose {
+        // Relative and absolute tolerances.
+        T rtol, atol;
+
+        /**
+         * @brief Constructor.
+         *
+         * @param rtol Relative tolerance.
+         * @param atol Absolute tolerance.
+         */
+        isclose(const T &rtol, const T &atol) : rtol(rtol), atol(atol) {
+            if (rtol < 0 || atol < 0) {
+                char error[] = "tolerances must be non-negative";
+                throw std::invalid_argument(error);
+            }
+        }
+
+        /**
+         * @brief Return if two numbers are equal within a tolerance.
+         *
+         * @param a A floating-point number.
+         * @param b A floating-point number.
+         *
+         * @return true if the values are considered equal and false otherwise.
+         */
+        bool operator()(const T &a, const T &b) const {
+            if (std::isfinite(a) && std::isfinite(b)) {
+                T max_abs = std::fmax(std::abs(a), std::abs(b));
+                return std::abs(a - b) <= std::max(rtol * max_abs, atol);
+            }
+            else if (std::isnan(a) || std::isnan(b)) {
+                return false;
+            }
+            else {
+                return std::signbit(a) == std::signbit(b);
+            }
+        }
+    };
+
+    /**
+     * @brief Specialization of isclose for complex values.
+     */
+    template <class T>
+    struct isclose< std::complex<T> > : isclose<T> {
+        isclose(const T &rtol, const T &atol) : isclose<T>(rtol, atol) {}
+
+        bool operator()(const std::complex<T> &a, const std::complex<T> &b)
+        const {
+            return (isclose<T>::operator()(a.real(), b.real()) &&
+                    isclose<T>::operator()(a.imag(), b.imag()));
+        }
+    };
+
+    /**
      * @brief Function object implementing all of range.
      */
     struct all {
@@ -150,6 +208,26 @@ namespace ranges {
         template <class InputIterator>
         bool operator()(InputIterator first, InputIterator last) const {
             return (last != std::find(first, last, true));
+        }
+    };
+
+    /**
+     * @brief Function object implementing count non-zero of range.
+     */
+    struct count_nonzero {
+        /**
+         * @brief Returns the number of non-zero elements in the range
+         * [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The number of non-zero elements in the range.
+         */
+        template <class InputIterator>
+        size_t operator()(InputIterator first, InputIterator last) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            return std::distance(first, last) - std::count(first, last, T());
         }
     };
 
@@ -485,4 +563,4 @@ namespace ranges {
 }
 }
 
-#endif // NUMCPP_ROUTINES_ALGO_H_INCLUDED
+#endif // NUMCPP_RANGES_H_INCLUDED

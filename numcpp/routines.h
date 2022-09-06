@@ -715,6 +715,337 @@ namespace numcpp {
     tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     cumprod(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
 
+    /// Logic functions.
+
+    /**
+     * @brief Test whether all tensor elements evaluates to true.
+     *
+     * @param a A tensor-like object of bool.
+     *
+     * @return true if all the elements evaluates to true and false otherwise.
+     */
+    template <size_t Rank, class Tag>
+    bool all(const base_tensor<bool, Rank, Tag> &a);
+
+    /**
+     * @brief Test whether all tensor elements over the given axes evaluates to
+     * true.
+     *
+     * @param a A tensor-like object of bool.
+     * @param axes A shape_t object with the axes along which the logical AND
+     *     reduction is performed.
+     *
+     * @return A new tensor with the results of the test over the axes. The
+     *     output tensor will have the same dimension and the same shape,
+     *     except that the axes which are reduced are left as dimensions of
+     *     size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <size_t Rank, class Tag>
+    tensor<bool, Rank>
+    all(const base_tensor<bool, Rank, Tag> &a, size_t axis);
+
+    template <size_t Rank, class Tag, size_t N>
+    tensor<bool, Rank>
+    all(const base_tensor<bool, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Test whether any tensor element evaluates to true.
+     *
+     * @param a A tensor-like object of bool.
+     *
+     * @return true if any element evaluates to true and false otherwise.
+     */
+    template <size_t Rank, class Tag>
+    bool any(const base_tensor<bool, Rank, Tag> &a);
+
+    /**
+     * @brief Test whether any tensor element over the given axes evaluates to
+     * true.
+     *
+     * @param a A tensor-like object of bool.
+     * @param axes A shape_t object with the axes along which the logical OR
+     *     reduction is performed.
+     *
+     * @return A new tensor with the results of the test over the axes. The
+     *     output tensor will have the same dimension and the same shape,
+     *     except that the axes which are reduced are left as dimensions of
+     *     size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <size_t Rank, class Tag>
+    tensor<bool, Rank>
+    any(const base_tensor<bool, Rank, Tag> &a, size_t axis);
+
+    template <size_t Rank, class Tag, size_t N>
+    tensor<bool, Rank>
+    any(const base_tensor<bool, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Count the number of non-zero elements in the tensor.
+     *
+     * @param a A tensor-like object of bool.
+     *
+     * @return The number of non-zero elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    size_t count_nonzero(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Count the number of non-zero elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which to count
+     *     non-zeros.
+     *
+     * @return A new tensor with the number of non-zero elements over the axes.
+     *     The output tensor will have the same dimension and the same shape,
+     *     except that the axes which are reduced are left as dimensions of
+     *     size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    count_nonzero(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<size_t, Rank>
+    count_nonzero(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return if two numbers are equal within a tolerance.
+     *
+     * @details Whether or not two values are considered equal is determined
+     * according to given absolute and relative tolerance. The tolerances must
+     * be non-negative, typically very small numbers. For floating-point
+     * values, the function uses the following equation to test whether two
+     * numbers are equivalent:
+     *     abs(a - b) <= fmax(rtol * max(abs(a), abs(b)), atol)
+     * NaN is not considered equal to any other value, including NaN. inf and
+     * -inf are only considered equal to themselves.
+     *
+     * @param a An integer, floating-point or complex value.
+     * @param b An integer, floating-point or complex value.
+     * @param rtol The relative tolerance.
+     * @param atol The absolute tolerance.
+     *
+     * @return true if the values are considered equal and false otherwise.
+     */
+    bool isclose(float a, float b, float rtol = 1e-8f, float atol = 0.f);
+
+    bool isclose(double a, double b, double rtol = 1e-8, double atol = 0.);
+
+    bool isclose(
+        long double a, long double b,
+        long double rtol = 1e-8L, long double atol = 0.L
+    );
+
+    /**
+     * @brief Additional overloads for arithmetic types.
+     *
+     * @details If any argument has integral type, it is cast to double. If any
+     * argument is long double, the other argument is promoted to long double.
+     * If any argument is float, it is promoted to double.
+     */
+    template <class T, class U>
+    typename std::enable_if<
+        std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, bool
+    >::type isclose(
+        T a, U b,
+        typename std::common_type<T, U, double>::type rtol = 1e-8,
+        typename std::common_type<T, U, double>::type atol = 0.
+    );
+
+    /**
+     * @brief Additional overloads for complex types. For complex types, the
+     * equality is tested on both real and imaginary parts.
+     */
+    template <class T>
+    bool isclose(
+        const std::complex<T> &a, const std::complex<T> &b,
+        typename std::complex<T>::value_type rtol = T(1e-8),
+        typename std::complex<T>::value_type atol = T(0)
+    );
+
+    template <class T>
+    bool isclose(
+        const std::complex<T> &a,
+        const typename std::complex<T>::value_type &b,
+        typename std::complex<T>::value_type rtol = T(1e-8),
+        typename std::complex<T>::value_type atol = T(0)
+    );
+
+    template <class T>
+    bool isclose(
+        const typename std::complex<T>::value_type &a,
+        const std::complex<T> &b,
+        typename std::complex<T>::value_type rtol = T(1e-8),
+        typename std::complex<T>::value_type atol = T(0)
+    );
+
+    template <class T, class U>
+    bool isclose(
+        const std::complex<T> &a, const std::complex<U> &b,
+        typename std::common_type<T, U>::type rtol = 1e-8,
+        typename std::common_type<T, U>::type atol = 0
+    );
+
+    /**
+     * @brief Return if two tensors are equal, element-wise, within a
+     * tolerance.
+     *
+     * @param a First tensor-like object to compare.
+     * @param b Second tensor-like object to compare.
+     * @param val Value to use either as first argument or second argument.
+     *     Values are broadcasted to an appropriate size.
+     * @param rtol The relative tolerance.
+     * @param atol The absolute tolerance.
+     *
+     * @return A light-weight object of bool with each element set to true
+     *     where a and b are equal within the given tolerance, and false
+     *     otherwise. This function does not create a new tensor, instead, it
+     *     returns an expression object with the element-wise comparison.
+     *
+     * @throw std::invalid_argument Thrown if the shapes are not compatible and
+     *     cannot be broadcasted according to broadcasting rules.
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2>
+    > isclose(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
+    > isclose(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
+    > isclose(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag1, T, Tag2
+        >
+    > isclose(
+        const base_tensor<std::complex<T>, Rank, Tag1> &a,
+        const base_tensor<std::complex<T>, Rank, Tag2> &b,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag, T, scalar_tag
+        >
+    > isclose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a,
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, scalar_tag, T, Tag
+        >
+    > isclose(
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const base_tensor<std::complex<T>, Rank, Tag> &b,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
+    /**
+     * @brief Test whether all elements in two tensors are element-wise equal
+     * within a tolerance.
+     *
+     * @param a First tensor-like object to compare.
+     * @param b Second tensor-like object to compare.
+     * @param val Value to use either as first argument or second argument.
+     *     Values are broadcasted to an appropriate size.
+     * @param rtol The relative tolerance.
+     * @param atol The absolute tolerance.
+     *
+     * @return true if all the elements are considered equal and false
+     *     otherwise.
+     *
+     * @throw std::invalid_argument Thrown if the shapes are not compatible and
+     *     cannot be broadcasted according to broadcasting rules.
+     */
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    bool allclose(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    bool allclose(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    bool allclose(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b,
+        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
+        const typename tensor<T, Rank>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    bool allclose(
+        const base_tensor<std::complex<T>, Rank, Tag1> &a,
+        const base_tensor<std::complex<T>, Rank, Tag2> &b,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    bool allclose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a,
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
+    template <class T, size_t Rank, class Tag>
+    bool allclose(
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const base_tensor<std::complex<T>, Rank, Tag> &b,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    );
+
     /// Sorting and searching.
 
     /**

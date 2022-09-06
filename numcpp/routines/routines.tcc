@@ -460,6 +460,311 @@ namespace numcpp {
         return out;
     }
 
+    /// Logic functions.
+
+    template <size_t Rank, class Tag>
+    bool all(const base_tensor<bool, Rank, Tag> &a) {
+        ranges::all pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <size_t Rank, class Tag>
+    tensor<bool, Rank>
+    all(const base_tensor<bool, Rank, Tag> &a, size_t axis) {
+        tensor<bool, Rank> out;
+        apply_along_axis(out, ranges::all(), a, axis);
+        return out;
+    }
+
+    template <size_t Rank, class Tag, size_t N>
+    tensor<bool, Rank>
+    all(const base_tensor<bool, Rank, Tag> &a, const shape_t<N> &axes) {
+        tensor<bool, Rank> out;
+        apply_over_axes(out, ranges::all(), a, axes);
+        return out;
+    }
+
+    template <size_t Rank, class Tag>
+    bool any(const base_tensor<bool, Rank, Tag> &a) {
+        ranges::any pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <size_t Rank, class Tag>
+    tensor<bool, Rank>
+    any(const base_tensor<bool, Rank, Tag> &a, size_t axis) {
+        tensor<bool, Rank> out;
+        apply_along_axis(out, ranges::any(), a, axis);
+        return out;
+    }
+
+    template <size_t Rank, class Tag, size_t N>
+    tensor<bool, Rank>
+    any(const base_tensor<bool, Rank, Tag> &a, const shape_t<N> &axes) {
+        tensor<bool, Rank> out;
+        apply_over_axes(out, ranges::any(), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    size_t count_nonzero(const base_tensor<T, Rank, Tag> &a) {
+        ranges::count_nonzero pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank>
+    count_nonzero(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        tensor<size_t, Rank> out;
+        apply_along_axis(out, ranges::count_nonzero(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<size_t, Rank>
+    count_nonzero(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        tensor<size_t, Rank> out;
+        apply_over_axes(out, ranges::count_nonzero(), a, axes);
+        return out;
+    }
+
+    bool isclose(float a, float b, float rtol, float atol) {
+        ranges::isclose<float> pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    bool isclose(double a, double b, double rtol, double atol) {
+        ranges::isclose<double> pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    bool isclose(
+        long double a, long double b, long double rtol, long double atol
+    ) {
+        ranges::isclose<long double> pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T, class U>
+    typename std::enable_if<
+        std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, bool
+    >::type isclose(
+        T a, U b,
+        typename std::common_type<T, U, double>::type rtol,
+        typename std::common_type<T, U, double>::type atol
+    ) {
+        typedef typename std::common_type<T, U, double>::type Rt;
+        ranges::isclose<Rt> pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T>
+    bool isclose(
+        const std::complex<T> &a, const std::complex<T> &b,
+        typename std::complex<T>::value_type rtol,
+        typename std::complex<T>::value_type atol
+    ) {
+        ranges::isclose<std::complex<T> > pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T>
+    bool isclose(
+        const std::complex<T> &a,
+        const typename std::complex<T>::value_type &b,
+        typename std::complex<T>::value_type rtol,
+        typename std::complex<T>::value_type atol
+    ) {
+        ranges::isclose<std::complex<T> > pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T>
+    bool isclose(
+        const typename std::complex<T>::value_type &a,
+        const std::complex<T> &b,
+        typename std::complex<T>::value_type rtol,
+        typename std::complex<T>::value_type atol
+    ) {
+        ranges::isclose<std::complex<T> > pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T, class U>
+    bool isclose(
+        const std::complex<T> &a, const std::complex<U> &b,
+        typename std::common_type<T, U>::type rtol,
+        typename std::common_type<T, U>::type atol
+    ) {
+        typedef typename std::common_type<T, U>::type Rt;
+        ranges::isclose<std::complex<Rt> > pred(rtol, atol);
+        return pred(a, b);
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2>
+    > isclose(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2> Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<T>(rtol, atol), a, b
+        );
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
+    > isclose(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
+            Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<T>(rtol, atol), a, val
+        );
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
+    > isclose(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
+            Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<T>(rtol, atol), val, b
+        );
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag1, T, Tag2
+        >
+    > isclose(
+        const base_tensor<std::complex<T>, Rank, Tag1> &a,
+        const base_tensor<std::complex<T>, Rank, Tag2> &b,
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag1, T, Tag2
+        > Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<std::complex<T> >(rtol, atol), a, b
+        );
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag, T, scalar_tag
+        >
+    > isclose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a,
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, Tag, T, scalar_tag
+        > Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<std::complex<T> >(rtol, atol), a, val
+        );
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        bool, Rank, lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, scalar_tag, T, Tag
+        >
+    > isclose(
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const base_tensor<std::complex<T>, Rank, Tag> &b,
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
+    ) {
+        typedef lazy_binary_tag<
+            ranges::isclose<std::complex<T> >, T, scalar_tag, T, Tag
+        > Closure;
+        return base_tensor<bool, Rank, Closure>(
+            ranges::isclose<std::complex<T> >(rtol, atol), val, b
+        );
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline bool allclose(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        return all(isclose(a, b, rtol, atol));
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline bool allclose(
+        const base_tensor<T, Rank, Tag> &a,
+        const typename tensor<T, Rank>::value_type &val,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        return all(isclose(a, val, rtol, atol));
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline bool allclose(
+        const typename tensor<T, Rank>::value_type &val,
+        const base_tensor<T, Rank, Tag> &b,
+        const typename tensor<T, Rank>::value_type &rtol,
+        const typename tensor<T, Rank>::value_type &atol
+    ) {
+        return all(isclose(val, b, rtol, atol));
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    inline bool allclose(
+        const base_tensor<std::complex<T>, Rank, Tag1> &a,
+        const base_tensor<std::complex<T>, Rank, Tag2> &b,
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
+    ) {
+        return all(isclose(a, b, rtol, atol));
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline bool allclose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a,
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
+    ) {
+        return all(isclose(a, val, rtol, atol));
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline bool allclose(
+        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const base_tensor<std::complex<T>, Rank, Tag> &b,
+        const typename std::complex<T>::value_type &rtol = T(1e-8),
+        const typename std::complex<T>::value_type &atol = T(0)
+    ) {
+        return all(isclose(val, b, rtol, atol));
+    }
+
     /// Sorting and searching.
 
     template <class T, size_t Rank,
