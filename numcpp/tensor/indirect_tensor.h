@@ -65,23 +65,20 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the indirect_tensor.
-         * @param indptr Pointer to the array of indices with its elements
+         * @param indices Pointer to the array of indices with its elements
          *     identifying which elements of data are selected.
-         * @param order If true (default), the elements are stored in row-major
-         *     order (from first axis to last axis). Otherwise, the elements
-         *     are stored in column-major order (from last axis to first axis).
-         * @param mode If positive, creates a copy of indptr. If zero, stores
+         * @param order Order in which elements shall be iterated. In row-major
+         *     order, the last index is varying the fastest. In column-major
+         *     order, the first index is varying the fastest. Defaults to
+         *     row-major order.
+         * @param mode If positive, creates a copy of indices. If zero, stores
          *     the pointer directly without making a copy of it. If negative,
-         *     acquires the ownership of indptr, which will be deleted
+         *     acquires the ownership of indices, which will be deleted
          *     along with the indirect_tensor. Defaults to make a copy.
          */
         base_tensor(
-            const shape_t<Rank> &shape, T *data, size_t *indptr,
-            bool order = true, int mode = 1
-        );
-        base_tensor(
-            const shape_t<Rank> &shape, T *data, const size_t *indptr,
-            bool order = true
+            const shape_t<Rank> &shape, T *data, const size_t *indices,
+            layout_t order = row_major, int mode = 1
         );
 
         /**
@@ -112,8 +109,8 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns a reference to the element at the
          * given position. The elements in an indirect_tensor are given by
-         *     data[indptr[ravel_index(index, shape, order)]]
-         * where data is the memory array and indptr is the array of indices.
+         *     data[indices[ravel_index(index, shape, order)]]
+         * where data is the memory array and indices is the array of indices.
          *
          * @param args... Index arguments.
          *
@@ -199,24 +196,17 @@ namespace numcpp {
          * @brief Returns a pointer to the array of indices used internally by
          * the indirect_tensor.
          *
-         * @return A pointer to the array of indices used internally by the
-         *     indirect_tensor. If the indirect_tensor is const-qualified, the
-         *     function returns a pointer to const size_t. Otherwise, it
-         *     returns a pointer to size_t.
+         * @return A const pointer to the array of indices used internally by
+         *     the indirect_tensor.
          */
-        size_t* indices();
         const size_t* indices() const;
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
+         * @brief Returns the order in which elements are iterated. It is not
+         * necessarily the memory layout in which elements are stored as the
+         * elements might not be continuous in memory.
          */
-        bool rowmajor() const;
-
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order.
-         */
-        bool colmajor() const;
+        layout_t layout() const;
 
         /**
          * @brief Returns whether the indirect_tensor is owner of an array of
@@ -271,10 +261,10 @@ namespace numcpp {
         shape_t<Rank> m_shape;
 
         // Array of indices.
-        size_t *m_index;
+        const size_t *m_indices;
 
-        // Row-major (true) or column-major (false) order.
-        bool m_order;
+        // Memory layout.
+        layout_t m_order;
 
         // Ownership of the array of indices.
         bool m_owner;

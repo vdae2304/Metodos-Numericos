@@ -31,63 +31,54 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor()
-     : m_data(NULL), m_size(0), m_shape(), m_index(NULL), m_order(true),
+     : m_data(NULL), m_size(0), m_shape(), m_indices(NULL), m_order(row_major),
        m_owner(false)
      {}
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, size_t *indptr,
-        bool order, int mode
+        const shape_t<Rank> &shape, T *data, const size_t *indices,
+        layout_t order, int mode
     ) : m_data(data), m_size(shape.size()), m_shape(shape), m_order(order)
     {
         if (mode > 0) {
-            m_index = new size_t[m_size];
-            std::copy_n(indptr, m_size, m_index);
+            size_t *indptr = new size_t[m_size];
+            std::copy_n(indices, m_size, indptr);
+            m_indices = indptr;
             m_owner = true;
         }
         else {
-            m_index = indptr;
+            m_indices = indices;
             m_owner = (mode < 0);
         }
     }
 
     template <class T, size_t Rank>
-    indirect_tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, const size_t *indptr,
-        bool order
-    ) : m_data(data), m_size(shape.size()), m_shape(shape), m_order(order)
-    {
-        m_index = new size_t[m_size];
-        std::copy_n(indptr, m_size, m_index);
-        m_owner = true;
-    }
-
-    template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(const base_tensor &other)
      : m_data(other.m_data), m_size(other.m_size), m_shape(other.m_shape),
-       m_order(other.m_order)
+       m_order(other.m_order), m_owner(other.m_owner)
     {
         if (other.m_owner) {
-            m_index = new size_t[m_size];
-            std::copy_n(other.m_index, m_size, m_index);
+            size_t *indptr = new size_t[m_size];
+            std::copy_n(other.m_indices, m_size, indptr);
+            m_indices = indptr;
         }
         else {
-            m_index = other.m_index;
+            m_indices = other.m_indices;
         }
-        m_owner = other.m_owner;
     }
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(base_tensor &&other)
      : m_data(other.m_data), m_size(other.m_size), m_shape(other.m_shape),
-       m_index(other.m_index), m_order(other.m_order), m_owner(other.m_owner)
+       m_indices(other.m_indices), m_order(other.m_order),
+       m_owner(other.m_owner)
     {
         other.m_data = NULL;
         other.m_size = 0;
-        other.m_shape = index_t<Rank>();
-        other.m_index = NULL;
-        other.m_order = true;
+        other.m_shape = shape_t<Rank>();
+        other.m_indices = NULL;
+        other.m_order = row_major;
         other.m_owner = false;
     }
 
@@ -96,7 +87,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::~base_tensor() {
         if (m_owner) {
-            delete[] m_index;
+            delete[] m_indices;
         }
     }
 
@@ -121,28 +112,28 @@ namespace numcpp {
     template <class T, size_t Rank>
     inline T& indirect_tensor<T, Rank>::operator[](const index_t<Rank> &index) {
         detail::assert_within_bounds(m_shape, index);
-        return m_data[m_index[ravel_index(index, m_shape, m_order)]];
+        return m_data[m_indices[ravel_index(index, m_shape, m_order)]];
     }
 
     template <class T, size_t Rank>
     inline const T&
     indirect_tensor<T, Rank>::operator[](const index_t<Rank> &index) const {
         detail::assert_within_bounds(m_shape, index);
-        return m_data[m_index[ravel_index(index, m_shape, m_order)]];
+        return m_data[m_indices[ravel_index(index, m_shape, m_order)]];
     }
 
     template <class T, size_t Rank>
     inline T& indirect_tensor<T, Rank>::operator[](size_t i) {
         static_assert(Rank == 1, "Unkown conversion from integral type");
         detail::assert_within_bounds(m_size, i);
-        return m_data[m_index[i]];
+        return m_data[m_indices[i]];
     }
 
     template <class T, size_t Rank>
     inline const T& indirect_tensor<T, Rank>::operator[](size_t i) const {
         static_assert(Rank == 1, "Unkown conversion from integral type");
         detail::assert_within_bounds(m_size, i);
-        return m_data[m_index[i]];
+        return m_data[m_indices[i]];
     }
 
     template <class T, size_t Rank>
@@ -181,23 +172,13 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    inline size_t* indirect_tensor<T, Rank>::indices() {
-        return m_index;
-    }
-
-    template <class T, size_t Rank>
     inline const size_t* indirect_tensor<T, Rank>::indices() const {
-        return m_index;
+        return m_indices;
     }
 
     template <class T, size_t Rank>
-    inline bool indirect_tensor<T, Rank>::rowmajor() const {
+    inline layout_t indirect_tensor<T, Rank>::layout() const {
         return m_order;
-    }
-
-    template <class T, size_t Rank>
-    inline bool indirect_tensor<T, Rank>::colmajor() const {
-        return !m_order;
     }
 
     template <class T, size_t Rank>
@@ -214,7 +195,7 @@ namespace numcpp {
     ) {
         if (this->shape() != other.shape()) {
             std::ostringstream error;
-            error << "input shape " << other.shape() << " does not match the "
+            error << "input shape " << other.shape() << " doesn't match the "
                   << "output shape " << this->shape();
             throw std::invalid_argument(error.str());
         }
@@ -237,19 +218,19 @@ namespace numcpp {
     indirect_tensor<T, Rank>::operator=(base_tensor &&other) {
         if (this != &other) {
             if (m_owner) {
-                delete[] m_index;
+                delete[] m_indices;
             }
             m_data = other.m_data;
             m_size = other.m_size;
             m_shape = other.m_shape;
-            m_index = other.m_index;
+            m_indices = other.m_indices;
             m_order = other.m_order;
             m_owner = other.m_owner;
             other.m_data = NULL;
             other.m_size = 0;
-            other.m_shape = index_t<Rank>();
-            other.m_index = NULL;
-            other.m_order = true;
+            other.m_shape = shape_t<Rank>();
+            other.m_indices = NULL;
+            other.m_order = row_major;
             other.m_owner = false;
         }
         return *this;
