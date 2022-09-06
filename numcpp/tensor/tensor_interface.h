@@ -93,7 +93,8 @@ namespace numcpp {
         static_assert(Rank > 0, "Rank must be positive");
 
     public:
-        /// Public member types.
+        /// Member types.
+
         typedef base_tensor_iterator<T, Rank, Tag> iterator;
         typedef base_tensor_const_iterator<T, Rank, Tag> const_iterator;
 
@@ -103,12 +104,11 @@ namespace numcpp {
          * @brief Returns an iterator pointing to the first element in the
          * tensor.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the beginning of the tensor. If
          *     the tensor is const-qualified, the function returns a
@@ -117,20 +117,19 @@ namespace numcpp {
         iterator begin();
         const_iterator begin() const;
 
-        iterator begin(bool row_major);
-        const_iterator begin(bool row_major) const;
+        iterator begin(layout_t order);
+        const_iterator begin(layout_t order) const;
 
         /**
          * @brief Returns an iterator pointing to the past-the-end element in
          * the tensor. It does not point to any element, and thus shall not be
          * dereferenced.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the element past the end of the
          *     tensor. If the tensor is const-qualified, the function returns a
@@ -139,40 +138,38 @@ namespace numcpp {
         iterator end();
         const_iterator end() const;
 
-        iterator end(bool row_major);
-        const_iterator end(bool row_major) const;
+        iterator end(layout_t order);
+        const_iterator end(layout_t order) const;
 
         /**
          * @brief Returns a const_iterator pointing to the first element in the
          * tensor.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A const_iterator to the beginning of the tensor.
          */
         const_iterator cbegin() const;
-        const_iterator cbegin(bool row_major) const;
+        const_iterator cbegin(layout_t order) const;
 
         /**
          * @brief Returns a const_iterator pointing to the past-the-end element
          * in the tensor.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A const_iterator to the element past the end of the tensor.
          */
         const_iterator cend() const;
-        const_iterator cend(bool row_major) const;
+        const_iterator cend(layout_t order) const;
 
         /// Compound assignment operator.
 

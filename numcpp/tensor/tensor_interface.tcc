@@ -47,78 +47,76 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin() {
-        return this->begin(this->base()->rowmajor());
+        return this->begin(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin() const {
-        return this->begin(this->base()->rowmajor());
+        return this->begin(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::begin(bool row_major) {
-        return make_tensor_iterator(this->base(), 0, row_major);
+    tensor_interface<T, Rank, Tag>::begin(layout_t order) {
+        return make_tensor_iterator(this->base(), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::begin(bool row_major) const {
-        return make_tensor_const_iterator(this->base(), 0, row_major);
+    tensor_interface<T, Rank, Tag>::begin(layout_t order) const {
+        return make_tensor_const_iterator(this->base(), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end() {
-        return this->end(this->base()->rowmajor());
+        return this->end(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end() const {
-        return this->end(this->base()->rowmajor());
+        return this->end(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::end(bool row_major) {
-        return make_tensor_iterator(
-            this->base(), this->base()->size(), row_major
-        );
+    tensor_interface<T, Rank, Tag>::end(layout_t order) {
+        return make_tensor_iterator(this->base(), this->base()->size(), order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::end(bool row_major) const {
+    tensor_interface<T, Rank, Tag>::end(layout_t order) const {
         return make_tensor_const_iterator(
-            this->base(), this->base()->size(), row_major
+            this->base(), this->base()->size(), order
         );
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cbegin() const {
-        return this->cbegin(this->base()->rowmajor());
+        return this->cbegin(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::cbegin(bool row_major) const {
-        return make_tensor_const_iterator(this->base(), 0, row_major);
+    tensor_interface<T, Rank, Tag>::cbegin(layout_t order) const {
+        return make_tensor_const_iterator(this->base(), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cend() const {
-        return this->cend(this->base()->rowmajor());
+        return this->cend(this->base()->layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
-    tensor_interface<T, Rank, Tag>::cend(bool row_major) const {
+    tensor_interface<T, Rank, Tag>::cend(layout_t order) const {
         return make_tensor_const_iterator(
-            this->base(), this->base()->size(), row_major
+            this->base(), this->base()->size(), order
         );
     }
 
@@ -157,8 +155,8 @@ namespace detail {
             throw std::invalid_argument(error.str());
         }
         for (index_t<Rank> i : make_indices(shape)) {
-            (*this->base())[i] = f(
-                (*this->base())[i],
+            this->base()->operator[](i) = f(
+                this->base()->operator[](i),
                 rhs[detail::broadcast_index(i, rhs.shape())]
             );
         }
@@ -173,7 +171,7 @@ namespace detail {
     ) {
         shape_t<Rank> shape = this->base()->shape();
         for (index_t<Rank> i : make_indices(shape)) {
-            (*this->base())[i] = f((*this->base())[i], val);
+            this->base()->operator[](i) = f(this->base()->operator[](i), val);
         }
         return *this->base();
     }
@@ -364,7 +362,8 @@ namespace detail {
         size_t size = this->base()->size();
         tensor<index_t<Rank>, 1> out(size, make_indices(shape).begin());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp((*this->base())[i], (*this->base())[j]);
+            return comp(this->base()->operator[](i),
+                        this->base()->operator[](j));
         };
         std::nth_element(out.begin(), out.begin() + kth, out.end(), comparator);
         return out;
@@ -385,7 +384,8 @@ namespace detail {
         size_t size = this->base()->size();
         tensor<index_t<Rank>, 1> out(size, make_indices(shape).begin());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp((*this->base())[i], (*this->base())[j]);
+            return comp(this->base()->operator[](i),
+                        this->base()->operator[](j));
         };
         if (stable) {
             std::stable_sort(out.begin(), out.end(), comparator);
@@ -426,7 +426,7 @@ namespace detail {
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
         for (index_t<Rank> i : make_indices(shape)) {
-            if ((*this->base())[i] != T()) {
+            if (this->base()->operator[](i) != T()) {
                 out[n++] = i;
             }
         }
@@ -593,7 +593,7 @@ namespace detail {
     inline index_t<Rank> tensor_interface<T, Rank, Tag>::argmax() const {
         ranges::argmax pred;
         size_t index = pred(this->begin(), this->end());
-        bool order = this->base()->rowmajor();
+        layout_t order = this->base()->layout();
         return unravel_index(index, this->base()->shape(), order);
     }
 
@@ -608,7 +608,7 @@ namespace detail {
     inline index_t<Rank> tensor_interface<T, Rank, Tag>::argmin() const {
         ranges::argmin pred;
         size_t index = pred(this->begin(), this->end());
-        bool order = this->base()->rowmajor();
+        layout_t order = this->base()->layout();
         return unravel_index(index, this->base()->shape(), order);
     }
 
