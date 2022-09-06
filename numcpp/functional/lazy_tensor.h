@@ -68,7 +68,7 @@ namespace numcpp {
          : m_fun(f), m_arg(arg) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -184,6 +184,18 @@ namespace numcpp {
          */
         layout_t layout() const {
             return m_arg.layout();
+        }
+
+        /// Public methods.
+
+        /**
+         * @brief Cast each element to a specified type.
+         */
+        template <class Rt>
+        base_tensor<Rt, Rank, lazy_unary_tag<Function, T, Tag> >
+        astype() const {
+            typedef lazy_unary_tag<Function, T, Tag> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_arg);
         }
 
         /**
@@ -375,6 +387,18 @@ namespace numcpp {
                 ? col_major : row_major;
         }
 
+        /// Public methods.
+
+        /**
+         * @brief Cast each element to a specified type.
+         */
+        template <class Rt>
+        base_tensor<Rt, Rank, lazy_binary_tag<Function, T, TagT, U, TagU> >
+        astype() const {
+            typedef lazy_binary_tag<Function, T, TagT, U, TagU> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
+        }
+
         /**
          * @brief Return a copy of the tensor.
          */
@@ -488,6 +512,16 @@ namespace numcpp {
             return m_lhs.layout();
         }
 
+        /// Public methods.
+
+        template <class Rt>
+        base_tensor<
+            Rt, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag>
+        > astype() const {
+            typedef lazy_binary_tag<Function, T, Tag, U, scalar_tag> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_val);
+        }
+
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(this->shape(), this->begin());
         }
@@ -590,6 +624,16 @@ namespace numcpp {
 
         layout_t layout() const {
             return m_rhs.layout();
+        }
+
+        /// Public methods.
+
+        template <class Rt>
+        base_tensor<
+            Rt, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag>
+        > astype() const {
+            typedef lazy_binary_tag<Function, T, scalar_tag, U, Tag> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_val, m_rhs);
         }
 
         tensor<value_type, Rank> copy() const {

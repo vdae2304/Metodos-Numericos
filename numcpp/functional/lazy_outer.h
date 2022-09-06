@@ -91,7 +91,7 @@ namespace numcpp {
             m_size(m_shape.size()) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -214,6 +214,19 @@ namespace numcpp {
         layout_t layout() const {
             return (m_lhs.layout() == col_major && m_rhs.layout() == col_major)
                 ? col_major : row_major;
+        }
+
+        /// Public methods.
+
+        /**
+         * @brief Cast each element to a specified type.
+         */
+        template <class Rt>
+        base_tensor<
+            Rt, Rank, lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
+        > astype() const {
+            typedef lazy_outer_tag<Function, T, M, TagT, U, N, TagU> Closure;
+            return base_tensor<Rt, Rank, Closure>(m_fun, m_lhs, m_rhs);
         }
 
         /**
