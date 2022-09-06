@@ -516,15 +516,14 @@ flatten(const tensor<T, Rank> &a);
 
 template <class T, size_t Rank>
 tensor<typename tensor<T, Rank>::value_type, 1>
-flatten(const tensor<T, Rank> &a, bool row_major);
+flatten(const tensor<T, Rank> &a, layout_t order);
 ```
 
 Parameters
 
 * `a` Tensor-like object to flatten.
-* `row_major` Whether to flatten the elements in row-major order (i.e., from
-first axis to last axis) or column-major order (i.e., from last axis to first
-axis). Defaults to the same order as stored in memory.
+* `order` Whether to flatten the elements in row-major order or column-major
+order. Defaults to the same layout as stored in memory.
 
 Returns
 
@@ -545,7 +544,7 @@ int main() {
     np::matrix<int> mat;
     std::cin >> mat;
     std::cout << "Row-major (default):\n" << np::flatten(mat) << "\n";
-    std::cout << "Column-major:\n" << np::flatten(mat, false) << "\n";
+    std::cout << "Column-major:\n" << np::flatten(mat, np::col_major) << "\n";
     return 0;
 }
 ```
@@ -1598,7 +1597,7 @@ Converts a tuple of indices into a flat index, element-wise.
 template <size_t Rank, size_t N>
 tensor<size_t, N> ravel_index(
     const tensor<index_t<Rank>, N> &index,
-    const shape_t<Rank> &shape, bool order = true
+    const shape_t<Rank> &shape, layout_t order = row_major
 );
 ```
 
@@ -1607,8 +1606,7 @@ Parameters
 * `index` A tensor-like object with the indices to flatten.
 * `shape` The shape of the tensor used for raveling.
 * `order` Determines whether the indices should be viewed as indexing in
-row-major order (`true`) or column-major order (`false`). Defaults to row-major
-order.
+row-major or column-major order. Defaults to row-major order.
 
 Returns
 
@@ -1628,7 +1626,7 @@ int main() {
     std::cout << "Row-major (default):\n";
     std::cout << np::ravel_index(indices, shape) << "\n";
     std::cout << "Column-major:\n";
-    std::cout << np::ravel_index(indices, shape, false) << "\n";
+    std::cout << np::ravel_index(indices, shape, np::col_major) << "\n";
     return 0;
 }
 ```
@@ -1658,7 +1656,7 @@ Converts a flat index into a tuple of indices, element-wise.
 template <class IntegralType, size_t Rank, size_t N>
 tensor<index_t<Rank>, N> unravel_index(
     const tensor<IntegralType, N> &index,
-    const shape_t<Rank> &shape, bool order = true
+    const shape_t<Rank> &shape, layout_t order = row_major
 );
 ```
 
@@ -1667,8 +1665,7 @@ Parameters
 * `index` A tensor-like object with the indices to unravel.
 * `shape` The shape of the tensor used for unraveling.
 * `order` Determines whether the indices should be viewed as indexing in
-row-major order (`true`) or column-major order (`false`). Defaults to row-major
-order.
+row-major or column-major order. Defaults to row-major order.
 
 Returns
 
@@ -1688,7 +1685,7 @@ int main() {
     std::cout << "Row-major (default):\n";
     std::cout << np::unravel_index(indices, shape) << "\n";
     std::cout << "Column-major:\n";
-    std::cout << np::unravel_index(indices, shape, false) << "\n";
+    std::cout << np::unravel_index(indices, shape, np::col_major) << "\n";
     return 0;
 }
 ```
