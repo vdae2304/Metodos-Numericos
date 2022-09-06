@@ -16,8 +16,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor::iterator::base`](#tensoriteratorbase)
     - [`tensor::iterator::index`](#tensoriteratorindex)
     - [`tensor::iterator::coords`](#tensoriteratorcoords)
-    - [`tensor::iterator::rowmajor`](#tensoriteratorrowmajor)
-    - [`tensor::iterator::colmajor`](#tensoriteratorcolmajor)
+    - [`tensor::iterator::layout`](#tensoriteratorlayout)
 
 ## Template parameters
 
@@ -73,7 +72,7 @@ Returns
 
 * An `index_sequence` object which iterates over the indices of a tensor. At
 each iteration, a new index is returned. The elements are iterated in row-major
-order, i.e., from first axis to last axis.
+order, i.e., with the last index varying the fastest.
 
 Example
 
@@ -129,6 +128,23 @@ int main() {
 }
 ```
 
+Output
+
+```
+(0, 0)
+(0, 1)
+(0, 2)
+(0, 3)
+(1, 0)
+(1, 1)
+(1, 2)
+(1, 3)
+(2, 0)
+(2, 1)
+(2, 2)
+(2, 3)
+```
+
 ## Accessing to iterators
 
 ### `tensor::begin`
@@ -142,17 +158,16 @@ Returns an iterator pointing to the first element in the tensor.
 iterator begin();
 const_iterator begin() const;
 
-iterator begin(bool row_major);
-const_iterator begin(bool row_major) const;
+iterator begin(layout_t order);
+const_iterator begin(layout_t order) const;
 ```
 
 Parameters
 
-* `row_major` It is an optional parameter that changes the order in which
-elements are iterated. If provided, the elements are iterated in row-major
-order (i.e., from first axis to last axis) or column-major order (i.e., from
-last axis to first axis) as specified by `row_major`. Otherwise, the elements
-are iterated in the same order as stored in memory.
+* `order` It is an optional parameter that changes the order in which elements
+are iterated. In row-major order, the last index is varying the fastest. In
+column-major order, the first index is varying the fastest. The default is to
+use the same layout as stored in memory.
 
 Returns
 
@@ -172,17 +187,16 @@ not point to any element, and thus shall not be dereferenced.
 iterator end();
 const_iterator end() const;
 
-iterator end(bool row_major);
-const_iterator end(bool row_major) const;
+iterator end(layout_t order);
+const_iterator end(layout_t order) const;
 ```
 
 Parameters
 
-* `row_major` It is an optional parameter that changes the order in which
-elements are iterated. If provided, the elements are iterated in row-major
-order (i.e., from first axis to last axis) or column-major order (i.e., from
-last axis to first axis) as specified by `row_major`. Otherwise, the elements
-are iterated in the same order as stored in memory.
+* `order` It is an optional parameter that changes the order in which elements
+are iterated. In row-major order, the last index is varying the fastest. In
+column-major order, the first index is varying the fastest. The default is to
+use the same layout as stored in memory.
 
 Returns
 
@@ -229,7 +243,7 @@ int main() {
     }
     std::cout << "Row-major:\n" << mat << "\n";
     value = 0;
-    for (it = mat.begin(false); it != mat.end(false); ++it) {
+    for (it = mat.begin(np::col_major); it != mat.end(np::col_major); ++it) {
         *it = value++;
     }
     std::cout << "Column-major:\n" << mat << "\n";
@@ -265,7 +279,7 @@ int main() {
     }
     std::cout << "Row-major:\n" << cube << "\n";
     value = 0;
-    for (it = cube.begin(false); it != cube.end(false); ++it) {
+    for (it = cube.begin(np::col_major); it != cube.end(np::col_major); ++it) {
         *it = value++;
     }
     std::cout << "Column-major:\n" << cube << "\n";
@@ -303,16 +317,15 @@ Column-major:
 Returns a `const_iterator` pointing to the first element in the tensor.
 ```cpp
 const_iterator cbegin() const;
-const_iterator cbegin(bool row_major) const;
+const_iterator cbegin(layout_t order) const;
 ```
 
 Parameters
 
-* `row_major` It is an optional parameter that changes the order in which
-elements are iterated. If provided, the elements are iterated in row-major
-order (i.e., from first axis to last axis) or column-major order (i.e., from
-last axis to first axis) as specified by `row_major`. Otherwise, the elements
-are iterated in the same order as stored in memory.
+* `order` It is an optional parameter that changes the order in which elements
+are iterated. In row-major order, the last index is varying the fastest. In
+column-major order, the first index is varying the fastest. The default is to
+use the same layout as stored in memory.
 
 Returns
 
@@ -327,16 +340,15 @@ Returns
 Returns a `const_iterator` pointing to the past-the-end element in the tensor.
 ```cpp
 const_iterator cend() const;
-const_iterator cend(bool row_major) const;
+const_iterator cend(layout_t order) const;
 ```
 
 Parameters
 
-* `row_major` It is an optional parameter that changes the order in which
-elements are iterated. If provided, the elements are iterated in row-major
-order (i.e., from first axis to last axis) or column-major order (i.e., from
-last axis to first axis) as specified by `row_major`. Otherwise, the elements
-are iterated in the same order as stored in memory.
+* `order` It is an optional parameter that changes the order in which elements
+are iterated. In row-major order, the last index is varying the fastest. In
+column-major order, the first index is varying the fastest. The default is to
+use the same layout as stored in memory.
 
 Returns
 
@@ -459,7 +471,7 @@ int main() {
         }
     }
     std::cout << "\nColumn-major order:\n";
-    for (it = cube.begin(false); it != cube.end(false); ++it) {
+    for (it = cube.begin(np::col_major); it != cube.end(np::col_major); ++it) {
         std::cout << it.coords() << ", ";
         if (it.index() % 5 == 4) {
             std::cout << "\n";
@@ -486,16 +498,16 @@ Column-major order:
 (0, 1, 3), (1, 1, 3), (0, 2, 3), (1, 2, 3),
 ```
 
-### `tensor::iterator::rowmajor`
+### `tensor::iterator::layout`
 
 <h3><code>tensor_view::iterator::rowmajor</code></h3>
 
 <h3><code>indirect_tensor::iterator::rowmajor</code></h3>
 
-Returns whether the elements are iterated in row-major order.
+ Returns the order in which elements are iterated.
 ```cpp
 // For both iterator and const_iterator
-bool rowmajor() const;
+layout_t layout() const;
 ```
 
 Example
@@ -507,63 +519,22 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat(3, 4);
     np::matrix<int>::iterator it1 = mat.begin();
-    np::matrix<int>::iterator it2 = mat.begin(false);
-    if (it1.rowmajor()) {
+    np::matrix<int>::iterator it2 = mat.begin(np::col_major);
+    switch (it1.layout()) {
+    case np::row_major:
         std::cout << "it1 iterates in row-major order\n";
-    }
-    else {
+        break;
+    case np::col_major:
         std::cout << "it1 iterates in column-major order\n";
+        break;
     }
-    if (it2.rowmajor()) {
+    switch (it2.layout()) {
+    case np::row_major:
         std::cout << "it2 iterates in row-major order\n";
-    }
-    else {
+        break;
+    case np::col_major:
         std::cout << "it2 iterates in column-major order\n";
-    }
-    return 0;
-}
-```
-
-Output
-
-```
-it1 iterates in row-major order
-it2 iterates in column-major order
-```
-
-### `tensor::iterator::colmajor`
-
-<h3><code>tensor_view::iterator::colmajor</code></h3>
-
-<h3><code>indirect_tensor::iterator::colmajor</code></h3>
-
-Returns whether the elements are iterated in column-major order.
-```cpp
-// For both iterator and const_iterator
-bool colmajor() const;
-```
-
-Example
-
-```cpp
-#include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::matrix<int> mat(3, 4);
-    np::matrix<int>::iterator it1 = mat.begin();
-    np::matrix<int>::iterator it2 = mat.begin(false);
-    if (it1.colmajor()) {
-        std::cout << "it1 iterates in column-major order\n";
-    }
-    else {
-        std::cout << "it1 iterates in row-major order\n";
-    }
-    if (it2.colmajor()) {
-        std::cout << "it2 iterates in column-major order\n";
-    }
-    else {
-        std::cout << "it2 iterates in row-major order\n";
+        break;
     }
     return 0;
 }
