@@ -385,7 +385,7 @@ namespace numcpp {
         template <class Compare>
         tensor<index_t<Rank>, 1> argpartition(size_t kth, Compare comp) const;
 
-         /**
+        /**
          * @brief Return the indices that would sort the tensor.
          *
          * @param comp Custom comparator. A binary function that accepts two
