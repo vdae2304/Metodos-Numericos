@@ -759,8 +759,8 @@ namespace numcpp {
     inline bool allclose(
         const typename tensor<std::complex<T>, Rank>::value_type &val,
         const base_tensor<std::complex<T>, Rank, Tag> &b,
-        const typename std::complex<T>::value_type &rtol = T(1e-8),
-        const typename std::complex<T>::value_type &atol = T(0)
+        const typename std::complex<T>::value_type &rtol,
+        const typename std::complex<T>::value_type &atol
     ) {
         return all(isclose(val, b, rtol, atol));
     }
