@@ -63,14 +63,14 @@ namespace numcpp {
             throw std::invalid_argument(error.str());
         }
         for (index_t<Rank> i : make_indices(this->base()->shape())) {
-            (*this->base())[i].real(arg[i]);
+            this->base()->operator[](i).real(arg[i]);
         }
     }
 
     template <class T, size_t Rank, class Tag>
     void complex_interface<std::complex<T>, Rank, Tag>::real(const T &val) {
         for (index_t<Rank> i : make_indices(this->base()->shape())) {
-            (*this->base())[i].real(val);
+            this->base()->operator[](i).real(val);
         }
     }
 
@@ -94,14 +94,14 @@ namespace numcpp {
             throw std::invalid_argument(error.str());
         }
         for (index_t<Rank> i : make_indices(this->base()->shape())) {
-            (*this->base())[i].imag(arg[i]);
+            this->base()->operator[](i).imag(arg[i]);
         }
     }
 
     template <class T, size_t Rank, class Tag>
     void complex_interface<std::complex<T>, Rank, Tag>::imag(const T &val) {
         for (index_t<Rank> i : make_indices(this->base()->shape())) {
-            (*this->base())[i].imag(val);
+            this->base()->operator[](i).imag(val);
         }
     }
 
