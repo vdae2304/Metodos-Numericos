@@ -21,8 +21,7 @@ Defined in `numcpp/tensor.h`
     - [`indirect_tensor::empty`](#indirect_tensorempty)
     - [`indirect_tensor::data`](#indirect_tensordata)
     - [`indirect_tensor::indices`](#indirect_tensorindices)
-    - [`indirect_tensor::rowmajor`](#indirect_tensorrowmajor)
-    - [`indirect_tensor::colmajor`](#indirect_tensorcolmajor)
+    - [`indirect_tensor::layout`](#indirect_tensorlayout)
     - [`indirect_tensor::is_owner`](#indirect_tensoris_owner)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
@@ -88,24 +87,20 @@ Parameters
 
 * `shape` Number of elements along each axis.
 * `data` Pointer to the memory array used by the `indirect_tensor`.
-* `indptr` Pointer to the array of indices with its elements identifying which
+* `indices` Pointer to the array of indices with its elements identifying which
 elements of `data` are selected.
-* `order` If `true` (default), the elements are stored in row-major order (from
-first axis to last axis). Otherwise, the elements are stored in column-major
-order (from last axis to first axis).
-* `mode` If positive, creates a copy of `indptr`. If zero, stores the pointer
+* `order` Order in which elements shall be iterated. In row-major order, the
+last index is varying the fastest. In column-major order, the first index is
+varying the fastest. Defaults to row-major order.
+* `mode` If positive, creates a copy of `indices`. If zero, stores the pointer
 directly without making a copy of it. If negative, acquires the ownership of
-`indptr`, which will be deleted along with the `indirect_tensor`. Defaults to
+`indices`, which will be deleted along with the `indirect_tensor`. Defaults to
 make a copy.
 
 ```cpp
 indirect_tensor(
-    const shape_t<Rank> &shape, T *data, size_t *indptr,
-    bool order = true, int mode = 1
-);
-indirect_tensor(
-    const shape_t<Rank> &shape, T *data, const size_t *indptr,
-    bool order = true
+    const shape_t<Rank> &shape, T *data, const size_t *indices,
+    layout_t order = row_major, int mode = 1
 );
 ```
 
@@ -118,15 +113,16 @@ namespace np = numcpp;
 int main() {
     int data1d[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index1d[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data1d, index1d, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(5, data1d, index1d, np::row_major, 0);
     std::cout << "1 dimensional:\n" << arr << "\n";
+
     int data2d[12] = {0, 10, -4, 5,
                       6, 10, 8, 12,
                       2, 11, 0, -1};
     size_t index2d[6] = {0, 1,
                          5, 6,
                          10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data2d, index2d, /*order=*/true, /*mode=*/0);
+    np::indirect_matrix<int> mat({3, 2}, data2d, index2d, np::row_major, 0);
     std::cout << "2 dimensional:\n" << mat << "\n";
     return 0;
 }
@@ -182,10 +178,10 @@ Returns a reference to the element at the given position. The elements in an
 `indirect_tensor` are given by
 
 ```
-    data[indptr[ravel_index(index, shape, order)]]
+    data[indices[ravel_index(index, shape, order)]]
 ```
 
-where `data` is the memory array and `indptr` is the array of indices.
+where `data` is the memory array and `indices` is the array of indices.
 ```cpp
 template <class... Args>
 T& operator()(Args... args);
@@ -217,7 +213,7 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(5, data, index, np::row_major, 0);
     for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[index[i]]
         std::cout << arr(i) << ", ";
@@ -246,7 +242,7 @@ int main() {
     size_t index[6] = {0, 1,
                        5, 6,
                        10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
     for (unsigned i = 0; i < mat.shape(0); ++i) {
         for (unsigned j = 0; j < mat.shape(1); ++j) {
             // Prints data[index[np::ravel_index({i, j}, mat.shape())]]
@@ -302,7 +298,7 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(5, data, index, np::row_major, 0);
     for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[index[i]]
         std::cout << arr[i] << ", ";
@@ -331,7 +327,7 @@ int main() {
     size_t index[6] = {0, 1,
                        5, 6,
                        10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
     for (unsigned i = 0; i < mat.shape(0); ++i) {
         for (unsigned j = 0; j < mat.shape(1); ++j) {
             // Prints data[index[np::ravel_index({i, j}, mat.shape())]]
@@ -367,9 +363,9 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(6, data, index, np::row_major, 0);
     std::cout << arr.ndim() << "\n";
-    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
     std::cout << mat.ndim() << "\n";
     return 0;
 }
@@ -405,11 +401,12 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(6, data, index, np::row_major, 0);
     std::cout << "1 dimensional:\n";
     std::cout << "Shape: " << arr.shape() << "\n";
     std::cout << "Length: " << arr.shape(0) << "\n\n";
-    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+
+    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
     std::cout << "2 dimensional:\n";
     std::cout << "Shape: " << mat.shape() << "\n";
     std::cout << "Rows: " << mat.shape(0) << "\n";
@@ -452,9 +449,9 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_array<int> arr(6, data, index, np::row_major, 0);
     std::cout << arr.size() << "\n";
-    np::indirect_matrix<int> mat({3, 2}, data, index, /*order=*/true, /*mode=*/0);
+    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
     std::cout << mat.size() << "\n";
     return 0;
 }
@@ -493,28 +490,21 @@ the `indirect_tensor` is const-qualified, the function returns a pointer to
 Returns a pointer to the array of indices used internally by the
 `indirect_tensor`.
 ```cpp
-size_t* indices();
 const size_t* indices() const;
 ```
 
 Returns
 
-* A pointer to the array of indices used internally by the `indirect_tensor`.
-If the `indirect_tensor` is const-qualified, the function returns a pointer to
-`const size_t`. Otherwise, it returns a pointer to `size_t`.
+* A const pointer to the array of indices used internally by the
+`indirect_tensor`.
 
-### `indirect_tensor::rowmajor`
+### `indirect_tensor::layout`
 
-Returns whether the elements are stored in row-major order.
+Returns the order in which elements are iterated. It is not necessarily the
+memory layout in which elements are stored as the elements might not be
+continuous in memory.
 ```cpp
-bool rowmajor() const;
-```
-
-### `indirect_tensor::colmajor`
-
-Returns whether the elements are stored in column-major order.
-```cpp
-bool colmajor() const;
+layout_t layout() const;
 ```
 
 ### `indirect_tensor::is_owner`
