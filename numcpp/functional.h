@@ -31,7 +31,7 @@ namespace numcpp {
 
 /// Namespace for implementation details.
 namespace detail {
-    /// Result type of function call.
+    // Result type of function call.
 #if __cplusplus < 201703L
     template <class Function, class... Args>
     using result_of_t = typename std::result_of<Function(Args...)>::type;
