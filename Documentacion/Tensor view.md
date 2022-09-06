@@ -23,8 +23,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor_view::data`](#tensor_viewdata)
     - [`tensor_view::offset`](#tensor_viewoffset)
     - [`tensor_view::strides`](#tensor_viewstrides)
-    - [`tensor_view::rowmajor`](#tensor_viewrowmajor)
-    - [`tensor_view::colmajor`](#tensor_viewcolmajor)
+    - [`tensor_view::layout`](#tensor_viewlayout)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
     - [Fill assignment](#fill-assignment)
@@ -94,9 +93,9 @@ Parameters
 
 * `shape` Number of elements along each axis.
 * `data` Pointer to the memory array used by the `tensor_view`.
-* `order` If `true` (default), the elements are stored in row-major order (from
-first axis to last axis). Otherwise, the elements are stored in column-major
-order (from last axis to first axis).
+* `order` Memory layout in which elements are stored. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. Defaults to row-major order.
 
 Example
 
@@ -108,13 +107,15 @@ int main() {
     int data1d[10] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
     np::array_view<int> arr(10, data1d);
     std::cout << "1 dimensional:\n" << arr << "\n";
+
     int data2d[12] = {0, 10, -4, 5,
                       6, 10, 8, 12,
                       2, 11, 0, -1};
-    np::matrix_view<int> mat_rowmajor({3, 4}, data2d);
-    std::cout << "2 dimensional (row-major):\n" << mat_rowmajor << "\n";
-    np::matrix_view<int> mat_colmajor({3, 4}, data2d, false);
-    std::cout << "2 dimensional (column-major):\n" << mat_colmajor << "\n";
+    np::matrix_view<int> mat1({3, 4}, data2d);
+    std::cout << "2 dimensional (row-major):\n" << mat1 << "\n";
+    np::matrix_view<int> mat2({3, 4}, data2d, np::col_major);
+    std::cout << "2 dimensional (column-major):\n" << mat2 << "\n";
+
     int data3d[24] = {1, 18, 11, 10,
                       9, 19, 12, 10,
                       13, 8, -4, 16,
@@ -122,10 +123,11 @@ int main() {
                       2, 4, 14, 19,
                       18, 5, 19, 18,
                       0, 0, 15, 17};
-    np::tensor_view<int, 3> cube_rowmajor({2, 3, 4}, data3d);
-    std::cout << "3 dimensional (row-major):\n" << cube_rowmajor << "\n";
-    np::tensor_view<int, 3> cube_colmajor({2, 3, 4}, data3d, false);
-    std::cout << "3 dimensional (column-major):\n" << cube_colmajor << "\n";
+    np::tensor_view<int, 3> cube1({2, 3, 4}, data3d);
+    std::cout << "3 dimensional (row-major):\n" << cube1 << "\n";
+    np::tensor_view<int, 3> cube2({2, 3, 4}, data3d, np::col_major);
+    std::cout << "3 dimensional (column-major):\n" << cube2 << "\n";
+
     return 0;
 }
 ```
@@ -178,9 +180,9 @@ Parameters
 * `data` Pointer to the memory array used by the `tensor_view`.
 * `offset` Index of the first element selected by the `tensor_view`.
 * `strides` Span that separates the selected elements along each axis.
-* `order` If `true` (default), the elements are stored in row-major order (from
-first axis to last axis). Otherwise, the elements are stored in column-major
-order (from last axis to first axis).
+* `order` Order in which elements shall be iterated. In row-major order, the
+last index is varying the fastest. In column-major order, the first index is
+varying the fastest. Defaults to row-major order.
 
 Example
 
@@ -749,19 +751,15 @@ Parameters
 provided, returns the stride along the given axis. Otherwise, return a `shape_t`
 object with the strides of the tensor along all axes.
 
-### `tensor_view::rowmajor`
+### `tensor_view::layout`
 
-Returns whether the elements are stored in row-major order.
+Returns the order in which elements are iterated. It is not necessarily the
+memory layout in which elements are stored as the elements might not be
+continuous in memory.
 ```cpp
-bool rowmajor() const;
+layout_t layout() const;
 ```
 
-### `tensor_view::colmajor`
-
-Returns whether the elements are stored in column-major order.
-```cpp
-bool colmajor() const;
-```
 ## Assignment
 
 ### Copy assignment
