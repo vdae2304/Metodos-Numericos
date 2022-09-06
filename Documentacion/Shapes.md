@@ -23,6 +23,7 @@ Defined in `numcpp/shape.h`
   - [Routines](#routines)
     - [`make_shape`](#make_shape)
     - [`make_index`](#make_index)
+    - [`layout_t`](#layout_t)
     - [`ravel_index`](#ravel_index)
     - [`unravel_index`](#unravel_index)
     - [`broadcast_shapes`](#broadcast_shapes)
@@ -413,6 +414,31 @@ Output
 (3, 4, 5)
 ```
 
+### `layout_t`
+
+Layout in which elements are stored or iterated.
+```cpp
+enum layout_t { row_major = 1, col_major = 0 };
+```
+
+* `row_major`
+
+Row-major order (C/C++ style).
+
+In row-major order, the last dimension is contiguous, so that the memory offset
+of each axis is a constant multiple of the following axis.
+
+In row-major iteration, the last index is varying the fastest.
+
+* `col_major`
+
+Column-major order (Fortran/Matlab style).
+
+In column-major order, the first dimension is contiguous, so that the memory
+offset of each axis is a constant multiple of the previous axis.
+
+In column-major iteration, the first index is varying the fastest.
+
 ### `ravel_index`
 
 Converts a tuple of indices into a flat index.
@@ -420,7 +446,7 @@ Converts a tuple of indices into a flat index.
 template <size_t Rank>
 size_t ravel_index(
     const index_t<Rank> &index, const shape_t<Rank> &shape,
-    bool order = true
+    layout_t order = row_major
 );
 ```
 
@@ -429,8 +455,7 @@ Parameters
 * `index` A tuple of indices to flatten.
 * `shape` The shape of the tensor used for raveling.
 * `order` Determines whether the indices should be viewed as indexing in
-row-major order (`true`) or column-major order (`false`). Defaults to row-major
-order.
+row-major or column-major order. Defaults to row-major order.
 
 Returns
 
@@ -448,14 +473,18 @@ int main() {
     std::cout << "Row-major order:\n";
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
-            std::cout << data[np::ravel_index({i, j}, shape)] << ", ";
+            std::cout.width(2);
+            std::cout << data[np::ravel_index({i, j}, shape)];
+            std::cout << ", ";
         }
         std::cout << "\n";
     }
     std::cout << "Column-major order:\n";
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
-            std::cout << data[np::ravel_index({i, j}, shape, false)] << ", ";
+            std::cout.width(2);
+            std::cout << data[np::ravel_index({i, j}, shape, np::col_major)];
+            std::cout << ", ";
         }
         std::cout << "\n";
     }
@@ -467,13 +496,13 @@ Output
 
 ```
 Row-major order:
--5, -3, 10, 4,
-6, -1, -5, 9,
-9, 14, 3, 5,
+-5, -3, 10,  4,
+ 6, -1, -5,  9,
+ 9, 14,  3,  5,
 Column-major order:
--5, 4, -5, 14,
--3, 6, 9, 3,
-10, -1, 9, 5,
+-5,  4, -5, 14,
+-3,  6,  9,  3,
+10, -1,  9,  5,
 ```
 
 ### `unravel_index`
@@ -482,7 +511,7 @@ Converts a flat index into a tuple of indices.
 ```cpp
 template <size_t Rank>
 index_t<Rank> unravel_index(
-    size_t index, const shape_t<Rank> &shape, bool order = true
+    size_t index, const shape_t<Rank> &shape, layout_t order = row_major
 );
 ```
 
@@ -491,8 +520,7 @@ Parameters
 * `index` Index to unravel.
 * `shape` The shape of the tensor used for unraveling.
 * `order` Determines whether the indices should be viewed as indexing in
-row-major order (`true`) or column-major order (`false`). Defaults to row-major
-order.
+row-major or column-major order. Defaults to row-major order.
 
 Returns
 
@@ -509,10 +537,18 @@ int main() {
     int data[3][4] = {{-5, -3, 10, 4},
                       {6, -1, -5, 9},
                       {9, 14, 3, 5}};
-    for (unsigned index = 0; index < 12; ++index) {
-        np::index_t<2> indices = np::unravel_index(index, shape);
-        std::cout << data[indices[0]][indices[1]] << ", ";
+    std::cout << "Row-major iteration:\n";
+    for (unsigned flat = 0; flat < 12; ++flat) {
+        np::index_t<2> index = np::unravel_index(flat, shape);
+        std::cout << data[index[0]][index[1]] << ", ";
     }
+    std::cout << "\n";
+    std::cout << "Column-major iteration:\n";
+    for (unsigned flat = 0; flat < 12; ++flat) {
+        np::index_t<2> index = np::unravel_index(flat, shape, np::col_major);
+        std::cout << data[index[0]][index[1]] << ", ";
+    }
+    std::cout << "\n";
     return 0;
 }
 ```
@@ -520,7 +556,10 @@ int main() {
 Output
 
 ```
+Row-major iteration:
 -5, -3, 10, 4, 6, -1, -5, 9, 9, 14, 3, 5,
+Column-major iteration:
+-5, 6, 9, -3, -1, 14, 10, -5, 3, 4, 9, 5,
 ```
 
 ### `broadcast_shapes`
