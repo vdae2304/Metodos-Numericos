@@ -58,7 +58,7 @@ namespace numcpp {
     ) {
         if (this->base()->shape() != arg.shape()) {
             std::ostringstream error;
-            error << "input shape " << arg.shape() << " does not match the "
+            error << "input shape " << arg.shape() << " doesn't match the "
                   << "output shape " << this->base()->shape();
             throw std::invalid_argument(error.str());
         }
@@ -89,7 +89,7 @@ namespace numcpp {
     ) {
         if (this->base()->shape() != arg.shape()) {
             std::ostringstream error;
-            error << "input shape " << arg.shape() << " does not match the "
+            error << "input shape " << arg.shape() << " doesn't match the "
                   << "output shape " << this->base()->shape();
             throw std::invalid_argument(error.str());
         }
