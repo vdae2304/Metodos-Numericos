@@ -402,7 +402,7 @@ namespace numcpp {
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        tensor<index_t<Rank>, 1> argsort(bool stable = false) const;
+        tensor<index_t<Rank>, 1> argsort() const;
         template <class Compare>
         tensor<index_t<Rank>, 1> argsort(Compare comp, bool stable=false) const;
 
@@ -622,7 +622,7 @@ namespace numcpp {
          *     with equivalent values. Otherwise, equivalent elements are not
          *     guaranteed to keep their original relative order.
          */
-        void sort(size_t axis = Rank - 1, bool stable = false);
+        void sort(size_t axis = Rank - 1);
         template <class Compare>
         void sort(size_t axis, Compare comp, bool stable = false);
 

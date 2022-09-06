@@ -372,8 +372,8 @@ namespace detail {
 
     template <class T, size_t Rank, class Tag>
     inline tensor<index_t<Rank>, 1>
-    tensor_interface<T, Rank, Tag>::argsort(bool stable) const {
-        return this->argsort(less(), stable);
+    tensor_interface<T, Rank, Tag>::argsort() const {
+        return this->argsort(less());
     }
 
     template <class T, size_t Rank, class Tag>
@@ -482,10 +482,8 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline void tensor_interface<T, Rank, Tag>::sort(
-        size_t axis, bool stable
-    ) {
-        this->sort(axis, less(), stable);
+    inline void tensor_interface<T, Rank, Tag>::sort(size_t axis) {
+        this->sort(axis, less());
     }
 
     template <class T, size_t Rank, class Tag>
