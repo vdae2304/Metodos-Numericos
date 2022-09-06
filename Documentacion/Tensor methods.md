@@ -741,7 +741,7 @@ Partitioned array:
 
 Return the indices that would sort the tensor.
 ```cpp
-tensor<index_t<Rank>, 1> argsort(bool stable = false) const;
+tensor<index_t<Rank>, 1> argsort() const;
 template <class Compare>
 tensor<index_t<Rank>, 1> argsort(Compare comp, bool stable = false) const;
 ```
@@ -1221,7 +1221,7 @@ Axis 1:
 
 Sort the elements in-place.
 ```cpp
-void sort(size_t axis = Rank - 1, bool stable = false);
+void sort(size_t axis = Rank - 1);
 template <class Compare>
 void sort(size_t axis, Compare comp, bool stable = false);
 ```
