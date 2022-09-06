@@ -53,16 +53,14 @@ namespace numcpp {
         slice(size_t stop) : m_offset(0), m_size(stop), m_stride(1) {}
 
         slice(size_t start, size_t stop)
-         : m_offset(start), m_size(0), m_stride(1)
-        {
+         : m_offset(start), m_size(0), m_stride(1) {
             if (start < stop) {
                 m_size = stop - start;
             }
         }
 
         slice(size_t start, size_t stop, size_t stride)
-         : m_offset(start), m_size(0), m_stride(stride)
-        {
+         : m_offset(start), m_size(0), m_stride(stride) {
             if (start < stop && stride > 0) {
                 m_size = 1 + (stop - start - 1) / stride;
             }
