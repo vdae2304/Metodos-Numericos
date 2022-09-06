@@ -557,15 +557,15 @@ exception.
 
 Return a view of the diagonal.
 ```cpp
-tensor_view<T, 1> diagonal(ptrdiff_t offset = 0);
-tensor_view<const T, 1> diagonal(ptrdiff_t offset = 0) const;
+tensor_view<T, 1> diagonal(ptrdiff_t k = 0);
+tensor_view<const T, 1> diagonal(ptrdiff_t k = 0) const;
 ```
 
 Parameters
 
-* `offset` Offset of the diagonal from the main diagonal. A positive value
-refers to an upper diagonal and a negative value refers to a lower diagonal.
-Defaults to 0 (main diagonal).
+* `k` Offset of the diagonal from the main diagonal. A positive value refers to
+an upper diagonal and a negative value refers to a lower diagonal. Defaults to
+0 (main diagonal).
 
 Returns
 
