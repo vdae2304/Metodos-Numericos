@@ -63,11 +63,14 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the tensor_view.
-         * @param order If true (default), the elements are stored in row-major
-         *     order (from first axis to last axis). Otherwise, the elements
-         *     are stored in column-major order (from last axis to first axis).
+         * @param order Memory layout in which elements are stored. In
+         *     row-major order, the last dimension is contiguous. In
+         *     column-major order, the first dimension is contiguous. Defaults
+         *     to row-major order.
          */
-        base_tensor(const shape_t<Rank> &shape, T *data, bool order = true);
+        base_tensor(
+            const shape_t<Rank> &shape, T *data, layout_t order = row_major
+        );
 
         /**
          * @brief Slice constructor. Constructs a tensor_view that references a
@@ -78,13 +81,15 @@ namespace numcpp {
          * @param offset Index of the first element selected by the tensor_view.
          * @param strides Span that separates the selected elements along each
          *     axis.
-         * @param order If true (default), the elements are stored in row-major
-         *     order (from first axis to last axis). Otherwise, the elements
-         *     are stored in column-major order (from last axis to first axis).
+         * @param order Order in which elements shall be iterated. In row-major
+         *     order, the last index is varying the fastest. In column-major
+         *     order, the first index is varying the fastest. Defaults to
+         *     row-major order.
          */
         base_tensor(
             const shape_t<Rank> &shape, T *data,
-            size_t offset, const shape_t<Rank> &strides, bool order = true
+            size_t offset, const shape_t<Rank> &strides,
+            layout_t order = row_major
         );
 
         /**
@@ -213,15 +218,11 @@ namespace numcpp {
         size_t strides(size_t axis) const;
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
+         * @brief Returns the order in which elements are iterated. It is not
+         * necessarily the memory layout in which elements are stored as the
+         * elements might not be continuous in memory.
          */
-        bool rowmajor() const;
-
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order.
-         */
-        bool colmajor() const;
+        layout_t layout() const;
 
         /// Assignment operator.
 
@@ -263,17 +264,17 @@ namespace numcpp {
         /**
          * @brief Return a view of the diagonal.
          *
-         * @param offset Offset of the diagonal from the main diagonal. A
-         *    positive value refers to an upper diagonal and a negative value
-         *    refers to a lower diagonal. Defaults to 0 (main diagonal).
+         * @param k Offset of the diagonal from the main diagonal. A positive
+         *     value refers to an upper diagonal and a negative value refers to
+         *     a lower diagonal. Defaults to 0 (main diagonal).
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
          *     object. Otherwise, the function returns a tensor_view to T,
          *     which has reference semantics to the original tensor.
          */
-        tensor_view<T, 1> diagonal(ptrdiff_t offset = 0);
-        tensor_view<const T, 1> diagonal(ptrdiff_t offset = 0) const;
+        tensor_view<T, 1> diagonal(ptrdiff_t k = 0);
+        tensor_view<const T, 1> diagonal(ptrdiff_t k = 0) const;
 
         /**
          * @brief Removes axes of length one.
@@ -337,8 +338,8 @@ namespace numcpp {
         // Strides of data in memory.
         shape_t<Rank> m_stride;
 
-        // Row-major (true) or column-major (false) order.
-        bool m_order;
+        // Memory layout.
+        layout_t m_order;
     };
 }
 

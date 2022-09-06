@@ -34,18 +34,18 @@ namespace numcpp {
     template <class T, size_t Rank>
     tensor_view<T, Rank>::base_tensor()
      : m_data(NULL), m_size(0), m_shape(), m_offset(0), m_stride(),
-       m_order(true)
+       m_order(row_major)
      {}
 
     template <class T, size_t Rank>
     tensor_view<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, bool order
+        const shape_t<Rank> &shape, T *data, layout_t order
     ) : m_data(data), m_size(shape.size()), m_shape(shape),
         m_offset(0), m_order(order)
     {
         size_t size = 1;
         for (size_t i = 0; i < Rank; ++i) {
-            if (m_order) {
+            if (m_order == row_major) {
                 size_t j = Rank - 1 - i;
                 m_stride[j] = size;
                 size *= m_shape[j];
@@ -60,7 +60,8 @@ namespace numcpp {
     template <class T, size_t Rank>
     tensor_view<T, Rank>::base_tensor(
         const shape_t<Rank> &shape, T *data,
-        size_t offset, const shape_t<Rank> &strides, bool order
+        size_t offset, const shape_t<Rank> &strides,
+        layout_t order
     ) : m_data(data), m_size(shape.size()), m_shape(shape),
         m_offset(offset), m_stride(strides), m_order(order)
      {}
@@ -83,7 +84,7 @@ namespace numcpp {
         other.m_shape = shape_t<Rank>();
         other.m_offset = 0;
         other.m_stride = shape_t<Rank>();
-        other.m_order = true;
+        other.m_order = row_major;
     }
 
     /// Destructor.
@@ -195,13 +196,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    inline bool tensor_view<T, Rank>::rowmajor() const {
+    inline layout_t tensor_view<T, Rank>::layout() const {
         return m_order;
-    }
-
-    template <class T, size_t Rank>
-    inline bool tensor_view<T, Rank>::colmajor() const {
-        return !m_order;
     }
 
     /// Assignment operator.
@@ -244,7 +240,7 @@ namespace numcpp {
             other.m_shape = shape_t<Rank>();
             other.m_offset = 0;
             other.m_stride = shape_t<Rank>();
-            other.m_order = true;
+            other.m_order = row_major;
         }
         return *this;
     }
@@ -252,32 +248,30 @@ namespace numcpp {
     /// Public methods.
 
     template <class T, size_t Rank>
-    tensor_view<T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t offset) {
+    tensor_view<T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t k) {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = 0;
-        index_t<2> index = (offset >= 0) ? make_index(0, offset)
-                                         : make_index(-offset, 0);
+        size_t size = 0, offset = 0, stride = 0;
+        index_t<2> index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
         if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
             size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-            start = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
+            offset = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
             stride = m_stride[0] + m_stride[1];
         }
-        return tensor_view<T, 1>(size, m_data, start, stride);
+        return tensor_view<T, 1>(size, m_data, offset, stride);
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t offset)
+    tensor_view<const T, 1> tensor_view<T, Rank>::diagonal(ptrdiff_t k)
     const {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = 0;
-        index_t<2> index = (offset >= 0) ? make_index(0, offset)
-                                         : make_index(-offset, 0);
+        size_t size = 0, offset = 0, stride = 0;
+        index_t<2> index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
         if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
             size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-            start = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
+            offset = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
             stride = m_stride[0] + m_stride[1];
         }
-        return tensor_view<const T, 1>(size, m_data, start, stride);
+        return tensor_view<const T, 1>(size, m_data, offset, stride);
     }
 
     template <class T, size_t Rank>
@@ -299,8 +293,8 @@ namespace numcpp {
                 strides[n++] = m_stride[i];
             }
             else if (m_shape[i] != 1) {
-                char error[] = "cannot select an axis to squeeze out which has "
-                    "size not equal to one";
+                char error[] = "cannot select an axis to squeeze out which has"
+                    " size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
@@ -335,8 +329,8 @@ namespace numcpp {
                 strides[n++] = m_stride[i];
             }
             else if (m_shape[i] != 1) {
-                char error[] = "cannot select an axis to squeeze out which has "
-                    "size not equal to one";
+                char error[] = "cannot select an axis to squeeze out which has"
+                    " size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
@@ -362,7 +356,7 @@ namespace numcpp {
     tensor_view<T, Rank> tensor_view<T, Rank>::t() {
         return tensor_view<T, Rank>(
             m_shape.transpose(), m_data, m_offset, m_stride.transpose(),
-            !m_order
+            (m_order == row_major) ? col_major : row_major
         );
     }
 
@@ -370,7 +364,7 @@ namespace numcpp {
     tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
         return tensor_view<const T, Rank>(
             m_shape.transpose(), m_data, m_offset, m_stride.transpose(),
-            !m_order
+            (m_order == row_major) ? col_major : row_major
         );
     }
 }
