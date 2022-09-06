@@ -73,7 +73,7 @@ namespace numcpp {
         ) : m_arg(arg), m_count(count), m_axes(axes) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -81,21 +81,20 @@ namespace numcpp {
          * @brief Returns an iterator pointing to the first element in the
          * tensor.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->rowmajor());
+            return this->begin(this->layout());
         }
 
-        const_iterator begin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
+        const_iterator begin(layout_t order) const {
+            return make_tensor_const_iterator(this, 0, order);
         }
 
         /**
@@ -103,22 +102,21 @@ namespace numcpp {
          * the tensor. It does not point to any element, and thus shall not be
          * dereferenced.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the element past the end of the
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->rowmajor());
+            return this->end(this->layout());
         }
 
-        const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
+        const_iterator end(layout_t order) const {
+            return make_tensor_const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -148,13 +146,12 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<Rank> &index) const {
-            index_t<Rank> a_index = index;
+        T operator[](index_t<Rank> index) const {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
-                a_index[m_axes[i]] =
-                    (index[m_axes[i]] + m_count[i]) % m_arg.shape(m_axes[i]);
+                index[m_axes[i]] += m_count[i];
+                index[m_axes[i]] %= m_arg.shape(m_axes[i]);
             }
-            return m_arg[a_index];
+            return m_arg[index];
         }
 
         /**
@@ -190,19 +187,13 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
+         * @brief Returns the memory layout in which elements are stored.
          */
-        bool rowmajor() const {
-            return m_arg.rowmajor();
+        layout_t layout() const {
+            return m_arg.layout();
         }
 
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order.
-         */
-        bool colmajor() const {
-            return m_arg.colmajor();
-        }
+        /// Public methods.
 
         /**
          * @brief Return a copy of the tensor.

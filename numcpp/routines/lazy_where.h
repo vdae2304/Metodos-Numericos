@@ -80,7 +80,7 @@ namespace numcpp {
             m_size(m_shape.size()) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -88,21 +88,20 @@ namespace numcpp {
          * @brief Returns an iterator pointing to the first element in the
          * tensor.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->rowmajor());
+            return this->begin(this->layout());
         }
 
-        const_iterator begin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
+        const_iterator begin(layout_t order) const {
+            return make_tensor_const_iterator(this, 0, order);
         }
 
         /**
@@ -110,22 +109,21 @@ namespace numcpp {
          * the tensor. It does not point to any element, and thus shall not be
          * dereferenced.
          *
-         * @param row_major It is an optional parameter that changes the order
-         *     in which elements are iterated. If provided, the elements are
-         *     iterated in row-major order (i.e., from first axis to last axis)
-         *     or column-major order (i.e., from last axis to first axis) as
-         *     specified by row_major. Otherwise, the elements are iterated in
-         *     the same order as stored in memory.
+         * @param order It is an optional parameter that changes the order
+         *     in which elements are iterated. In row-major order, the last
+         *     index is varying the fastest. In column-major order, the first
+         *     index is varying the fastest. The default is to use the same
+         *     layout as stored in memory.
          *
          * @return A random access iterator to the element past the end of the
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->rowmajor());
+            return this->end(this->layout());
         }
 
-        const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
+        const_iterator end(layout_t order) const {
+            return make_tensor_const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -193,23 +191,16 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
+         * @brief Returns the memory layout in which elements are stored.
          */
-        bool rowmajor() const {
-            return (m_cond.rowmajor() ||
-                    m_true.rowmajor() ||
-                    m_false.rowmajor());
+        layout_t layout() const {
+            return (m_cond.layout() == col_major &&
+                    m_true.layout() == col_major &&
+                    m_false.layout() == col_major)
+                    ? col_major : row_major;
         }
 
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order.
-         */
-        bool colmajor() const {
-            return (m_cond.colmajor() &&
-                    m_true.colmajor() &&
-                    m_false.colmajor());
-        }
+        /// Public methods.
 
         /**
          * @brief Return a copy of the tensor.
@@ -269,24 +260,24 @@ namespace numcpp {
             m_size(m_shape.size()) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->rowmajor());
+            return this->begin(this->layout());
         }
 
-        const_iterator begin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
+        const_iterator begin(layout_t order) const {
+            return make_tensor_const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->rowmajor());
+            return this->end(this->layout());
         }
 
-        const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
+        const_iterator end(layout_t order) const {
+            return make_tensor_const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -320,13 +311,13 @@ namespace numcpp {
             return m_size;
         }
 
-        bool rowmajor() const {
-            return (m_cond.rowmajor() || m_true.rowmajor());
+        layout_t layout() const {
+            return (m_cond.layout() == col_major &&
+                    m_true.layout() == col_major)
+                    ? col_major : row_major;
         }
 
-        bool colmajor() const {
-            return (m_cond.colmajor() && m_true.colmajor());
-        }
+        /// Public methods.
 
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(this->shape(), this->begin());
@@ -383,24 +374,24 @@ namespace numcpp {
             m_size(m_shape.size()) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->rowmajor());
+            return this->begin(this->layout());
         }
 
-        const_iterator begin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
+        const_iterator begin(layout_t order) const {
+            return make_tensor_const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->rowmajor());
+            return this->end(this->layout());
         }
 
-        const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
+        const_iterator end(layout_t order) const {
+            return make_tensor_const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -434,13 +425,13 @@ namespace numcpp {
             return m_size;
         }
 
-        bool rowmajor() const {
-            return (m_cond.rowmajor() || m_false.rowmajor());
+        layout_t layout() const {
+            return (m_cond.layout() == col_major &&
+                    m_false.layout() == col_major)
+                    ? col_major : row_major;
         }
 
-        bool colmajor() const {
-            return (m_cond.colmajor() && m_false.colmajor());
-        }
+        /// Public methods.
 
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(this->shape(), this->begin());
@@ -497,24 +488,24 @@ namespace numcpp {
         ) : m_cond(condition), m_true(x), m_false(y) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->rowmajor());
+            return this->begin(this->layout());
         }
 
-        const_iterator begin(bool row_major) const {
-            return make_tensor_const_iterator(this, 0, row_major);
+        const_iterator begin(layout_t order) const {
+            return make_tensor_const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->rowmajor());
+            return this->end(this->layout());
         }
 
-        const_iterator end(bool row_major) const {
-            return make_tensor_const_iterator(this, this->size(), row_major);
+        const_iterator end(layout_t order) const {
+            return make_tensor_const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -547,13 +538,11 @@ namespace numcpp {
             return m_cond.size();
         }
 
-        bool rowmajor() const {
-            return m_cond.rowmajor();
+        layout_t layout() const {
+            return m_cond.layout();
         }
 
-        bool colmajor() const {
-            return m_cond.colmajor();
-        }
+        /// Public methods.
 
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(this->shape(), this->begin());

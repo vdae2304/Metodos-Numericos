@@ -69,7 +69,7 @@ namespace numcpp {
            m_log(true), m_base(base) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -79,7 +79,7 @@ namespace numcpp {
          *
          * @return A random access iterator to the beginning of the sequence.
          */
-        const_iterator begin(bool = true) const {
+        const_iterator begin(layout_t = row_major) const {
             return make_tensor_const_iterator(this, 0);
         }
 
@@ -91,7 +91,7 @@ namespace numcpp {
          * @return A random access iterator to the element past the end of the
          *     tensor.
          */
-        const_iterator end(bool = true) const {
+        const_iterator end(layout_t = row_major) const {
             return make_tensor_const_iterator(this, this->size());
         }
 
@@ -155,19 +155,13 @@ namespace numcpp {
         }
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
+         * @brief Returns the memory layout in which elements are stored.
          */
-        bool rowmajor() const {
-            return true;
+        layout_t layout() const {
+            return row_major;
         }
 
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order.
-         */
-        bool colmajor() const {
-            return false;
-        }
+        /// Public methods.
 
         /**
          * @brief Return a copy of the tensor.
