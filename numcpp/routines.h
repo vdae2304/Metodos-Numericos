@@ -25,6 +25,7 @@
 
 #include "numcpp/tensor.h"
 
+#include "numcpp/functional.h"
 #include "numcpp/routines/ranges.h"
 #include "numcpp/routines/lazy_sequence.h"
 #include "numcpp/routines/lazy_diagonal.h"
@@ -1047,6 +1048,122 @@ namespace numcpp {
     );
 
     /// Sorting and searching.
+
+    /**
+     * @brief Return the indices that would sort the tensor.
+     *
+     * @param a Tensor-like object to sort.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     * @param stable If true, preserve the relative order of the elements with
+     *     equivalent values. Otherwise, equivalent elements are not guaranteed
+     *     to keep their original relative order.
+     *
+     * @return A one-dimensional tensor of indices that sort the tensor. If
+     *     a is a tensor, then a[a.argsort()] yields a sorted a.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> argsort(const base_tensor<T, Rank, Tag> &a);
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<index_t<Rank>, 1> argsort(
+        const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false
+    );
+
+    /**
+     * @brief Return the indices that would sort the tensor along the given
+     * axis.
+     *
+     * @param a Tensor-like object to sort.
+     * @param axis Axis along which to sort.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     * @param stable If true, preserve the relative order of the elements with
+     *     equivalent values. Otherwise, equivalent elements are not guaranteed
+     *     to keep their original relative order.
+     *
+     * @return A tensor of indices of the same shape as a that sort the tensor
+     *     along the given axis. If a is a tensor, then
+     *     take_along_axis(a, a.argsort(), axis) yields a sorted a.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank> argsort(
+        const base_tensor<T, Rank, Tag> &a, size_t axis
+    );
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<size_t, Rank> argsort(
+        const base_tensor<T, Rank, Tag> &a, size_t axis,
+        Compare comp, bool stable = false
+    );
+
+    /**
+     * @brief Return a sorted copy of the flattened tensor.
+     *
+     * @param a Tensor-like object to sort.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     * @param stable If true, preserve the relative order of the elements
+     *     with equivalent values. Otherwise, equivalent elements are not
+     *     guaranteed to keep their original relative order.
+     *
+     * @return A sorted copy of the flattened tensor.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    sort(const base_tensor<T, Rank, Tag> &a);
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false);
+
+     /**
+     * @brief Return a sorted copy of the tensor.
+     *
+     * @param a Tensor-like object to sort.
+     * @param axis Axis along which to sort.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     * @param stable If true, preserve the relative order of the elements
+     *     with equivalent values. Otherwise, equivalent elements are not
+     *     guaranteed to keep their original relative order.
+     *
+     * @return A sorted copy of the tensor.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sort(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sort(
+        const base_tensor<T, Rank, Tag> &a, size_t axis,
+        Compare comp, bool stable = false
+    );
 
     /**
      * @brief Return elements chosen from two tensors depending on condition.
