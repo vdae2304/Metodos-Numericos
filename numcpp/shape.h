@@ -194,20 +194,42 @@ namespace detail {
     inline index_t<sizeof...(Args)> make_index(Args... args);
 
     /**
+     * @brief Layout in which elements are stored or iterated.
+     */
+    enum layout_t {
+        /**
+         * @brief Row-major order (C/C++ style).
+         * In row-major order, the last dimension is contiguous, so that the
+         * memory offset of each axis is a constant multiple of the following
+         * axis.
+         * In row-major iteration, the last index is varying the fastest.
+         */
+        row_major = 1,
+
+        /**
+         * @brief Column-major order (Fortran/Matlab style).
+         * In column-major order, the first dimension is contiguous, so that
+         * the memory offset of each axis is a constant multiple of the
+         * previous axis.
+         * In column-major iteration, the first index is varying the fastest.
+         */
+        col_major = 0
+    };
+
+    /**
      * @brief Converts a tuple of indices into a flat index.
      *
      * @param index A tuple of indices to flatten.
      * @param shape The shape of the tensor used for raveling.
      * @param order Determines whether the indices should be viewed as indexing
-     *     in row-major order (true) or column-major order (false). Defaults to
-     *     row-major order.
+     *     in row-major or column-major order. Defaults to row-major order.
      *
      * @return The flattened index.
      */
     template <size_t Rank>
     size_t ravel_index(
         const index_t<Rank> &index, const shape_t<Rank> &shape,
-        bool order = true
+        layout_t order = row_major
     );
 
     /**
@@ -216,14 +238,13 @@ namespace detail {
      * @param index Index to unravel.
      * @param shape The shape of the tensor used for unraveling.
      * @param order Determines whether the indices should be viewed as indexing
-     *     in row-major order (true) or column-major order (false). Defaults to
-     *     row-major order.
+     *     in row-major or column-major order. Defaults to row-major order.
      *
      * @return The unraveled index.
      */
     template <size_t Rank>
     index_t<Rank> unravel_index(
-        size_t index, const shape_t<Rank> &shape, bool order = true
+        size_t index, const shape_t<Rank> &shape, layout_t order = row_major
     );
 
     /**

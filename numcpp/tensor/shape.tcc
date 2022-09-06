@@ -150,12 +150,12 @@ namespace detail {
 
     template <size_t Rank>
     size_t ravel_index(
-        const index_t<Rank> &index, const shape_t<Rank> &shape, bool order
+        const index_t<Rank> &index, const shape_t<Rank> &shape, layout_t order
     ) {
         size_t flat_index = 0;
         size_t size = 1;
         for (size_t i = 0; i < shape.ndim(); ++i) {
-            if (order) {
+            if (order == row_major) {
                 size_t j = shape.ndim() - 1 - i;
                 flat_index += size * index[j];
                 size *= shape[j];
@@ -170,11 +170,11 @@ namespace detail {
 
     template <size_t Rank>
     index_t<Rank> unravel_index(
-        size_t index, const shape_t<Rank> &shape, bool order
+        size_t index, const shape_t<Rank> &shape, layout_t order
     ) {
         index_t<Rank> multi_index;
         for (size_t i = 0; i < shape.ndim(); ++i) {
-            if (order) {
+            if (order == row_major) {
                 size_t j = shape.ndim() - 1 - i;
                 multi_index[j] = index % shape[j];
                 index /= shape[j];
@@ -196,21 +196,21 @@ namespace detail {
 
     template <size_t Rank, class... Args>
     void broadcast_shapes(
-        shape_t<Rank> &common_shape, const shape_t<Rank> &shape1,
+        shape_t<Rank> &out_shape, const shape_t<Rank> &shape1,
         const Args&... shapes
     ) {
         for (size_t i = 0; i < shape1.ndim(); ++i) {
-            if (common_shape[i] == 1) {
-                common_shape[i] = shape1[i];
+            if (out_shape[i] == 1) {
+                out_shape[i] = shape1[i];
             }
-            else if (shape1[i] != common_shape[i] && shape1[i] != 1) {
+            else if (shape1[i] != out_shape[i] && shape1[i] != 1) {
                 std::ostringstream error;
                 error << "operands could not be broadcast together with shapes "
-                      << common_shape << " " << shape1;
+                      << out_shape << " " << shape1;
                 throw std::invalid_argument(error.str());
             }
         }
-        broadcast_shapes(common_shape, shapes...);
+        broadcast_shapes(out_shape, shapes...);
     }
 
     /**
@@ -221,13 +221,13 @@ namespace detail {
 
     template <size_t OutRank, size_t Rank, class... Args>
     void concatenate_shapes(
-        shape_t<OutRank> &cat_shape, size_t offset,
+        shape_t<OutRank> &out_shape, size_t offset,
         const shape_t<Rank> &shape1, const Args&... shapes
     ) {
         for (size_t i = 0; i < shape1.ndim(); ++i) {
-            cat_shape[offset + i] = shape1[i];
+            out_shape[offset + i] = shape1[i];
         }
-        concatenate_shapes(cat_shape, offset + shape1.ndim(), shapes...);
+        concatenate_shapes(out_shape, offset + shape1.ndim(), shapes...);
     }
 }
 
@@ -235,9 +235,9 @@ namespace detail {
     shape_t<Rank> broadcast_shapes(
         const shape_t<Rank> &shape1, const Args&... shapes
     ) {
-        shape_t<Rank> common_shape = shape1;
-        detail::broadcast_shapes(common_shape, shapes...);
-        return common_shape;
+        shape_t<Rank> out_shape = shape1;
+        detail::broadcast_shapes(out_shape, shapes...);
+        return out_shape;
     }
 
     template <size_t Rank, class... Args>
@@ -246,9 +246,9 @@ namespace detail {
         const shape_t<Rank> &shape1, const Args&... shapes
     ) {
         shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
-        cat_shape;
-        detail::concatenate_shapes(cat_shape, 0, shape1, shapes...);
-        return cat_shape;
+        out_shape;
+        detail::concatenate_shapes(out_shape, 0, shape1, shapes...);
+        return out_shape;
     }
 
     template <size_t Rank1, size_t Rank2>
