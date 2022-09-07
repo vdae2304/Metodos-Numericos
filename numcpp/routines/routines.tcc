@@ -967,6 +967,20 @@ namespace numcpp {
         return out;
     }
 
+    template <class T, size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> nonzero(const base_tensor<T, Rank, Tag> &a) {
+        size_t size = a.size();
+        size -= std::count(a.begin(), a.end(), T());
+        tensor<index_t<Rank>, 1> out(size);
+        size_t n = 0;
+        for (index_t<Rank> i : make_indices(a.shape())) {
+            if (a[i] != T()) {
+                out[n++] = i;
+            }
+        }
+        return out;
+    }
+
     template <class T, size_t Rank,
               class TagCond, class TagTrue, class TagFalse>
     base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse> >

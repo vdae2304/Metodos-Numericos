@@ -789,7 +789,7 @@ namespace numcpp {
     /**
      * @brief Count the number of non-zero elements in the tensor.
      *
-     * @param a A tensor-like object of bool.
+     * @param a A tensor-like object.
      *
      * @return The number of non-zero elements.
      */
@@ -1292,6 +1292,19 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
         Compare comp
     );
+
+    /**
+     * @brief Return the indices of the elements that are non-zero.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return A new tensor with the indices of the elements that are non-zero.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> nonzero(const base_tensor<T, Rank, Tag> &a);
 
     /**
      * @brief Return elements chosen from two tensors depending on condition.
