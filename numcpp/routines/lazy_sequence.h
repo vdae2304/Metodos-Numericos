@@ -167,7 +167,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<T, 1> copy() const {
-            return tensor<T, 1>(this->shape(), this->begin());
+            return tensor<T, 1>(this->begin(), this->shape());
         }
 
     private:

@@ -187,7 +187,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 2> copy() const {
-            return tensor<value_type, 2>(this->shape(), this->begin());
+            return tensor<value_type, 2>(this->begin(), this->shape());
         }
 
     private:
@@ -366,7 +366,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 2> copy() const {
-            return tensor<value_type, 2>(this->shape(), this->begin());
+            return tensor<value_type, 2>(this->begin(), this->shape());
         }
 
     private:
@@ -531,7 +531,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 1> copy() const {
-            return tensor<value_type, 1>(this->shape(), this->begin());
+            return tensor<value_type, 1>(this->begin(), this->shape());
         }
 
     private:
