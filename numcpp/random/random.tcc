@@ -183,7 +183,7 @@ namespace numcpp {
                 uniform_int_distribution<size_t> rvs(i, population.size() - 1);
                 std::swap(out[i], out[rvs(m_rng)]);
             }
-            return tensor<T, Rank>(size, out.begin());
+            return tensor<T, Rank>(out.begin(), size);
         }
     }
 
@@ -236,7 +236,7 @@ namespace numcpp {
                 w[idx] = w[i];
                 w[i] = 0;
             }
-            return tensor<T, Rank>(size, out.begin());
+            return tensor<T, Rank>(out.begin(), size);
         }
     }
 
