@@ -24,6 +24,7 @@ Defined in `numcpp/shape.h`
     - [`make_shape`](#make_shape)
     - [`make_index`](#make_index)
     - [`layout_t`](#layout_t)
+    - [`make_strides`](#make_strides)
     - [`ravel_index`](#ravel_index)
     - [`unravel_index`](#unravel_index)
     - [`broadcast_shapes`](#broadcast_shapes)
@@ -439,6 +440,77 @@ offset of each axis is a constant multiple of the previous axis.
 
 In column-major iteration, the first index is varying the fastest.
 
+### `make_strides`
+
+Return a tuple of strides to offset a contiguous memory array as a
+multidimensional array. The elements in the array can be offset by
+```
+    data[index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
+```
+where `data` is the memory array.
+```cpp
+template <size_t Rank>
+shape_t<Rank> make_strides(
+    const shape_t<Rank> &shape, layout_t order = row_major
+);
+```
+
+Parameters
+
+* `shape` The shape of the tensor.
+* `order` Determines whether the strides should be computed for row-major or
+column-major order. Defaults to row-major order.
+
+Returns
+
+* The strides for each dimension.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<2> shape(3, 4);
+    int data[12] = {-5, -3, 10, 4, 6, -1, -5, 9, 9, 14, 3, 5};
+
+    std::cout << "Row-major order:\n";
+    np::shape_t<2> strides = np::make_strides(shape);
+    for (unsigned i = 0; i < shape[0]; ++i) {
+        for (unsigned j = 0; j < shape[1]; ++j) {
+            std::cout.width(2);
+            std::cout << data[i*strides[0] + j*strides[1]] << ", ";
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << "Column-major order:\n";
+    strides = np::make_strides(shape, np::col_major);
+    for (unsigned i = 0; i < shape[0]; ++i) {
+        for (unsigned j = 0; j < shape[1]; ++j) {
+            std::cout.width(2);
+            std::cout << data[i*strides[0] + j*strides[1]] << ", ";
+        }
+        std::cout << "\n";
+    }
+    return 0;
+}
+```
+
+Output
+
+```
+Row-major order:
+-5, -3, 10,  4,
+ 6, -1, -5,  9,
+ 9, 14,  3,  5,
+Column-major order:
+-5,  4, -5, 14,
+-3,  6,  9,  3,
+10, -1,  9,  5,
+```
+
 ### `ravel_index`
 
 Converts a tuple of indices into a flat index.
@@ -470,6 +542,7 @@ namespace np = numcpp;
 int main() {
     np::shape_t<2> shape(3, 4);
     int data[12] = {-5, -3, 10, 4, 6, -1, -5, 9, 9, 14, 3, 5};
+
     std::cout << "Row-major order:\n";
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
@@ -479,6 +552,7 @@ int main() {
         }
         std::cout << "\n";
     }
+
     std::cout << "Column-major order:\n";
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
@@ -537,12 +611,14 @@ int main() {
     int data[3][4] = {{-5, -3, 10, 4},
                       {6, -1, -5, 9},
                       {9, 14, 3, 5}};
+
     std::cout << "Row-major iteration:\n";
     for (unsigned flat = 0; flat < 12; ++flat) {
         np::index_t<2> index = np::unravel_index(flat, shape);
         std::cout << data[index[0]][index[1]] << ", ";
     }
     std::cout << "\n";
+
     std::cout << "Column-major iteration:\n";
     for (unsigned flat = 0; flat < 12; ++flat) {
         np::index_t<2> index = np::unravel_index(flat, shape, np::col_major);
