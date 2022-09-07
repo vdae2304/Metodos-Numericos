@@ -233,7 +233,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->shape(), this->begin());
+            return tensor<value_type, Rank>(this->begin(), this->shape());
         }
 
     private:
