@@ -86,7 +86,7 @@ tensor_view();
 
 Constructs a `tensor_view` that references a multidimensional array.
 ```cpp
-tensor_view(const shape_t<Rank> &shape, T *data, bool order = true);
+tensor_view(const shape_t<Rank> &shape, T *data, layout_t order = row_major);
 ```
 
 Parameters
@@ -170,7 +170,7 @@ multidimensional array.
 ```cpp
 tensor_view(
     const shape_t<Rank> &shape, T *data,
-    size_t offset, const shape_t<Rank> &strides, bool order = true
+    size_t offset, const shape_t<Rank> &strides, layout_t order = row_major
 );
 ```
 
