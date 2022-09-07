@@ -1062,7 +1062,7 @@ namespace numcpp {
      *     to keep their original relative order.
      *
      * @return A one-dimensional tensor of indices that sort the tensor. If
-     *     a is a tensor, then a[a.argsort()] yields a sorted a.
+     *     a is a tensor, then a[argsort(a)] yields a sorted a.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it
      *     may throw an exception.
@@ -1092,7 +1092,7 @@ namespace numcpp {
      *
      * @return A tensor of indices of the same shape as a that sort the tensor
      *     along the given axis. If a is a tensor, then
-     *     take_along_axis(a, a.argsort(), axis) yields a sorted a.
+     *     take_along_axis(a, argsort(a, axis), axis) yields a sorted a.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it
      *     may throw an exception.
@@ -1135,7 +1135,7 @@ namespace numcpp {
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false);
 
-     /**
+    /**
      * @brief Return a sorted copy of the tensor.
      *
      * @param a Tensor-like object to sort.
@@ -1163,6 +1163,134 @@ namespace numcpp {
     sort(
         const base_tensor<T, Rank, Tag> &a, size_t axis,
         Compare comp, bool stable = false
+    );
+
+    /**
+     * @brief Return the indices that would partition the tensor.
+     *
+     * @param a Tensor-like object to partition.
+     * @param kth Element index to partition by. The element at the kth
+     *     position is the element that would be in that position in the sorted
+     *     tensor. The other elements are left without any specific order,
+     *     except that none of the elements preceding kth are greater than it,
+     *     and none of the elements following it are less.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     *
+     * @return A one-dimensional tensor of indices that partitions the tensor.
+     *     If a is a tensor, then a[argpartition(a, kth)] yields a partitioned
+     *     a.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth
+    );
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<index_t<Rank>, 1> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp
+    );
+
+    /**
+     * @brief Return the indices that would partition the tensor along the
+     * given axis.
+     *
+     * @param a Tensor-like object to partition.
+     * @param kth Element index to partition by. The element at the kth
+     *     position is the element that would be in that position in the sorted
+     *     tensor. The other elements are left without any specific order,
+     *     except that none of the elements preceding kth are greater than it,
+     *     and none of the elements following it are less.
+     * @param axis Axis along which to partition.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     *
+     * @return A tensor of indices of the same shape as a that partitions the
+     *     tensor along the given axis. If a is a tensor, then
+     *     take_along_axis(a, argpartition(a, kth, axis), axis) yields a
+     *     partitioned a.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<size_t, Rank> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis
+    );
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<size_t, Rank> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
+        Compare comp
+    );
+
+    /**
+     * @brief Return a partitioned copy of the flattened tensor.
+     *
+     * @param a Tensor-like object to partition.
+     * @param kth Element index to partition by. The element at the kth
+     *     position is the element that would be in that position in the sorted
+     *     tensor. The other elements are left without any specific order,
+     *     except that none of the elements preceding kth are greater than it,
+     *     and none of the elements following it are less.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     *
+     * @return A partitioned copy of the flattened tensor.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth);
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp);
+
+    /**
+     * @brief Return a partitioned copy of the tensor.
+     *
+     * @param a Tensor-like object to partition.
+     * @param kth Element index to partition by. The element at the kth
+     *     position is the element that would be in that position in the sorted
+     *     tensor. The other elements are left without any specific order,
+     *     except that none of the elements preceding kth are greater than it,
+     *     and none of the elements following it are less.
+     * @param axis Axis along which to partition.
+     * @param comp Custom comparator. A binary function that accepts two
+     *     elements of type T as arguments, and returns a value convertible to
+     *     bool. The value returned indicates whether the element passed as
+     *     first argument is considered to go before the second.
+     *
+     * @return A partitioned copy of the tensor.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis);
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> = true>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    partition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
+        Compare comp
     );
 
     /**

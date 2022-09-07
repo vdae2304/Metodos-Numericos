@@ -242,7 +242,7 @@ namespace numcpp {
     index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a) {
         ranges::argmax pred;
         size_t index = pred(a.begin(), a.end());
-        bool order = a.rowmajor();
+        layout_t order = a.layout();
         return unravel_index(index, a.shape(), order);
     }
 
@@ -258,7 +258,7 @@ namespace numcpp {
     index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a) {
         ranges::argmin pred;
         size_t index = pred(a.begin(), a.end());
-        bool order = a.rowmajor();
+        layout_t order = a.layout();
         return unravel_index(index, a.shape(), order);
     }
 
@@ -455,6 +455,15 @@ namespace numcpp {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
         accumulate(out, plus(), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    cumprod(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        accumulate(out, multiplies(), a, axis);
         return out;
     }
 
@@ -830,8 +839,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-    inline sort(const base_tensor<T, Rank, Tag> &a) {
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    sort(const base_tensor<T, Rank, Tag> &a) {
         return sort(a, less());
     }
 
@@ -851,8 +860,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-    inline sort(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    sort(const base_tensor<T, Rank, Tag> &a, size_t axis) {
         return sort(a, axis, less());
     }
 
@@ -866,6 +875,95 @@ namespace numcpp {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out(a);
         out.sort(axis, comp, stable);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<index_t<Rank>, 1> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth
+    ) {
+        return argpartition(a, kth, less());
+    }
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> >
+    tensor<index_t<Rank>, 1> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp
+    ) {
+        shape_t<Rank> shape = a.shape();
+        size_t size = a.size();
+        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
+        auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
+            return comp(a[i], a[j]);
+        };
+        std::nth_element(out.begin(), out.begin() + kth, out.end(), comparator);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<size_t, Rank> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis
+    ) {
+        return argpartition(a, kth, axis, less());
+    }
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> >
+    tensor<size_t, Rank> argpartition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
+        Compare comp
+    ) {
+        shape_t<Rank> shape = a.shape();
+        tensor<size_t, Rank> out(shape);
+        size_t size = shape[axis];
+        shape[axis] = 1;
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            auto first = make_reduce_iterator(&out, out_index, axis, 0);
+            auto last = make_reduce_iterator(&out, out_index, axis, size);
+            std::iota(first, last, 0);
+            index_t<Rank> i = out_index, j = out_index;
+            auto comparator = [&](size_t i_axis, size_t j_axis) {
+                i[axis] = i_axis;
+                j[axis] = j_axis;
+                return comp(a[i], a[j]);
+            };
+            std::nth_element(first, first + kth, last, comparator);
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth) {
+        return partition(a, kth, less());
+    }
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> >
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, 1> out(a.begin(), a.size());
+        std::nth_element(out.begin(), out.begin() + kth, out.end(), comp);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis) {
+        return partition(a, kth, axis, less());
+    }
+
+    template <class T, size_t Rank, class Tag, class Compare,
+              detail::RequiresCallable<Compare, T, T> >
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    partition(
+        const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
+        Compare comp
+    ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out(a);
+        out.partition(kth, axis, comp);
         return out;
     }
 
