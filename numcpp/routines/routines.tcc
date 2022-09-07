@@ -779,7 +779,7 @@ namespace numcpp {
     ) {
         shape_t<Rank> shape = a.shape();
         size_t size = a.size();
-        tensor<index_t<Rank>, 1> out(size, make_indices(shape).begin());
+        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(a[i], a[j]);
         };
@@ -840,7 +840,7 @@ namespace numcpp {
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
-        tensor<Rt, 1> out(a.size(), a.begin());
+        tensor<Rt, 1> out(a.begin(), a.size());
         if (stable) {
             std::stable_sort(out.begin(), out.end(), comp);
         }
