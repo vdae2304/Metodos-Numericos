@@ -41,21 +41,8 @@ namespace numcpp {
     tensor_view<T, Rank>::base_tensor(
         const shape_t<Rank> &shape, T *data, layout_t order
     ) : m_data(data), m_size(shape.size()), m_shape(shape),
-        m_offset(0), m_order(order)
-    {
-        size_t size = 1;
-        for (size_t i = 0; i < Rank; ++i) {
-            if (m_order == row_major) {
-                size_t j = Rank - 1 - i;
-                m_stride[j] = size;
-                size *= m_shape[j];
-            }
-            else {
-                m_stride[i] = size;
-                size *= m_shape[i];
-            }
-        }
-    }
+        m_offset(0), m_stride(make_strides(shape, order)), m_order(order)
+     {}
 
     template <class T, size_t Rank>
     tensor_view<T, Rank>::base_tensor(
