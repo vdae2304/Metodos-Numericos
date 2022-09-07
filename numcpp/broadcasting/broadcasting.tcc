@@ -214,14 +214,14 @@ namespace numcpp {
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     flatten(const base_tensor<T, Rank, Tag> &a) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
-        return tensor<Rt, 1>(a.size(), a.begin());
+        return tensor<Rt, 1>(a.begin(), a.size());
     }
 
     template <class T, size_t Rank, class Tag>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     flatten(const base_tensor<T, Rank, Tag> &a, layout_t order) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
-        return tensor<Rt, 1>(a.size(), a.begin(order));
+        return tensor<Rt, 1>(a.begin(order), a.size());
     }
 
     template <class T, class U, size_t Rank, class TagT, class TagU>
