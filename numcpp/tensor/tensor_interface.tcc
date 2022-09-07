@@ -446,7 +446,6 @@ namespace detail {
         size_t kth, size_t axis, Compare comp
     ) {
         shape_t<Rank> shape = this->base()->shape();
-        detail::assert_within_bounds(shape, kth, axis);
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
