@@ -149,6 +149,24 @@ namespace detail {
     }
 
     template <size_t Rank>
+    shape_t<Rank> make_strides(const shape_t<Rank> &shape, layout_t order) {
+        shape_t<Rank> strides;
+        size_t size = 1;
+        for (size_t i = 0; i < shape.ndim(); ++i) {
+            if (order == row_major) {
+                size_t j = shape.ndim() - 1 - i;
+                strides[j] = size;
+                size *= shape[j];
+            }
+            else {
+                strides[i] = size;
+                size *= shape[i];
+            }
+        }
+        return strides;
+    }
+
+    template <size_t Rank>
     size_t ravel_index(
         const index_t<Rank> &index, const shape_t<Rank> &shape, layout_t order
     ) {

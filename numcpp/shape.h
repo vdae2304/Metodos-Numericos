@@ -217,6 +217,23 @@ namespace detail {
     };
 
     /**
+     * @brief Return a tuple of strides to offset a contiguous memory array as
+     * a multidimensional array. The elements in the array can be offset by
+     *     data[index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
+     * where data is the memory array.
+     *
+     * @param shape The shape of the tensor.
+     * @param order Determines whether the strides should be computed for
+     *     row-major or column-major order. Defaults to row-major order.
+     *
+     * @return The strides for each dimension.
+     */
+    template <size_t Rank>
+    shape_t<Rank> make_strides(
+        const shape_t<Rank> &shape, layout_t order = row_major
+    );
+
+    /**
      * @brief Converts a tuple of indices into a flat index.
      *
      * @param index A tuple of indices to flatten.
