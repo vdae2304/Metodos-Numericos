@@ -532,7 +532,7 @@ namespace numcpp {
          * @brief Return the indices of the elements that are non-zero.
          *
          * @return A new tensor with the indices of the elements that are
-         * non-zero.
+         *     non-zero.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
