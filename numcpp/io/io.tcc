@@ -412,7 +412,7 @@ namespace detail {
         shape_t<Rank> shape;
         std::vector<T> buffer;
         if (detail::read_tensor(istr, shape, buffer, 0)) {
-            arr = std::move(tensor<T, Rank>(shape, buffer.begin()));
+            arr = std::move(tensor<T, Rank>(buffer.begin(), shape));
         }
         else {
             arr = std::move(tensor<T, Rank>());
