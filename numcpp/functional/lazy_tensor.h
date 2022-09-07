@@ -266,7 +266,7 @@ namespace numcpp {
             m_size(m_shape.size()) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -458,7 +458,7 @@ namespace numcpp {
         ) : m_fun(f), m_lhs(lhs), m_val(val) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
@@ -572,7 +572,7 @@ namespace numcpp {
         ) : m_fun(f), m_val(val), m_rhs(rhs) {}
 
         /// Destructor.
-        ~base_tensor() {}
+        ~base_tensor() = default;
 
         /// Iterators.
 
