@@ -23,8 +23,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor::size`](#tensorsize)
     - [`tensor::empty`](#tensorempty)
     - [`tensor::data`](#tensordata)
-    - [`tensor::rowmajor`](#tensorrowmajor)
-    - [`tensor::colmajor`](#tensorcolmajor)
+    - [`tensor::layout`](#tensorlayout)
   - [Advanced indexing](#advanced-indexing)
     - [Slice indexing](#slice-indexing)
     - [Coordinate tensor indexing](#coordinate-tensor-indexing)
@@ -198,13 +197,13 @@ Constructs a tensor with given shape, with each element constructed from its
 corresponding element in the range starting at `first`, in the same order.
 ```cpp
 template <class InputIterator>
-tensor(const shape_t<Rank> &shape, InputIterator first);
+tensor(InputIterator first, const shape_t<Rank> &shape);
 ```
 
 Parameters
 
-* `shape` Number of elements along each axis.
 * `first` Input iterator to the initial position in a range.
+* `shape` Number of elements along each axis.
 
 Exceptions
 
@@ -219,11 +218,11 @@ Example
 namespace np = numcpp;
 int main() {
     int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array<int> arr(12, ptr);
+    np::array<int> arr(ptr, 12);
     std::cout << "1 dimensional:\n" << arr << "\n";
-    np::matrix<int> mat({3, 4}, ptr);
+    np::matrix<int> mat(ptr, {3, 4});
     std::cout << "2 dimensional:\n" << mat << "\n";
-    np::tensor<int, 3> cube({2, 2, 3}, ptr);
+    np::tensor<int, 3> cube(ptr, {2, 2, 3});
     std::cout << "3 dimensional:\n" << cube << "\n";
     return 0;
 }
@@ -712,20 +711,12 @@ Output
   [20, 21, 22, 23]]]
 ```
 
-### `tensor::rowmajor`
+### `tensor::layout`
 
-Returns whether the elements are stored in row-major order. For tensor class,
-always returns `true`.
+Returns the memory layout in which elements are stored. For tensor class,
+always returns `row_major`.
 ```cpp
-bool rowmajor() const;
-```
-
-### `tensor::colmajor`
-
-Returns whether the elements are stored in column-major order. For tensor
-class, always returns `false`.
-```cpp
-bool colmajor() const;
+layout_t layout() const;
 ```
 
 ## Advanced indexing
