@@ -61,7 +61,7 @@ namespace numcpp {
     template <class T, size_t Rank>
     template <class InputIterator, typename>
     tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, InputIterator first
+        InputIterator first, const shape_t<Rank> &shape
     ) : m_size(shape.size()), m_shape(shape)
     {
         m_data = new T[m_size];
@@ -83,7 +83,8 @@ namespace numcpp {
     {
         m_data = new T[m_size];
         std::transform(
-            other.begin(true), other.end(true), m_data, cast_to<T>()
+            other.begin(row_major), other.end(row_major), m_data,
+            cast_to<T>()
         );
     }
 
@@ -288,7 +289,9 @@ namespace numcpp {
             detail::assert_within_bounds(m_shape, indices[i]);
             indptr[n++] = ravel_index(indices[i], m_shape);
         }
-        return indirect_tensor<T, N>(indices.shape(), m_data, indptr, true, -1);
+        return indirect_tensor<T, N>(
+            indices.shape(), m_data, indptr, row_major, -1
+        );
     }
 
     template <class T, size_t Rank>
@@ -316,7 +319,9 @@ namespace numcpp {
             detail::assert_within_bounds(m_size, indices[i]);
             indptr[n++] = indices[i];
         }
-        return indirect_tensor<T, N>(indices.shape(), m_data, indptr, true, -1);
+        return indirect_tensor<T, N>(
+            indices.shape(), m_data, indptr, row_major, -1
+        );
     }
 
     template <class T, size_t Rank>
@@ -353,7 +358,7 @@ namespace numcpp {
                 indptr[n++] = ravel_index(i, m_shape);
             }
         }
-        return indirect_tensor<T, 1>(size, m_data, indptr, true, -1);
+        return indirect_tensor<T, 1>(size, m_data, indptr, row_major, -1);
     }
 
     template <class T, size_t Rank>
@@ -415,13 +420,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    inline bool tensor<T, Rank>::rowmajor() const {
-        return true;
-    }
-
-    template <class T, size_t Rank>
-    inline bool tensor<T, Rank>::colmajor() const {
-        return false;
+    inline layout_t tensor<T, Rank>::layout() const {
+        return row_major;
     }
 
     /// Assignment operator.
@@ -439,7 +439,8 @@ namespace numcpp {
     tensor<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
         this->resize(other.shape());
         std::transform(
-            other.begin(true), other.end(true), m_data, cast_to<T>()
+            other.begin(row_major), other.end(row_major), m_data,
+            cast_to<T>()
         );
         return *this;
     }
@@ -479,31 +480,29 @@ namespace numcpp {
     /// Public methods.
 
     template <class T, size_t Rank>
-    tensor_view<T, 1> tensor<T, Rank>::diagonal(ptrdiff_t offset) {
+    tensor_view<T, 1> tensor<T, Rank>::diagonal(ptrdiff_t k) {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = 0;
-        index_t<2> index = (offset >= 0) ? make_index(0, offset)
-                                         : make_index(-offset, 0);
+        size_t size = 0, offset = 0, stride = 0;
+        index_t<2> index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
         if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
             size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-            start = ravel_index(index, m_shape);
+            offset = ravel_index(index, m_shape);
             stride = m_shape[1] + 1;
         }
-        return tensor_view<T, 1>(size, m_data, start, stride);
+        return tensor_view<T, 1>(size, m_data, offset, stride);
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, 1> tensor<T, Rank>::diagonal(ptrdiff_t offset) const {
+    tensor_view<const T, 1> tensor<T, Rank>::diagonal(ptrdiff_t k) const {
         static_assert(Rank == 2, "Input must be 2 dimensional");
-        size_t size = 0, start = 0, stride = 0;
-        index_t<2> index = (offset >= 0) ? make_index(0, offset)
-                                         : make_index(-offset, 0);
+        size_t size = 0, offset = 0, stride = 0;
+        index_t<2> index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
         if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
             size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-            start = ravel_index(index, m_shape);
+            offset = ravel_index(index, m_shape);
             stride = m_shape[1] + 1;
         }
-        return tensor_view<const T, 1>(size, m_data, start, stride);
+        return tensor_view<const T, 1>(size, m_data, offset, stride);
     }
 
     template <class T, size_t Rank>
@@ -559,13 +558,10 @@ namespace numcpp {
     inline void tensor<T, Rank>::resize(const shape_t<Rank> &shape) {
         if (m_size != shape.size()) {
             delete[] m_data;
-            m_shape = shape;
             m_size = shape.size();
             m_data = new T[m_size];
         }
-        else {
-            m_shape = shape;
-        }
+        m_shape = shape;
     }
 
     template <class T, size_t Rank>
@@ -593,8 +589,8 @@ namespace numcpp {
                 shape[n++] = m_shape[i];
             }
             else if (m_shape[i] != 1) {
-                char error[] = "cannot select an axis to squeeze out which has "
-                    "size not equal to one";
+                char error[] = "cannot select an axis to squeeze out which has"
+                    " size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
@@ -626,8 +622,8 @@ namespace numcpp {
                 shape[n++] = m_shape[i];
             }
             else if (m_shape[i] != 1) {
-                char error[] = "cannot select an axis to squeeze out which has "
-                    "size not equal to one";
+                char error[] = "cannot select an axis to squeeze out which has"
+                    " size not equal to one";
                 throw std::invalid_argument(error);
             }
         }
@@ -643,12 +639,14 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     tensor_view<T, Rank> tensor<T, Rank>::t() {
-        return tensor_view<T, Rank>(m_shape.transpose(), m_data, false);
+        return tensor_view<T, Rank>(m_shape.transpose(), m_data, col_major);
     }
 
     template <class T, size_t Rank>
     tensor_view<const T, Rank> tensor<T, Rank>::t() const {
-        return tensor_view<const T, Rank>(m_shape.transpose(), m_data, false);
+        return tensor_view<const T, Rank>(
+            m_shape.transpose(), m_data, col_major
+        );
     }
 
     template <class T, size_t Rank>
@@ -691,10 +689,10 @@ namespace detail {
     shape_t<Rank> broadcast_matmul(
         const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
     ) {
-        shape_t<Rank> common_shape = shape1;
+        shape_t<Rank> out_shape = shape1;
         for (size_t i = 0; i < shape1.ndim() - 2; ++i) {
             if (shape1[i] == 1) {
-                common_shape[i] = shape2[i];
+                out_shape[i] = shape2[i];
             }
             else if (shape2[i] != shape1[i] && shape2[i] != 1) {
                 std::ostringstream error;
@@ -703,9 +701,9 @@ namespace detail {
                 throw std::invalid_argument(error.str());
             }
         }
-        common_shape[shape1.ndim() - 2] = shape1[shape1.ndim() - 2];
-        common_shape[shape2.ndim() - 1] = shape2[shape2.ndim() - 1];
-        return common_shape;
+        out_shape[shape1.ndim() - 2] = shape1[shape1.ndim() - 2];
+        out_shape[shape2.ndim() - 1] = shape2[shape2.ndim() - 1];
+        return out_shape;
     }
 
     /**

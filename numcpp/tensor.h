@@ -166,15 +166,15 @@ namespace detail {
          * each element constructed from its corresponding element in the range
          * starting at first, in the same order.
          *
-         * @param shape Number of elements along each axis.
          * @param first Input iterator to the initial position in a range.
+         * @param shape Number of elements along each axis.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class InputIterator,
                   typename = detail::RequiresInputIterator<InputIterator> >
-        base_tensor(const shape_t<Rank> &shape, InputIterator first);
+        base_tensor(InputIterator first, const shape_t<Rank> &shape);
 
         /**
          * @brief Copy constructor. Constructs a tensor with a copy of each of
@@ -398,16 +398,10 @@ namespace detail {
         const T* data() const;
 
         /**
-         * @brief Returns whether the elements are stored in row-major order.
-         * For tensor class, always returns true.
+         * @brief Returns the memory layout in which elements are stored. For
+         * tensor class, always returns row_major.
          */
-        bool rowmajor() const;
-
-        /**
-         * @brief Returns whether the elements are stored in column-major
-         * order. For tensor class, always returns false.
-         */
-        bool colmajor() const;
+        layout_t layout() const;
 
         /// Assignment operator.
 
@@ -476,17 +470,17 @@ namespace detail {
         /**
          * @brief Return a view of the diagonal.
          *
-         * @param offset Offset of the diagonal from the main diagonal. A
-         *    positive value refers to an upper diagonal and a negative value
-         *    refers to a lower diagonal. Defaults to 0 (main diagonal).
+         * @param k Offset of the diagonal from the main diagonal. A positive
+         *    value refers to an upper diagonal and a negative value refers to
+         *    a lower diagonal. Defaults to 0 (main diagonal).
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
          *     object. Otherwise, the function returns a tensor_view to T,
          *     which has reference semantics to the original tensor.
          */
-        tensor_view<T, 1> diagonal(ptrdiff_t offset = 0);
-        tensor_view<const T, 1> diagonal(ptrdiff_t offset = 0) const;
+        tensor_view<T, 1> diagonal(ptrdiff_t k = 0);
+        tensor_view<const T, 1> diagonal(ptrdiff_t k = 0) const;
 
         /**
          * @brief Return a view of the tensor collapsed into one dimension.
