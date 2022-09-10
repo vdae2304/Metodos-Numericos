@@ -512,7 +512,7 @@ Output
 
 Return the dimension of the tensor.
 ```cpp
-constexpr size_t ndim() const;
+static constexpr size_t ndim();
 ```
 
 Example
@@ -522,12 +522,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::array<int> arr(10);
-    std::cout << arr.ndim() << "\n";
-    np::matrix<int> mat(3, 4);
-    std::cout << mat.ndim() << "\n";
-    np::tensor<int, 3> cube(2, 3, 4);
-    std::cout << cube.ndim() << "\n";
+    std::cout << np::array<int>::ndim() << "\n";
+    std::cout << np::matrix<int>::ndim() << "\n";
+    std::cout << np::tensor<int, 3>::ndim() << "\n";
     return 0;
 }
 ```
