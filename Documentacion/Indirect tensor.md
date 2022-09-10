@@ -351,7 +351,7 @@ Output
 
 Return the dimension of the `indirect_tensor`.
 ```cpp
-constexpr size_t ndim() const;
+static constexpr size_t ndim();
 ```
 
 Example
@@ -361,12 +361,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
-    size_t index[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, index, np::row_major, 0);
-    std::cout << arr.ndim() << "\n";
-    np::indirect_matrix<int> mat({3, 2}, data, index, np::row_major, 0);
-    std::cout << mat.ndim() << "\n";
+    std::cout << np::indirect_array<int>::ndim() << "\n";
+    std::cout << np::indirect_matrix<int>::ndim() << "\n";
+    std::cout << np::indirect_tensor<int, 3>::ndim() << "\n";
     return 0;
 }
 ```
