@@ -119,7 +119,7 @@ Returns
 
 Return the dimension of the shape.
 ```cpp
-constexpr size_t ndim() const;
+static constexpr size_t ndim();
 ```
 
 Example
@@ -129,12 +129,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    np::shape_t<1> shape1(10);
-    std::cout << shape1.ndim() << "\n";
-    np::shape_t<2> shape2(4, 6);
-    std::cout << shape2.ndim() << "\n";
-    np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3.ndim() << "\n";
+    std::cout << np::shape_t<1>::ndim() << "\n";
+    std::cout << np::shape_t<2>::ndim() << "\n";
+    std::cout << np::shape_t<3>::ndim() << "\n";
     return 0;
 }
 ```
