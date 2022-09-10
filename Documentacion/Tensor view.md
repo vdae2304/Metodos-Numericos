@@ -580,7 +580,7 @@ Output
 
 Return the dimension of the `tensor_view`.
 ```cpp
-constexpr size_t ndim() const;
+static constexpr size_t ndim();
 ```
 
 Example
@@ -590,13 +590,9 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array_view<int> arr(12, ptr);
-    std::cout << arr.ndim() << "\n";
-    np::matrix_view<int> mat({3, 4}, ptr);
-    std::cout << mat.ndim() << "\n";
-    np::tensor_view<int, 3> cube({2, 2, 3}, ptr);
-    std::cout << cube.ndim() << "\n";
+    std::cout << np::array_view<int>::ndim() << "\n";
+    std::cout << np::matrix_view<int>::ndim() << "\n";
+    std::cout << np::tensor_view<int, 3>::ndim() << "\n";
     return 0;
 }
 ```
