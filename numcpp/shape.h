@@ -138,7 +138,7 @@ namespace detail {
         /**
          * @brief Return the dimension of the shape.
          */
-        constexpr size_t ndim() const;
+        static constexpr size_t ndim();
 
         /**
          * @brief Return the product of the sizes along all the axes.

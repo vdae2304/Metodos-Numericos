@@ -66,7 +66,7 @@ namespace numcpp {
     }
 
     template <size_t Rank>
-    constexpr size_t shape_t<Rank>::ndim() const {
+    constexpr size_t shape_t<Rank>::ndim() {
         return Rank;
     }
 
