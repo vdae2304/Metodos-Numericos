@@ -153,7 +153,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the indirect_tensor.
          */
-        constexpr size_t ndim() const;
+        static constexpr size_t ndim();
 
         /**
          * @brief Return the shape of the indirect_tensor.
