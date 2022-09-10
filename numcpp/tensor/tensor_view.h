@@ -160,7 +160,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor_view.
          */
-        constexpr size_t ndim() const;
+        static constexpr size_t ndim();
 
         /**
          * @brief Return the shape of the tensor_view.

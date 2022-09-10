@@ -133,7 +133,7 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    constexpr size_t tensor_view<T, Rank>::ndim() const {
+    constexpr size_t tensor_view<T, Rank>::ndim() {
         return Rank;
     }
 
