@@ -41,20 +41,18 @@ namespace numcpp {
     tensor_view<T, Rank> broadcast_to(
         tensor<T, Rank> &arg, const shape_t<Rank> &shape
     ) {
-        shape_t<Rank> strides;
-        size_t size = 1;
+        shape_t<Rank> strides = make_strides(arg.shape());
         for (size_t i = 0; i < shape.ndim(); ++i) {
-            size_t j = shape.ndim() - 1 - i;
-            if (arg.shape(j) == shape[j]) {
-                strides[j] = size;
+            if (arg.shape(i) != shape[i]) {
+                strides[i] = 0;
+                if (arg.shape(i) != 1) {
+                    std::ostringstream error;
+                    error << "operands could not be broadcast together with "
+                          << "shape " << arg.shape() << " and requested shape "
+                          << shape;
+                    throw std::invalid_argument(error.str());
+                }
             }
-            else if (arg.shape(j) != 1) {
-                std::ostringstream error;
-                error << "operands could not be broadcast together with shape "
-                      << arg.shape() << " and requested shape " << shape;
-                throw std::invalid_argument(error.str());
-            }
-            size *= arg.shape(j);
         }
         return tensor_view<T, Rank>(shape, arg.data(), 0, strides);
     }
@@ -63,16 +61,17 @@ namespace numcpp {
     tensor_view<T, Rank> broadcast_to(
         tensor_view<T, Rank> arg, const shape_t<Rank> &shape
     ) {
-        shape_t<Rank> strides;
+        shape_t<Rank> strides = arg.strides();
         for (size_t i = 0; i < shape.ndim(); ++i) {
-            if (arg.shape(i) == shape[i]) {
-                strides[i] = arg.strides(i);
-            }
-            else if (arg.shape(i) != 1) {
-                std::ostringstream error;
-                error << "operands could not be broadcast together with shape "
-                      << arg.shape() << " and requested shape " << shape;
-                throw std::invalid_argument(error.str());
+            if (arg.shape(i) != shape[i]) {
+                strides[i] = 0;
+                if (arg.shape(i) != 1) {
+                    std::ostringstream error;
+                    error << "operands could not be broadcast together with "
+                          << "shape " << arg.shape() << " and requested shape "
+                          << shape;
+                    throw std::invalid_argument(error.str());
+                }
             }
         }
         return tensor_view<T, Rank>(shape, arg.data(), arg.offset(), strides);
@@ -457,15 +456,10 @@ namespace detail {
         Function func, Args&&... args
     ) {
         tensor<T, Rank> out = std::move(pad(arg, before, after));
-        shape_t<Rank> shape = out.shape(), strides;
-        size_t size = 1;
-        for (size_t i = 0; i < shape.ndim(); ++i) {
-            size_t j = shape.ndim() - 1 - i;
-            strides[j] = size;
-            size *= shape[j];
-        }
+        shape_t<Rank> shape = out.shape();
+        shape_t<Rank> strides = make_strides(shape);
         for (size_t axis = 0; axis < shape.ndim(); ++axis) {
-            size = shape[axis];
+            size_t size = shape[axis];
             shape[axis] = 1;
             for (index_t<Rank> index : make_indices(shape)) {
                 size_t offset = 0, stride = strides[axis];
