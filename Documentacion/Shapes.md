@@ -219,7 +219,7 @@ Output
 Return the size of the i-th axis.
 ```cpp
 size_t& operator[](size_t i);
-size_t operator[](size_t i) const;
+const size_t& operator[](size_t i) const;
 ```
 
 Parameters
@@ -228,8 +228,9 @@ Parameters
 
 Returns
 
-* If the `shape_t` is const-qualified, return a copy of the size. Otherwise,
-return a reference to the size along the `i`-th axis.
+* The size along the i-th axis. If the `shape_t` is const-qualified, the
+function returns a reference to `const size_t`. Otherwise, it returns a
+reference to `size_t`.
 
 Example
 
