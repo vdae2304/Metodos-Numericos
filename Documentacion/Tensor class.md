@@ -1465,6 +1465,7 @@ int main() {
     std::cout << "1 dimensional:\n";
     std::cout << view1.shape() << "\n";
     std::cout << view1 << "\n";
+
     np::matrix<int> mat{{1, 14, 12, -3},
                         {-5, -3, 11, 11},
                         {-1, 18, -3, -1}};
@@ -1472,6 +1473,7 @@ int main() {
     std::cout << "2 dimensional:\n";
     std::cout << view2.shape() << "\n";
     std::cout << view2 << "\n";
+
     np::tensor<int, 3> cube{{{16, 15, 14, -1},
                              {5, 14, 9, 10},
                              {18, 15, 2, 5}},
