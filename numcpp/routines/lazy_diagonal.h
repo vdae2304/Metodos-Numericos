@@ -146,7 +146,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return 2;
         }
 
@@ -187,7 +187,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 2> copy() const {
-            return tensor<value_type, 2>(this->begin(), this->shape());
+            return tensor<value_type, 2>(*this);
         }
 
     private:
@@ -325,7 +325,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return 2;
         }
 
@@ -366,7 +366,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 2> copy() const {
-            return tensor<value_type, 2>(this->begin(), this->shape());
+            return tensor<value_type, 2>(*this);
         }
 
     private:
@@ -490,7 +490,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return 1;
         }
 
@@ -502,7 +502,7 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<1> shape() const {
+        const shape_t<1>& shape() const {
             return m_shape;
         }
 
@@ -521,7 +521,7 @@ namespace numcpp {
         /**
          * @brief Returns the memory layout in which elements are stored.
          */
-        bool rowmajor() const {
+        layout_t layout() const {
             return row_major;
         }
 
@@ -531,7 +531,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, 1> copy() const {
-            return tensor<value_type, 1>(this->begin(), this->shape());
+            return tensor<value_type, 1>(*this);
         }
 
     private:

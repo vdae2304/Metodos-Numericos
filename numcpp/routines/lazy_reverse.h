@@ -154,7 +154,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -196,7 +196,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:

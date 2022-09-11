@@ -162,7 +162,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -194,10 +194,7 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            return (m_cond.layout() == col_major &&
-                    m_true.layout() == col_major &&
-                    m_false.layout() == col_major)
-                    ? col_major : row_major;
+            return m_cond.layout();
         }
 
         /// Public methods.
@@ -206,7 +203,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -295,7 +292,7 @@ namespace numcpp {
                 : m_false;
         }
 
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -312,15 +309,13 @@ namespace numcpp {
         }
 
         layout_t layout() const {
-            return (m_cond.layout() == col_major &&
-                    m_true.layout() == col_major)
-                    ? col_major : row_major;
+            return m_cond.layout();
         }
 
         /// Public methods.
 
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -409,7 +404,7 @@ namespace numcpp {
                 : m_false[detail::broadcast_index(index, m_false.shape())];
         }
 
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -426,15 +421,13 @@ namespace numcpp {
         }
 
         layout_t layout() const {
-            return (m_cond.layout() == col_major &&
-                    m_false.layout() == col_major)
-                    ? col_major : row_major;
+            return m_cond.layout();
         }
 
         /// Public methods.
 
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -521,7 +514,7 @@ namespace numcpp {
             return m_cond[index] ? m_true : m_false;
         }
 
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -545,7 +538,7 @@ namespace numcpp {
         /// Public methods.
 
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
