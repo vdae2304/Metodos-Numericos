@@ -1370,7 +1370,7 @@ namespace numcpp {
      * @brief Reverse the order of the elements in a tensor along the given
      * axes.
      *
-     * @param arg A tensor-like object to reverse.
+     * @param a A tensor-like object to reverse.
      * @param axes Axis or axes along which to reverse over. The default is
      *     Rank - 1, which reverses along the last axis.
      *
@@ -1381,12 +1381,12 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag>
     base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, size_t axis = Rank - 1
+        const base_tensor<T, Rank, Tag> &a, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, const shape_t<N> &axes
+        const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     );
 
     /**
@@ -1394,7 +1394,7 @@ namespace numcpp {
      * are circularly shifted in such a way that the element at position count
      * becomes the first element.
      *
-     * @param arg A tensor-like object to shift.
+     * @param a A tensor-like object to shift.
      * @param count Number of positions to shift the elements by along each
      *     axis.
      * @param axes Axis or axes along which the elements are shifted. The
@@ -1407,14 +1407,182 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag>
     base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
+        const base_tensor<T, Rank, Tag> &a,
         size_t count, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
+        const base_tensor<T, Rank, Tag> &a,
         const index_t<N> &count, const shape_t<N> &axes
+    );
+
+    /// Basic statistics.
+
+    /**
+     * @brief Return the average of the tensor elements.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The average of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    mean(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the average of the tensor elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the average is
+     *     computed.
+     *
+     * @return A new tensor with the average over the axes. The output tensor
+     *     will have the same dimension and the same shape, except that the
+     *     axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    mean(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    mean(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the median of the tensor elements.
+     *
+     * @details The median is defined as the middle value of a sorted copy of
+     * the tensor. If the size is even, the average of the two middle values is
+     * returned.
+     *
+     * @param a A tensor-like object.
+     *
+     * @return The median of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    median(const base_tensor<T, Rank, Tag> &a);
+
+    /**
+     * @brief Return the median of the tensor elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the median is
+     *     computed.
+     *
+     * @return A new tensor with the median over the axes. The output tensor
+     *     will have the same dimension and the same shape, except that the
+     *     axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    median(const base_tensor<T, Rank, Tag> &a, size_t axis);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    median(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+
+    /**
+     * @brief Return the variance of the tensor elements.
+     *
+     * @details The variance is defined as the average of the squared
+     * deviations from the mean
+     *     var(a) = mean(x),    x = abs(a - mean(a))**2
+     * The mean is calculated as sum(x)/n, where n = x.size(). However, if bias
+     * is false, the divisor n - 1 is used instead of n. In statistics, n - 1
+     * provides an unbiased estimator of the sample variance; while n provides
+     * the maximum likelihood estimator of the variance for normally
+     * distributed variables.
+     *
+     * @param a A tensor-like object.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return The variance of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    var(const base_tensor<T, Rank, Tag> &a, bool bias);
+
+    /**
+     * @brief Return the variance of the tensor elements over the given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the variance is
+     *     computed.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return A new tensor with the variance over the axes. The output tensor
+     *     will have the same dimension and the same shape, except that the
+     *     axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    var(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    var(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias);
+
+    /**
+     * @brief Return the standard deviation of the tensor elements.
+     *
+     * @details The standard deviation is defined as the square root of the
+     * average of the squared deviations from the mean
+     *     stddev(a) = sqrt(mean(x)),    x = abs(a - mean(a))**2
+     * The mean is calculated as sum(x)/n, where n = x.size(). However, if bias
+     * is false, the divisor n - 1 is used instead of n. In statistics, n - 1
+     * provides an unbiased estimator of the sample variance; while n provides
+     * the maximum likelihood estimator of the variance for normally
+     * distributed variables.
+     *
+     * @param a A tensor-like object.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return The standard deviation of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    stddev(const base_tensor<T, Rank, Tag> &a, bool bias);
+
+    /**
+     * @brief Return the standard deviation of the tensor elements over the
+     * given axes.
+     *
+     * @param a A tensor-like object.
+     * @param axes A shape_t object with the axes along which the standard
+     *     deviation is computed.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return A new tensor with the standard deviation over the axes. The
+     *     output tensor will have the same dimension and the same shape,
+     *     except that the axes which are reduced are left as dimensions of
+     *     size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    stddev(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias);
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    stddev(
+        const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias
     );
 }
 

@@ -417,6 +417,44 @@ namespace ranges {
     };
 
     /**
+     * @brief Function object implementing median of range.
+     */
+    struct median {
+        /**
+         * @brief Returns the median of the elements in the range [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The median of the elements in the range.
+         *
+         * @throw std::invalid_argument Thrown if [first, last) is an empty
+         *     range.
+         */
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type operator()(
+            InputIterator first, InputIterator last
+        ) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            if (first == last) {
+                char error[] = "attempt to get median of an empty sequence";
+                throw std::invalid_argument(error);
+            }
+            size_t size = std::distance(first, last);
+            T *buffer = new T[size];
+            std::copy(first, last, buffer);
+            std::nth_element(buffer, buffer + (size - 1) / 2, buffer + size);
+            T val = buffer[(size - 1) / 2];
+            if (size % 2 == 0) {
+                val += *std::min_element(buffer + size / 2, buffer + size);
+                val /= 2;
+            }
+            delete[] buffer;
+            return val;
+        }
+    };
+
+    /**
      * @brief Function object implementing sample variance.
      */
     struct var {
@@ -495,6 +533,93 @@ namespace ranges {
             InputIterator first, InputIterator last
         ) const {
             return std::sqrt(var::operator()(first, last));
+        }
+    };
+
+    /**
+     * @brief Function object implementing quantile of range.
+     */
+    struct quantile {
+        // Quantile to compute.
+        double q;
+
+        // Method estimation.
+        std::string method;
+
+        /**
+         * @brief Constructor.
+         *
+         * @param q Quantile to compute, which must be between 0 and 1
+         *     (inclusive).
+         * @param method This parameter specifies the method to use for
+         *     estimating the quantile. Must be one of "lower", "higher",
+         *     "nearest", "midpoint" or "linear".
+         */
+        quantile(double q, const std::string &method = "linear")
+         : q(q), method(method) {
+            if (q < 0 || q > 1) {
+                char error[] = "quantiles must be in the range [0, 1]";
+                throw std::invalid_argument(error);
+            }
+            if (
+                method != "lower" && method != "higher" &&
+                method != "midpoint" && method != "nearest" &&
+                method != "linear"
+            ) {
+                char error[] = "method must be one of \"lower\", \"higher\", "
+                    "\"midpoint\", \"nearest\" or \"linear\"";
+                throw std::invalid_argument(error);
+            }
+        }
+
+        /**
+         * @brief Returns the q-th quantile of the elements in the range
+         * [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The quantile of the elements in the range.
+         *
+         * @throw std::invalid_argument Thrown if [first, last) is an empty
+         *     range.
+         */
+        template <class InputIterator>
+        typename std::iterator_traits<InputIterator>::value_type operator()(
+            InputIterator first, InputIterator last
+        ) const {
+            typedef typename std::iterator_traits<InputIterator>::value_type T;
+            if (first == last) {
+                char error[] = "attempt to get quantile of an empty sequence";
+                throw std::invalid_argument(error);
+            }
+            size_t size = std::distance(first, last);
+            T *buffer = new T[size];
+            std::copy(first, last, buffer);
+            size_t ith = std::floor((size - 1) * q);
+            std::nth_element(buffer, buffer + ith, buffer + size);
+            T lower = buffer[ith];
+            size_t jth = std::ceil((size - 1) * q);
+            std::nth_element(buffer, buffer + jth, buffer + size);
+            T higher = buffer[jth];
+            delete[] buffer;
+            double t;
+            if (method == "lower") {
+                t = 0;
+            }
+            else if (method == "higher") {
+                t = 1;
+            }
+            else if (method == "midpoint") {
+                t = 0.5;
+            }
+            else if (method == "nearest") {
+                t = std::round((size - 1) * q - ith);
+            }
+            else if (method == "linear") {
+                t = (size - 1) * q - ith;
+            };
+            return (1 - t) * lower + t * higher;
         }
     };
 

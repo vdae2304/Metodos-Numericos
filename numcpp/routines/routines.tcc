@@ -987,11 +987,11 @@ namespace numcpp {
     tensor<index_t<Rank>, 1> where(
         const base_tensor<bool, Rank, Tag> &condition
     ) {
-        size_t size = std::count(a.begin(), a.end(), true);
+        size_t size = std::count(condition.begin(), condition.end(), true);
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(a.shape())) {
-            if (a[i]) {
+        for (index_t<Rank> i : make_indices(condition.shape())) {
+            if (condition[i]) {
                 out[n++] = i;
             }
         }
@@ -1047,39 +1047,142 @@ namespace numcpp {
     /// Rearranging elements.
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, size_t axis
+    inline base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
+        const base_tensor<T, Rank, Tag> &a, size_t axis
     ) {
         typedef lazy_reverse_tag<Tag, 1> Closure;
-        return base_tensor<T, Rank, Closure>(arg, axis);
+        return base_tensor<T, Rank, Closure>(a, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
-        const base_tensor<T, Rank, Tag> &arg, const shape_t<N> &axes
+    inline base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
+        const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     ) {
         typedef lazy_reverse_tag<Tag, N> Closure;
-        return base_tensor<T, Rank, Closure>(arg, axes);
+        return base_tensor<T, Rank, Closure>(a, axes);
     }
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
+    inline base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
+        const base_tensor<T, Rank, Tag> &a,
         size_t count, size_t axis
     ) {
         typedef lazy_shift_tag<Tag, 1> Closure;
-        return base_tensor<T, Rank, Closure>(arg, count, axis);
+        return base_tensor<T, Rank, Closure>(a, count, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
-        const base_tensor<T, Rank, Tag> &arg,
+    inline base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
+        const base_tensor<T, Rank, Tag> &a,
         const index_t<N> &count, const shape_t<N> &axes
     ) {
         typedef lazy_shift_tag<Tag, N> Closure;
-        return base_tensor<T, Rank, Closure>(arg, count, axes);
+        return base_tensor<T, Rank, Closure>(a, count, axes);
     }
 
+    /// Basic statistics.
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    mean(const base_tensor<T, Rank, Tag> &a) {
+        ranges::mean pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    mean(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::mean(), axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    mean(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::mean(), axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    median(const base_tensor<T, Rank, Tag> &a) {
+        ranges::median pred;
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    median(const base_tensor<T, Rank, Tag> &a, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::median(), axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    median(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::median(), axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    var(const base_tensor<T, Rank, Tag> &a, bool bias) {
+        ranges::var pred(bias);
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    var(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::var(bias), axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    var(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::var(bias), axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    stddev(const base_tensor<T, Rank, Tag> &a, bool bias) {
+        ranges::stddev pred(bias);
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    stddev(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::stddev(bias), axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    stddev(
+        const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias
+    ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::stddev(bias), axes);
+        return out;
+    }
 }
 
 #endif // NUMCPP_ROUTINES_TCC_INCLUDED
