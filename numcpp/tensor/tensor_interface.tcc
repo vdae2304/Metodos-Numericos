@@ -358,9 +358,9 @@ namespace detail {
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::argpartition(
         size_t kth, Compare comp
     ) const {
-        shape_t<Rank> shape = this->base()->shape();
+        index_sequence<Rank> indices(this->base()->shape());
         size_t size = this->base()->size();
-        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), size);
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(this->base()->operator[](i),
                         this->base()->operator[](j));
@@ -380,9 +380,9 @@ namespace detail {
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::argsort(
         Compare comp, bool stable
     ) const {
-        shape_t<Rank> shape = this->base()->shape();
+        index_sequence<Rank> indices(this->base()->shape());
         size_t size = this->base()->size();
-        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), size);
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(this->base()->operator[](i),
                         this->base()->operator[](j));
@@ -415,7 +415,7 @@ namespace detail {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::copy() const {
         typedef typename std::remove_cv<T>::type Rt;
-        return tensor<Rt, Rank>(this->begin(), this->base()->shape());
+        return tensor<Rt, Rank>(*this->base());
     }
 
     template <class T, size_t Rank, class Tag>
