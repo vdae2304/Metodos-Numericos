@@ -1308,6 +1308,7 @@ namespace numcpp {
 
     /**
      * @brief Return elements chosen from two tensors depending on condition.
+     * When only condition is provided, this function is equivalent to nonzero.
      *
      * @param condition A tensor-like object of bool, where true, yield x,
      *     otherwise yield y.
@@ -1325,6 +1326,11 @@ namespace numcpp {
      *     compatible and cannot be broadcasted according to broadcasting
      *     rules.
      */
+    template <size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> where(
+        const base_tensor<bool, Rank, Tag> &condition
+    );
+
     template <class T, size_t Rank,
               class TagCond, class TagTrue, class TagFalse>
     base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse> >

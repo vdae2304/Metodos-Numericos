@@ -983,9 +983,24 @@ namespace numcpp {
         return out;
     }
 
+    template <size_t Rank, class Tag>
+    tensor<index_t<Rank>, 1> where(
+        const base_tensor<bool, Rank, Tag> &condition
+    ) {
+        size_t size = std::count(a.begin(), a.end(), true);
+        tensor<index_t<Rank>, 1> out(size);
+        size_t n = 0;
+        for (index_t<Rank> i : make_indices(a.shape())) {
+            if (a[i]) {
+                out[n++] = i;
+            }
+        }
+        return out;
+    }
+
     template <class T, size_t Rank,
               class TagCond, class TagTrue, class TagFalse>
-    base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse> >
+    inline base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse> >
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const base_tensor<T, Rank, TagTrue> &x,
@@ -996,7 +1011,7 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class TagCond, class TagTrue>
-    base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag> >
+    inline base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag> >
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const base_tensor<T, Rank, TagTrue> &x,
@@ -1007,7 +1022,7 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class TagCond, class TagFalse>
-    base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse> >
+    inline base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse> >
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const typename tensor<T, Rank>::value_type &x,
@@ -1018,8 +1033,9 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class TagCond>
-    base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag> >
-    where(
+    inline base_tensor<
+        T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>
+    > where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const T &x,
         const T &y
