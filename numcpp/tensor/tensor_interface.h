@@ -90,9 +90,9 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag>
     class tensor_interface {
+    public:
         static_assert(Rank > 0, "Rank must be positive");
 
-    public:
         /// Member types.
 
         typedef base_tensor_iterator<T, Rank, Tag> iterator;
