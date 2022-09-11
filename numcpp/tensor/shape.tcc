@@ -126,7 +126,7 @@ namespace detail {
     }
 
     template <size_t Rank>
-    inline size_t shape_t<Rank>::operator[](size_t i) const {
+    inline const size_t& shape_t<Rank>::operator[](size_t i) const {
         detail::assert_within_bounds(Rank, i);
         return m_shape[i];
     }

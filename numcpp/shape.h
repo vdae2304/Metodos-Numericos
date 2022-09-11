@@ -88,9 +88,9 @@ namespace detail {
      */
     template <size_t Rank>
     class shape_t {
+    public:
         static_assert(Rank > 0, "Rank must be positive");
 
-    public:
         /**
          * @brief Default constructor. Set all sizes to zero.
          */
@@ -152,11 +152,12 @@ namespace detail {
          *
          * @param i Axis index.
          *
-         * @return If the shape_t is const-qualified, return a copy of the size.
-         *     Otherwise, return a reference to the size along the i-th axis.
+         * @return The size along the i-th axis. If the shape_t is
+         *     const-qualified, the function returns a reference to const
+         *     size_t. Otherwise, it returns a reference to size_t.
          */
         size_t& operator[](size_t i);
-        size_t operator[](size_t i) const;
+        const size_t& operator[](size_t i) const;
 
         /**
          * @brief Return a copy with the axes in reversed order.
