@@ -372,6 +372,7 @@ Output
 ```
 1
 2
+3
 ```
 
 ### `indirect_tensor::shape`
