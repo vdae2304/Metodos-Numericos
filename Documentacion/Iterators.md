@@ -500,11 +500,11 @@ Column-major order:
 
 ### `tensor::iterator::layout`
 
-<h3><code>tensor_view::iterator::rowmajor</code></h3>
+<h3><code>tensor_view::iterator::::layout</code></h3>
 
-<h3><code>indirect_tensor::iterator::rowmajor</code></h3>
+<h3><code>indirect_tensor::iterator::::layout</code></h3>
 
- Returns the order in which elements are iterated.
+Returns the order in which elements are iterated.
 ```cpp
 // For both iterator and const_iterator
 layout_t layout() const;
