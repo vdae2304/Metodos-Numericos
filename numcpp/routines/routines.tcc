@@ -73,7 +73,7 @@ namespace numcpp {
     /// Numerical ranges.
 
     template <class T>
-    base_tensor<T, 1, sequence_tag> arange(const T &stop) {
+    inline base_tensor<T, 1, sequence_tag> arange(const T &stop) {
         size_t size = 0;
         if (stop > 0) {
             size = std::ceil(stop);
@@ -82,7 +82,7 @@ namespace numcpp {
     }
 
     template <class T, class U>
-    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    inline base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
     arange(const T &start, const U &stop) {
         typedef typename std::common_type<T, U>::type Rt;
         size_t size = 0;
@@ -93,8 +93,9 @@ namespace numcpp {
     }
 
     template <class T, class U, class V>
-    base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
-    arange(const T &start, const U &stop, const V &step) {
+    inline base_tensor<
+        typename std::common_type<T, U, V>::type, 1, sequence_tag
+    > arange(const T &start, const U &stop, const V &step) {
         typedef typename std::common_type<T, U, V>::type Rt;
         size_t size = 0;
         if ((start < stop && step > 0) || (start > stop && step < 0)) {
@@ -104,7 +105,7 @@ namespace numcpp {
     }
 
     template <class T, class U>
-    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    inline base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
     linspace(const T &start, const U &stop, size_t num, bool endpoint) {
         typedef typename std::common_type<T, U>::type Rt;
         Rt step = stop - start;
@@ -113,7 +114,7 @@ namespace numcpp {
     }
 
     template <class T, class U>
-    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    inline base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
     logspace(const T &start, const U &stop, size_t num, bool endpoint) {
         typedef typename std::common_type<T, U>::type Rt;
         Rt step = stop - start;
@@ -122,8 +123,9 @@ namespace numcpp {
     }
 
     template <class T, class U, class V>
-    base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
-    logspace(
+    inline base_tensor<
+        typename std::common_type<T, U, V>::type, 1, sequence_tag
+    > logspace(
         const T &start, const U &stop, size_t num, bool endpoint,
         const V &base
     ) {
@@ -134,7 +136,7 @@ namespace numcpp {
     }
 
     template <class T, class U>
-    base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+    inline base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
     geomspace(const T &start, const U &stop, size_t num, bool endpoint) {
         typedef typename std::common_type<T, U>::type Rt;
         Rt logstart = std::log10(Rt(start));
@@ -786,9 +788,9 @@ namespace numcpp {
     tensor<index_t<Rank>, 1> argsort(
         const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable
     ) {
-        shape_t<Rank> shape = a.shape();
+        index_sequence<Rank> indices(a.shape());
         size_t size = a.size();
-        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), size);
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(a[i], a[j]);
         };
@@ -890,9 +892,9 @@ namespace numcpp {
     tensor<index_t<Rank>, 1> argpartition(
         const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp
     ) {
-        shape_t<Rank> shape = a.shape();
+        index_sequence<Rank> indices(a.shape());
         size_t size = a.size();
-        tensor<index_t<Rank>, 1> out(make_indices(shape).begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), size);
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(a[i], a[j]);
         };
