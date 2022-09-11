@@ -150,7 +150,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -202,7 +202,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -351,7 +351,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -383,8 +383,10 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            return (m_lhs.layout() == col_major && m_rhs.layout() == col_major)
-                ? col_major : row_major;
+            if (m_lhs.layout() == m_rhs.layout()) {
+                return m_lhs.layout();
+            }
+            return row_major;
         }
 
         /// Public methods.
@@ -403,7 +405,7 @@ namespace numcpp {
          * @brief Return a copy of the tensor.
          */
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -491,7 +493,7 @@ namespace numcpp {
             return m_fun(m_lhs[index], m_val);
         }
 
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -523,7 +525,7 @@ namespace numcpp {
         }
 
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
@@ -605,7 +607,7 @@ namespace numcpp {
             return m_fun(m_val, m_rhs[index]);
         }
 
-        constexpr size_t ndim() const {
+        static constexpr size_t ndim() {
             return Rank;
         }
 
@@ -637,7 +639,7 @@ namespace numcpp {
         }
 
         tensor<value_type, Rank> copy() const {
-            return tensor<value_type, Rank>(this->begin(), this->shape());
+            return tensor<value_type, Rank>(*this);
         }
 
     private:
