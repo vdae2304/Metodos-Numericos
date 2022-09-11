@@ -82,6 +82,12 @@ indirect_tensor();
 
 Constructs an `indirect_tensor` that references a subset of elements from a
 multidimensional array.
+```cpp
+indirect_tensor(
+    const shape_t<Rank> &shape, T *data, const size_t *indices,
+    layout_t order = row_major, int mode = 1
+);
+```
 
 Parameters
 
@@ -96,13 +102,6 @@ varying the fastest. Defaults to row-major order.
 directly without making a copy of it. If negative, acquires the ownership of
 `indices`, which will be deleted along with the `indirect_tensor`. Defaults to
 make a copy.
-
-```cpp
-indirect_tensor(
-    const shape_t<Rank> &shape, T *data, const size_t *indices,
-    layout_t order = row_major, int mode = 1
-);
-```
 
 Example
 
