@@ -500,9 +500,9 @@ Column-major order:
 
 ### `tensor::iterator::layout`
 
-<h3><code>tensor_view::iterator::::layout</code></h3>
+<h3><code>tensor_view::iterator::layout</code></h3>
 
-<h3><code>indirect_tensor::iterator::::layout</code></h3>
+<h3><code>indirect_tensor::iterator::layout</code></h3>
 
 Returns the order in which elements are iterated.
 ```cpp
