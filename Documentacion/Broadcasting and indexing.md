@@ -1539,7 +1539,7 @@ Pad symmetric:
  [ 5,  5,  6,  7,  8,  8]]
 ```
 
-<h3></code>pad_mode::wrap</code></h3>
+<h3><code>pad_mode::wrap</code></h3>
 
 Pads with the wrap of the tensor along the axis. The first values are used to
 pad the end and the end values are used to pad the beginning.
