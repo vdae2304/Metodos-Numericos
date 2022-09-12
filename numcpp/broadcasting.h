@@ -349,8 +349,7 @@ namespace numcpp {
      * @param after Number of elements to pad at the end of each axis.
      * @param func Padding function. For tensors with rank greater than 1, the
      * padding of later axes depends on the padding of previous axes. The
-     * signature of the padding function
-     *     should be equivalent to the following:
+     * signature of the padding function should be equivalent to the following:
      *         void func(tensor_view<T, 1> &view, size_t before, size_t after,
      *                   size_t axis, Args&&... args);
      *     where
@@ -373,6 +372,7 @@ namespace numcpp {
         Function func, Args&&... args
     );
 
+namespace pad_mode {
     /**
      * @brief Pads with a constant value.
      *
@@ -386,7 +386,7 @@ namespace numcpp {
      *   each axis, where values(i, 0) and values(i, 1) are the before and
      *   after constants for axis i.
      */
-    struct pad_constant {
+    struct constant {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
@@ -415,7 +415,7 @@ namespace numcpp {
     /**
      * @brief Pads with the edge values of the tensor.
      */
-    struct pad_edge : pad_constant {
+    struct edge : constant {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
@@ -435,7 +435,7 @@ namespace numcpp {
      *   axis, where values(i, 0) and values(i, 1) are the before and after end
      *   values for axis i.
      */
-    struct pad_linear_ramp {
+    struct linear_ramp {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
@@ -465,7 +465,7 @@ namespace numcpp {
      * @brief Pads with the reflection of the tensor mirrored on the first and
      * last values.
      */
-    struct pad_reflect {
+    struct reflect {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
@@ -475,7 +475,7 @@ namespace numcpp {
     /**
      * @brief Pads with the reflection of the tensor mirrored along the edge.
      */
-    struct pad_symmetric {
+    struct symmetric {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
@@ -487,12 +487,13 @@ namespace numcpp {
      * are used to pad the end and the end values are used to pad the
      * beginning.
      */
-    struct pad_wrap {
+    struct wrap {
         template <class T>
         void operator()(
             tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
         ) const;
     };
+}
 
     /// Indexing routines.
 

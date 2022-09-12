@@ -477,15 +477,16 @@ namespace detail {
         return out;
     }
 
+namespace pad_mode {
     template <class T>
-    inline void pad_constant::operator()(
+    inline void constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
     ) const {
         this->operator()(view, before, after, axis, T(), T());
     }
 
     template <class T>
-    inline void pad_constant::operator()(
+    inline void constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const typename tensor<T, 1>::value_type &val
     ) const {
@@ -493,7 +494,7 @@ namespace detail {
     }
 
     template <class T>
-    void pad_constant::operator()(
+    void constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t,
         const typename tensor<T, 1>::value_type &val_before,
         const typename tensor<T, 1>::value_type &val_after
@@ -507,7 +508,7 @@ namespace detail {
     }
 
     template <class T, class Tag>
-    inline void pad_constant::operator()(
+    inline void constant::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const base_tensor<T, 2, Tag> &values
     ) const {
@@ -517,25 +518,25 @@ namespace detail {
     }
 
     template <class T>
-    void pad_edge::operator()(
+    void edge::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
     ) const {
         T edge_before = view[before];
         T edge_after = view[view.size() - 1 - after];
-        pad_constant::operator()(
+        constant::operator()(
             view, before, after, axis, edge_before, edge_after
         );
     }
 
     template <class T>
-    inline void pad_linear_ramp::operator()(
+    inline void linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
     ) const {
         this->operator()(view, before, after, axis, T(), T());
     }
 
     template <class T>
-    inline void pad_linear_ramp::operator()(
+    inline void linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const typename tensor<T, 1>::value_type &end
     ) const {
@@ -543,7 +544,7 @@ namespace detail {
     }
 
     template <class T>
-    void pad_linear_ramp::operator()(
+    void linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t,
         const typename tensor<T, 1>::value_type &end_before,
         const typename tensor<T, 1>::value_type &end_after
@@ -561,7 +562,7 @@ namespace detail {
     }
 
     template <class T, class Tag>
-    inline void pad_linear_ramp::operator()(
+    inline void linear_ramp::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
         const base_tensor<T, 2, Tag> &end_values
     ) const {
@@ -571,7 +572,7 @@ namespace detail {
     }
 
     template <class T>
-    void pad_reflect::operator()(
+    void reflect::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t
     ) const {
         size_t size = view.size() - before - after;
@@ -592,7 +593,7 @@ namespace detail {
     }
 
     template <class T>
-    void pad_symmetric::operator()(
+    void symmetric::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t
     ) const {
         size_t size = view.size() - before - after;
@@ -613,7 +614,7 @@ namespace detail {
     }
 
     template <class T>
-    void pad_wrap::operator()(
+    void wrap::operator()(
         tensor_view<T, 1> &view, size_t before, size_t after, size_t
     ) const {
         size_t size = view.size() - before - after;
@@ -626,6 +627,7 @@ namespace detail {
             view[view.size() - 1 - i] = view[before + idx];
         }
     }
+}
 
     /// Indexing routines.
 
