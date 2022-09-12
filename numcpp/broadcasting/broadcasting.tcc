@@ -301,6 +301,39 @@ namespace detail {
     }
 
     /**
+     * @brief Expand the shape dimension by inserting a new axis.
+     */
+    template <size_t Rank>
+    shape_t<Rank + 1> insert_axis(
+        const shape_t<Rank> &shape, size_t axis, size_t size = 0
+    ) {
+        shape_t<Rank + 1> new_shape;
+        for (size_t i = 0; i < axis; ++i) {
+            new_shape[i] = shape[i];
+        }
+        new_shape[axis] = size;
+        for (size_t i = axis; i < shape.ndim(); ++i) {
+            new_shape[i + 1] = shape[i];
+        }
+        return new_shape;
+    }
+
+    /**
+     * @brief Reduce the shape dimension by removing an axis.
+     */
+    template <size_t Rank>
+    shape_t<Rank - 1> remove_axis(const shape_t<Rank> &shape, size_t axis) {
+        shape_t<Rank - 1> new_shape;
+        for (size_t i = 0; i < axis; ++i) {
+            new_shape[i] = shape[i];
+        }
+        for (size_t i = axis + 1; i < shape.ndim(); ++i) {
+            new_shape[i - 1] = shape[i];
+        }
+        return new_shape;
+    }
+
+    /**
      * @brief Stack tensors along the given axis.
      */
     template <class T, size_t Rank>
