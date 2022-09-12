@@ -1584,6 +1584,168 @@ namespace numcpp {
     stddev(
         const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias
     );
+
+    /**
+     * @brief Return the q-th quantile of the tensor elements.
+     *
+     * @details Given a tensor of size n, the q-th quantile is the (n - 1)*q-th
+     * value of a sorted copy of the tensor. If (n - 1)*q is not an integer,
+     * the quantile is a weighted average of the two nearest neighbors. The
+     * different methods work as follows:
+     *     "lower" Takes the lowest neighbor.
+     *     "higher" Takes the highest neighbor.
+     *     "midpoint" Takes the average of both neighbors.
+     *     "nearest" Takes the nearest neighbor.
+     *     "linear" Takes a linear interpolation between both neighbors.
+     *
+     * @param a A tensor-like object.
+     * @param q Quantile to compute, which must be between 0 and 1 (inclusive).
+     * @param method This parameter specifies the method to use for estimating
+     *     the quantile. Must be one of "lower", "higher", "nearest",
+     *     "midpoint" or "linear".
+     *
+     * @return The q-th quantile of the tensor elements.
+     */
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q,
+        const std::string &method = "linear"
+    );
+
+    /**
+     * @brief Return the q-th quantile of the tensor elements over the given
+     * axes.
+     *
+     * @param a A tensor-like object.
+     * @param q Quantile to compute, which must be between 0 and 1 (inclusive).
+     * @param axes A shape_t object with the axes along which the quantile is
+     *     computed.
+     * @param method This parameter specifies the method to use for estimating
+     *     the quantile. Must be one of "lower", "higher", nearest",
+     *     "midpoint" or "linear".
+     *
+     * @return A new tensor with the quantile over the axes. The output tensor
+     *     will have the same dimension and the same shape, except that the
+     *     axes which are reduced are left as dimensions of size one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q, size_t axis,
+        const std::string &method = "linear"
+    );
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q, const shape_t<N> &axes,
+        const std::string &method = "linear"
+    );
+
+    /**
+     * @brief Return the covariance of two one-dimensional tensors.
+     *
+     * @details The covariance is defined as the average of the element-wise
+     * products of the deviations from the mean:
+     *    cov(x, y) = mean((x - mean(x))*(y - mean(y)))
+     * For complex types, the complex conjugate of y is used:
+     *    cov(x, y) = mean((x - mean(x))*conj(y - mean(y)))
+     * The mean is calculated as sum(*)/n, where n = x.size(). However, if bias
+     * is false, the divisor n - 1 is used instead of n.
+     *
+     * @param a First tensor-like argument.
+     * @param b Second tensor-like argument.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return The covariance of the two tensors.
+     *
+     * @throw std::invalid_argument Thrown if the tensor arguments have
+     *     different sizes.
+     */
+    template <class T, class Tag1, class Tag2>
+    T cov(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b,
+        bool bias = false
+    );
+
+    template <class T, class Tag1, class Tag2>
+    std::complex<T> cov(
+        const base_tensor<std::complex<T>, 1, Tag1> &a,
+        const base_tensor<std::complex<T>, 1, Tag2> &b,
+        bool bias = false
+    );
+
+    /**
+     * @brief Return the covariance matrix of given data.
+     *
+     * @param a A 2-dimensional tensor-like object containing multiple
+     *     variables and observations.
+     * @param rowvar If true, then each row represents a variable, with
+     *     observations in the columns. Otherwise, each column represents a
+     *     variable, with observations in the rows.
+     * @param bias If bias is true, then normalization is by n. Otherwise,
+     *     normalization is by n - 1.
+     *
+     * @return The covariance matrix of the variables. The element (i, j) is
+     *     equal to the covariance of the i-th and j-th variables.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    tensor<T, 2> cov(
+        const base_tensor<T, 2, Tag> &a, bool rowvar = true, bool bias = false
+    );
+
+    template <class T, class Tag>
+    tensor<std::complex<T>, 2> cov(
+        const base_tensor<std::complex<T>, 2, Tag> &a, bool rowvar = true,
+        bool bias = false
+    );
+
+    /**
+     * @brief Return the Pearson's correlation coefficient of two
+     * one-dimensional tensors.
+     *
+     * @details The correlation coefficient is defined as the covariance of the
+     * two variables divided by the product of their standard deviations:
+     *     corr(x, y) = cov(x, y)/(stddev(x)*stddev(y))
+     *
+     * @param a First tensor-like argument.
+     * @param b Second tensor-like argument.
+     *
+     * @return The correlation coefficient of the two tensors.
+     *
+     * @throw std::invalid_argument Thrown if the tensor arguments have
+     *     different sizes.
+     */
+    template <class T, class Tag1, class Tag2>
+    T corrcoef(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+    );
+
+    /**
+     * @brief Return the correlation matrix of given data.
+     *
+     * @param a A 2-dimensional tensor-like object containing multiple
+     *     variables and observations.
+     * @param rowvar If true, then each row represents a variable, with
+     *     observations in the columns. Otherwise, each column represents a
+     *     variable, with observations in the rows.
+     *
+     * @return The correlation matrix of the variables. The element (i, j) is
+     *     equal to the correlation coefficient of the i-th and j-th variables.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    tensor<T, 2> corrcoef(const base_tensor<T, 2, Tag> &a, bool rowvar = true);
 }
 
 #include "numcpp/routines/routines.tcc"

@@ -1094,7 +1094,7 @@ namespace numcpp {
     mean(const base_tensor<T, Rank, Tag> &a, size_t axis) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_along_axis(out, ranges::mean(), axis);
+        apply_along_axis(out, ranges::mean(), a, axis);
         return out;
     }
 
@@ -1103,7 +1103,7 @@ namespace numcpp {
     mean(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_over_axes(out, ranges::mean(), axes);
+        apply_over_axes(out, ranges::mean(), a, axes);
         return out;
     }
 
@@ -1119,7 +1119,7 @@ namespace numcpp {
     median(const base_tensor<T, Rank, Tag> &a, size_t axis) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_along_axis(out, ranges::median(), axis);
+        apply_along_axis(out, ranges::median(), a, axis);
         return out;
     }
 
@@ -1128,7 +1128,7 @@ namespace numcpp {
     median(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_over_axes(out, ranges::median(), axes);
+        apply_over_axes(out, ranges::median(), a, axes);
         return out;
     }
 
@@ -1144,7 +1144,7 @@ namespace numcpp {
     var(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_along_axis(out, ranges::var(bias), axis);
+        apply_along_axis(out, ranges::var(bias), a, axis);
         return out;
     }
 
@@ -1153,7 +1153,7 @@ namespace numcpp {
     var(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_over_axes(out, ranges::var(bias), axes);
+        apply_over_axes(out, ranges::var(bias), a, axes);
         return out;
     }
 
@@ -1169,7 +1169,7 @@ namespace numcpp {
     stddev(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_along_axis(out, ranges::stddev(bias), axis);
+        apply_along_axis(out, ranges::stddev(bias), a, axis);
         return out;
     }
 
@@ -1180,7 +1180,159 @@ namespace numcpp {
     ) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         tensor<Rt, Rank> out;
-        apply_over_axes(out, ranges::stddev(bias), axes);
+        apply_over_axes(out, ranges::stddev(bias), a, axes);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    typename base_tensor<T, Rank, Tag>::value_type
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q,
+        const std::string &method
+    ) {
+        ranges::quantile pred(q, method);
+        return pred(a.begin(), a.end());
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q, size_t axis,
+        const std::string &method
+    ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_along_axis(out, ranges::quantile(q, method), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag, size_t N>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    quantile(
+        const base_tensor<T, Rank, Tag> &a, double q, const shape_t<N> &axes,
+        const std::string &method
+    ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out;
+        apply_over_axes(out, ranges::quantile(q, method), a, axes);
+        return out;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    T cov(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b,
+        bool bias
+    ) {
+        if (a.size() != b.size()) {
+            char error[] = "all the tensors must have the same shape";
+            throw std::invalid_argument(error);
+        }
+        size_t size = a.size();
+        T val = T(0);
+        T a_mean = mean(a);
+        T b_mean = mean(b);
+        for (size_t i = 0; i < size; ++i) {
+            val += (a[i] - a_mean) * (b[i] - b_mean);
+        }
+        val /= size - 1 + bias;
+        return val;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    std::complex<T> cov(
+        const base_tensor<std::complex<T>, 1, Tag1> &a,
+        const base_tensor<std::complex<T>, 1, Tag2> &b,
+        bool bias
+    ) {
+        if (a.size() != b.size()) {
+            char error[] = "all the tensors must have the same shape";
+            throw std::invalid_argument(error);
+        }
+        size_t size = a.size();
+        std::complex<T> val = T(0);
+        std::complex<T> a_mean = mean(a);
+        std::complex<T> b_mean = mean(b);
+        for (size_t i = 0; i < size; ++i) {
+            val += (a[i] - a_mean) * std::conj(b[i] - b_mean);
+        }
+        val /= size - 1 + bias;
+        return val;
+    }
+
+    template <class T, class Tag>
+    tensor<T, 2> cov(
+        const base_tensor<T, 2, Tag> &a, bool rowvar, bool bias
+    ) {
+        size_t nvar = rowvar ? a.shape(0) : a.shape(1);
+        size_t size = rowvar ? a.shape(1) : a.shape(0);
+        tensor<T, 2> out(nvar, nvar);
+        tensor<T, 2> a_mean = mean(a, rowvar);
+        for (size_t i = 0; i < nvar; ++i) {
+            for (size_t j = 0; j < nvar; ++j) {
+                T val = T(0);
+                for (size_t k = 0; k < size; ++k) {
+                    if (rowvar) {
+                        val += (a(i, k) - a_mean(i, 0))
+                             * (a(j, k) - a_mean(j, 0));
+                    }
+                    else {
+                        val += (a(k, i) - a_mean(0, i))
+                             * (a(k, j) - a_mean(0, j));
+                    }
+                }
+                val /= size - 1 + bias;
+                out(i, j) = val;
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag>
+    tensor<std::complex<T>, 2> cov(
+        const base_tensor<std::complex<T>, 2, Tag> &a, bool rowvar, bool bias
+    ) {
+        size_t nvar = rowvar ? a.shape(0) : a.shape(1);
+        size_t size = rowvar ? a.shape(1) : a.shape(0);
+        tensor<std::complex<T>, 2> out(nvar, nvar);
+        tensor<std::complex<T>, 2> a_mean = mean(a, rowvar);
+        for (size_t i = 0; i < nvar; ++i) {
+            for (size_t j = 0; j < nvar; ++j) {
+                std::complex<T> val = T(0);
+                for (size_t k = 0; k < size; ++k) {
+                    if (rowvar) {
+                        val += (a(i, k) - a_mean(i, 0))
+                             * std::conj(a(j, k) - a_mean(j, 0));
+                    }
+                    else {
+                        val += (a(k, i) - a_mean(0, i))
+                             * std::conj(a(k, j) - a_mean(0, j));
+                    }
+                }
+                val /= size - 1 + bias;
+                out(i, j) = val;
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    T corrcoef(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+    ) {
+        return cov(a, b) / (stddev(a) * stddev(b));
+    }
+
+    template <class T, class Tag>
+    tensor<T, 2> corrcoef(const base_tensor<T, 2, Tag> &a, bool rowvar) {
+        tensor<T, 2> out = cov(a, rowvar);
+        for (size_t i = 0; i < out.shape(0); ++i) {
+            for (size_t j = i + 1; j < out.shape(1); ++j) {
+                T denom = std::sqrt(out(i, i) * out(j, j));
+                out(i, j) /= denom;
+                out(j, i) /= denom;
+            }
+            out(i, i) = T(1);
+        }
         return out;
     }
 }
