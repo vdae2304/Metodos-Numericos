@@ -23,12 +23,7 @@ Defined in `numcpp/broadcasting.h`
   - [Padding](#padding)
     - [`pad`](#pad)
     - [`pad`](#pad-1)
-    - [`pad_constant`](#pad_constant)
-    - [`pad_edge`](#pad_edge)
-    - [`pad_linear_ramp`](#pad_linear_ramp)
-    - [`pad_reflect`](#pad_reflect)
-    - [`pad_symmetric`](#pad_symmetric)
-    - [`pad_wrap`](#pad_wrap)
+    - [`pad_mode`](#pad_mode)
   - [Indexing routines](#indexing-routines)
     - [`ravel_index`](#ravel_index)
     - [`unravel_index`](#unravel_index)
@@ -1211,11 +1206,13 @@ Exceptions
 * `std::bad_alloc` If the function fails to allocate storage it may throw an
 exception.
 
-### `pad_constant`
+### `pad_mode`
+
+<h3><code>pad_mode::constant</code></h3>
 
 Pads with a constant value.
 ```cpp
-struct pad_constant;
+struct pad_mode::constant;
 ```
 
 Parameters
@@ -1238,16 +1235,17 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::constant mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad with zeros:\n";
-    std::cout << np::pad(mat, before, after, np::pad_constant()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     std::cout << "Pad with ones:\n";
-    std::cout << np::pad(mat, before, after, np::pad_constant(), 1) << "\n";
+    std::cout << np::pad(mat, before, after, mode, 1) << "\n";
     std::cout << "Pad with zeros and ones:\n";
-    std::cout << np::pad(mat, before, after, np::pad_constant(), 0, 1) << "\n";
+    std::cout << np::pad(mat, before, after, mode, 0, 1) << "\n";
     std::cout << "Pad with different values:\n";
     np::matrix<int> values{{0, 1}, {2, 3}};
-    std::cout << np::pad(mat, before, after, np::pad_constant(), values) << "\n";
+    std::cout << np::pad(mat, before, after, mode, values) << "\n";
     return 0;
 }
 ```
@@ -1299,11 +1297,11 @@ Pad with different values:
  [ 2,  1,  1,  1,  1,  3]]
 ```
 
-### `pad_edge`
+<h3><code>pad_mode::edge</code></h3>
 
 Pads with the edge values of the tensor.
 ```cpp
-struct pad_edge
+struct pad_mode::edge
 ```
 
 Parameters
@@ -1319,9 +1317,10 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::edge mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad with edge values:\n";
-    std::cout << np::pad(mat, before, after, np::pad_edge()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     return 0;
 }
 ```
@@ -1349,11 +1348,11 @@ Pad with edge values:
  [ 9,  9, 10, 11, 12, 12]]
 ```
 
-### `pad_linear_ramp`
+<h3><code>pad_mode::linear_ramp</code></h3>
 
 Pads with the linear ramp between an end value and the tensor edge value.
 ```cpp
-struct pad_linear_ramp;
+struct pad_mode::linear_ramp;
 ```
 
 Parameters
@@ -1376,16 +1375,17 @@ namespace np = numcpp;
 int main() {
     np::matrix<double> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::linear_ramp mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad linear ramp towards 0:\n";
-    std::cout << np::pad(mat, before, after, np::pad_linear_ramp()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     std::cout << "Pad linear ramp towards 1:\n";
-    std::cout << np::pad(mat, before, after, np::pad_linear_ramp(), 1) << "\n";
+    std::cout << np::pad(mat, before, after, mode, 1) << "\n";
     std::cout << "Pad linear ramp towards 0 and 1:\n";
-    std::cout << np::pad(mat, before, after, np::pad_linear_ramp(), 0, 1) << "\n";
+    std::cout << np::pad(mat, before, after, mode, 0, 1) << "\n";
     std::cout << "Pad linear ramp towards different values:\n";
     np::matrix<double> values{{0, 1}, {2, 3}};
-    std::cout << np::pad(mat, before, after, np::pad_linear_ramp(), values) << "\n";
+    std::cout << np::pad(mat, before, after, mode, values) << "\n";
     return 0;
 }
 ```
@@ -1437,11 +1437,11 @@ Pad linear ramp towards different values:
  [  2,   1,   1,   1,   1,   3]]
 ```
 
-### `pad_reflect`
+<h3><code>pad_mode::reflect</code></h3>
 
 Pads with the reflection of the tensor mirrored on the first and last values.
 ```cpp
-struct pad_reflect;
+struct pad_mode::reflect;
 ```
 
 Parameters
@@ -1457,9 +1457,10 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::reflect mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad reflect:\n";
-    std::cout << np::pad(mat, before, after, np::pad_reflect()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     return 0;
 }
 ```
@@ -1487,11 +1488,11 @@ Pad reflect:
  [ 2,  1,  2,  3,  4,  3]]
 ```
 
-### `pad_symmetric`
+<h3></code>pad_mode::symmetric</code></h3>
 
 Pads with the reflection of the tensor mirrored along the edge.
 ```cpp
-struct pad_symmetric;
+struct pad_mode::symmetric;
 ```
 
 Parameters
@@ -1507,9 +1508,10 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::symmetric mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad symmetric:\n";
-    std::cout << np::pad(mat, before, after, np::pad_symmetric()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     return 0;
 }
 ```
@@ -1537,12 +1539,12 @@ Pad symmetric:
  [ 5,  5,  6,  7,  8,  8]]
 ```
 
-### `pad_wrap`
+<h3></code>pad_mode::wrap</code></h3>
 
 Pads with the wrap of the tensor along the axis. The first values are used to
 pad the end and the end values are used to pad the beginning.
 ```cpp
-struct pad_wrap;
+struct pad_mode::wrap;
 ```
 
 Parameters
@@ -1558,9 +1560,10 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
     np::shape_t<2> before, after;
+    np::pad_mode::wrap mode;
     std::cin >> mat >> before >> after;
     std::cout << "Pad wrap:\n";
-    std::cout << np::pad(mat, before, after, np::pad_wrap()) << "\n";
+    std::cout << np::pad(mat, before, after, mode) << "\n";
     return 0;
 }
 ```
