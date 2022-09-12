@@ -1488,7 +1488,7 @@ Pad reflect:
  [ 2,  1,  2,  3,  4,  3]]
 ```
 
-<h3></code>pad_mode::symmetric</code></h3>
+<h3><code>pad_mode::symmetric</code></h3>
 
 Pads with the reflection of the tensor mirrored along the edge.
 ```cpp
