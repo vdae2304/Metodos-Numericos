@@ -667,22 +667,25 @@ namespace np = numcpp;
 int main() {
     np::array<int> arr(10);
     int value = 0;
+    int *data = arr.data();
     for (unsigned i = 0; i < arr.size(); ++i) {
-        arr.data()[i] = value++;
+        data[i] = value++;
     }
     std::cout << "1 dimensional:\n" << arr << "\n";
 
     np::matrix<int> mat(3, 4);
     value = 0;
+    data = mat.data();
     for (unsigned i = 0; i < mat.size(); ++i) {
-        mat.data()[i] = value++;
+        data[i] = value++;
     }
     std::cout << "2 dimensional:\n" << mat << "\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
     value = 0;
+    data = cube.data();
     for (unsigned i = 0; i < cube.size(); ++i) {
-        cube.data()[i] = value++;
+        data[i] = value++;
     }
     std::cout << "3 dimensional:\n" << cube << "\n";
     return 0;
