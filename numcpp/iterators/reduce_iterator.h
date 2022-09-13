@@ -40,10 +40,10 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag, size_t N>
     class base_tensor_reduce_iterator {
+    public:
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
 
-    public:
         /// Member types.
         typedef ptrdiff_t difference_type;
         typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
@@ -237,10 +237,10 @@ namespace numcpp {
      */
     template <class T, size_t Rank, class Tag, size_t N>
     class base_tensor_const_reduce_iterator {
+    public:
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
 
-    public:
         /// Member types.
         typedef ptrdiff_t difference_type;
         typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
