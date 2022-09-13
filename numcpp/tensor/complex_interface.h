@@ -83,8 +83,6 @@ namespace math {
      */
     template <class T, size_t Rank, class Tag>
     class complex_interface<std::complex<T>, Rank, Tag> {
-        static_assert(Rank > 0, "Rank must be positive");
-
     public:
         /// Public methods.
 
