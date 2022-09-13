@@ -120,7 +120,6 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         T operator()(size_t i, size_t j) const {
             if (m_offset >= 0) {
                 return (i + m_offset == j) ? T(1) : T();
@@ -213,17 +212,15 @@ namespace numcpp {
     class base_tensor<T, 2, lazy_diagonal_tag<Tag> > {
     public:
         /// Member types.
-        typedef typename base_tensor<T, 1, Tag>::value_type value_type;
+        typedef typename std::remove_cv<T>::type value_type;
         typedef T reference;
         typedef T const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_const_iterator<
-            T, 2, lazy_diagonal_tag<Tag>
-        > iterator;
-        typedef base_tensor_const_iterator<
-            T, 2, lazy_diagonal_tag<Tag>
-        > const_iterator;
+        typedef base_tensor_const_iterator<T, 2, lazy_diagonal_tag<Tag> >
+            iterator;
+        typedef base_tensor_const_iterator<T, 2, lazy_diagonal_tag<Tag> >
+            const_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -299,7 +296,6 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         T operator()(size_t i, size_t j) const {
             if (m_offset >= 0) {
                 return (i + m_offset == j) ? m_arg[i] : T();
@@ -395,17 +391,15 @@ namespace numcpp {
     class base_tensor<T, 1, lazy_diagonal_tag<Tag> > {
     public:
         /// Member types.
-        typedef typename base_tensor<T, 2, Tag>::value_type value_type;
+        typedef typename std::remove_cv<T>::type value_type;
         typedef T reference;
         typedef T const_reference;
         typedef nullptr_t pointer;
         typedef nullptr_t const_pointer;
-        typedef base_tensor_const_iterator<
-            T, 1, lazy_diagonal_tag<Tag>
-        > iterator;
-        typedef base_tensor_const_iterator<
-            T, 1, lazy_diagonal_tag<Tag>
-        > const_iterator;
+        typedef base_tensor_const_iterator<T, 1, lazy_diagonal_tag<Tag> >
+            iterator;
+        typedef base_tensor_const_iterator<T, 1, lazy_diagonal_tag<Tag> >
+            const_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -464,7 +458,6 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         T operator()(size_t i) const {
             if (m_offset >= 0) {
                 return m_arg(i, i + m_offset);

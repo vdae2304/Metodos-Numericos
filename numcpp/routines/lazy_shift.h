@@ -43,16 +43,16 @@ namespace numcpp {
     public:
         /// Member types.
         typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-        typedef T reference;
-        typedef T const_reference;
-        typedef nullptr_t pointer;
-        typedef nullptr_t const_pointer;
-        typedef base_tensor_const_iterator<
-            T, Rank, lazy_shift_tag<Tag, N>
-        > iterator;
-        typedef base_tensor_const_iterator<
-            T, Rank, lazy_shift_tag<Tag, N>
-        > const_iterator;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference
+            const_reference;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer
+            const_pointer;
+        typedef base_tensor_const_iterator<T, Rank, lazy_shift_tag<Tag, N> >
+            iterator;
+        typedef base_tensor_const_iterator<T, Rank, lazy_shift_tag<Tag, N> >
+            const_iterator;
         typedef ptrdiff_t difference_type;
         typedef size_t size_type;
 
@@ -128,11 +128,10 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>
-        T operator()(Args... args) const {
+        const_reference operator()(Args... args) const {
             return this->operator[](make_index(args...));
         }
 
@@ -146,7 +145,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](index_t<Rank> index) const {
+        const_reference operator[](index_t<Rank> index) const {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
                 index[m_axes[i]] += m_count[i];
                 index[m_axes[i]] %= m_arg.shape(m_axes[i]);

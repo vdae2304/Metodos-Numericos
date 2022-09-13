@@ -135,7 +135,6 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         template <class... Args,
                   detail::RequiresNArguments<Rank, Args...> = true,
                   detail::RequiresIntegral<Args...> = true>

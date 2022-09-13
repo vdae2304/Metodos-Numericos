@@ -104,7 +104,6 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-
         T operator()(size_t i) const {
             T val = m_start + T(i) * m_step;
             return m_log ? std::pow(m_base, val) : val;
