@@ -49,23 +49,6 @@ namespace numcpp {
     }
 
     template <size_t Rank>
-    template <class IntegralType, detail::RequiresIntegral<IntegralType> >
-    inline shape_t<Rank>::operator IntegralType() const {
-        static_assert(Rank == 1, "Unknown conversion to integral type");
-        return m_shape[0];
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank>::operator size_t*() {
-        return m_shape;
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank>::operator const size_t*() const {
-        return m_shape;
-    }
-
-    template <size_t Rank>
     constexpr size_t shape_t<Rank>::ndim() {
         return Rank;
     }
@@ -136,6 +119,33 @@ namespace detail {
         shape_t<Rank> out;
         std::reverse_copy(m_shape, m_shape + Rank, out.m_shape);
         return out;
+    }
+
+    template <size_t Rank>
+    inline shape_t<Rank> shape_t<Rank>::permute(const shape_t<Rank> &axes)
+    const {
+        shape_t<Rank> out;
+        for (size_t i = 0; i < Rank; ++i) {
+            out[i] = m_shape[axes[i]];
+        }
+        return out;
+    }
+
+    template <size_t Rank>
+    template <class IntegralType, detail::RequiresIntegral<IntegralType> >
+    inline shape_t<Rank>::operator IntegralType() const {
+        static_assert(Rank == 1, "Unknown conversion to integral type");
+        return m_shape[0];
+    }
+
+    template <size_t Rank>
+    inline shape_t<Rank>::operator size_t*() {
+        return m_shape;
+    }
+
+    template <size_t Rank>
+    inline shape_t<Rank>::operator const size_t*() const {
+        return m_shape;
     }
 
     template <class... Args, detail::RequiresIntegral<Args...> >

@@ -124,19 +124,6 @@ namespace detail {
         shape_t& operator=(const shape_t &other);
 
         /**
-         * @brief Integer conversion. Dimension must be one.
-         */
-        template <class IntegralType,
-                  detail::RequiresIntegral<IntegralType> = true>
-        explicit operator IntegralType() const;
-
-        /**
-         * @brief Pointer to size_t conversion.
-         */
-        explicit operator size_t*();
-        explicit operator const size_t*() const;
-
-        /**
          * @brief Return the dimension of the shape.
          */
         static constexpr size_t ndim();
@@ -164,6 +151,28 @@ namespace detail {
          * @brief Return a copy with the axes in reversed order.
          */
         shape_t transpose() const;
+
+        /**
+         * @brief Return a copy with the axes permuted.
+         *
+         * @param axes A permutation of (0, 1, ..., Rank - 1). The i-th element
+         *     of the returned shape will correspond to the axes[i]-th element
+         *     in *this.
+         */
+        shape_t permute(const shape_t &axes) const;
+
+        /**
+         * @brief Integer conversion. Dimension must be one.
+         */
+        template <class IntegralType,
+                  detail::RequiresIntegral<IntegralType> = true>
+        explicit operator IntegralType() const;
+
+        /**
+         * @brief Pointer to size_t conversion.
+         */
+        explicit operator size_t*();
+        explicit operator const size_t*() const;
 
     private:
         // Shape elements.
