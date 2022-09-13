@@ -1335,6 +1335,498 @@ namespace numcpp {
         }
         return out;
     }
+
+    /// Basic linear algebra.
+
+namespace detail {
+    /**
+     * @brief Helper function. Asserts that the shapes are aligned along the
+     * given axes.
+     */
+    template <size_t Rank1, size_t Rank2>
+    void assert_aligned_shapes(
+        const shape_t<Rank1> &shape1, size_t axis1,
+        const shape_t<Rank2> &shape2, size_t axis2
+    ) {
+        if (shape1[axis1] != shape2[axis2]) {
+            std::ostringstream error;
+            error << "shapes " << shape1 << " and " << shape2
+                  << " not aligned: " << shape1[axis1] << " (dim " << axis1
+                  << ") != " << shape2[axis2] << " (dim " << axis2 << ")";
+            throw std::invalid_argument(error.str());
+        }
+    }
+
+    template <size_t Rank1, size_t Rank2, size_t N>
+    void assert_aligned_shapes(
+        const shape_t<Rank1> &shape1, const shape_t<N> axes1,
+        const shape_t<Rank2> &shape2, const shape_t<N> axes2
+    ) {
+        for (size_t i = 0; i < axes1.ndim(); ++i) {
+            assert_aligned_shapes(shape1, axes1[i], shape2, axes2[i]);
+        }
+    }
+
+    /**
+     * @brief Helper function. Broadcast two shapes for cross product.
+     */
+    template <size_t Rank>
+    shape_t<Rank> broadcast_cross(
+        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2, size_t axis
+    ) {
+        shape_t<Rank> out_shape = shape1;
+        if (shape1[axis] != 3 || shape2[axis] != 3) {
+            char error[] = "incompatible dimensions for cross product"
+                " (dimension must be 3)";
+            throw std::invalid_argument(error);
+        }
+        for (size_t i = 0; i < shape1.ndim(); ++i) {
+            if (i == axis) {
+                out_shape[i] = 3;
+            }
+            else if (shape1[i] == 1) {
+                out_shape[i] = shape2[i];
+            }
+            else if (shape2[i] != shape1[i] && shape2[i] != 1) {
+                std::ostringstream error;
+                error << "operands could not be broadcast together with shapes "
+                      << shape1 << " " << shape2;
+                throw std::invalid_argument(error.str());
+            }
+        }
+        return out_shape;
+    }
+
+    /**
+     * @brief Helper function. Broadcast two shapes for matrix multiplication.
+     */
+    template <size_t Rank>
+    shape_t<Rank> broadcast_matmul(
+        const shape_t<Rank> &shape1, const shape_t<Rank> &shape2
+    ) {
+        shape_t<Rank> out_shape = shape1;
+        for (size_t i = 0; i < shape1.ndim() - 2; ++i) {
+            if (shape1[i] == 1) {
+                out_shape[i] = shape2[i];
+            }
+            else if (shape2[i] != shape1[i] && shape2[i] != 1) {
+                std::ostringstream error;
+                error << "operands could not be broadcast together with shapes "
+                      << shape1 << " " << shape2;
+                throw std::invalid_argument(error.str());
+            }
+        }
+        out_shape[shape1.ndim() - 2] = shape1[shape1.ndim() - 2];
+        out_shape[shape2.ndim() - 1] = shape2[shape2.ndim() - 1];
+        return out_shape;
+    }
+}
+
+    template <class T, class Tag1, class Tag2>
+    T dot(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b) {
+        detail::assert_aligned_shapes(a.shape(), 0, b.shape(), 0);
+        size_t n = a.size();
+        T val = T(0);
+        for (size_t i = 0; i < n; ++i) {
+            val += a[i] * b[i];
+        }
+        return val;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    T vdot(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b) {
+        detail::assert_aligned_shapes(a.shape(), 0, b.shape(), 0);
+        size_t n = a.size();
+        T val = T(0);
+        for (size_t i = 0; i < n; ++i) {
+            val += a[i] * b[i];
+        }
+        return val;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    std::complex<T> vdot(
+        const base_tensor<std::complex<T>, 1, Tag1> &a,
+        const base_tensor<std::complex<T>, 1, Tag2> &b
+    ) {
+        detail::assert_aligned_shapes(a.shape(), 0, b.shape(), 0);
+        size_t n = a.size();
+        std::complex<T> val = T(0);
+        for (size_t i = 0; i < n; ++i) {
+            val += std::conj(a[i]) * b[i];
+        }
+        return val;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    tensor<T, Rank> cross(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        size_t axis
+    ) {
+        shape_t<Rank> shape =
+            detail::broadcast_cross(a.shape(), b.shape(), axis);
+        tensor<T, Rank> out(shape);
+        shape[axis] = 1;
+        for (index_t<Rank> index : make_indices(shape)) {
+            T v1[3], v2[3];
+            for (index[axis] = 0; index[axis] < 3; ++index[axis]) {
+                v1[index[axis]] = a[detail::broadcast_index(index, a.shape())];
+                v2[index[axis]] = b[detail::broadcast_index(index, b.shape())];
+            }
+            T v_out[3] = {v1[1] * v2[2] - v2[1] * v1[2],
+                          v2[0] * v1[2] - v1[0] * v2[2],
+                          v1[0] * v2[1] - v2[0] * v1[1]};
+            for (index[axis] = 0; index[axis] < 3; ++index[axis]) {
+                out[index] = v_out[index[axis]];
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    inline T matmul(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+    ) {
+        return dot(a, b);
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 2> matmul(
+        const base_tensor<T, 2, Tag1> &a, const base_tensor<T, 2, Tag2> &b
+    ) {
+        detail::assert_aligned_shapes(a.shape(), 1, b.shape(), 0);
+        size_t m = a.shape(0), p = a.shape(1), n = b.shape(1);
+        tensor<T, 2> out(m, n);
+        for (size_t i = 0; i < m; ++i) {
+            for (size_t j = 0; j < n; ++j) {
+                T val = T(0);
+                for (size_t k = 0; k < p; ++k) {
+                    val += a(i, k) * b(k, j);
+                }
+                out(i, j) = val;
+            }
+        }
+        return out;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> matmul(
+        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 2, Tag2> &b
+    ) {
+        detail::assert_aligned_shapes(a.shape(), 0, b.shape(), 0);
+        size_t m = b.shape(0), n = b.shape(1);
+        tensor<T, 1> out(n);
+        for (size_t j = 0; j < n; ++j) {
+            T val = T(0);
+            for (size_t i = 0; i < m; ++i) {
+                val += a[i] * b(i, j);
+            }
+            out[j] = val;
+        }
+        return out;
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> matmul(
+        const base_tensor<T, 2, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+    ) {
+        detail::assert_aligned_shapes(a.shape(), 1, b.shape(), 0);
+        size_t m = a.shape(0), n = a.shape(1);
+        tensor<T, 1> out(m);
+        for (size_t i = 0; i < m; ++i) {
+            T val = T(0);
+            for (size_t j = 0; j < n; ++j) {
+                val += a(i, j) * b[j];
+            }
+            out[i] = val;
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    tensor<T, Rank> matmul(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    ) {
+        size_t axis1 = a.ndim() - 1, axis2 = b.ndim() - 2;
+        detail::assert_aligned_shapes(a.shape(), axis1, b.shape(), axis2);
+        shape_t<Rank> shape = detail::broadcast_matmul(a.shape(), b.shape());
+        size_t n = a.shape(axis1);
+        tensor<T, Rank> out(shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            index_t<Rank> a_index =
+                detail::broadcast_index(out_index, a.shape());
+            index_t<Rank> b_index =
+                detail::broadcast_index(out_index, b.shape());
+            T val = T(0);
+            for (a_index[axis1] = 0; a_index[axis1] < n; ++a_index[axis1]) {
+                b_index[axis2] = a_index[axis1];
+                val += a[a_index] * b[b_index];
+            }
+            out[out_index] = val;
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    tensor<T, Rank> matmul(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, 2, Tag2> &b
+    ) {
+        size_t axis1 = a.ndim() - 1, axis2 = b.ndim() - 2;
+        detail::assert_aligned_shapes(a.shape(), axis1, b.shape(), axis2);
+        shape_t<Rank> shape = a.shape();
+        shape[axis1] = b.shape(1);
+        size_t n = a.shape(axis1);
+        tensor<T, Rank> out(shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            index_t<Rank> a_index = out_index;
+            index_t<2> b_index(0, out_index[out_index.ndim() - 1]);
+            T val = T(0);
+            for (a_index[axis1] = 0; a_index[axis1] < n; ++a_index[axis1]) {
+                b_index[axis2] = a_index[axis1];
+                val += a[a_index] * b[b_index];
+            }
+            out[out_index] = val;
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    tensor<T, Rank> matmul(
+        const base_tensor<T, 2, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b
+    ) {
+        size_t axis1 = a.ndim() - 1, axis2 = b.ndim() - 2;
+        detail::assert_aligned_shapes(a.shape(), axis1, b.shape(), axis2);
+        shape_t<Rank> shape = b.shape();
+        shape[axis2] = a.shape(0);
+        size_t n = a.shape(axis1);
+        tensor<T, Rank> out(shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            index_t<2> a_index(out_index[out_index.ndim() - 2], 0);
+            index_t<Rank> b_index = out_index;
+            T val = T(0);
+            for (a_index[axis1] = 0; a_index[axis1] < n; ++a_index[axis1]) {
+                b_index[axis2] = a_index[axis1];
+                val += a[a_index] * b[b_index];
+            }
+            out[out_index] = val;
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag1, class Tag2>
+    T tensordot(
+        const base_tensor<T, Rank, Tag1> &a,
+        const base_tensor<T, Rank, Tag2> &b,
+        const shape_t<Rank> &a_axes,
+        const shape_t<Rank> &b_axes
+    ) {
+        detail::assert_aligned_shapes(a.shape(), a_axes, b.shape(), b_axes);
+        size_t size = a.size();
+        index_t<Rank> index;
+        auto first1 = make_const_reduce_iterator(&a, index, a_axes, 0);
+        auto last1 = make_const_reduce_iterator(&a, index, a_axes, size);
+        auto first2 = make_const_reduce_iterator(&b, index, b_axes, 0);
+        return std::inner_product(first1, last1, first2, T(0));
+    }
+
+    template <class T, size_t Rank1, class Tag1,
+              size_t Rank2, class Tag2,
+              size_t N>
+    tensor<T, (Rank1 - N) + (Rank2 - N)> tensordot(
+        const base_tensor<T, Rank1, Tag1> &a,
+        const base_tensor<T, Rank2, Tag2> &b,
+        const shape_t<N> &a_axes,
+        const shape_t<N> &b_axes
+    ) {
+        static_assert(N <= Rank1 && N <= Rank2, "Contraction dimension must be"
+                      " less or equal to tensor dimensions");
+        detail::assert_aligned_shapes(a.shape(), a_axes, b.shape(), b_axes);
+        constexpr size_t Rank = (Rank1 - N) + (Rank2 - N);
+        shape_t<Rank> shape;
+        // Mask axes to sum over a.
+        size_t size = 1, n = 0;
+        bool keep_axis1[Rank1];
+        std::fill_n(keep_axis1, Rank1, true);
+        for (size_t i = 0; i < a_axes.ndim(); ++i) {
+            keep_axis1[a_axes[i]] = false;
+            size *= a.shape(a_axes[i]);
+        }
+        for (size_t i = 0; i < a.ndim(); ++i) {
+            if (keep_axis1[i]) {
+                shape[n++] = a.shape(i);
+            }
+        }
+        // Mask axes to sum over b.
+        bool keep_axis2[Rank2];
+        std::fill_n(keep_axis2, Rank2, true);
+        for (size_t i = 0; i < b_axes.ndim(); ++i) {
+            keep_axis2[b_axes[i]] = false;
+        }
+        for (size_t i = 0; i < b.ndim(); ++i) {
+            if (keep_axis2[i]) {
+                shape[n++] = b.shape(i);
+            }
+        }
+        // Tensordot computation.
+        tensor<T, Rank> out(shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            index_t<Rank1> a_index;
+            index_t<Rank2> b_index;
+            // Unmask axes to sum over a.
+            n = 0;
+            for (size_t i = 0; i < a.ndim(); ++i) {
+                if (keep_axis1[i]) {
+                    a_index[i] = out_index[n++];
+                }
+            }
+            // Unmask axes to sum over b.
+            for (size_t i = 0; i < b.ndim(); ++i) {
+                if (keep_axis2[i]) {
+                    b_index[i] = out_index[n++];
+                }
+            }
+            auto first1 = make_const_reduce_iterator(&a, a_index, a_axes, 0);
+            auto last1 = make_const_reduce_iterator(&a, a_index, a_axes, size);
+            auto first2 = make_const_reduce_iterator(&b, b_index, b_axes, 0);
+            out[out_index] = std::inner_product(first1, last1, first2, T(0));
+        }
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+        const base_tensor<T, Rank, Tag> &a
+    ) {
+        typedef lazy_transpose_tag<Tag> Closure;
+        return base_tensor<T, Rank, Closure>(a);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+        const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
+    ) {
+        typedef lazy_transpose_tag<Tag> Closure;
+        return base_tensor<T, Rank, Closure>(a, axes);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    conj_transpose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a
+    ) {
+        typedef lazy_conj_transpose_tag<Tag> Closure;
+        return base_tensor<std::complex<T>, Rank, Closure>(a);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    conj_transpose(
+        const base_tensor<std::complex<T>, Rank, Tag> &a,
+        const shape_t<Rank> &axes
+    ) {
+        typedef lazy_conj_transpose_tag<Tag> Closure;
+        return base_tensor<std::complex<T>, Rank, Closure>(a, axes);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+        const base_tensor<T, Rank, Tag> &a
+    ) {
+        typedef lazy_transpose_tag<Tag> Closure;
+        return base_tensor<T, Rank, Closure>(a);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+        const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
+    ) {
+        typedef lazy_transpose_tag<Tag> Closure;
+        return base_tensor<T, Rank, Closure>(a, axes);
+    }
+
+namespace ranges {
+    /**
+     * @brief Return the infinity norm of a vector.
+     */
+    template <class InputIterator, class T>
+    T infnorm(InputIterator first, InputIterator last, T init) {
+        if (first == last) {
+            return init;
+        }
+        init = std::abs(*first);
+        while (++first != last) {
+            init = std::max(init, std::abs(*first));
+        }
+        return init;
+    }
+
+    /**
+     * @brief Return the -infinity norm of a vector.
+     */
+    template <class InputIterator, class T>
+    T neginfnorm(InputIterator first, InputIterator last, T init) {
+        if (first == last) {
+            return init;
+        }
+        init = std::abs(*first);
+        while (++first != last) {
+            init = std::min(init, std::abs(*first));
+        }
+        return init;
+    }
+
+    /**
+     * @brief Return the p-norm of a vector.
+     */
+    template <class InputIterator, class T>
+    T pnorm(InputIterator first, InputIterator last, T init, double p = 2) {
+        T max_abs = infnorm(first, last, T());
+        if (max_abs > T()) {
+            while (first != last) {
+                init = init + std::pow(std::abs(*first) / max_abs, p);
+                ++first;
+            }
+            init = max_abs * std::pow(init, 1./p);
+        }
+        return init;
+    }
+}
+
+    template <class T, size_t Rank, class Tag>
+    T norm(const base_tensor<T, Rank, Tag> &a, double p) {
+        if (p == 0) {
+            return count_nonzero(a);
+        }
+        else if (p == HUGE_VAL) {
+            return ranges::infnorm(a.begin(), a.end(), T(0));
+        }
+        else if (p == -HUGE_VAL) {
+            return ranges::neginfnorm(a.begin(), a.end(), T(0));
+        }
+        else {
+            return ranges::pnorm(a.begin(), a.end(), T(0), p);
+        }
+    }
+
+    template <class T, size_t Rank, class Tag>
+    T norm(const base_tensor<std::complex<T>, Rank, Tag> &a, double p) {
+        if (p == 0) {
+            return count_nonzero(a);
+        }
+        else if (p == HUGE_VAL) {
+            return ranges::infnorm(a.begin(), a.end(), T(0));
+        }
+        else if (p == -HUGE_VAL) {
+            return ranges::neginfnorm(a.begin(), a.end(), T(0));
+        }
+        else {
+            return ranges::pnorm(a.begin(), a.end(), T(0), p);
+        }
+    }
 }
 
 #endif // NUMCPP_ROUTINES_TCC_INCLUDED
