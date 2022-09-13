@@ -90,6 +90,7 @@ namespace detail {
     class shape_t {
     public:
         static_assert(Rank > 0, "Rank must be positive");
+        static_assert(Rank <= 32, "Maximum supported Rank is 32");
 
         /**
          * @brief Default constructor. Set all sizes to zero.
