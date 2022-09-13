@@ -14,6 +14,7 @@ Defined in `numcpp/shape.h`
     - [`shape_t::ndim`](#shape_tndim)
     - [`shape_t::size`](#shape_tsize)
     - [`shape_t::transpose`](#shape_ttranspose)
+    - [`shape_t::permute`](#shape_tpermute)
   - [Operators](#operators)
     - [`shape_t::operator[]`](#shape_toperator)
     - [`shape_t::operator IntegralType`](#shape_toperator-integraltype)
@@ -210,6 +211,38 @@ Output
 (10,)
 (6, 4)
 (6, 4, 3)
+```
+
+### `shape_t::permute`
+
+Return a copy with the axes permuted.
+```cpp
+shape_t permute(const shape_t &axes) const;
+```
+
+Parameters
+
+* `axes` A permutation of (0, 1, ..., `Rank` - 1). The i-th element of the
+returned shape will correspond to the `axes[i]`-th element in `*this`.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::shape_t<3> shape(3, 4, 6);
+    std::cout << shape.permute({0, 2, 1}) << "\n";
+    return 0;
+}
+```
+
+
+Output
+
+```
+(3, 6, 4)
 ```
 
 ## Operators
