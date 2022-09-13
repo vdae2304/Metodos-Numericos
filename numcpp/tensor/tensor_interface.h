@@ -92,6 +92,7 @@ namespace numcpp {
     class tensor_interface {
     public:
         static_assert(Rank > 0, "Rank must be positive");
+        static_assert(Rank <= 32, "Maximum supported Rank is 32");
 
         /// Member types.
 
