@@ -46,8 +46,10 @@ namespace numcpp {
         typedef const T& const_reference;
         typedef T* pointer;
         typedef const T* const_pointer;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
         /// Constructors.
 
@@ -119,7 +121,7 @@ namespace numcpp {
          *     data[offset + index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
          * where data is the memory array.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position. If the tensor_view is
          *     const-qualified, the function returns a reference to const T.
@@ -127,15 +129,15 @@ namespace numcpp {
          *
          * @throw std::out_of_range Thrown if index is out of bounds.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T& operator()(Args... args);
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        T& operator()(Index... index);
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        const T& operator()(Args... args) const;
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const T& operator()(Index... index) const;
 
         /**
          * @brief Subscript operator. Returns a reference to the element at the
@@ -294,14 +296,14 @@ namespace numcpp {
         template <size_t N>
         tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
+        template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
+        tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
 
         template <size_t N>
         tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<const T,Rank - sizeof...(Args)> squeeze(Args... args) const;
+        template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
+        tensor_view<const T,Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
 
         /**
          * @brief Interchanges two axes of a tensor_view in-place.

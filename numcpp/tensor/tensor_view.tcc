@@ -82,19 +82,19 @@ namespace numcpp {
     /// Indexing.
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline T& tensor_view<T, Rank>::operator()(Args... args) {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline T& tensor_view<T, Rank>::operator()(Index... index) {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline const T& tensor_view<T, Rank>::operator()(Args... args) const {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline const T& tensor_view<T, Rank>::operator()(Index... index) const {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
@@ -265,8 +265,8 @@ namespace numcpp {
     template <size_t N>
     tensor_view<T, Rank - N>
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape, strides;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -291,18 +291,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<T, Rank - sizeof...(Args)>
-    tensor_view<T, Rank>::squeeze(Args... args) {
-        return this->squeeze(make_shape(args...));
+    template <class... Axes, detail::RequiresIntegral<Axes...> >
+    inline tensor_view<T, Rank - sizeof...(Axes)>
+    tensor_view<T, Rank>::squeeze(Axes... axes) {
+        return this->squeeze(make_shape(axes...));
     }
 
     template <class T, size_t Rank>
     template <size_t N>
     tensor_view<const T, Rank - N>
     tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) const {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape, strides;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -327,20 +327,20 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<const T, Rank - sizeof...(Args)>
-    tensor_view<T, Rank>::squeeze(Args... args) const {
-        return this->squeeze(make_shape(args...));
+    template <class... Axes, detail::RequiresIntegral<Axes...> >
+    inline tensor_view<const T, Rank - sizeof...(Axes)>
+    tensor_view<T, Rank>::squeeze(Axes... axes) const {
+        return this->squeeze(make_shape(axes...));
     }
 
     template <class T, size_t Rank>
-    void tensor_view<T, Rank>::swapaxes(size_t axis1, size_t axis2) {
+    inline void tensor_view<T, Rank>::swapaxes(size_t axis1, size_t axis2) {
         std::swap(m_shape[axis1], m_shape[axis2]);
         std::swap(m_stride[axis1], m_stride[axis2]);
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank> tensor_view<T, Rank>::t() {
+    inline tensor_view<T, Rank> tensor_view<T, Rank>::t() {
         return tensor_view<T, Rank>(
             m_shape.transpose(), m_data, m_offset, m_stride.transpose(),
             (m_order == row_major) ? col_major : row_major
@@ -348,7 +348,7 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
+    inline tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
         return tensor_view<const T, Rank>(
             m_shape.transpose(), m_data, m_offset, m_stride.transpose(),
             (m_order == row_major) ? col_major : row_major
