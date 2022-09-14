@@ -44,16 +44,7 @@ namespace numcpp {
 
 /// Namespace for implementation details.
 namespace detail {
-    /// Type constraint to request input iterator.
-    template <class Iterator>
-    using RequiresInputIterator = typename std::enable_if<
-        std::is_convertible<
-            typename std::iterator_traits<Iterator>::iterator_category,
-            std::input_iterator_tag
-        >::value
-    >::type;
-
-    /// Create a depth-level initializer_list.
+    /// Constructs a nested initializer_list of given depth.
     template <class T, size_t Depth>
     struct nested_initializer_list {
         typedef std::initializer_list<
@@ -67,32 +58,41 @@ namespace detail {
     };
 
     template <class T, size_t Depth>
-    using nested_initializer_list_t
-        = typename nested_initializer_list<T, Depth>::type;
+    using nested_initializer_list_t =
+        typename nested_initializer_list<T, Depth>::type;
 
-    /// Return the number of slice arguments.
-    template <class... Args>
+    /// Number of slice arguments in slice indexing.
+    template <class... Indices>
     struct slicing_rank;
 
     template <>
     struct slicing_rank<> : std::integral_constant<size_t, 0> {};
 
-    template <class... Args>
-    struct slicing_rank<slice, Args...>
-     : std::integral_constant<size_t, 1 + slicing_rank<Args...>::value> {};
+    template <class... Indices>
+    struct slicing_rank<slice, Indices...>
+     : std::integral_constant<size_t, 1 + slicing_rank<Indices...>::value> {};
 
-    template <class IntegralType, class... Args>
-    struct slicing_rank<IntegralType, Args...>
-     : std::integral_constant<size_t, slicing_rank<Args...>::value>
-    {
+    template <class IntegralType, class... Indices>
+    struct slicing_rank<IntegralType, Indices...>
+     : std::integral_constant<size_t, slicing_rank<Indices...>::value> {
         static_assert(std::is_integral<IntegralType>::value, "Index must be"
                       " either an integer or a slice");
     };
 
+    /// Type constraint to request input iterator.
+    template <class Iterator>
+    using RequiresInputIterator = typename std::enable_if<
+        std::is_convertible<
+            typename std::iterator_traits<Iterator>::iterator_category,
+            std::input_iterator_tag
+        >::value, int
+    >::type;
+
     /// Type constraint to request at least one slice argument.
-    template <class... Args>
-    using RequiresSlicing =
-        typename std::enable_if<(slicing_rank<Args...>::value > 0), bool>::type;
+    template <class... Indices>
+    using RequiresSlicing = typename std::enable_if<
+        (slicing_rank<Indices...>::value > 0), int
+    >::type;
 }
 
     /**
@@ -121,8 +121,10 @@ namespace detail {
         typedef const T& const_reference;
         typedef T* pointer;
         typedef const T* const_pointer;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
         /// Constructors.
 
@@ -144,10 +146,10 @@ namespace detail {
          */
         base_tensor(const shape_t<Rank> &shape);
 
-        template <class... Args,
-                  typename = detail::RequiresNArguments<Rank, Args...>,
-                  typename = detail::RequiresIntegral<Args...> >
-        base_tensor(Args... args);
+        template <class... Sizes,
+                  detail::RequiresNArguments<Rank, Sizes...> = 0,
+                  detail::RequiresIntegral<Sizes...> = 0>
+        base_tensor(Sizes... sizes);
 
         /**
          * @brief Fill constructor. Constructs a tensor with given shape, each
@@ -173,7 +175,7 @@ namespace detail {
          *     may throw an exception.
          */
         template <class InputIterator,
-                  typename = detail::RequiresInputIterator<InputIterator> >
+                  detail::RequiresInputIterator<InputIterator> = 0>
         base_tensor(InputIterator first, const shape_t<Rank> &shape);
 
         /**
@@ -219,7 +221,7 @@ namespace detail {
          * @brief Call operator. Returns a reference to the element at the
          * given position.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position. If the tensor is
          *     const-qualified, the function returns a reference to const T.
@@ -227,15 +229,15 @@ namespace detail {
          *
          * @throw std::out_of_range Thrown if index is out of bounds.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T& operator()(Args... args);
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        T& operator()(Index... index);
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        const T& operator()(Args... args) const;
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const T& operator()(Index... index) const;
 
         /**
          * @brief Subscript operator. Returns a reference to the element at the
@@ -261,32 +263,34 @@ namespace detail {
          * @brief Slice indexing. Returns a tensor_view object that selects the
          * elements given by the slices.
          *
-         * @param args... Index arguments. Each argument can be either an
-         *     integer or a slice. If a slice is given, select multiple
-         *     positions along the corresponding axis. An empty slice can be
-         *     used to select all the positions along the axis.
+         * @param indices... Each argument can be either an integer or a slice.
+         *     If an integer is given, an unique position is selected for that
+         *     axis and the dimensionality of the returned view is reduced by
+         *     1. If a slice is given, a subset of positions is selected along
+         *     the axis. An empty slice can be used as a placeholder to select
+         *     all the positions along the axis.
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
          *     object. Otherwise, the function returns a tensor_view to T,
          *     which has reference semantics to the original tensor. The
-         *     dimension of the tensor_view is the number of slices in the
-         *     index arguments.
+         *     dimension of the returned view will equal the number of slice
+         *     arguments.
          *
          * @throw std::out_of_range Thrown if an integral index is out of
          *     bounds.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresSlicing<Args...> = true>
-        tensor_view<T, detail::slicing_rank<Args...>::value>
-        operator()(Args... args);
+        template <class... Indices,
+                  detail::RequiresNArguments<Rank, Indices...> = 0,
+                  detail::RequiresSlicing<Indices...> = 0>
+        tensor_view<T, detail::slicing_rank<Indices...>::value>
+        operator()(Indices... indices);
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresSlicing<Args...> = true>
-        tensor_view<const T, detail::slicing_rank<Args...>::value>
-        operator()(Args... args) const;
+        template <class... Indices,
+                  detail::RequiresNArguments<Rank, Indices...> = 0,
+                  detail::RequiresSlicing<Indices...> = 0>
+        tensor_view<const T, detail::slicing_rank<Indices...>::value>
+        operator()(Indices... indices) const;
 
         /**
          * @brief Coordinate tensor indexing. Returns an indirect_tensor that
@@ -317,12 +321,12 @@ namespace detail {
         ) const;
 
         template <class IntegralType, size_t N, class Tag,
-                  detail::RequiresIntegral<IntegralType> = true>
+                  detail::RequiresIntegral<IntegralType> = 0>
         indirect_tensor<T, N> operator[](
             const base_tensor<IntegralType, N, Tag> &indices
         );
         template <class IntegralType, size_t N, class Tag,
-                  detail::RequiresIntegral<IntegralType> = true>
+                  detail::RequiresIntegral<IntegralType> = 0>
         tensor<T, N> operator[](
             const base_tensor<IntegralType, N, Tag> &indices
         ) const;
@@ -511,21 +515,21 @@ namespace detail {
         template <size_t N>
         tensor_view<T, N> reshape(const shape_t<N> &shape);
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<T, sizeof...(Args)> reshape(Args... args);
+        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+        tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes);
 
         template <size_t N>
         tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<const T, sizeof...(Args)> reshape(Args... args) const;
+        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+        tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
 
         /**
-         * @brief Resizes the tensor in-place to a given shape. Before resizing,
-         * if the new size is different from the total number of elements in
-         * the tensor, allocates memory for the new size losing the previous
-         * contents. Otherwise, the contents are preserved, but possibly
-         * aranged in a different order.
+         * @brief Resizes the tensor in-place to a given shape. If the new size
+         * is different from the number of elements stored in the tensor, a
+         * reallocation takes place to match the new shape, losing the previous
+         * contents in the process. Otherwise, the contents of the tensor are
+         * preserved, but aranged in a different order.
          *
          * @param shape New shape of the tensor. It can be a shape_t object or
          *     the elements of the shape passed as separate arguments.
@@ -535,10 +539,10 @@ namespace detail {
          */
         void resize(const shape_t<Rank> &shape);
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        void resize(Args... args);
+        template <class... Sizes,
+                  detail::RequiresNArguments<Rank, Sizes...> = 0,
+                  detail::RequiresIntegral<Sizes...> = 0>
+        void resize(Sizes... sizes);
 
         /**
          * @brief Removes axes of length one.
@@ -558,14 +562,14 @@ namespace detail {
         template <size_t N>
         tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<T, Rank-sizeof...(Args)> squeeze(Args... args);
+        template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
+        tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
 
         template <size_t N>
         tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 
-        template <class... Args, detail::RequiresIntegral<Args...> = true>
-        tensor_view<const T, Rank-sizeof...(Args)> squeeze(Args... args) const;
+        template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
+        tensor_view<const T,Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
 
         /**
          * @brief Return a view of the tensor with its axes in reversed order.
@@ -633,16 +637,16 @@ namespace detail {
             shape_t<N> &shape, size_t &offset, shape_t<N> &strides
         ) const;
 
-        template <size_t N, class... Args>
+        template <size_t N, class... Indices>
         size_t __unpack_slices(
             shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-            size_t i, Args... args
+            size_t i, Indices... indices
         ) const;
 
-        template <size_t N, class... Args>
+        template <size_t N, class... Indices>
         size_t __unpack_slices(
             shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-            slice slc, Args... args
+            slice slc, Indices... indices
         ) const;
 
         // Pointer to data.

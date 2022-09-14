@@ -42,9 +42,11 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, typename, typename>
-    tensor<T, Rank>::base_tensor(Args... args)
-     : m_shape(args...)
+    template <class... Sizes,
+              detail::RequiresNArguments<Rank, Sizes...>,
+              detail::RequiresIntegral<Sizes...> >
+    tensor<T, Rank>::base_tensor(Sizes... sizes)
+     : m_shape(sizes...)
     {
         m_size = m_shape.size();
         m_data = new T[m_size];
@@ -59,7 +61,8 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class InputIterator, typename>
+    template <class InputIterator,
+              detail::RequiresInputIterator<InputIterator> >
     tensor<T, Rank>::base_tensor(
         InputIterator first, const shape_t<Rank> &shape
     ) : m_size(shape.size()), m_shape(shape)
@@ -167,19 +170,19 @@ namespace numcpp {
     /// Indexing.
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline T& tensor<T, Rank>::operator()(Args... args) {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline T& tensor<T, Rank>::operator()(Index... index) {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline const T& tensor<T, Rank>::operator()(Args... args) const {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline const T& tensor<T, Rank>::operator()(Index... index) const {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
@@ -211,7 +214,7 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     template <size_t N>
-    inline size_t tensor<T, Rank>::__unpack_slices(
+    size_t tensor<T, Rank>::__unpack_slices(
         shape_t<N>&, size_t &offset, shape_t<N>&
     ) const {
         offset = 0;
@@ -219,33 +222,33 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <size_t N, class... Args>
+    template <size_t N, class... Indices>
     size_t tensor<T, Rank>::__unpack_slices(
         shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-        size_t i, Args... args
+        size_t i, Indices... indices
     ) const {
-        size_t axis = Rank - sizeof...(Args) - 1;
+        size_t axis = Rank - sizeof...(Indices) - 1;
         detail::assert_within_bounds(m_shape, i, axis);
-        size_t n = __unpack_slices(shape, offset, strides, args...);
+        size_t n = __unpack_slices(shape, offset, strides, indices...);
         offset += i * n;
         return m_shape[axis] * n;
     }
 
     template <class T, size_t Rank>
-    template <size_t N, class... Args>
+    template <size_t N, class... Indices>
     size_t tensor<T, Rank>::__unpack_slices(
         shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-        slice slc, Args... args
+        slice slc, Indices... indices
     ) const {
-        size_t axis = Rank - sizeof...(Args) - 1;
+        size_t axis = Rank - sizeof...(Indices) - 1;
         if (slc == slice()) {
             slc = slice(m_shape[axis]);
         }
         else if (slc.size() > 0 && slc.last() >= m_shape[axis]) {
             slc = slice(slc.start(), m_shape[axis], slc.stride());
         }
-        size_t I = N - detail::slicing_rank<Args...>::value - 1;
-        size_t n = __unpack_slices(shape, offset, strides, args...);
+        size_t I = N - detail::slicing_rank<Indices...>::value - 1;
+        size_t n = __unpack_slices(shape, offset, strides, indices...);
         shape[I] = slc.size();
         offset += slc.start() * n;
         strides[I] = slc.stride() * n;
@@ -253,28 +256,28 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresSlicing<Args...> >
-    tensor_view<T, detail::slicing_rank<Args...>::value>
-    tensor<T, Rank>::operator()(Args... args) {
-        constexpr size_t N = detail::slicing_rank<Args...>::value;
+    template <class... Indices,
+              detail::RequiresNArguments<Rank, Indices...>,
+              detail::RequiresSlicing<Indices...> >
+    tensor_view<T, detail::slicing_rank<Indices...>::value>
+    tensor<T, Rank>::operator()(Indices... indices) {
+        constexpr size_t N = detail::slicing_rank<Indices...>::value;
         shape_t<N> shape, strides;
         size_t offset;
-        __unpack_slices(shape, offset, strides, args...);
+        __unpack_slices(shape, offset, strides, indices...);
         return tensor_view<T, N>(shape, m_data, offset, strides);
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresSlicing<Args...> >
-    tensor_view<const T, detail::slicing_rank<Args...>::value>
-    tensor<T, Rank>::operator()(Args... args) const {
-        constexpr size_t N = detail::slicing_rank<Args...>::value;
+    template <class... Indices,
+              detail::RequiresNArguments<Rank, Indices...>,
+              detail::RequiresSlicing<Indices...> >
+    tensor_view<const T, detail::slicing_rank<Indices...>::value>
+    tensor<T, Rank>::operator()(Indices... indices) const {
+        constexpr size_t N = detail::slicing_rank<Indices...>::value;
         shape_t<N> shape, strides;
         size_t offset;
-        __unpack_slices(shape, offset, strides, args...);
+        __unpack_slices(shape, offset, strides, indices...);
         return tensor_view<const T, N>(shape, m_data, offset, strides);
     }
 
@@ -506,18 +509,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, 1> tensor<T, Rank>::flatten() {
+    inline tensor_view<T, 1> tensor<T, Rank>::flatten() {
         return tensor_view<T, 1>(m_size, m_data);
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, 1> tensor<T, Rank>::flatten() const {
+    inline tensor_view<const T, 1> tensor<T, Rank>::flatten() const {
         return tensor_view<const T, 1>(m_size, m_data);
     }
 
     template <class T, size_t Rank>
     template <size_t N>
-    inline tensor_view<T, N> tensor<T, Rank>::reshape(const shape_t<N> &shape) {
+    tensor_view<T, N> tensor<T, Rank>::reshape(const shape_t<N> &shape) {
         if (m_size != shape.size()) {
             std::ostringstream error;
             error << "cannot reshape tensor of shape " << m_shape
@@ -528,16 +531,16 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<T, sizeof...(Args)>
-    tensor<T, Rank>::reshape(Args... args) {
-        return this->reshape(make_shape(args...));
+    template <class... Sizes, detail::RequiresIntegral<Sizes...> >
+    inline tensor_view<T, sizeof...(Sizes)>
+    tensor<T, Rank>::reshape(Sizes... sizes) {
+        return this->reshape(make_shape(sizes...));
     }
 
     template <class T, size_t Rank>
     template <size_t N>
-    inline tensor_view<const T, N>
-    tensor<T, Rank>::reshape(const shape_t<N> &shape) const {
+    tensor_view<const T, N> tensor<T, Rank>::reshape(const shape_t<N> &shape)
+    const {
         if (m_size != shape.size()) {
             std::ostringstream error;
             error << "cannot reshape tensor of shape " << m_shape
@@ -548,10 +551,10 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<const T, sizeof...(Args)>
-    tensor<T, Rank>::reshape(Args... args) const {
-        return this->reshape(make_shape(args...));
+    template <class... Sizes, detail::RequiresIntegral<Sizes...> >
+    inline tensor_view<const T, sizeof...(Sizes)>
+    tensor<T, Rank>::reshape(Sizes... sizes) const {
+        return this->reshape(make_shape(sizes...));
     }
 
     template <class T, size_t Rank>
@@ -565,18 +568,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline void tensor<T, Rank>::resize(Args... args) {
-        this->resize(make_shape(args...));
+    template <class... Sizes,
+              detail::RequiresNArguments<Rank, Sizes...>,
+              detail::RequiresIntegral<Sizes...> >
+    inline void tensor<T, Rank>::resize(Sizes... sizes) {
+        this->resize(make_shape(sizes...));
     }
 
     template <class T, size_t Rank>
     template <size_t N>
     tensor_view<T, Rank - N> tensor<T, Rank>::squeeze(const shape_t<N> &axes) {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -598,18 +601,18 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<T, Rank - sizeof...(Args)>
-    tensor<T, Rank>::squeeze(Args... args) {
-        return this->squeeze(make_shape(args...));
+    template <class... Axes, detail::RequiresIntegral<Axes...> >
+    inline tensor_view<T, Rank - sizeof...(Axes)>
+    tensor<T, Rank>::squeeze(Axes... axes) {
+        return this->squeeze(make_shape(axes...));
     }
 
     template <class T, size_t Rank>
     template <size_t N>
     tensor_view<const T, Rank - N>
     tensor<T, Rank>::squeeze(const shape_t<N> &axes) const {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -631,31 +634,31 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline tensor_view<const T, Rank - sizeof...(Args)>
-    tensor<T, Rank>::squeeze(Args... args) const {
-        return this->squeeze(make_shape(args...));
+    template <class... Axes, detail::RequiresIntegral<Axes...> >
+    inline tensor_view<const T, Rank - sizeof...(Axes)>
+    tensor<T, Rank>::squeeze(Axes... axes) const {
+        return this->squeeze(make_shape(axes...));
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank> tensor<T, Rank>::t() {
+    inline tensor_view<T, Rank> tensor<T, Rank>::t() {
         return tensor_view<T, Rank>(m_shape.transpose(), m_data, col_major);
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, Rank> tensor<T, Rank>::t() const {
+    inline tensor_view<const T, Rank> tensor<T, Rank>::t() const {
         return tensor_view<const T, Rank>(
             m_shape.transpose(), m_data, col_major
         );
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank> tensor<T, Rank>::view() {
+    inline tensor_view<T, Rank> tensor<T, Rank>::view() {
         return tensor_view<T, Rank>(m_shape, m_data);
     }
 
     template <class T, size_t Rank>
-    tensor_view<const T, Rank> tensor<T, Rank>::view() const {
+    inline tensor_view<const T, Rank> tensor<T, Rank>::view() const {
         return tensor_view<const T, Rank>(m_shape, m_data);
     }
 }
