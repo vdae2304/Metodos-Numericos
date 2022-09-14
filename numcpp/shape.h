@@ -45,39 +45,39 @@ namespace numcpp {
 /// Namespace for implementation details.
 namespace detail {
     /// Check whether a parameter pack consists of integers.
-    template <class... Args> struct are_integral;
+    template <class... T> struct are_integral;
 
     template <class T>
     struct are_integral<T> : std::is_integral<T> {};
 
-    template <class T, class... Args>
-    struct are_integral<T, Args...>
+    template <class T, class... Ts>
+    struct are_integral<T, Ts...>
      : std::integral_constant<
-        bool, std::is_integral<T>::value && are_integral<Args...>::value
-      > {};
+           bool, std::is_integral<T>::value && are_integral<Ts...>::value
+       > {};
 
     /// Rank of concatenation.
-    template <class... Args>
+    template <class... Shapes>
     struct concatenation_rank;
 
-    template <size_t Rank>
-    struct concatenation_rank<shape_t<Rank> >
-     : std::integral_constant<size_t, Rank> {};
+    template <>
+    struct concatenation_rank<> : std::integral_constant<size_t, 0> {};
 
-    template <size_t Rank, class... Args>
-    struct concatenation_rank<shape_t<Rank>, Args...>
-     : std::integral_constant<size_t, Rank + concatenation_rank<Args...>::value>
-     {};
+    template <size_t Rank, class... Shapes>
+    struct concatenation_rank<shape_t<Rank>, Shapes...>
+     : std::integral_constant<
+           size_t, Rank + concatenation_rank<Shapes...>::value
+       > {};
 
     /// Type constraint to request N arguments.
     template <size_t N, class... Args>
     using RequiresNArguments =
-        typename std::enable_if<sizeof...(Args) == N, bool>::type;
+        typename std::enable_if<sizeof...(Args) == N, int>::type;
 
     /// Type constraint to request integer arguments.
-    template <class... Args>
+    template <class... T>
     using RequiresIntegral =
-        typename std::enable_if<are_integral<Args...>::value, bool>::type;
+        typename std::enable_if<are_integral<T...>::value, int>::type;
 }
 
     /**
@@ -100,12 +100,12 @@ namespace detail {
         /**
          * @brief Construct a new shape_t object from a list of sizes.
          *
-         * @param args... Size arguments.
+         * @param sizes... Size along each axis.
          */
-        template <class... Args,
-                  typename = detail::RequiresNArguments<Rank, Args...>,
-                  typename = detail::RequiresIntegral<Args...> >
-        shape_t(Args... args);
+        template <class... Sizes,
+                  detail::RequiresNArguments<Rank, Sizes...> = 0,
+                  detail::RequiresIntegral<Sizes...> = 0>
+        shape_t(Sizes... sizes);
 
         /**
          * @brief Copy constructor.
@@ -156,8 +156,8 @@ namespace detail {
          * @brief Return a copy with the axes permuted.
          *
          * @param axes A permutation of (0, 1, ..., Rank - 1). The i-th element
-         *     of the returned shape will correspond to the axes[i]-th element
-         *     in *this.
+         *     of the returned shape will correspond to the axis numbered
+         *     axes[i] of *this.
          */
         shape_t permute(const shape_t &axes) const;
 
@@ -165,7 +165,7 @@ namespace detail {
          * @brief Integer conversion. Dimension must be one.
          */
         template <class IntegralType,
-                  detail::RequiresIntegral<IntegralType> = true>
+                  detail::RequiresIntegral<IntegralType> = 0>
         explicit operator IntegralType() const;
 
         /**
@@ -183,26 +183,26 @@ namespace detail {
      * @brief Create a shape_t object deducing its dimension from the number of
      * arguments.
      *
-     * @param args... Size arguments.
+     * @param sizes... Size along each axis.
      *
      * @return A shape with the given values.
      */
-    template <class... Args, detail::RequiresIntegral<Args...> = true>
-    inline shape_t<sizeof...(Args)> make_shape(Args... args);
+    template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+    inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes);
 
     /**
-     * @brief Create an index_t object deducing its dimension from the number of
-     * arguments.
+     * @brief Create an index_t object deducing its dimension from the number
+     * of arguments.
      *
      * @note index_t is just an alias of shape_t defined to distinguish between
      * shapes and indices, improving readability.
      *
-     * @param args... Index arguments.
+     * @param indices... Index along each axis.
      *
      * @return An index with the given values.
      */
-    template <class... Args, detail::RequiresIntegral<Args...> = true>
-    inline index_t<sizeof...(Args)> make_index(Args... args);
+    template <class... Indices, detail::RequiresIntegral<Indices...> = 0>
+    inline index_t<sizeof...(Indices)> make_index(Indices... indices);
 
     /**
      * @brief Layout in which elements are stored or iterated.
@@ -276,33 +276,44 @@ namespace detail {
     );
 
     /**
-     * @brief Broadcast input shapes into a common shape. Throws a
-     * std::invalid_argument exception if the shapes are not compatible and
-     * cannot be broadcasted according to broadcasting rules.
+     * @brief Broadcast input shapes into a common shape.
      *
      * @details Two dimensions are said to be compatible if
      *   - they are equal or,
      *   - one of them is 1
      * The size of the resulting broadcasting is the size that is not 1 along
      * each axis of the shapes.
+     *
+     * @param shape1, shape2... The shapes to be broadcast against each other.
+     *     The shapes must have the same dimension.
+     *
+     * @return Broadcasted shape.
+     *
+     * @throw std::invalid_argument Thrown if the shapes are not compatible and
+     *     cannot be broadcasted according to broadcasting rules.
      */
-    template <size_t Rank, class... Args>
+    template <size_t Rank, class... Shapes>
     shape_t<Rank> broadcast_shapes(
-        const shape_t<Rank> &shape1, const Args&... shapes
+        const shape_t<Rank> &shape1, const Shapes&... shape2
     );
 
     /**
-     * @brief Concatenates one or more shape_t objects.
+     * @brief Constructs a shape that is the concatenation of one or more
+     * shapes.
+     *
+     * @param shape1, shape2... The shapes to concatenate.
+     *
+     * @return The concatenated shape.
      */
-    template <size_t Rank, class... Args>
-    shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+    template <size_t Rank, class... Shapes>
+    shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
     shape_cat(
-        const shape_t<Rank> &shape1, const Args&... shapes
+        const shape_t<Rank> &shape1, const Shapes&... shape2
     );
 
     /**
-     * @brief Compares two shape_t objects. Returns true if they have the same
-     * dimension and the same sizes along each axis.
+     * @brief Compares two shapes. Returns true if they have the same dimension
+     * and the same size along each axis.
      */
     template <size_t Rank1, size_t Rank2>
     inline bool operator==(
@@ -310,8 +321,8 @@ namespace detail {
     );
 
     /**
-     * @brief Compares two shape_t objects. Returns true if they have different
-     * dimensions or they are different in at least one axis.
+     * @brief Compares two shapes. Returns true if they have different
+     * dimension or if they have different size in one axis.
      */
     template <size_t Rank1, size_t Rank2>
     inline bool operator!=(

@@ -33,9 +33,11 @@ namespace numcpp {
     shape_t<Rank>::shape_t() : m_shape{0} {}
 
     template <size_t Rank>
-    template <class... Args, typename, typename>
-    shape_t<Rank>::shape_t(Args... args)
-     : m_shape{static_cast<size_t>(args)...} {}
+    template <class... Sizes,
+              detail::RequiresNArguments<Rank, Sizes...>,
+              detail::RequiresIntegral<Sizes...> >
+    shape_t<Rank>::shape_t(Sizes... sizes)
+     : m_shape{static_cast<size_t>(sizes)...} {}
 
     template <size_t Rank>
     shape_t<Rank>::shape_t(const shape_t &other) {
@@ -148,14 +150,14 @@ namespace detail {
         return m_shape;
     }
 
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline shape_t<sizeof...(Args)> make_shape(Args... args) {
-        return shape_t<sizeof...(Args)>(args...);
+    template <class... Sizes, detail::RequiresIntegral<Sizes...> >
+    inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
+        return shape_t<sizeof...(Sizes)>(sizes...);
     }
 
-    template <class... Args, detail::RequiresIntegral<Args...> >
-    inline index_t<sizeof...(Args)> make_index(Args... args) {
-        return index_t<sizeof...(Args)>(args...);
+    template <class... Indices, detail::RequiresIntegral<Indices...> >
+    inline index_t<sizeof...(Indices)> make_index(Indices... indices) {
+        return index_t<sizeof...(Indices)>(indices...);
     }
 
     template <size_t Rank>
@@ -217,15 +219,15 @@ namespace detail {
 
 namespace detail {
     /**
-     * @brief Broadcast shapes into a common shape.
+     * @brief Broadcast input shapes into a common shape.
      */
     template <size_t Rank>
-    void broadcast_shapes(shape_t<Rank>&) {}
+    void broadcast_shapes_impl(shape_t<Rank>&) {}
 
-    template <size_t Rank, class... Args>
-    void broadcast_shapes(
+    template <size_t Rank, class... Shapes>
+    void broadcast_shapes_impl(
         shape_t<Rank> &out_shape, const shape_t<Rank> &shape1,
-        const Args&... shapes
+        const Shapes&... shape2
     ) {
         for (size_t i = 0; i < shape1.ndim(); ++i) {
             if (out_shape[i] == 1) {
@@ -238,44 +240,44 @@ namespace detail {
                 throw std::invalid_argument(error.str());
             }
         }
-        broadcast_shapes(out_shape, shapes...);
+        broadcast_shapes_impl(out_shape, shape2...);
     }
 
     /**
      * @brief Concatenate one or more shapes.
      */
     template <size_t Rank>
-    void concatenate_shapes(shape_t<Rank>&, size_t) {}
+    void shape_cat_impl(shape_t<Rank>&, size_t) {}
 
-    template <size_t OutRank, size_t Rank, class... Args>
-    void concatenate_shapes(
+    template <size_t OutRank, size_t Rank, class... Shapes>
+    void shape_cat_impl(
         shape_t<OutRank> &out_shape, size_t offset,
-        const shape_t<Rank> &shape1, const Args&... shapes
+        const shape_t<Rank> &shape1, const Shapes&... shape2
     ) {
         for (size_t i = 0; i < shape1.ndim(); ++i) {
-            out_shape[offset + i] = shape1[i];
+            out_shape[offset++] = shape1[i];
         }
-        concatenate_shapes(out_shape, offset + shape1.ndim(), shapes...);
+        shape_cat_impl(out_shape, offset, shape2...);
     }
 }
 
-    template <size_t Rank, class... Args>
+    template <size_t Rank, class... Shapes>
     shape_t<Rank> broadcast_shapes(
-        const shape_t<Rank> &shape1, const Args&... shapes
+        const shape_t<Rank> &shape1, const Shapes&... shape2
     ) {
         shape_t<Rank> out_shape = shape1;
-        detail::broadcast_shapes(out_shape, shapes...);
+        detail::broadcast_shapes_impl(out_shape, shape2...);
         return out_shape;
     }
 
-    template <size_t Rank, class... Args>
-    shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+    template <size_t Rank, class... Shapes>
+    shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
     shape_cat(
-        const shape_t<Rank> &shape1, const Args&... shapes
+        const shape_t<Rank> &shape1, const Shapes&... shape2
     ) {
-        shape_t<detail::concatenation_rank<shape_t<Rank>, Args...>::value>
+        shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
         out_shape;
-        detail::concatenate_shapes(out_shape, 0, shape1, shapes...);
+        detail::shape_cat_impl(out_shape, 0, shape1, shape2...);
         return out_shape;
     }
 
