@@ -81,8 +81,10 @@ using matrix = tensor<T, 2>;
 | `const_pointer`   | `const T*`                            |
 | `iterator`        | A random access iterator to `T`       |
 | `const_iterator`  | A random access iterator to `const T` |
-| `difference_type` | A signed integral type.               |
 | `size_type`       | An unsigned integral type.            |
+| `difference_type` | A signed integral type.               |
+| `shape_type`      | `shape_t<Rank>`                       |
+| `index_type`      | `index_t<Rank>`                       |
 
 ## Constructors
 
@@ -99,8 +101,8 @@ Constructs a tensor with given shape, each element is left uninitialized.
 ```cpp
 tensor(const shape_t<Rank> &shape);
 
-template <class... Args>
-tensor(Args... args);
+template <class... Sizes>
+tensor(Sizes... sizes);
 ```
 
 Parameters
@@ -349,16 +351,16 @@ Output
 
 Returns a reference to the element at the given position.
 ```cpp
-template <class... Args>
-T& operator()(Args... args);
+template <class... Index>
+T& operator()(Index... index);
 
-template <class... Args>
-const T& operator()(Args... args) const;
+template <class... Index>
+const T& operator()(Index... index) const;
 ```
 
 Parameters
 
-* `args...` Index arguments.
+* `index...` Position of an element along each axis.
 
 Returns
 
@@ -368,7 +370,7 @@ function returns a reference to `const T`. Otherwise, it returns a reference to
 
 Exceptions
 
-* `std::out_of_range` Thrown if index is out of bounds.
+* `std::out_of_range` Thrown if `index` is out of bounds.
 
 Example
 
@@ -450,7 +452,7 @@ function returns a reference to `const T`. Otherwise, it returns a reference to
 
 Exceptions
 
-* `std::out_of_range` Thrown if index is out of bounds.
+* `std::out_of_range` Thrown if `index` is out of bounds.
 
 Example
 
@@ -666,24 +668,24 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> arr(10);
-    int value = 0;
     int *data = arr.data();
+    int value = 0;
     for (unsigned i = 0; i < arr.size(); ++i) {
         data[i] = value++;
     }
     std::cout << "1 dimensional:\n" << arr << "\n";
 
     np::matrix<int> mat(3, 4);
-    value = 0;
     data = mat.data();
+    value = 0;
     for (unsigned i = 0; i < mat.size(); ++i) {
         data[i] = value++;
     }
     std::cout << "2 dimensional:\n" << mat << "\n";
 
     np::tensor<int, 3> cube(2, 3, 4);
-    value = 0;
     data = cube.data();
+    value = 0;
     for (unsigned i = 0; i < cube.size(); ++i) {
         data[i] = value++;
     }
@@ -725,27 +727,29 @@ layout_t layout() const;
 
 Returns a `tensor_view` object that selects the elements given by the slices.
 ```cpp
-template <class... Args>
+template <class... Indices>
 tensor_view<T, /* Number of slice arguments */>
-operator()(Args... args);
+operator()(Indices... indices);
 
-template <class... Args>
+template <class... Indices>
 tensor_view<const T, /* Number of slice arguments */>
-operator()(Args... args) const;
+operator()(Indices... indices) const;
 ```
 
 Parameters
 
-* `args...` Index arguments. Each argument can be either an integer or a slice.
-If a slice is given, select multiple positions along the corresponding axis. An
-empty slice can be used to select all the positions along the axis.
+* `indices...` Each argument can be either an integer or a slice. If an integer
+is given, an unique position is selected for that axis and the dimensionality
+of the returned view is reduced by 1. If a slice is given, a subset of
+positions is selected along the axis. An empty slice can be used as a
+placeholder to select all the positions along the axis.
 
 Returns
 
 * If the tensor is const-qualified, the function returns a `tensor_view` to
 `const T`, which is convertible to a tensor object. Otherwise, the function
 returns a `tensor_view` to `T`, which has reference semantics to the original
-tensor. The dimension of the `tensor_view` is the number of slices in the index
+tensor. The dimension of the returned view will equal the number of slice
 arguments.
 
 Exceptions
@@ -1248,13 +1252,13 @@ Return a `tensor_view` containing the same data with a new shape.
 ```cpp
 template <size_t N>
 tensor_view<T, N> reshape(const shape_t<N> &shape);
-template <class... Args>
-tensor_view<T, sizeof...(Args)> reshape(Args... args);
+template <class... Sizes>
+tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes);
 
 template <size_t N>
 tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
-template <class... Args>
-tensor_view<const T, sizeof...(Args)> reshape(Args... args) const;
+template <class... Sizes>
+tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
 ```
 
 Parameters
@@ -1283,7 +1287,7 @@ int main() {
     np::array<int> arr{4, 9, 5, 0, 10, 3};
     std::cout << "1 dimensional:\n" << arr << "\n";
     std::cout << "As row vector:\n" << arr.reshape(1, arr.size()) << "\n";
-    std::cout << "As column vector:\n" << arr.reshape( arrsize(), 1) << "\n";
+    std::cout << "As column vector:\n" << arr.reshape(arr.size(), 1) << "\n";
     std::cout << "As 2 x 3 matrix:\n" << arr.reshape(2, 3) << "\n";
     return 0;
 }
@@ -1310,14 +1314,14 @@ As 2 x 3 matrix:
 
 ### `tensor::resize`
 
-Resizes the tensor in-place to a given shape. Before resizing, if the new size
-is different from the total number of elements in the tensor, allocates memory
-for the new size losing the previous contents. Otherwise, the contents are
-preserved, but possibly aranged in a different order.
+Resizes the tensor in-place to a given shape. If the new size is different from
+the number of elements stored in the tensor, a reallocation takes place to
+match the new shape, losing the previous contents in the process. Otherwise,
+the contents of the tensor are preserved, but aranged in a different order.
 ```cpp
 void resize(const shape_t<Rank> &shape);
-template <class... Args>
-void resize(Args... args);
+template <class... Sizes>
+void resize(Sizes... sizes);
 ```
 
 Parameters
@@ -1344,10 +1348,10 @@ int main() {
                         {-5, -3, 11, 11},
                         {-1, 18, -3, -1}};
     std::cout << mat << "\n";
-    // Keeps previous contents.
+    // Size is still 12, keeps previous contents.
     mat.resize(2, 6);
     std::cout << mat << "\n";
-    // Realloactes memory.
+    // New size is 9, realloactes memory.
     mat.resize(3, 3);
     std::cout << mat << "\n";
     return 0;
@@ -1373,13 +1377,13 @@ Removes axes of length one.
 ```cpp
 template <size_t N>
 tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-template <class... Args>
-tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
+template <class... Axes>
+tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
 
 template <size_t N>
 tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-template <class... Args>
-tensor_view<const T, Rank - sizeof...(Args)> squeeze(Args... args) const;
+template <class... Axes>
+tensor_view<const T, Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
 ```
 
 Parameters
