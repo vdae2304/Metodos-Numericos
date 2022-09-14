@@ -48,8 +48,10 @@ namespace numcpp {
         typedef const T& const_reference;
         typedef T* pointer;
         typedef const T* const_pointer;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
         /// Constructors.
 
@@ -112,7 +114,7 @@ namespace numcpp {
          *     data[indices[ravel_index(index, shape, order)]]
          * where data is the memory array and indices is the array of indices.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position. If the
          *     indirect_tensor is const-qualified, the function returns a
@@ -120,15 +122,15 @@ namespace numcpp {
          *
          * @throw std::out_of_range Thrown if index is out of bounds.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T& operator()(Args... args);
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        T& operator()(Index... index);
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        const T& operator()(Args... args) const;
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const T& operator()(Index... index) const;
 
         /**
          * @brief Subscript operator. Returns a reference to the element at the

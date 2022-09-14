@@ -94,19 +94,19 @@ namespace numcpp {
     /// Indexing.
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline T& indirect_tensor<T, Rank>::operator()(Args... args) {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline T& indirect_tensor<T, Rank>::operator()(Index... index) {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
-    template <class... Args,
-              detail::RequiresNArguments<Rank, Args...>,
-              detail::RequiresIntegral<Args...> >
-    inline const T& indirect_tensor<T, Rank>::operator()(Args... args) const {
-        return this->operator[](make_index(args...));
+    template <class... Index,
+              detail::RequiresNArguments<Rank, Index...>,
+              detail::RequiresIntegral<Index...> >
+    inline const T& indirect_tensor<T, Rank>::operator()(Index... index) const {
+        return this->operator[](make_index(index...));
     }
 
     template <class T, size_t Rank>
