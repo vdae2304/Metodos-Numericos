@@ -70,8 +70,10 @@ using matrix_view = tensor<T, 2>;
 | `const_pointer`   | `const T*`                            |
 | `iterator`        | A random access iterator to `T`       |
 | `const_iterator`  | A random access iterator to `const T` |
-| `difference_type` | A signed integral type.               |
 | `size_type`       | An unsigned integral type.            |
+| `difference_type` | A signed integral type.               |
+| `shape_type`      | `shape_t<Rank>`                       |
+| `index_type`      | `index_t<Rank>`                       |
 
 ## Constructors
 
@@ -332,16 +334,16 @@ Returns a reference to the element at the given position. The elements in a
 
 where `data` is the memory array.
 ```cpp
-template <class... Args>
-T& operator()(Args... args);
+template <class... Index>
+T& operator()(Index... index);
 
-template <class... Args>
-const T& operator()(Args... args) const;
+template <class... Index>
+const T& operator()(Index... index) const;
 ```
 
 Parameters
 
-* `args...` Index arguments.
+* `index...` Position of an element along each axis.
 
 Returns
 
@@ -351,7 +353,7 @@ returns a reference to `T`.
 
 Exceptions
 
-* `std::out_of_range` Thrown if index is out of bounds.
+* `std::out_of_range` Thrown if `index` is out of bounds.
 
 Example
 
@@ -476,7 +478,7 @@ returns a reference to `T`.
 
 Exceptions
 
-* `std::out_of_range` Thrown if index is out of bounds.
+* `std::out_of_range` Thrown if `index` is out of bounds.
 
 Example
 
@@ -817,13 +819,13 @@ Removes axes of length one.
 ```cpp
 template <size_t N>
 tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-template <class... Args>
-tensor_view<T, Rank - sizeof...(Args)> squeeze(Args... args);
+template <class... Axes>
+tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
 
 template <size_t N>
 tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-template <class... Args>
-tensor_view<const T, Rank - sizeof...(Args)> squeeze(Args... args) const;
+template <class... Axes>
+tensor_view<const T, Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
 ```
 
 Parameters
