@@ -55,13 +55,13 @@ shape_t();
 Construct a new `shape_t` object from a list of sizes.
 
 ```cpp
-template <class... Args>
-shape_t(Args... args);
+template <class... Sizes>
+shape_t(Sizes... sizes);
 ```
 
 Parameters
 
-* `args...` Size arguments.
+* `sizes...` Size along each axis.
 
 Example
 
@@ -223,7 +223,7 @@ shape_t permute(const shape_t &axes) const;
 Parameters
 
 * `axes` A permutation of (0, 1, ..., `Rank` - 1). The i-th element of the
-returned shape will correspond to the `axes[i]`-th element in `*this`.
+returned shape will correspond to the axis numbered `axes[i]` of `*this`.
 
 Example
 
@@ -304,8 +304,8 @@ explicit operator const size_t*() const;
 
 ### `operator==`
 
-Compares two `shape_t` objects. Returns `true` if they have the same dimension
-and the same sizes along each axis.
+Compares two shapes. Returns `true` if they have the same dimension and the
+same size along each axis.
 ```cpp
 template <size_t Rank1, size_t Rank2>
 bool operator==(const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2);
@@ -358,8 +358,8 @@ They are not equal
 
 ### `operator!=`
 
-Compares two `shape_t` objects. Returns `true` if they have different
-dimensions or they are different in at least one axis.
+Compares two shapes. Returns `true` if they have different dimension or if they
+have different size in one axis.
 ```cpp
 template <size_t Rank1, size_t Rank2>
 bool operator!=(const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2);
@@ -371,13 +371,13 @@ bool operator!=(const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2);
 
 Create a `shape_t` object deducing its dimension from the number of arguments.
 ```cpp
-template <class... Args>
-shape_t<sizeof...(Args)> make_shape(Args... args);
+template <class... Sizes>
+shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes);
 ```
 
 Parameters
 
-* `args...` Size arguments.
+* `sizes...` Size along each axis.
 
 Return
 
@@ -408,17 +408,17 @@ Output
 ### `make_index`
 
 Create an `index_t` object deducing its dimension from the number of arguments.
-```cpp
-template <class... Args>
-index_t<sizeof...(Args)> make_index(Args... args);
-```
 
 `index_t` is just an alias of `shape_t` defined to distinguish between shapes
 and indices, improving readability.
+```cpp
+template <class... Indices>
+index_t<sizeof...(Indices)> make_index(Indices... indices);
+```
 
 Parameters
 
-* `args...` Index arguments.
+* `indices...` Index along each axis.
 
 Returns
 
@@ -671,13 +671,11 @@ Column-major iteration:
 
 ### `broadcast_shapes`
 
-Broadcast input shapes into a common shape. Throws a `std::invalid_argument`
-exception if the shapes are not compatible and cannot be broadcasted according
-to broadcasting rules.
+Broadcast input shapes into a common shape.
 ```cpp
-template <size_t Rank, class... Args>
+template <size_t Rank, class... Shapes>
 shape_t<Rank> broadcast_shapes(
-    const shape_t<Rank> &shape1, const Args&... shapes
+    const shape_t<Rank> &shape1, const Shapes&... shape2
 );
 ```
 
@@ -688,6 +686,20 @@ Two dimensions are said to be compatible if
 
 The size of the resulting broadcasting is the size that is not 1 along each
 axis of the shapes.
+
+Parameters
+
+* `shape1, shape2...` The shapes to be broadcast against each other. The shapes
+must have the same dimension.
+
+Returns
+
+* Broadcasted shape.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes are not compatible and cannot be
+broadcasted according to broadcasting rules.
 
 Example
 
@@ -732,13 +744,21 @@ terminate called after throwing an instance of 'std::invalid_argument'
 
 ### `shape_cat`
 
-Concatenates one or more `shape_t` objects.
+Constructs a shape that is the concatenation of one or more shapes.
 ```cpp
-template <size_t Rank, class... Args>
-shape_t</*Rank of concatenation*/> shape_cat(
-    const shape_t<Rank> &shape1, const Args&... shapes
+template <size_t Rank, class... Shapes>
+shape_t</* Rank of concatenation */> shape_cat(
+    const shape_t<Rank> &shape1, const Shapes&... shape2
 );
 ```
+
+Parameters
+
+* `shape1, shape2...` The shapes to concatenate.
+
+Returns
+
+* The concatenated shape.
 
 Example
 
