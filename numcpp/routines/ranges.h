@@ -622,69 +622,6 @@ namespace ranges {
             return (1 - t) * lower + t * higher;
         }
     };
-
-    /**
-     * @brief Function object implementing reduce.
-     */
-    template <class Function>
-    struct reduce {
-        // Underlying function.
-        Function f;
-
-        /**
-         * @brief Constructor.
-         *
-         * @tparam f Function to apply.
-         */
-        reduce(Function f) : f(f) {}
-
-        /**
-         * Returns the result of accumulating all the values in the range
-         * [first, last).
-         *
-         * @param first Input iterator to the initial position of the sequence.
-         * @param last Input iterator to the final position of the sequence.
-         *
-         * @return The result of accumulating all the elements in the range
-         *     [first, last).
-         */
-        template <class InputIterator>
-        typename std::iterator_traits<InputIterator>::value_type operator()(
-            InputIterator first, InputIterator last
-        ) const {
-            return __invoke(first, last, has_identity<Function>());
-        }
-
-    private:
-        template <class F, typename = void>
-        struct has_identity : std::false_type {};
-
-        template <class F>
-        struct has_identity<F, decltype(void(F::identity))> : std::true_type {};
-
-        template <class InputIterator>
-        typename std::iterator_traits<InputIterator>::value_type __invoke(
-            InputIterator first, InputIterator last, std::true_type
-        ) const {
-            typedef typename std::iterator_traits<InputIterator>::value_type T;
-            return std::accumulate(first, last, T(f.identity), f);
-        }
-
-        template <class InputIterator>
-        typename std::iterator_traits<InputIterator>::value_type __invoke(
-            InputIterator first, InputIterator last, std::false_type
-        ) const {
-            typedef typename std::iterator_traits<InputIterator>::value_type T;
-            if (first == last) {
-                char error[] = "attempt to call reduce on an empty sequence"
-                    " with no identity";
-                throw std::invalid_argument(error);
-            }
-            T init = *first;
-            ++first;
-            return std::accumulate(first, last, init, f);
-        }
-    };
 }
 }
 
