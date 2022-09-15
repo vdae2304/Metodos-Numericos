@@ -5,7 +5,7 @@ Defined in `numcpp/tensor.h`
 - [Iterators](#iterators)
   - [Template parameters](#template-parameters)
   - [Member types](#member-types)
-  - [`layout_t`](#layout_t)
+  - [Layouts](#layouts)
     - [`row_major`](#row_major)
     - [`col_major`](#col_major)
   - [Index sequence](#index-sequence)
@@ -53,7 +53,7 @@ definitions exists for `tensor_view<T, Rank>::const_iterator` and
 | `reference`         | `typename tensor<T, Rank>::const_reference` |
 | `iterator_category` | `std::random_access_iterator_tag`           |
 
-## `layout_t`
+## Layouts
 
 Layout in which elements are stored or iterated.
 ```cpp
