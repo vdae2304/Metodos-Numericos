@@ -268,8 +268,7 @@ namespace detail {
     template <class Function, class... Args>
     using result_of_t = typename std::result_of<Function(Args...)>::type;
 
-    template <class...>
-    using void_t = void;
+    template <class...> using void_t = void;
 #else
     template <class Function, class... Args>
     using result_of_t = typename std::invoke_result<Function, Args...>::type;
@@ -318,7 +317,7 @@ namespace detail {
     /// Type constraint to request callable type.
     template <class F, class... Args>
     using RequiresCallable =
-        typename std::enable_if<is_callable<F, Args...>::value, bool>::type;
+        typename std::enable_if<is_callable<F, Args...>::value, int>::type;
 }
 }
 
