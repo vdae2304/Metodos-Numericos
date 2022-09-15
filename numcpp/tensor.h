@@ -649,6 +649,7 @@ namespace detail {
             slice slc, Indices... indices
         ) const;
 
+    private:
         // Pointer to data.
         T *m_data;
 
