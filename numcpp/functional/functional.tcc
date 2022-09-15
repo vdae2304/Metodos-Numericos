@@ -158,7 +158,7 @@ namespace detail {
     }
 
     template <class Function, class T, size_t Rank, class Tag>
-    tensor<
+    inline tensor<
         detail::result_of_t<
             Function,
             base_tensor_const_reduce_iterator<T, Rank, Tag, 1>,
@@ -178,7 +178,7 @@ namespace detail {
     }
 
     template <class Function, class T, size_t Rank, class Tag, size_t N>
-    tensor<
+    inline tensor<
         detail::result_of_t<
             Function,
             base_tensor_const_reduce_iterator<T, Rank, Tag, N>,
@@ -242,11 +242,51 @@ namespace detail {
         }
     }
 
+namespace detail {
+    /**
+     * @brief Checks whether a function has identity.
+     */
+    template <class F, typename = void>
+    struct has_identity : std::false_type {};
+
+    template <class F>
+    struct has_identity<F, decltype(void(F::identity))> : std::true_type {};
+
+    /**
+     * @brief Returns the result of accumulating all the values in the range
+     * [first, last).
+     */
+    template <class Function, class InputIterator>
+    typename std::iterator_traits<InputIterator>::value_type reduce_impl(
+        InputIterator first, InputIterator last, Function f, std::true_type
+    ) {
+        typedef typename std::iterator_traits<InputIterator>::value_type T;
+        return std::accumulate(first, last, T(f.identity), f);
+    }
+
+    template <class Function, class InputIterator>
+    typename std::iterator_traits<InputIterator>::value_type reduce_impl(
+        InputIterator first, InputIterator last, Function f, std::false_type
+    ) {
+        typedef typename std::iterator_traits<InputIterator>::value_type T;
+        if (first == last) {
+            char error[] = "attempt to call reduce on an empty sequence with"
+                " no identity";
+            throw std::invalid_argument(error);
+        }
+        T init = *first;
+        ++first;
+        return std::accumulate(first, last, init, f);
+    }
+}
+
     template <class Function, class T, size_t Rank, class Tag>
     inline typename base_tensor<T, Rank, Tag>::value_type
     reduce(Function &&f, const base_tensor<T, Rank, Tag> &arg) {
-        ranges::reduce<Function> pred(std::forward<Function>(f));
-        return pred(arg.begin(), arg.end());
+        return detail::reduce_impl(
+            arg.begin(), arg.end(),
+            std::forward<Function>(f), detail::has_identity<Function>()
+        );
     }
 
     template <class Function, class T, size_t Rank, class Tag>
@@ -273,28 +313,51 @@ namespace detail {
     template <class R, size_t Rank, class TagR,
               class Function,
               class T, class Tag>
-    inline void reduce(
+    void reduce(
         base_tensor<R, Rank, TagR> &out,
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
-        ranges::reduce<Function> pred(std::forward<Function>(f));
-        apply_along_axis(out, pred, arg, axis);
+        shape_t<Rank> shape = arg.shape();
+        size_t size = shape[axis];
+        shape[axis] = 1;
+        detail::resize(out, shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            out[out_index] = detail::reduce_impl(
+                make_const_reduce_iterator(&arg, out_index, axis, 0),
+                make_const_reduce_iterator(&arg, out_index, axis, size),
+                std::forward<Function>(f), detail::has_identity<Function>()
+            );
+        }
     }
 
     template <class R, size_t Rank, class TagR,
               class Function,
               class T, class Tag, size_t N>
-    inline void reduce(
+    void reduce(
         base_tensor<R, Rank, TagR> &out,
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
         const shape_t<N> &axes
     ) {
-        ranges::reduce<Function> pred(std::forward<Function>(f));
-        apply_over_axes(out, pred, arg, axes);
+        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
+                      " tensor dimension");
+        shape_t<Rank> shape = arg.shape();
+        size_t size = 1;
+        for (size_t i = 0; i < axes.ndim(); ++i) {
+            size *= shape[axes[i]];
+            shape[axes[i]] = 1;
+        }
+        detail::resize(out, shape);
+        for (index_t<Rank> out_index : make_indices(shape)) {
+            out[out_index] = detail::reduce_impl(
+                make_const_reduce_iterator(&arg, out_index, axes, 0),
+                make_const_reduce_iterator(&arg, out_index, axes, size),
+                std::forward<Function>(f), detail::has_identity<Function>()
+            );
+        }
     }
 
     template <class Function, class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     accumulate(
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
@@ -328,7 +391,7 @@ namespace detail {
     template <class Function,
               class T, size_t M, class TagT,
               class U, size_t N, class TagU>
-    base_tensor<
+    inline base_tensor<
         detail::result_of_t<Function, T, U>, M + N,
         lazy_outer_tag<Function, T, M, TagT, U, N, TagU>
     > outer(

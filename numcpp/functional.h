@@ -46,7 +46,7 @@ namespace numcpp {
      *     evaluated or assigned to a tensor object.
      */
     template <class Function, class T, size_t Rank, class Tag>
-    inline base_tensor<
+    base_tensor<
         detail::result_of_t<Function, T>, Rank,
         lazy_unary_tag<Function, T, Tag>
     > apply(Function &&f, const base_tensor<T, Rank, Tag> &arg);
@@ -91,7 +91,7 @@ namespace numcpp {
      */
     template <class Function, size_t Rank,
               class T, class TagT, class U, class TagU>
-    inline base_tensor<
+    base_tensor<
         detail::result_of_t<Function, T, U>, Rank,
         lazy_binary_tag<Function, T, TagT, U, TagU>
     > apply(
@@ -101,13 +101,13 @@ namespace numcpp {
     );
 
     template <class Function, size_t Rank, class T, class Tag, class U>
-    inline base_tensor<
+    base_tensor<
         detail::result_of_t<Function, T, U>, Rank,
         lazy_binary_tag<Function, T, Tag, U, scalar_tag>
     > apply(Function &&f, const base_tensor<T, Rank, Tag> &arg1, const U &val);
 
     template <class Function, size_t Rank, class T, class U, class Tag>
-    inline base_tensor<
+    base_tensor<
         detail::result_of_t<Function, T, U>, Rank,
         lazy_binary_tag<Function, T, scalar_tag, U, Tag>
     > apply(Function &&f, const T &val, const base_tensor<U, Rank, Tag> &arg2);
@@ -247,7 +247,7 @@ namespace numcpp {
      *     empty.
      */
     template <class Function, class T, size_t Rank, class Tag>
-    inline typename base_tensor<T, Rank, Tag>::value_type
+    typename base_tensor<T, Rank, Tag>::value_type
     reduce(Function &&f, const base_tensor<T, Rank, Tag> &arg);
 
     /**
@@ -268,11 +268,11 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class Function, class T, size_t Rank, class Tag>
-    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     reduce(Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis);
 
     template <class Function, class T, size_t Rank, class Tag, size_t N>
-    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     reduce(
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
         const shape_t<N> &axes
@@ -295,7 +295,7 @@ namespace numcpp {
     template <class R, size_t Rank, class TagR,
               class Function,
               class T, class Tag>
-    inline void reduce(
+    void reduce(
         base_tensor<R, Rank, TagR> &out,
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     );
@@ -303,7 +303,7 @@ namespace numcpp {
     template <class R, size_t Rank, class TagR,
               class Function,
               class T, class Tag, size_t N>
-    inline void reduce(
+    void reduce(
         base_tensor<R, Rank, TagR> &out,
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
         const shape_t<N> &axes
