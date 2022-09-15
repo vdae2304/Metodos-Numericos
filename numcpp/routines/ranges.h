@@ -30,7 +30,6 @@
 #include <iterator>
 #include <numeric>
 #include <stdexcept>
-#include <type_traits>
 
 namespace numcpp {
 
