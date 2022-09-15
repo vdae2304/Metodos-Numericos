@@ -23,42 +23,12 @@
 #ifndef NUMCPP_FUNCTIONAL_H_INCLUDED
 #define NUMCPP_FUNCTIONAL_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
+#include "numcpp/functional/operators.h"
 #include "numcpp/functional/lazy_tensor.h"
 #include "numcpp/functional/lazy_outer.h"
 
 namespace numcpp {
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Result type of function call.
-#if __cplusplus < 201703L
-    template <class Function, class... Args>
-    using result_of_t = typename std::result_of<Function(Args...)>::type;
-#else
-    template <class Function, class... Args>
-    using result_of_t = typename std::invoke_result<Function, Args...>::type;
-#endif
-
-    /// Type traits to check if a type is callable with given signature.
-    template <class Signature, typename = void>
-    struct is_callable_helper : std::false_type {};
-
-    template <class F, class... Args>
-    struct is_callable_helper<
-        F(Args...),
-        typename std::conditional<false, result_of_t<F, Args...>, void>::type
-    > : std::true_type {};
-
-    template <class F, class... Args>
-    struct is_callable : is_callable_helper<F(Args...)> {};
-
-    /// Type constraint to request callable type.
-    template <class F, class... Args>
-    using RequiresCallable =
-        typename std::enable_if<is_callable<F, Args...>::value, bool>::type;
-}
-
     /// Functional programming.
 
     /**
