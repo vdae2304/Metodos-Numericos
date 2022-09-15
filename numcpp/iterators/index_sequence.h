@@ -37,6 +37,7 @@ namespace numcpp {
         /// Member types.
 
         typedef index_t<Rank> value_type;
+        typedef index_t<Rank> reference;
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
 
@@ -170,9 +171,9 @@ namespace numcpp {
         return index_sequence<Rank>(shape);
     }
 
-    template <class... Args, detail::RequiresIntegral<Args...> = true>
-    index_sequence<sizeof...(Args)> make_indices(Args... args) {
-        return index_sequence<sizeof...(Args)>(make_shape(args...));
+    template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+    index_sequence<sizeof...(Sizes)> make_indices(Sizes... sizes) {
+        return index_sequence<sizeof...(Sizes)>(make_shape(sizes...));
     }
 }
 
