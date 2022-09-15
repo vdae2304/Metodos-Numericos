@@ -5,6 +5,9 @@ Defined in `numcpp/tensor.h`
 - [Iterators](#iterators)
   - [Template parameters](#template-parameters)
   - [Member types](#member-types)
+  - [`layout_t`](#layout_t)
+    - [`row_major`](#row_major)
+    - [`col_major`](#col_major)
   - [Index sequence](#index-sequence)
     - [`make_indices`](#make_indices)
   - [Accessing to iterators](#accessing-to-iterators)
@@ -49,6 +52,31 @@ definitions exists for `tensor_view<T, Rank>::const_iterator` and
 | `pointer`           | `typename tensor<T, Rank>::const_pointer`   |
 | `reference`         | `typename tensor<T, Rank>::const_reference` |
 | `iterator_category` | `std::random_access_iterator_tag`           |
+
+## `layout_t`
+
+Layout in which elements are stored or iterated.
+```cpp
+enum layout_t { row_major = 1, col_major = 0 };
+```
+
+### `row_major`
+
+Row-major order (C/C++ style).
+
+In row-major order, the last dimension is contiguous, so that the memory offset
+of each axis is a constant multiple of the following axis.
+
+In row-major iteration, the last index is varying the fastest.
+
+### `col_major`
+
+Column-major order (Fortran/Matlab style).
+
+In column-major order, the first dimension is contiguous, so that the memory
+offset of each axis is a constant multiple of the previous axis.
+
+In column-major iteration, the first index is varying the fastest.
 
 ## Index sequence
 
