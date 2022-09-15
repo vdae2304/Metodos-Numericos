@@ -24,8 +24,9 @@
 #ifndef NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 #define NUMCPP_TENSOR_INTERFACE_TCC_INCLUDED
 
-#include "numcpp/iterators/index_sequence.h"
 #include "numcpp/routines/ranges.h"
+#include "numcpp/iterators/index_sequence.h"
+
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
@@ -34,89 +35,91 @@ namespace numcpp {
     /// Iterators.
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, Tag>* tensor_interface<T, Rank, Tag>::base() {
-        return static_cast<base_tensor<T, Rank, Tag>*>(this);
-    }
-
-    template <class T, size_t Rank, class Tag>
-    const base_tensor<T, Rank, Tag>*
-    tensor_interface<T, Rank, Tag>::base() const {
-        return static_cast<const base_tensor<T, Rank, Tag>*>(this);
-    }
-
-    template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin() {
-        return this->begin(this->base()->layout());
+        type& self = static_cast<type&>(*this);
+        return iterator(static_cast<type*>(this), 0, self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin() const {
-        return this->begin(this->base()->layout());
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(static_cast<const type*>(this), 0, self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin(layout_t order) {
-        return make_tensor_iterator(this->base(), 0, order);
+        return iterator(static_cast<type*>(this), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::begin(layout_t order) const {
-        return make_tensor_const_iterator(this->base(), 0, order);
+        return const_iterator(static_cast<const type*>(this), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end() {
-        return this->end(this->base()->layout());
+        type& self = static_cast<type&>(*this);
+        return iterator(static_cast<type*>(this), self.size(), self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end() const {
-        return this->end(this->base()->layout());
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(
+            static_cast<const type*>(this), self.size(), self.layout()
+        );
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end(layout_t order) {
-        return make_tensor_iterator(this->base(), this->base()->size(), order);
+        type& self = static_cast<type&>(*this);
+        return iterator(static_cast<type*>(this), self.size(), order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::end(layout_t order) const {
-        return make_tensor_const_iterator(
-            this->base(), this->base()->size(), order
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(
+            static_cast<const type*>(this), self.size(), order
         );
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cbegin() const {
-        return this->cbegin(this->base()->layout());
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(static_cast<const type*>(this), 0, self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cbegin(layout_t order) const {
-        return make_tensor_const_iterator(this->base(), 0, order);
+        return const_iterator(static_cast<const type*>(this), 0, order);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cend() const {
-        return this->cend(this->base()->layout());
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(
+            static_cast<const type*>(this), self.size(), self.layout()
+        );
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_const_iterator<T, Rank, Tag>
     tensor_interface<T, Rank, Tag>::cend(layout_t order) const {
-        return make_tensor_const_iterator(
-            this->base(), this->base()->size(), order
+        const type& self = static_cast<const type&>(*this);
+        return const_iterator(
+            static_cast<const type*>(this), self.size(), order
         );
     }
 
@@ -128,15 +131,14 @@ namespace detail {
      */
     template <size_t Rank>
     index_t<Rank> broadcast_index(
-        const index_t<Rank> &index, const shape_t<Rank> &shape
+        index_t<Rank> index, const shape_t<Rank> &shape
     ) {
-        index_t<Rank> out_index = index;
         for (size_t i = 0; i < shape.ndim(); ++i) {
             if (shape[i] == 1) {
-                out_index[i] = 0;
+                index[i] = 0;
             }
         }
-        return out_index;
+        return index;
     }
 }
 
@@ -146,7 +148,8 @@ namespace detail {
     tensor_interface<T, Rank, Tag>::apply_binary_function(
         Function f, const base_tensor<T, Rank, TagOp> &rhs
     ) {
-        shape_t<Rank> shape = this->base()->shape();
+        type& self = static_cast<type&>(*this);
+        shape_t<Rank> shape = self.shape();
         shape_t<Rank> common_shape = broadcast_shapes(shape, rhs.shape());
         if (shape != common_shape) {
             std::ostringstream error;
@@ -155,12 +158,9 @@ namespace detail {
             throw std::invalid_argument(error.str());
         }
         for (index_t<Rank> i : make_indices(shape)) {
-            this->base()->operator[](i) = f(
-                this->base()->operator[](i),
-                rhs[detail::broadcast_index(i, rhs.shape())]
-            );
+            self[i] = f(self[i], rhs[detail::broadcast_index(i, rhs.shape())]);
         }
-        return *this->base();
+        return self;
     }
 
     template <class T, size_t Rank, class Tag>
@@ -169,11 +169,11 @@ namespace detail {
     tensor_interface<T, Rank, Tag>::apply_binary_function(
         Function f, const T &val
     ) {
-        shape_t<Rank> shape = this->base()->shape();
-        for (index_t<Rank> i : make_indices(shape)) {
-            this->base()->operator[](i) = f(this->base()->operator[](i), val);
+        type& self = static_cast<type&>(*this);
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            self[i] = f(self[i], val);
         }
-        return *this->base();
+        return self;
     }
 
     template <class T, size_t Rank, class Tag>
@@ -358,12 +358,11 @@ namespace detail {
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::argpartition(
         size_t kth, Compare comp
     ) const {
-        index_sequence<Rank> indices(this->base()->shape());
-        size_t size = this->base()->size();
-        tensor<index_t<Rank>, 1> out(indices.begin(), size);
+        const type& self = static_cast<const type&>(*this);
+        index_sequence<Rank> indices(self.shape());
+        tensor<index_t<Rank>, 1> out(indices.begin(), self.size());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp(this->base()->operator[](i),
-                        this->base()->operator[](j));
+            return comp(self[i], self[j]);
         };
         std::nth_element(out.begin(), out.begin() + kth, out.end(), comparator);
         return out;
@@ -380,12 +379,11 @@ namespace detail {
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::argsort(
         Compare comp, bool stable
     ) const {
-        index_sequence<Rank> indices(this->base()->shape());
-        size_t size = this->base()->size();
-        tensor<index_t<Rank>, 1> out(indices.begin(), size);
+        const type& self = static_cast<const type&>(*this);
+        index_sequence<Rank> indices(self.shape());
+        tensor<index_t<Rank>, 1> out(indices.begin(), self.size());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
-            return comp(this->base()->operator[](i),
-                        this->base()->operator[](j));
+            return comp(self[i], self[j]);
         };
         if (stable) {
             std::stable_sort(out.begin(), out.end(), comparator);
@@ -401,7 +399,8 @@ namespace detail {
     inline base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
     tensor_interface<T, Rank, Tag>::astype() const {
         typedef lazy_unary_tag<cast_to<U>, T, Tag> Closure;
-        return base_tensor<U, Rank, Closure>(cast_to<U>(), *this->base());
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<U, Rank, Closure>(cast_to<U>(), self);
     }
 
     template <class T, size_t Rank, class Tag>
@@ -415,18 +414,19 @@ namespace detail {
     inline tensor<typename std::remove_cv<T>::type, Rank>
     tensor_interface<T, Rank, Tag>::copy() const {
         typedef typename std::remove_cv<T>::type Rt;
-        return tensor<Rt, Rank>(*this->base());
+        const type& self = static_cast<const type&>(*this);
+        return tensor<Rt, Rank>(self);
     }
 
     template <class T, size_t Rank, class Tag>
     tensor<index_t<Rank>, 1> tensor_interface<T, Rank, Tag>::nonzero() const {
-        shape_t<Rank> shape = this->base()->shape();
-        size_t size = this->base()->size();
+        const type& self = static_cast<const type&>(*this);
+        size_t size = self.size();
         size -= std::count(this->begin(), this->end(), T());
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(shape)) {
-            if (this->base()->operator[](i) != T()) {
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            if (self[i] != T()) {
                 out[n++] = i;
             }
         }
@@ -445,37 +445,39 @@ namespace detail {
     void tensor_interface<T, Rank, Tag>::partition(
         size_t kth, size_t axis, Compare comp
     ) {
-        shape_t<Rank> shape = this->base()->shape();
+        type& self = static_cast<type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(this->base(), index, axis, 0);
-            auto last = make_reduce_iterator(this->base(), index, axis, size);
+            auto first = make_reduce_iterator(&self, index, axis, 0);
+            auto last = make_reduce_iterator(&self, index, axis, size);
             std::nth_element(first, first + kth, last, comp);
         }
     }
 
     template <class T, size_t Rank, class Tag>
     void tensor_interface<T, Rank, Tag>::reverse(size_t axis) {
-        shape_t<Rank> shape = this->base()->shape();
+        type& self = static_cast<type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(this->base(), index, axis, 0);
-            auto last = make_reduce_iterator(this->base(), index, axis, size);
+            auto first = make_reduce_iterator(&self, index, axis, 0);
+            auto last = make_reduce_iterator(&self, index, axis, size);
             std::reverse(first, last);
         }
     }
 
     template <class T, size_t Rank, class Tag>
     void tensor_interface<T, Rank, Tag>::shift(size_t count, size_t axis) {
-        shape_t<Rank> shape = this->base()->shape();
-        detail::assert_within_bounds(shape, count, axis);
+        type& self = static_cast<type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(this->base(), index, axis, 0);
-            auto last = make_reduce_iterator(this->base(), index, axis, size);
+            auto first = make_reduce_iterator(&self, index, axis, 0);
+            auto last = make_reduce_iterator(&self, index, axis, size);
             std::rotate(first, first + count, last);
         }
     }
@@ -490,12 +492,13 @@ namespace detail {
     void tensor_interface<T, Rank, Tag>::sort(
         size_t axis, Compare comp, bool stable
     ) {
-        shape_t<Rank> shape = this->base()->shape();
+        type& self = static_cast<type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(this->base(), index, axis, 0);
-            auto last = make_reduce_iterator(this->base(), index, axis, size);
+            auto first = make_reduce_iterator(&self, index, axis, 0);
+            auto last = make_reduce_iterator(&self, index, axis, size);
             if (stable) {
                 std::stable_sort(first, last, comp);
             }
@@ -512,14 +515,15 @@ namespace detail {
     tensor<R, Rank> tensor_interface<T, Rank, Tag>::apply_along_axis(
         Function f, size_t axis
     ) const {
-        shape_t<Rank> shape = this->base()->shape();
+        const type& self = static_cast<const type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
         tensor<R, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = f(
-                make_const_reduce_iterator(this->base(), out_index, axis, 0),
-                make_const_reduce_iterator(this->base(), out_index, axis, size)
+                make_const_reduce_iterator(&self, out_index, axis, 0),
+                make_const_reduce_iterator(&self, out_index, axis, size)
             );
         }
         return out;
@@ -532,7 +536,8 @@ namespace detail {
     ) const {
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
-        shape_t<Rank> shape = this->base()->shape();
+        const type& self = static_cast<const type&>(*this);
+        shape_t<Rank> shape = self.shape();
         size_t size = 1;
         for (size_t i = 0; i < axes.ndim(); ++i) {
             size *= shape[axes[i]];
@@ -541,8 +546,8 @@ namespace detail {
         tensor<R, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = f(
-                make_const_reduce_iterator(this->base(), out_index, axes, 0),
-                make_const_reduce_iterator(this->base(), out_index, axes, size)
+                make_const_reduce_iterator(&self, out_index, axes, 0),
+                make_const_reduce_iterator(&self, out_index, axes, size)
             );
         }
         return out;
@@ -555,16 +560,15 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(size_t axis)
-    const {
+    inline tensor<bool, Rank>
+    tensor_interface<T, Rank, Tag>::all(size_t axis) const {
         return this->apply_along_axis<bool>(ranges::all(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
     template <size_t N>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::all(
-        const shape_t<N> &axes
-    ) const {
+    inline tensor<bool, Rank>
+    tensor_interface<T, Rank, Tag>::all(const shape_t<N> &axes) const {
         return this->apply_over_axes<bool>(ranges::all(), axes);
     }
 
@@ -575,46 +579,43 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(size_t axis)
-    const {
+    inline tensor<bool, Rank>
+    tensor_interface<T, Rank, Tag>::any(size_t axis) const {
         return this->apply_along_axis<bool>(ranges::any(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
     template <size_t N>
-    inline tensor<bool, Rank> tensor_interface<T, Rank, Tag>::any(
-        const shape_t<N> &axes
-    ) const {
+    inline tensor<bool, Rank>
+    tensor_interface<T, Rank, Tag>::any(const shape_t<N> &axes) const {
         return this->apply_over_axes<bool>(ranges::any(), axes);
     }
 
     template <class T, size_t Rank, class Tag>
     inline index_t<Rank> tensor_interface<T, Rank, Tag>::argmax() const {
+        const type& self = static_cast<const type&>(*this);
         ranges::argmax pred;
         size_t index = pred(this->begin(), this->end());
-        layout_t order = this->base()->layout();
-        return unravel_index(index, this->base()->shape(), order);
+        return unravel_index(index, self.shape(), self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<size_t, Rank> tensor_interface<T, Rank, Tag>::argmax(
-        size_t axis
-    ) const {
+    inline tensor<size_t, Rank>
+    tensor_interface<T, Rank, Tag>::argmax(size_t axis) const {
         return this->apply_along_axis<size_t>(ranges::argmax(), axis);
     }
 
     template <class T, size_t Rank, class Tag>
     inline index_t<Rank> tensor_interface<T, Rank, Tag>::argmin() const {
+        const type& self = static_cast<const type&>(*this);
         ranges::argmin pred;
         size_t index = pred(this->begin(), this->end());
-        layout_t order = this->base()->layout();
-        return unravel_index(index, this->base()->shape(), order);
+        return unravel_index(index, self.shape(), self.layout());
     }
 
     template <class T, size_t Rank, class Tag>
-    inline tensor<size_t, Rank> tensor_interface<T, Rank, Tag>::argmin(
-        size_t axis
-    ) const {
+    inline tensor<size_t, Rank>
+    tensor_interface<T, Rank, Tag>::argmin(size_t axis) const {
         return this->apply_along_axis<size_t>(ranges::argmin(), axis);
     }
 
@@ -772,6 +773,116 @@ namespace detail {
     const {
         typedef typename std::remove_cv<T>::type Rt;
         return this->apply_over_axes<Rt>(ranges::var(bias), axes);
+    }
+
+    /// Complex numbers.
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_unary_tag<math::real, std::complex<T>, Tag>
+    > complex_interface<std::complex<T>, Rank, Tag>::real() const {
+        typedef lazy_unary_tag<math::real, std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<T, Rank, Closure>(math::real(), self);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_unary_tag<math::real, const std::complex<T>, Tag>
+    > complex_interface<const std::complex<T>, Rank, Tag>::real() const {
+        typedef lazy_unary_tag<math::real, const std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<T, Rank, Closure>(math::real(), self);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    template <class TagReal>
+    void complex_interface<std::complex<T>, Rank, Tag>::real(
+        const base_tensor<T, Rank, TagReal> &arg
+    ) {
+        type& self = static_cast<type&>(*this);
+        if (self.shape() != arg.shape()) {
+            std::ostringstream error;
+            error << "input shape " << arg.shape() << " doesn't match the "
+                  << "output shape " << self.shape();
+            throw std::invalid_argument(error.str());
+        }
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            self[i].real(arg[i]);
+        }
+    }
+
+    template <class T, size_t Rank, class Tag>
+    void complex_interface<std::complex<T>, Rank, Tag>::real(const T &val) {
+        type& self = static_cast<type&>(*this);
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            self[i].real(val);
+        }
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_unary_tag<math::imag, std::complex<T>, Tag>
+    > complex_interface<std::complex<T>, Rank, Tag>::imag() const {
+        typedef lazy_unary_tag<math::imag, std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<T, Rank, Closure>(math::imag(), self);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        T, Rank, lazy_unary_tag<math::imag, const std::complex<T>, Tag>
+    > complex_interface<const std::complex<T>, Rank, Tag>::imag() const {
+        typedef lazy_unary_tag<math::imag, const std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<T, Rank, Closure>(math::imag(), self);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    template <class TagImag>
+    void complex_interface<std::complex<T>, Rank, Tag>::imag(
+        const base_tensor<T, Rank, TagImag> &arg
+    ) {
+        type& self = static_cast<type&>(*this);
+        if (self.shape() != arg.shape()) {
+            std::ostringstream error;
+            error << "input shape " << arg.shape() << " doesn't match the "
+                  << "output shape " << self.shape();
+            throw std::invalid_argument(error.str());
+        }
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            self[i].imag(arg[i]);
+        }
+    }
+
+    template <class T, size_t Rank, class Tag>
+    void complex_interface<std::complex<T>, Rank, Tag>::imag(const T &val) {
+        type& self = static_cast<type&>(*this);
+        for (index_t<Rank> i : make_indices(self.shape())) {
+            self[i].imag(val);
+        }
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        std::complex<T>, Rank,
+        lazy_unary_tag<math::conj, std::complex<T>, Tag>
+    > complex_interface<std::complex<T>, Rank, Tag>::conj() const {
+        typedef std::complex<T> Rt;
+        typedef lazy_unary_tag<math::conj, std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<Rt, Rank, Closure>(math::conj(), self);
+    }
+
+    template <class T, size_t Rank, class Tag>
+    inline base_tensor<
+        std::complex<T>, Rank,
+        lazy_unary_tag<math::conj, const std::complex<T>, Tag>
+    > complex_interface<const std::complex<T>, Rank, Tag>::conj() const {
+        typedef std::complex<T> Rt;
+        typedef lazy_unary_tag<math::conj, const std::complex<T>, Tag> Closure;
+        const type& self = static_cast<const type&>(*this);
+        return base_tensor<Rt, Rank, Closure>(math::conj(), self);
     }
 }
 

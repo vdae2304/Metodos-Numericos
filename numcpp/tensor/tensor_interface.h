@@ -23,58 +23,14 @@
 #ifndef NUMCPP_TENSOR_INTERFACE_H_INCLUDED
 #define NUMCPP_TENSOR_INTERFACE_H_INCLUDED
 
-#if __cplusplus < 201103L
-#error This file requires compiler and library support for the ISO C++ 2011 \
-standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
-compiler options.
-#else
-
 #include "numcpp/shape.h"
 #include "numcpp/functional/operators.h"
-#include <type_traits>
+#include "numcpp/math/complexfwd.h"
+
+#include "numcpp/iterators/tensor_iterator.h"
+#include "numcpp/iterators/reduce_iterator.h"
 
 namespace numcpp {
-    /// Interfaces.
-    template <class T, size_t Rank, class Tag>
-    class tensor_interface;
-
-    template <class T, size_t Rank, class Tag>
-    class base_tensor;
-
-    /// Iterators.
-    template <class T, size_t Rank, class Tag>
-    class base_tensor_iterator;
-
-    template <class T, size_t Rank, class Tag>
-    class base_tensor_const_iterator;
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_reduce_iterator;
-
-    template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_const_reduce_iterator;
-
-    /// Subclases.
-    struct scalar_tag;
-    struct tensor_tag;
-    struct view_tag;
-    struct indirect_tag;
-
-    template <class T, size_t Rank>
-    using tensor = base_tensor<T, Rank, tensor_tag>;
-
-    template <class T, size_t Rank>
-    using tensor_view = base_tensor<T, Rank, view_tag>;
-
-    template <class T, size_t Rank>
-    using indirect_tensor = base_tensor<T, Rank, indirect_tag>;
-
-    template <class Function, class T, class Tag>
-    struct lazy_unary_tag;
-
-    template <class Function, class T, class TagT, class U, class TagU>
-    struct lazy_binary_tag;
-
     /**
      * @brief A tensor_interface is a generic interface for tensor subclasses.
      * It implements an assortment of methods which will be inherited to all
@@ -95,7 +51,6 @@ namespace numcpp {
         static_assert(Rank <= 32, "Maximum supported Rank is 32");
 
         /// Member types.
-
         typedef base_tensor_iterator<T, Rank, Tag> iterator;
         typedef base_tensor_const_iterator<T, Rank, Tag> const_iterator;
 
@@ -738,11 +693,8 @@ namespace numcpp {
         var(const shape_t<N> &axes, bool bias) const;
 
     private:
-        /**
-         * @brief Returns a pointer to the (derived) tensor class.
-         */
-        base_tensor<T, Rank, Tag>* base();
-        const base_tensor<T, Rank, Tag>* base() const;
+        /// Private member types.
+        typedef base_tensor<T, Rank, Tag> type;
 
         /**
          * @brief Helper function. Apply a binary function with another tensor
@@ -769,11 +721,121 @@ namespace numcpp {
             Function f, const shape_t<N> &axes
         ) const;
     };
+
+    template <class T, size_t Rank, class Tag>
+    class complex_interface {};
+
+    /**
+     * @brief A complex_interface is an interface with additional methods for
+     * complex-valued tensor subclasses. It can be used in conjunction with
+     * tensor_interface. A complex_interface works by using the Curiously
+     * Recurring Template Pattern
+     * @link https://en.cppreference.com/w/cpp/language/crtp @endlink
+     *
+     * @tparam T Type of the real and imaginary components in the base_tensor.
+     * @tparam Rank Dimension of the base_tensor. It must be a positive
+     *     integer.
+     * @tparam Tag Type indicating which specialization of base_tensor refers
+     *     to.
+     */
+    template <class T, size_t Rank, class Tag>
+    class complex_interface<std::complex<T>, Rank, Tag> {
+    public:
+        /// Public methods.
+
+        /**
+         * @brief Return the real part, element-wise.
+         *
+         * @return A light-weight object with the real part of each element in
+         *     the tensor. This function does not create a new tensor, instead,
+         *     it returns a readonly view with the real part of each element.
+         */
+        base_tensor<T, Rank, lazy_unary_tag<math::real, std::complex<T>, Tag> >
+        real() const;
+
+        /**
+         * @brief Set the real part, element-wise.
+         *
+         * @param arg A tensor-like object with the values to set the real part
+         *     to.
+         * @param val Value to set the real part to.
+         *
+         * @throw std::invalid_argument Thrown if the shapes are different.
+         */
+        template <class TagReal>
+        void real(const base_tensor<T, Rank, TagReal> &arg);
+        void real(const T &val);
+
+        /**
+         * @brief Return the imaginary part, element-wise.
+         *
+         * @return A light-weight object with the imaginary part of each
+         *     element in the tensor. This function does not create a new
+         *     tensor, instead, it returns a readonly view with the imaginary
+         *     part of each element.
+         */
+        base_tensor<T, Rank, lazy_unary_tag<math::imag, std::complex<T>, Tag> >
+        imag() const;
+
+        /**
+         * @brief Set the imaginary part, element-wise.
+         *
+         * @param arg A tensor-like object with the values to set the imaginary
+         *     part to.
+         * @param val Value to set the imaginary part to.
+         *
+         * @throw std::invalid_argument Thrown if the shapes are different.
+         */
+        template <class TagImag>
+        void imag(const base_tensor<T, Rank, TagImag> &arg);
+        void imag(const T &val);
+
+        /**
+         * @brief Return the complex conjugate, element-wise.
+         *
+         * @return A light-weight object with the complex conjugate of each
+         *     element in the tensor. This function does not create a new
+         *     tensor, instead, it returns a readonly view with the complex
+         *     conjugate of each element.
+         */
+        base_tensor<
+            std::complex<T>, Rank,
+            lazy_unary_tag<math::conj, std::complex<T>, Tag>
+        > conj() const;
+
+    private:
+        /// Private member types.
+        typedef base_tensor<std::complex<T>, Rank, Tag> type;
+    };
+
+    /**
+     * @brief Partial specialization of complex_interface for
+     * const std::complex.
+     */
+    template <class T, size_t Rank, class Tag>
+    class complex_interface<const std::complex<T>, Rank, Tag> {
+    public:
+        /// Public methods.
+
+        base_tensor<
+            T, Rank, lazy_unary_tag<math::real, const std::complex<T>, Tag>
+        > real() const;
+
+        base_tensor<
+            T, Rank, lazy_unary_tag<math::imag, const std::complex<T>, Tag>
+        > imag() const;
+
+        base_tensor<
+            std::complex<T>, Rank,
+            lazy_unary_tag<math::conj, const std::complex<T>, Tag>
+        > conj() const;
+
+    private:
+        /// Private member types.
+        typedef base_tensor<const std::complex<T>, Rank, Tag> type;
+    };
 }
 
-#include "numcpp/iterators/tensor_iterator.h"
-#include "numcpp/iterators/reduce_iterator.h"
 #include "numcpp/tensor/tensor_interface.tcc"
 
-#endif // C++11
 #endif // NUMCPP_TENSOR_INTERFACE_H_INCLUDED
