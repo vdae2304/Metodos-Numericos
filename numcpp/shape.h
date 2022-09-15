@@ -23,63 +23,9 @@
 #ifndef NUMCPP_SHAPE_H_INCLUDED
 #define NUMCPP_SHAPE_H_INCLUDED
 
-#if __cplusplus < 201103L
-#error This file requires compiler and library support for the ISO C++ 2011 \
-standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
-compiler options.
-#else
-
-#include <cstddef>
-#include <type_traits>
+#include "numcpp/config.h"
 
 namespace numcpp {
-    /// Forward declarations.
-    using std::size_t;
-    using std::ptrdiff_t;
-    using std::nullptr_t;
-
-    template <size_t Rank> class shape_t;
-
-    template <size_t Rank> using index_t = shape_t<Rank>;
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Check whether a parameter pack consists of integers.
-    template <class... T> struct are_integral;
-
-    template <class T>
-    struct are_integral<T> : std::is_integral<T> {};
-
-    template <class T, class... Ts>
-    struct are_integral<T, Ts...>
-     : std::integral_constant<
-           bool, std::is_integral<T>::value && are_integral<Ts...>::value
-       > {};
-
-    /// Rank of concatenation.
-    template <class... Shapes>
-    struct concatenation_rank;
-
-    template <>
-    struct concatenation_rank<> : std::integral_constant<size_t, 0> {};
-
-    template <size_t Rank, class... Shapes>
-    struct concatenation_rank<shape_t<Rank>, Shapes...>
-     : std::integral_constant<
-           size_t, Rank + concatenation_rank<Shapes...>::value
-       > {};
-
-    /// Type constraint to request N arguments.
-    template <size_t N, class... Args>
-    using RequiresNArguments =
-        typename std::enable_if<sizeof...(Args) == N, int>::type;
-
-    /// Type constraint to request integer arguments.
-    template <class... T>
-    using RequiresIntegral =
-        typename std::enable_if<are_integral<T...>::value, int>::type;
-}
-
     /**
      * @brief A shape_t is a class that identifies the size of a tensor along
      * each dimension.
@@ -205,29 +151,6 @@ namespace detail {
     inline index_t<sizeof...(Indices)> make_index(Indices... indices);
 
     /**
-     * @brief Layout in which elements are stored or iterated.
-     */
-    enum layout_t {
-        /**
-         * @brief Row-major order (C/C++ style).
-         * In row-major order, the last dimension is contiguous, so that the
-         * memory offset of each axis is a constant multiple of the following
-         * axis.
-         * In row-major iteration, the last index is varying the fastest.
-         */
-        row_major = 1,
-
-        /**
-         * @brief Column-major order (Fortran/Matlab style).
-         * In column-major order, the first dimension is contiguous, so that
-         * the memory offset of each axis is a constant multiple of the
-         * previous axis.
-         * In column-major iteration, the first index is varying the fastest.
-         */
-        col_major = 0
-    };
-
-    /**
      * @brief Return a tuple of strides to offset a contiguous memory array as
      * a multidimensional array. The elements in the array can be offset by
      *     data[index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
@@ -332,5 +255,4 @@ namespace detail {
 
 #include "numcpp/tensor/shape.tcc"
 
-#endif // C++11
 #endif // NUMCPP_SHAPE_H_INCLUDED
