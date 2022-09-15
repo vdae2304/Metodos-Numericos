@@ -256,7 +256,7 @@ namespace detail {
      * @brief Returns the result of accumulating all the values in the range
      * [first, last).
      */
-    template <class Function, class InputIterator>
+    template <class InputIterator, class Function>
     typename std::iterator_traits<InputIterator>::value_type reduce_impl(
         InputIterator first, InputIterator last, Function f, std::true_type
     ) {
@@ -264,7 +264,7 @@ namespace detail {
         return std::accumulate(first, last, T(f.identity), f);
     }
 
-    template <class Function, class InputIterator>
+    template <class InputIterator, class Function>
     typename std::iterator_traits<InputIterator>::value_type reduce_impl(
         InputIterator first, InputIterator last, Function f, std::false_type
     ) {
