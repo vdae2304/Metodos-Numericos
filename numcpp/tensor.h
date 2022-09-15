@@ -33,68 +33,11 @@ compiler options.
 #include "numcpp/slice.h"
 
 #include "numcpp/tensor/tensor_interface.h"
-#include "numcpp/tensor/complex_interface.h"
 #include "numcpp/tensor/tensor_view.h"
 #include "numcpp/tensor/indirect_tensor.h"
 #include "numcpp/functional/lazy_tensor.h"
 
-#include <initializer_list>
-
 namespace numcpp {
-
-/// Namespace for implementation details.
-namespace detail {
-    /// Constructs a nested initializer_list of given depth.
-    template <class T, size_t Depth>
-    struct nested_initializer_list {
-        typedef std::initializer_list<
-            typename nested_initializer_list<T, Depth - 1>::type
-        > type;
-    };
-
-    template <class T>
-    struct nested_initializer_list<T, 0> {
-        typedef T type;
-    };
-
-    template <class T, size_t Depth>
-    using nested_initializer_list_t =
-        typename nested_initializer_list<T, Depth>::type;
-
-    /// Number of slice arguments in slice indexing.
-    template <class... Indices>
-    struct slicing_rank;
-
-    template <>
-    struct slicing_rank<> : std::integral_constant<size_t, 0> {};
-
-    template <class... Indices>
-    struct slicing_rank<slice, Indices...>
-     : std::integral_constant<size_t, 1 + slicing_rank<Indices...>::value> {};
-
-    template <class IntegralType, class... Indices>
-    struct slicing_rank<IntegralType, Indices...>
-     : std::integral_constant<size_t, slicing_rank<Indices...>::value> {
-        static_assert(std::is_integral<IntegralType>::value, "Index must be"
-                      " either an integer or a slice");
-    };
-
-    /// Type constraint to request input iterator.
-    template <class Iterator>
-    using RequiresInputIterator = typename std::enable_if<
-        std::is_convertible<
-            typename std::iterator_traits<Iterator>::iterator_category,
-            std::input_iterator_tag
-        >::value, int
-    >::type;
-
-    /// Type constraint to request at least one slice argument.
-    template <class... Indices>
-    using RequiresSlicing = typename std::enable_if<
-        (slicing_rank<Indices...>::value > 0), int
-    >::type;
-}
-
     /**
      * @brief Tensors are contiguous multidimensional sequence containers: they
      * hold a specific number of elements arranged in multiple axis. Unlike
