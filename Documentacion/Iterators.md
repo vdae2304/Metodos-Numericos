@@ -87,8 +87,8 @@ An n-dimensional iterator to index tensors.
 template <size_t Rank>
 index_sequence<Rank> make_indices(const shape_t<Rank> &shape);
 
-template <class... Args>
-index_sequence<sizeof...(Args)> make_indices(Args... args);
+template <class... Sizes>
+index_sequence<sizeof...(Sizes)> make_indices(Sizes... sizes);
 ```
 
 Parameters
