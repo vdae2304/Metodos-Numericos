@@ -24,7 +24,6 @@
 #define NUMCPP_MATHFWD_H_INCLUDED
 
 #include <cmath>
-#include <complex>
 #include <type_traits>
 #include <utility>
 
@@ -586,19 +585,6 @@ namespace math {
         template <class T, class U>
         auto operator()(T m, U n) const -> decltype(numcpp::lcm(m, n)) {
             return numcpp::lcm(m, n);
-        }
-    };
-
-    /// Complex numbers.
-
-    /**
-     * @brief Function object implementing std::arg.
-     */
-    struct arg {
-        template <class T>
-        auto operator()(T &&z) const
-         -> decltype(std::arg(std::forward<T>(z))) {
-            return std::arg(std::forward<T>(z));
         }
     };
 

@@ -23,9 +23,10 @@
 #ifndef NUMCPP_MATH_H_INCLUDED
 #define NUMCPP_MATH_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
 #include "numcpp/math/constants.h"
 #include "numcpp/math/mathfwd.h"
+#include "numcpp/math/complexfwd.h"
 
 namespace numcpp {
     /// Basic functions.
