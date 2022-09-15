@@ -24,7 +24,6 @@ Defined in `numcpp/shape.h`
   - [Routines](#routines)
     - [`make_shape`](#make_shape)
     - [`make_index`](#make_index)
-    - [`layout_t`](#layout_t)
     - [`make_strides`](#make_strides)
     - [`ravel_index`](#ravel_index)
     - [`unravel_index`](#unravel_index)
@@ -445,31 +444,6 @@ Output
 (4, 6)
 (3, 4, 5)
 ```
-
-### `layout_t`
-
-Layout in which elements are stored or iterated.
-```cpp
-enum layout_t { row_major = 1, col_major = 0 };
-```
-
-* `row_major`
-
-Row-major order (C/C++ style).
-
-In row-major order, the last dimension is contiguous, so that the memory offset
-of each axis is a constant multiple of the following axis.
-
-In row-major iteration, the last index is varying the fastest.
-
-* `col_major`
-
-Column-major order (Fortran/Matlab style).
-
-In column-major order, the first dimension is contiguous, so that the memory
-offset of each axis is a constant multiple of the previous axis.
-
-In column-major iteration, the first index is varying the fastest.
 
 ### `make_strides`
 
