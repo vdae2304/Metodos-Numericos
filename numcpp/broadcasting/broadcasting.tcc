@@ -44,7 +44,6 @@ namespace numcpp {
         shape_t<Rank> strides = make_strides(arg.shape());
         for (size_t i = 0; i < shape.ndim(); ++i) {
             if (arg.shape(i) != shape[i]) {
-                strides[i] = 0;
                 if (arg.shape(i) != 1) {
                     std::ostringstream error;
                     error << "operands could not be broadcast together with "
@@ -52,6 +51,7 @@ namespace numcpp {
                           << shape;
                     throw std::invalid_argument(error.str());
                 }
+                strides[i] = 0;
             }
         }
         return tensor_view<T, Rank>(shape, arg.data(), 0, strides);
@@ -64,7 +64,6 @@ namespace numcpp {
         shape_t<Rank> strides = arg.strides();
         for (size_t i = 0; i < shape.ndim(); ++i) {
             if (arg.shape(i) != shape[i]) {
-                strides[i] = 0;
                 if (arg.shape(i) != 1) {
                     std::ostringstream error;
                     error << "operands could not be broadcast together with "
@@ -72,13 +71,18 @@ namespace numcpp {
                           << shape;
                     throw std::invalid_argument(error.str());
                 }
+                strides[i] = 0;
             }
         }
-        return tensor_view<T, Rank>(shape, arg.data(), arg.offset(), strides);
+        return tensor_view<T, Rank>(
+            shape, arg.data(), arg.offset(), strides, arg.layout()
+        );
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank + 1> expand_dims(tensor<T, Rank> &arg, size_t axis) {
+    inline tensor_view<T, Rank + 1> expand_dims(
+        tensor<T, Rank> &arg, size_t axis
+    ) {
         return expand_dims(arg, make_shape(axis));
     }
 
@@ -103,7 +107,7 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank + 1> expand_dims(
+    inline tensor_view<T, Rank + 1> expand_dims(
         tensor_view<T, Rank> arg, size_t axis
     ) {
         return expand_dims(arg, make_shape(axis));
@@ -127,11 +131,15 @@ namespace numcpp {
                 strides[i] = arg.strides(n++);
             }
         }
-        return tensor_view<T, Rank+N>(shape, arg.data(), arg.offset(), strides);
+        return tensor_view<T, Rank + N>(
+            shape, arg.data(), arg.offset(), strides, arg.layout()
+        );
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank - 1> squeeze(tensor<T, Rank> &arg, size_t axis) {
+    inline tensor_view<T, Rank - 1> squeeze(
+        tensor<T, Rank> &arg, size_t axis
+    ) {
         return squeeze(arg, make_shape(axis));
     }
 
@@ -139,8 +147,8 @@ namespace numcpp {
     tensor_view<T, Rank - N> squeeze(
         tensor<T, Rank> &arg, const shape_t<N> &axes
     ) {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -162,7 +170,9 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank>
-    tensor_view<T, Rank - 1> squeeze(tensor_view<T, Rank> arg, size_t axis) {
+    inline tensor_view<T, Rank - 1> squeeze(
+        tensor_view<T, Rank> arg, size_t axis
+    ) {
         return squeeze(arg, make_shape(axis));
     }
 
@@ -170,8 +180,8 @@ namespace numcpp {
     tensor_view<T, Rank - N> squeeze(
         tensor_view<T, Rank> arg, const shape_t<N> &axes
     ) {
-        static_assert(N < Rank, "Reduction dimension must be less than tensor"
-                      " dimension");
+        static_assert(N < Rank, "squeeze cannot take more arguments than the"
+                      " tensor dimension");
         shape_t<Rank - N> shape, strides;
         bool keep_axis[Rank];
         std::fill_n(keep_axis, Rank, true);
@@ -190,41 +200,43 @@ namespace numcpp {
                 throw std::invalid_argument(error);
             }
         }
-        return tensor_view<T, Rank-N>(shape, arg.data(), arg.offset(), strides);
+        return tensor_view<T, Rank - N>(
+            shape, arg.data(), arg.offset(), strides, arg.layout()
+        );
     }
 
     /// Basic manipulation routines.
 
     template <class U, class T, size_t Rank, class Tag>
-    base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
+    inline base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
     astype(const base_tensor<T, Rank, Tag> &a) {
         typedef lazy_unary_tag<cast_to<U>, T, Tag> Closure;
         return base_tensor<U, Rank, Closure>(cast_to<U>(), a);
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     copy(const base_tensor<T, Rank, Tag> &a) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         return tensor<Rt, Rank>(a);
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     flatten(const base_tensor<T, Rank, Tag> &a) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         return tensor<Rt, 1>(a.begin(), a.size());
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    inline tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     flatten(const base_tensor<T, Rank, Tag> &a, layout_t order) {
         typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         return tensor<Rt, 1>(a.begin(order), a.size());
     }
 
     template <class T, class U, size_t Rank, class TagT, class TagU>
-    base_tensor<
+    inline base_tensor<
         std::pair<T, U>, Rank, lazy_binary_tag<detail::zip, T, TagT, U, TagU>
     > zip(
         const base_tensor<T, Rank, TagT> &a,
@@ -235,20 +247,14 @@ namespace numcpp {
         return base_tensor<Rt, Rank, Closure>(detail::zip(), a, b);
     }
 
-    template <size_t I, class T, class U, size_t Rank, class Tag>
-    base_tensor<typename std::enable_if<(I == 0), T>::type, Rank,
-                lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag> >
-    unzip(const base_tensor<std::pair<T, U>, Rank, Tag> &a) {
-        typedef lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag> Closure;
-        return base_tensor<T, Rank, Closure>(detail::unzip<I>(), a);
-    }
-
-    template <size_t I, class T, class U, size_t Rank, class Tag>
-    base_tensor<typename std::enable_if<(I == 1), U>::type, Rank,
-                lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag> >
-    unzip(const base_tensor<std::pair<T, U>, Rank, Tag> &a) {
-        typedef lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag> Closure;
-        return base_tensor<U, Rank, Closure>(detail::unzip<I>(), a);
+    template <size_t I, class Tuple, size_t Rank, class Tag>
+    inline base_tensor<
+        typename std::tuple_element<I, Tuple>::type, Rank,
+        lazy_unary_tag<detail::unzip<I>, Tuple, Tag>
+    > unzip(const base_tensor<Tuple, Rank, Tag> &a) {
+        typedef typename std::tuple_element<I, Tuple>::type Rt;
+        typedef lazy_unary_tag<detail::unzip<I>, Tuple, Tag> Closure;
+        return base_tensor<Rt, Rank, Closure>(detail::unzip<I>(), a);
     }
 
     /// Concatenation.
@@ -262,10 +268,10 @@ namespace detail {
     template <size_t Rank>
     void concatenation_shape(shape_t<Rank>&, size_t) {}
 
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     void concatenation_shape(
         shape_t<Rank> &shape, size_t axis,
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     ) {
         for (size_t i = 0; i < shape.ndim(); ++i) {
             if (arg1.shape(i) != shape[i] && i != axis) {
@@ -282,24 +288,45 @@ namespace detail {
     }
 
     /**
-     * @brief Concatenates tensors along the given axis.
+     * @brief Concatenate tensors along the given axis.
      */
     template <class T, size_t Rank>
-    void concatenate_tensors(tensor<T, Rank>&, size_t, size_t) {}
+    void concatenate_impl(tensor<T, Rank>&, size_t, size_t) {}
 
-    template <class T, size_t Rank, class Tag, class... Args>
-    void concatenate_tensors(
+    template <class T, size_t Rank, class Tag, class... Tensors>
+    void concatenate_impl(
         tensor<T, Rank> &out, size_t axis, size_t offset,
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     ) {
         for (index_t<Rank> i : make_indices(arg1.shape())) {
             index_t<Rank> out_index = i;
             out_index[axis] += offset;
             out[out_index] = arg1[i];
         }
-        concatenate_tensors(out, axis, offset + arg1.shape(axis), arg2...);
+        concatenate_impl(out, axis, offset + arg1.shape(axis), arg2...);
+    }
+}
+
+    template <class T, size_t Rank, class Tag, class... Tensors>
+    inline tensor<T, Rank> concatenate(
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
+    ) {
+        return concatenate(0, arg1, arg2...);
     }
 
+    template <class T, size_t Rank, class Tag, class... Tensors>
+    tensor<T, Rank> concatenate(
+        size_t axis, const base_tensor<T, Rank, Tag> &arg1,
+        const Tensors&... arg2
+    ) {
+        shape_t<Rank> shape = arg1.shape();
+        detail::concatenation_shape(shape, axis, arg2...);
+        tensor<T, Rank> out(shape);
+        detail::concatenate_impl(out, axis, 0, arg1, arg2...);
+        return out;
+    }
+
+namespace detail {
     /**
      * @brief Expand the shape dimension by inserting a new axis.
      */
@@ -337,12 +364,12 @@ namespace detail {
      * @brief Stack tensors along the given axis.
      */
     template <class T, size_t Rank>
-    void stack_tensors(tensor<T, Rank>&, size_t, size_t) {}
+    void stack_impl(tensor<T, Rank>&, size_t, size_t) {}
 
-    template <class T, size_t Rank, class Tag, class... Args>
-    void stack_tensors(
+    template <class T, size_t Rank, class Tag, class... Tensors>
+    void stack_impl(
         tensor<T, Rank + 1> &out, size_t axis, size_t offset,
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     ) {
         shape_t<Rank> shape = detail::remove_axis(out.shape(), axis);
         if (shape != arg1.shape()) {
@@ -353,57 +380,40 @@ namespace detail {
             index_t<Rank + 1> out_index = detail::insert_axis(i, axis, offset);
             out[out_index] = arg1[i];
         }
-        stack_tensors(out, axis, offset + 1, arg2...);
+        stack_impl(out, axis, offset + 1, arg2...);
     }
 }
 
-    template <class T, size_t Rank, class Tag, class... Args>
-    inline tensor<T, Rank> concatenate(
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
-    ) {
-        return concatenate(0, arg1, arg2...);
-    }
-
-    template <class T, size_t Rank, class Tag, class... Args>
-    tensor<T, Rank> concatenate(
-        size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
-    ) {
-        shape_t<Rank> shape = arg1.shape();
-        detail::concatenation_shape(shape, axis, arg2...);
-        tensor<T, Rank> out(shape);
-        detail::concatenate_tensors(out, axis, 0, arg1, arg2...);
-        return out;
-    }
-
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     inline tensor<T, Rank + 1> stack(
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     ) {
         return stack(0, arg1, arg2...);
     }
 
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     tensor<T, Rank + 1> stack(
-        size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        size_t axis, const base_tensor<T, Rank, Tag> &arg1,
+        const Tensors&... arg2
     ) {
-        shape_t<Rank + 1> shape = detail::insert_axis(arg1.shape(), axis);
-        shape[axis] = 1 + sizeof...(arg2);
+        shape_t<Rank + 1> shape = detail::insert_axis(arg1.shape(), axis, 1);
+        shape[axis] += sizeof...(arg2);
         tensor<T, Rank + 1> out(shape);
-        detail::stack_tensors(out, axis, 0, arg1, arg2...);
+        detail::stack_impl(out, axis, 0, arg1, arg2...);
         return out;
     }
 
     /// Tiling.
 
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> tile(
-        const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps
-    ) {
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    tile(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         shape_t<Rank> shape = a.shape();
         for (size_t i = 0; i < shape.ndim(); ++i) {
             shape[i] *= reps[i];
         }
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank> a_index = out_index;
             for (size_t i = 0; i < a_index.ndim(); ++i) {
@@ -415,12 +425,12 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> repeat(
-        const base_tensor<T, Rank, Tag> &a, size_t reps, size_t axis
-    ) {
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    repeat(const base_tensor<T, Rank, Tag> &a, size_t reps, size_t axis) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         shape_t<Rank> shape = a.shape();
         shape[axis] *= reps;
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank> a_index = out_index;
             a_index[axis] /= reps;
@@ -432,20 +442,22 @@ namespace detail {
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagReps,
               detail::RequiresIntegral<IntegralType> >
-    tensor<T, Rank> repeat(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    repeat(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, 1, TagReps> &reps,
         size_t axis
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         if (a.shape(axis) != reps.size()) {
             std::ostringstream error;
-            error << "size of reps " << reps.size() << " does not match tensor"
+            error << "size of reps " << reps.size() << " doesn't match tensor"
                   << " size " << a.shape(axis) << " along dimension " << axis;
             throw std::invalid_argument(error.str());
         }
         shape_t<Rank> shape = a.shape();
         shape[axis] = std::accumulate(reps.begin(), reps.end(), 0);
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank> a_index = out_index;
@@ -463,15 +475,17 @@ namespace detail {
     /// Padding.
 
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> pad(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    pad(
         const base_tensor<T, Rank, Tag> &arg,
         const shape_t<Rank> &before, const shape_t<Rank> &after
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         shape_t<Rank> shape = arg.shape();
         for (size_t i = 0; i < shape.ndim(); ++i) {
             shape[i] += before[i] + after[i];
         }
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         for (index_t<Rank> index : make_indices(arg.shape())) {
             index_t<Rank> out_index = index;
             for (size_t i = 0; i < index.ndim(); ++i) {
@@ -483,12 +497,14 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag, class Function, class... Args>
-    tensor<T, Rank> pad(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    pad(
         const base_tensor<T, Rank, Tag> &arg,
         const shape_t<Rank> &before, const shape_t<Rank> &after,
         Function func, Args&&... args
     ) {
-        tensor<T, Rank> out = std::move(pad(arg, before, after));
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, Rank> out = std::move(pad(arg, before, after));
         shape_t<Rank> shape = out.shape();
         shape_t<Rank> strides = make_strides(shape);
         for (size_t axis = 0; axis < shape.ndim(); ++axis) {
@@ -499,7 +515,7 @@ namespace detail {
                 for (size_t i = 0; i < index.ndim(); ++i) {
                     offset += index[i] * strides[i];
                 }
-                tensor_view<T, 1> view(size, out.data(), offset, stride);
+                tensor_view<Rt, 1> view(size, out.data(), offset, stride);
                 func(
                     view, before[axis], after[axis], axis,
                     std::forward<Args>(args)...
@@ -510,162 +526,10 @@ namespace detail {
         return out;
     }
 
-namespace pad_mode {
-    template <class T>
-    inline void constant::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-    ) const {
-        this->operator()(view, before, after, axis, T(), T());
-    }
-
-    template <class T>
-    inline void constant::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-        const typename tensor<T, 1>::value_type &val
-    ) const {
-        this->operator()(view, before, after, axis, val, val);
-    }
-
-    template <class T>
-    void constant::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t,
-        const typename tensor<T, 1>::value_type &val_before,
-        const typename tensor<T, 1>::value_type &val_after
-    ) const {
-        for (size_t i = 0; i < before; ++i) {
-            view[i] = val_before;
-        }
-        for (size_t i = 0; i < after; ++i) {
-            view[view.size() - 1 - i] = val_after;
-        }
-    }
-
-    template <class T, class Tag>
-    inline void constant::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-        const base_tensor<T, 2, Tag> &values
-    ) const {
-        this->operator()(
-            view, before, after, axis, values(axis, 0), values(axis, 1)
-        );
-    }
-
-    template <class T>
-    void edge::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-    ) const {
-        T edge_before = view[before];
-        T edge_after = view[view.size() - 1 - after];
-        constant::operator()(
-            view, before, after, axis, edge_before, edge_after
-        );
-    }
-
-    template <class T>
-    inline void linear_ramp::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-    ) const {
-        this->operator()(view, before, after, axis, T(), T());
-    }
-
-    template <class T>
-    inline void linear_ramp::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-        const typename tensor<T, 1>::value_type &end
-    ) const {
-        this->operator()(view, before, after, axis, end, end);
-    }
-
-    template <class T>
-    void linear_ramp::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t,
-        const typename tensor<T, 1>::value_type &end_before,
-        const typename tensor<T, 1>::value_type &end_after
-    ) const {
-        T edge_before = view[before];
-        T edge_after = view[view.size() - 1 - after];
-        for (size_t i = 0; i < before; ++i) {
-            double t = (double)i / (double)before;
-            view[i] = (1 - t)*end_before + t*edge_before;
-        }
-        for (size_t i = 0; i < after; ++i) {
-            double t = (double)i / (double)after;
-            view[view.size() - 1 - i] = (1 - t)*end_after + t*edge_after;
-        }
-    }
-
-    template <class T, class Tag>
-    inline void linear_ramp::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-        const base_tensor<T, 2, Tag> &end_values
-    ) const {
-        this->operator()(
-            view, before, after, axis, end_values(axis, 0), end_values(axis, 1)
-        );
-    }
-
-    template <class T>
-    void reflect::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t
-    ) const {
-        size_t size = view.size() - before - after;
-        for (size_t i = 0; i < before; ++i) {
-            size_t idx = 1 + (before - 1 - i) % (size - 1);
-            size_t nblock = (before - 1 - i) / (size - 1);
-            view[i] = (nblock % 2 == 0)
-                ? view[before + idx]
-                : view[before + size - 1 - idx];
-        }
-        for (size_t i = 0; i < after; ++i) {
-            size_t idx = 1 + (after - 1 - i) % (size - 1);
-            size_t nblock = (after - 1 - i) / (size - 1);
-            view[view.size() - 1 - i] = (nblock % 2 == 0)
-                ? view[before + size - 1 - idx]
-                : view[before + idx];
-        }
-    }
-
-    template <class T>
-    void symmetric::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t
-    ) const {
-        size_t size = view.size() - before - after;
-        for (size_t i = 0; i < before; ++i) {
-            size_t idx = (before - 1 - i) % size;
-            size_t nblock = (before - 1 - i) / size;
-            view[i] = (nblock % 2 == 0)
-                ? view[before + idx]
-                : view[before + size - 1 - idx];
-        }
-        for (size_t i = 0; i < after; ++i) {
-            size_t idx = (after - 1 - i) % size;
-            size_t nblock = (after - 1 - i) / size;
-            view[view.size() - 1 - i] = (nblock % 2 == 0)
-                ? view[before + size - 1 - idx]
-                : view[before + idx];
-        }
-    }
-
-    template <class T>
-    void wrap::operator()(
-        tensor_view<T, 1> &view, size_t before, size_t after, size_t
-    ) const {
-        size_t size = view.size() - before - after;
-        for (size_t i = 0; i < before; ++i) {
-            size_t idx = (before - 1 - i) % size;
-            view[i] = view[before + size - 1 - idx];
-        }
-        for (size_t i = 0; i < after; ++i) {
-            size_t idx = (after - 1 - i) % size;
-            view[view.size() - 1 - i] = view[before + idx];
-        }
-    }
-}
-
     /// Indexing routines.
 
     template <size_t Rank, size_t N, class Tag>
-    base_tensor<
+    inline base_tensor<
         size_t, N,
         lazy_unary_tag<detail::ravel_index<Rank>, index_t<Rank>, Tag>
     > ravel_index(
@@ -682,7 +546,7 @@ namespace pad_mode {
 
     template <class IntegralType, size_t Rank, size_t N, class Tag,
               detail::RequiresIntegral<IntegralType> >
-    base_tensor<
+    inline base_tensor<
         index_t<Rank>, N,
         lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>
     > unravel_index(
@@ -698,11 +562,13 @@ namespace pad_mode {
     }
 
     template <class T, size_t Rank, class Tag, size_t N, class TagIndex>
-    tensor<T, N> take(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, N>
+    take(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<index_t<Rank>, N, TagIndex> &indices
     ) {
-        tensor<T, N> out(indices.shape());
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        tensor<Rt, N> out(indices.shape());
         for (index_t<N> i : make_indices(indices.shape())) {
             out[i] = a[indices[i]];
         }
@@ -711,11 +577,13 @@ namespace pad_mode {
 
     template <class T, class Tag, class IntegralType, size_t N, class TagIndex,
               detail::RequiresIntegral<IntegralType> >
-    tensor<T, N> take(
+    tensor<typename base_tensor<T, 1, Tag>::value_type, N>
+    take(
         const base_tensor<T, 1, Tag> &a,
         const base_tensor<IntegralType, N, TagIndex> &indices
     ) {
-        tensor<T, N> out(indices.shape());
+        typedef typename base_tensor<T, 1, Tag>::value_type Rt;
+        tensor<Rt, N> out(indices.shape());
         for (index_t<N> i : make_indices(indices.shape())) {
             out[i] = a[indices[i]];
         }
@@ -725,14 +593,16 @@ namespace pad_mode {
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagIndex,
               detail::RequiresIntegral<IntegralType> >
-    tensor<T, Rank> take(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    take(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, 1, TagIndex> &indices,
         size_t axis
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         shape_t<Rank> shape = a.shape();
         shape[axis] = indices.size();
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank> a_index = out_index;
             a_index[axis] = indices[a_index[axis]];
@@ -742,12 +612,12 @@ namespace pad_mode {
     }
 
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank - 1> take(
-        const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis
-    ) {
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank - 1>
+    take(const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis) {
         static_assert(Rank > 1, "Source tensor must be at least 2-dimensional");
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         shape_t<Rank - 1> shape = detail::remove_axis(a.shape(), axis);
-        tensor<T, Rank - 1> out(shape);
+        tensor<Rt, Rank - 1> out(shape);
         for (index_t<Rank - 1> out_index : make_indices(shape)) {
             index_t<Rank> a_index = detail::insert_axis(out_index, axis, index);
             out[out_index] = a[a_index];
@@ -788,7 +658,7 @@ namespace detail {
         if (values_shape != indices_shape) {
             std::ostringstream error;
             error << "shape mismatch: value tensor of shape " << values_shape
-                  << " does not match the indexing shape " << indices_shape;
+                  << " doesn't match the indexing shape " << indices_shape;
             throw std::invalid_argument(error.str());
         }
     }
@@ -797,13 +667,15 @@ namespace detail {
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagIndex,
               detail::RequiresIntegral<IntegralType> >
-    tensor<T, Rank> take_along_axis(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    take_along_axis(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, Rank, TagIndex> &indices,
         size_t axis
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         detail::assert_index_along_axis_shape(a.shape(), indices.shape(), axis);
-        tensor<T, Rank> out(indices.shape());
+        tensor<Rt, Rank> out(indices.shape());
         for (index_t<Rank> out_index : make_indices(indices.shape())) {
             index_t<Rank> a_index = out_index;
             a_index[axis] = indices[out_index];
@@ -828,7 +700,7 @@ namespace detail {
     void put(
         base_tensor<T, Rank, Tag> &a,
         const base_tensor<index_t<Rank>, 1, TagIndex> &indices,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, Rank, Tag>::value_type &value
     ) {
         for (size_t i = 0; i < indices.size(); ++i) {
             a[indices[i]] = value;
@@ -854,7 +726,7 @@ namespace detail {
     void put(
         base_tensor<T, 1, Tag> &a,
         const base_tensor<IntegralType, 1, TagIndex> &indices,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, 1, Tag>::value_type &value
     ) {
         for (size_t i = 0; i < indices.size(); ++i) {
             a[indices[i]] = value;
@@ -913,13 +785,15 @@ namespace detail {
 }
 
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, 1> compress(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         detail::assert_mask_shape(a.shape(), condition.shape());
         size_t size = std::count(condition.begin(), condition.end(), true);
-        tensor<T, 1> out(size);
+        tensor<Rt, 1> out(size);
         size_t n = 0;
         for (index_t<Rank> i : make_indices(condition.shape())) {
             if (condition[i]) {
@@ -930,15 +804,17 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, Rank> compress(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, 1, TagCond> &condition,
         size_t axis
     ) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
         detail::assert_mask_shape(a.shape(axis), condition.size(), axis);
         shape_t<Rank> shape = a.shape();
         shape[axis] = std::count(condition.begin(), condition.end(), true);
-        tensor<T, Rank> out(shape);
+        tensor<Rt, Rank> out(shape);
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank> a_index = out_index;
@@ -972,7 +848,7 @@ namespace detail {
     void place(
         base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, Rank, Tag>::value_type &value
     ) {
         detail::assert_mask_shape(a.shape(), condition.shape());
         for (index_t<Rank> i : make_indices(condition.shape())) {

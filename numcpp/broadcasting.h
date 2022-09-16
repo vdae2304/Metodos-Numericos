@@ -23,7 +23,7 @@
 #ifndef NUMCPP_BROADCASTING_H_INCLUDED
 #define NUMCPP_BROADCASTING_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
 #include "numcpp/broadcasting/utilities.h"
 
 namespace numcpp {
@@ -199,26 +199,22 @@ namespace numcpp {
 
     /**
      * @brief Return a tensor with each element constructed from taking the
-     * I-th element of the corresponding pair in a tensor.
+     * I-th element of the corresponding tuple in a tensor.
      *
-     * @tparam I Element index. It shall be 0 or 1.
-     * @param a A tensor-like object of pairs.
+     * @tparam I Element index.
+     * @param a A tensor-like object of tuple-like values. Any class
+     *     overloading std::tuple_element and std::get, such as std::pair,
+     *     std::tuple and std::array, is considered a tuple.
      *
-     * @return A light-weight object with the I-th element of each pair in the
-     *     tensor. This function does not create a new tensor, instead, it
-     *     returns a readonly view with the I-th element of each pair.
+     * @return A light-weight object with the I-th element of each tuple-like
+     *     in the tensor. This function does not create a new tensor, instead,
+     *     it returns a readonly view with the I-th element of each tuple.
      */
-    template <size_t I, class T, class U, size_t Rank, class Tag>
+    template <size_t I, class Tuple, size_t Rank, class Tag>
     base_tensor<
-        typename std::enable_if<(I == 0), T>::type, Rank,
-        lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag>
-    > unzip(const base_tensor<std::pair<T, U>, Rank, Tag> &a);
-
-    template <size_t I, class T, class U, size_t Rank, class Tag>
-    base_tensor<
-        typename std::enable_if<(I == 1), U>::type, Rank,
-        lazy_unary_tag<detail::unzip<I>, std::pair<T, U>, Tag>
-    > unzip(const base_tensor<std::pair<T, U>, Rank, Tag> &a);
+        typename std::tuple_element<I, Tuple>::type, Rank,
+        lazy_unary_tag<detail::unzip<I>, Tuple, Tag>
+    > unzip(const base_tensor<Tuple, Rank, Tag> &a);
 
     /// Concatenation.
 
@@ -238,14 +234,15 @@ namespace numcpp {
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     tensor<T, Rank> concatenate(
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     );
 
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     tensor<T, Rank> concatenate(
-        size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        size_t axis, const base_tensor<T, Rank, Tag> &arg1,
+        const Tensors&... arg2
     );
 
     /**
@@ -263,14 +260,15 @@ namespace numcpp {
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     tensor<T, Rank + 1> stack(
-        const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        const base_tensor<T, Rank, Tag> &arg1, const Tensors&... arg2
     );
 
-    template <class T, size_t Rank, class Tag, class... Args>
+    template <class T, size_t Rank, class Tag, class... Tensors>
     tensor<T, Rank + 1> stack(
-        size_t axis, const base_tensor<T, Rank, Tag> &arg1, const Args&... arg2
+        size_t axis, const base_tensor<T, Rank, Tag> &arg1,
+        const Tensors&... arg2
     );
 
     /// Tiling.
@@ -288,9 +286,8 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> tile(
-        const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps
-    );
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    tile(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps);
 
     /**
      * @brief Repeat elements of a tensor.
@@ -308,14 +305,14 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> repeat(
-        const base_tensor<T, Rank, Tag> &a, size_t reps, size_t axis = 0
-    );
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    repeat(const base_tensor<T, Rank, Tag> &a, size_t reps, size_t axis = 0);
 
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagReps,
-              detail::RequiresIntegral<IntegralType> = true>
-    tensor<T, Rank> repeat(
+              detail::RequiresIntegral<IntegralType> = 0>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    repeat(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, 1, TagReps> &reps,
         size_t axis = 0
@@ -336,7 +333,8 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank> pad(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    pad(
         const base_tensor<T, Rank, Tag> &arg,
         const shape_t<Rank> &before, const shape_t<Rank> &after
     );
@@ -350,8 +348,8 @@ namespace numcpp {
      * @param func Padding function. For tensors with rank greater than 1, the
      * padding of later axes depends on the padding of previous axes. The
      * signature of the padding function should be equivalent to the following:
-     *         void func(tensor_view<T, 1> &view, size_t before, size_t after,
-     *                   size_t axis, Args&&... args);
+     *     void func(tensor_view<T, 1> &view, size_t before, size_t after,
+     *               size_t axis, Args&&... args);
      *     where
      *     - view A one dimensional view already padded with uninitialized
      *       values.
@@ -366,134 +364,12 @@ namespace numcpp {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, class Function, class... Args>
-    tensor<T, Rank> pad(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    pad(
         const base_tensor<T, Rank, Tag> &arg,
         const shape_t<Rank> &before, const shape_t<Rank> &after,
         Function func, Args&&... args
     );
-
-namespace pad_mode {
-    /**
-     * @brief Pads with a constant value.
-     *
-     * @param args... The values to set the padded elements for each axis.
-     * - If no arguments are passed, all the axes are padded with zeros.
-     * - If a single value is passed, the same constant is used for all the
-     *   axes.
-     * - If two values are passed, the same before and after constants are used
-     *   for each axis.
-     * - If a matrix of values is passed, unique pad constants are used for
-     *   each axis, where values(i, 0) and values(i, 1) are the before and
-     *   after constants for axis i.
-     */
-    struct constant {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-            const typename tensor<T, 1>::value_type &val
-        ) const;
-
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-            const typename tensor<T, 1>::value_type &val_before,
-            const typename tensor<T, 1>::value_type &val_after
-        ) const;
-
-        template <class T, class Tag>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-            const base_tensor<T, 2, Tag> &values
-        ) const;
-    };
-
-    /**
-     * @brief Pads with the edge values of the tensor.
-     */
-    struct edge : constant {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-    };
-
-    /**
-     * @brief Pads with the linear ramp between an end value and the tensor
-     * edge value.
-     *
-     * @param args.. The values used for the ending values of the linear ramp.
-     * - If no arguments are passed, all the end values are set to zero.
-     * - If a single value is passed, the same value is used for all the axes.
-     * - If two values are passed, the same before and after end values are
-     *   used for each axis.
-     * - If a matrix of values is passed, unique end values are used for each
-     *   axis, where values(i, 0) and values(i, 1) are the before and after end
-     *   values for axis i.
-     */
-    struct linear_ramp {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-            const typename tensor<T, 1>::value_type &end
-        ) const;
-
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t,
-            const typename tensor<T, 1>::value_type &end_before,
-            const typename tensor<T, 1>::value_type &end_after
-        ) const;
-
-        template <class T, class Tag>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis,
-            const base_tensor<T, 2, Tag> &end_values
-        ) const;
-    };
-
-    /**
-     * @brief Pads with the reflection of the tensor mirrored on the first and
-     * last values.
-     */
-    struct reflect {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-    };
-
-    /**
-     * @brief Pads with the reflection of the tensor mirrored along the edge.
-     */
-    struct symmetric {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-    };
-
-    /**
-     * @brief Pads with the wrap of the tensor along the axis. The first values
-     * are used to pad the end and the end values are used to pad the
-     * beginning.
-     */
-    struct wrap {
-        template <class T>
-        void operator()(
-            tensor_view<T, 1> &view, size_t before, size_t after, size_t axis
-        ) const;
-    };
-}
 
     /// Indexing routines.
 
@@ -531,7 +407,7 @@ namespace pad_mode {
      *     returned.
      */
     template <class IntegralType, size_t Rank, size_t N, class Tag,
-              detail::RequiresIntegral<IntegralType> = true>
+              detail::RequiresIntegral<IntegralType> = 0>
     base_tensor<
         index_t<Rank>, N,
         lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>
@@ -556,14 +432,16 @@ namespace pad_mode {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, size_t N, class TagIndex>
-    tensor<T, N> take(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, N>
+    take(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<index_t<Rank>, N, TagIndex> &indices
     );
 
     template <class T, class Tag, class IntegralType, size_t N, class TagIndex,
-              detail::RequiresIntegral<IntegralType> = true>
-    tensor<T, N> take(
+              detail::RequiresIntegral<IntegralType> = 0>
+    tensor<typename base_tensor<T, 1, Tag>::value_type, N>
+    take(
         const base_tensor<T, 1, Tag> &a,
         const base_tensor<IntegralType, N, TagIndex> &indices
     );
@@ -587,17 +465,17 @@ namespace pad_mode {
      */
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagIndex,
-              detail::RequiresIntegral<IntegralType> = true>
-    tensor<T, Rank> take(
+              detail::RequiresIntegral<IntegralType> = 0>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    take(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, 1, TagIndex> &indices,
         size_t axis
     );
 
     template <class T, size_t Rank, class Tag>
-    tensor<T, Rank - 1> take(
-        const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis
-    );
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank - 1>
+    take(const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis);
 
     /**
      * @brief Take values from the input tensor by matching 1d index and data
@@ -619,8 +497,9 @@ namespace pad_mode {
      */
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagIndex,
-              detail::RequiresIntegral<IntegralType> = true>
-    tensor<T, Rank> take_along_axis(
+              detail::RequiresIntegral<IntegralType> = 0>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    take_along_axis(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, Rank, TagIndex> &indices,
         size_t axis
@@ -652,12 +531,12 @@ namespace pad_mode {
     void put(
         base_tensor<T, Rank, Tag> &a,
         const base_tensor<index_t<Rank>, 1, TagIndex> &indices,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, Rank, Tag>::value_type &value
     );
 
     template <class T, class Tag, class IntegralType,
               class TagIndex, class TagValue,
-              detail::RequiresIntegral<IntegralType> = true>
+              detail::RequiresIntegral<IntegralType> = 0>
     void put(
         base_tensor<T, 1, Tag> &a,
         const base_tensor<IntegralType, 1, TagIndex> &indices,
@@ -665,11 +544,11 @@ namespace pad_mode {
     );
 
     template <class T, class Tag, class IntegralType, class TagIndex,
-              detail::RequiresIntegral<IntegralType> = true>
+              detail::RequiresIntegral<IntegralType> = 0>
     void put(
         base_tensor<T, 1, Tag> &a,
         const base_tensor<IntegralType, 1, TagIndex> &indices,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, 1, Tag>::value_type &value
     );
 
     /**
@@ -690,7 +569,7 @@ namespace pad_mode {
      */
     template <class T, size_t Rank, class Tag,
               class IntegralType, class TagIndex, class TagValue,
-              detail::RequiresIntegral<IntegralType> = true>
+              detail::RequiresIntegral<IntegralType> = 0>
     void put_along_axis(
         base_tensor<T, Rank, Tag> &a,
         const base_tensor<IntegralType, Rank, TagIndex> &indices,
@@ -715,7 +594,8 @@ namespace pad_mode {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, 1> compress(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition
     );
@@ -740,7 +620,8 @@ namespace pad_mode {
      *     throw an exception.
      */
     template <class T, size_t Rank, class Tag, class TagCond>
-    tensor<T, Rank> compress(
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+    compress(
         const base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, 1, TagCond> &condition,
         size_t axis
@@ -770,7 +651,7 @@ namespace pad_mode {
     void place(
         base_tensor<T, Rank, Tag> &a,
         const base_tensor<bool, Rank, TagCond> &condition,
-        const typename tensor<T, 1>::value_type &value
+        const typename base_tensor<T, Rank, Tag>::value_type &value
     );
 
     /**
