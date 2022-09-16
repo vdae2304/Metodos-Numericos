@@ -587,6 +587,7 @@ Example
 
 ```cpp
 #include <iostream>
+#include <utility>
 #include "numcpp.h"
 namespace np = numcpp;
 
@@ -595,16 +596,18 @@ namespace std {
     template <class T, class U>
     ostream& operator<<(ostream &ostr, const pair<T, U> &rhs) {
         ostringstream sstr;
+        sstr.flags(ostr.flags());
+        sstr.imbue(ostr.getloc());
+        sstr.precision(ostr.precision());
         sstr << "(" << rhs.first << ", " << rhs.second << ")";
         return ostr << sstr.str();
     }
 }
 
 int main() {
-    np::array<int> a;
-    np::array<double> b;
-    std::cin >> a >> b;
-    std::cout << np::zip(a, b) << "\n";
+    np::array<std::string> names{"Noelle", "Mark", "Steve", "David", "Andrew"};
+    np::array<int> ages{20, 24, 18, 26, 21};
+    std::cout << np::zip(names, ages) << "\n";
     return 0;
 }
 ```
@@ -612,89 +615,101 @@ int main() {
 Input
 
 ```
-[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-[1, 0.5, 0.333333, 0.25, 0.2, 0.166666, 0.142857, 0.125, 0.111111, 0.1]
-```
-
-Output
-
-```
-[       (1, 1),      (2, 0.5), (3, 0.333333),     (4, 0.25),      (5, 0.2),
- (6, 0.166666), (7, 0.142857),    (8, 0.125), (9, 0.111111),     (10, 0.1)]
+[(Noelle, 20),   (Mark, 24),  (Steve, 18),  (David, 26), (Andrew, 21)]
 ```
 
 ### `unzip`
 
 Return a tensor with each element constructed from taking the `I`-th element of
-the corresponding pair in a tensor.
+the corresponding tuple in a tensor.
 ```cpp
-template <size_t I, class T, class U, size_t Rank>
-tensor<typename std::enable_if<(I == 0), T>::type, Rank>
-unzip(const tensor<std::pair<T, U>, Rank> &a);
-
-template <size_t I, class T, class U, size_t Rank>
-tensor<typename std::enable_if<(I == 1), U>::type, Rank>
-unzip(const tensor<std::pair<T, U>, Rank> &a);
+template <size_t I, class Tuple, size_t Rank>
+tensor<typename std::tuple_element<I, Tuple>::type, Rank>
+unzip(const tensor<Tuple, Rank> &a);
 ```
 
 Template parameters
 
-* `I` Element index. It shall be 0 or 1.
+* `I` Element index.
 
 Parameters
 
-* `a` A tensor-like object of pairs.
+* `a` A tensor-like object of tuple-like values. Any class overloading
+`std::tuple_element` and `std::get`, such as
+[`std::pair`](https://en.cppreference.com/w/cpp/utility/pair),
+[`std::tuple`](https://en.cppreference.com/w/cpp/utility/tuple) and
+[`std::array`](https://en.cppreference.com/w/cpp/container/array), is
+considered a tuple.
 
 Returns
 
-* A light-weight object with the `I`-th element of each pair in the tensor.
+* A light-weight object with the `I`-th element of each tuple in the tensor.
 This function does not create a new tensor, instead, it returns a readonly view
-with the `I`-th element of each pair.
+with the `I`-th element of each tuple.
 
 Example
 
 ```cpp
 #include <iostream>
+#include <utility>
 #include "numcpp.h"
 namespace np = numcpp;
-
-namespace std {
-    // Overload input stream for std::pair
-    template <class T, class U>
-    istream& operator>>(istream &istr, pair<T, U> &rhs) {
-        char ch;
-        bool success = (istr >> ch && ch == '('
-            && istr >> rhs.first >> ch && ch == ','
-            && istr >> rhs.second >> ch && ch == ')');
-        if (!success) {
-            istr.setstate(ios_base::failbit);
-        }
-        return istr;
-    }
-}
-
 int main() {
-    np::array<std::pair<int, double> > a;
-    std::cin >> a;
-    std::cout << np::unzip<0>(a) << "\n";
-    std::cout << np::unzip<1>(a) << "\n";
+    typedef std::pair<std::string, int> person;
+    enum { name, age };
+    np::array<person> a{{"Noelle", 20},
+                        {"Mark", 24},
+                        {"Steve" , 18},
+                        {"David", 26},
+                        {"Andrew" , 21}};
+    std::cout << std::left;
+    std::cout << "Name:\n" << np::unzip<name>(a) << "\n";
+    std::cout << "Age:\n" << np::unzip<age>(a) << "\n";
     return 0;
 }
-```
-
-Input
-
-```
-[(1, 1), (2, 0.5), (3, 0.333333), (4, 0.25), (5, 0.2), (6, 0.166666),
- (7, 0.142857), (8, 0.125), (9, 0.111111), (10, 0.1)]
 ```
 
 Output
 
 ```
-[ 1,  2,  3,  4,  5,  6,  7,  8,  9, 10]
-[       1,      0.5, 0.333333,     0.25,      0.2, 0.166666, 0.142857,    0.125,
- 0.111111,      0.1
+Name:
+[Noelle, Mark  , Steve , David , Andrew]
+Age:
+[20, 24, 18, 26, 21]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include <tuple>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    typedef std::tuple<std::string, std::string, int> car;
+    enum { brand, model, year };
+    np::array<car> a{{"Ford", "Mustang", 1969},
+                     {"BMW", "X5", 1999},
+                     {"Chevrolet" , "Corvette" , 2005},
+                     {"Honda" , "Civic" , 1998},
+                     {"Nissan" , "Tsuru" , 1990}};
+    std::cout << std::left;
+    std::cout << "Brand:\n" << np::unzip<brand>(a) << "\n";
+    std::cout << "Model:\n" << np::unzip<model>(a) << "\n";
+    std::cout << "Year:\n" << np::unzip<year>(a) << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+Brand:
+[Ford     , BMW      , Chevrolet, Honda    , Nissan   ]
+Model:
+[Mustang , X5      , Corvette, Civic   , Tsuru   ]
+Year:
+[1969, 1999, 2005, 1998, 1990]
 ```
 
 ## Concatenation
@@ -703,14 +718,14 @@ Output
 
 Concatenate one or more tensors.
 ```cpp
-template <class T, size_t Rank, class... Args>
+template <class T, size_t Rank, class... Tensors>
 tensor<T, Rank> concatenate(
-    const tensor<T, Rank> &arg1, const Args&... arg2
+    const tensor<T, Rank> &arg1, const Tensors&... arg2
 );
 
-template <class T, size_t Rank, class... Args>
+template <class T, size_t Rank, class... Tensors>
 tensor<T, Rank> concatenate(
-    size_t axis, const tensor<T, Rank> &arg1, const Args&... arg2
+    size_t axis, const tensor<T, Rank> &arg1, const Tensors&... arg2
 );
 ```
 
@@ -825,14 +840,14 @@ Output
 
 Concatenate one or more tensors along a new axis.
 ```cpp
-template <class T, size_t Rank, class... Args>
+template <class T, size_t Rank, class... Tensors>
 tensor<T, Rank + 1> stack(
-    const tensor<T, Rank> &arg1, const Args&... arg2
+    const tensor<T, Rank> &arg1, const Tensors&... arg2
 );
 
-template <class T, size_t Rank, class... Args>
+template <class T, size_t Rank, class... Tensors>
 tensor<T, Rank + 1> stack(
-    size_t axis, const tensor<T, Rank> &arg1, const Args&... arg2
+    size_t axis, const tensor<T, Rank> &arg1, const Tensors&... arg2
 );
 ```
 
@@ -946,7 +961,8 @@ Axis 2:
 Construct a tensor by repeating `a` the number of times given by `reps`.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, Rank> tile(const tensor<T, Rank> &a, const shape_t<Rank> &reps);
+tensor<typename tensor<T, Rank>::value_type, Rank>
+tile(const tensor<T, Rank> &a, const shape_t<Rank> &reps);
 ```
 
 Parameters
@@ -1009,12 +1025,11 @@ Output
 Repeat elements of a tensor.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, Rank> repeat(
-    const tensor<T, Rank> &a, size_t reps, size_t axis = 0
-);
+tensor<typename tensor<T, Rank>::value_type, Rank>
+repeat(const tensor<T, Rank> &a, size_t reps, size_t axis = 0);
 
 template <class T, size_t Rank, class IntegralType>
-tensor<T, Rank> repeat(
+tensor<typename tensor<T, Rank>::value_type, Rank> repeat(
     const tensor<T, Rank> &a,
     const tensor<IntegralType, 1> &reps,
     size_t axis = 0
@@ -1078,7 +1093,7 @@ Output
 Pad a tensor.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, Rank> pad(
+tensor<typename tensor<T, Rank>::value_type, Rank> pad(
     const tensor<T, Rank> &arg,
     const shape_t<Rank> &before, const shape_t<Rank> &after
 );
@@ -1171,7 +1186,7 @@ Possible output
 Pad a tensor.
 ```cpp
 template <class T, size_t Rank, class Function, class... Args>
-tensor<T, Rank> pad(
+tensor<typename tensor<T, Rank>::value_type, Rank> pad(
     const tensor<T, Rank> &arg,
     const shape_t<Rank> &before, const shape_t<Rank> &after,
     Function func, Args&&... args
@@ -1718,14 +1733,12 @@ Take elements from a tensor. For `tensor` class, a call such as
 always returned.
 ```cpp
 template <class T, size_t Rank, size_t N>
-tensor<T, N> take(
-    const tensor<T, Rank> &a, const tensor<index_t<Rank>, N> &indices
-);
+tensor<typename tensor<T, Rank>::value_type, N>
+take(const tensor<T, Rank> &a, const tensor<index_t<Rank>, N> &indices);
 
 template <class T, class IntegralType, size_t N>
-tensor<T, N> take(
-    const tensor<T, 1> &a, const tensor<IntegralType, N> &indices
-);
+tensor<typename tensor<T, 1>::value_type, N>
+take(const tensor<T, 1> &a, const tensor<IntegralType, N> &indices);
 ```
 
 Parameters
@@ -1808,16 +1821,15 @@ Output
 Take elements from a tensor along an axis.
 ```cpp
 template <class T, size_t Rank, class IntegralType>
-tensor<T, Rank> take(
+tensor<typename tensor<T, Rank>::value_type, Rank> take(
     const tensor<T, Rank> &a,
     const tensor<IntegralType, 1> &indices,
     size_t axis
 );
 
 template <class T, size_t Rank>
-tensor<T, Rank - 1> take(
-    const tensor<T, Rank> &a, size_t index, size_t axis
-);
+tensor<typename tensor<T, Rank>::value_type, Rank - 1>
+take(const tensor<T, Rank> &a, size_t index, size_t axis);
 ```
 
 Parameters
@@ -1939,7 +1951,7 @@ Functions returning an index along an axis, like `argsort` and `argpartition`,
 produce suitable indices for this function.
 ```cpp
 template <class T, size_t Rank, class IntegralType>
-tensor<T, Rank> take_along_axis(
+tensor<typename tensor<T, Rank>::value_type, Rank> take_along_axis(
     const tensor<T, Rank> &a,
     const tensor<IntegralType, Rank> &indices,
     size_t axis
@@ -2037,7 +2049,7 @@ void put(
 template <class T, size_t Rank>
 void put(
     tensor<T, Rank> &a, const tensor<index_t<Rank>, 1> &indices,
-    const typename tensor<T, 1>::value_type &value
+    const typename tensor<T, Rank>::value_type &value
 );
 
 template <class T, class IntegralType>
@@ -2247,9 +2259,8 @@ class, a call such as `np::compress(a, condition)` is equivalent to
 `a[condition]`, except that a copy is always returned.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, 1> compress(
-    const tensor<T, Rank> &a, const tensor<bool, Rank> &condition
-);
+tensor<typename tensor<T, Rank>::value_type, 1>
+compress(const tensor<T, Rank> &a, const tensor<bool, Rank> &condition);
 ```
 
 Parameters
@@ -2328,7 +2339,7 @@ Output
 Return the elements of a tensor that satisfy some condition along given axis.
 ```cpp
 template <class T, size_t Rank>
-tensor<T, Rank> compress(
+tensor<typename tensor<T, Rank>::value_type, Rank> compress(
     const tensor<T, Rank> &a, const tensor<bool, 1> &condition, size_t axis
 );
 ```
@@ -2420,7 +2431,7 @@ void place(
 template <class T, size_t Rank>
 void place(
     tensor<T, Rank> &a, const tensor<bool, Rank> &condition,
-    const typename tensor<T, 1>::value_type &value
+    const typename tensor<T, Rank>::value_type &value
 );
 ```
 
