@@ -244,8 +244,7 @@ namespace numcpp {
     index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a) {
         ranges::argmax pred;
         size_t index = pred(a.begin(), a.end());
-        layout_t order = a.layout();
-        return unravel_index(index, a.shape(), order);
+        return unravel_index(index, a.shape(), a.layout());
     }
 
     template <class T, size_t Rank, class Tag>
@@ -260,8 +259,7 @@ namespace numcpp {
     index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a) {
         ranges::argmin pred;
         size_t index = pred(a.begin(), a.end());
-        layout_t order = a.layout();
-        return unravel_index(index, a.shape(), order);
+        return unravel_index(index, a.shape(), a.layout());
     }
 
     template <class T, size_t Rank, class Tag>
@@ -789,8 +787,7 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable
     ) {
         index_sequence<Rank> indices(a.shape());
-        size_t size = a.size();
-        tensor<index_t<Rank>, 1> out(indices.begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), a.size());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(a[i], a[j]);
         };
@@ -893,8 +890,7 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp
     ) {
         index_sequence<Rank> indices(a.shape());
-        size_t size = a.size();
-        tensor<index_t<Rank>, 1> out(indices.begin(), size);
+        tensor<index_t<Rank>, 1> out(indices.begin(), a.size());
         auto comparator = [&](const index_t<Rank> &i, const index_t<Rank> &j) {
             return comp(a[i], a[j]);
         };
