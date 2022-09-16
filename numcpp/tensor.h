@@ -676,7 +676,7 @@ namespace numcpp {
     inline base_tensor<T, Rank, lazy_binary_tag<plus, T, Tag, T, scalar_tag> >
     operator+(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<plus, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(plus(), lhs, val);
@@ -685,7 +685,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor<T, Rank, lazy_binary_tag<plus, T, scalar_tag, T, Tag> >
     operator+(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<plus, T, scalar_tag, T, Tag> Closure;
@@ -706,7 +706,7 @@ namespace numcpp {
     inline base_tensor<T, Rank, lazy_binary_tag<minus, T, Tag, T, scalar_tag> >
     operator-(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<minus, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(minus(), lhs, val);
@@ -715,7 +715,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor<T, Rank, lazy_binary_tag<minus, T, scalar_tag, T, Tag> >
     operator-(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<minus, T, scalar_tag, T, Tag> Closure;
@@ -737,7 +737,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<multiplies, T, Tag, T, scalar_tag>
     > operator*(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<multiplies, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(multiplies(), lhs, val);
@@ -747,7 +747,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<multiplies, T, scalar_tag, T, Tag>
     > operator*(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<multiplies, T, scalar_tag, T, Tag> Closure;
@@ -769,7 +769,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<divides, T, Tag, T, scalar_tag>
     > operator/(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<divides, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(divides(), lhs, val);
@@ -779,7 +779,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<divides, T, scalar_tag, T, Tag>
     > operator/(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<divides, T, scalar_tag, T, Tag> Closure;
@@ -801,7 +801,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<modulus, T, Tag, T, scalar_tag>
     > operator%(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<modulus, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(modulus(), lhs, val);
@@ -811,7 +811,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<modulus, T, scalar_tag, T, Tag>
     > operator%(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<modulus, T, scalar_tag, T, Tag> Closure;
@@ -835,7 +835,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<bit_and, T, Tag, T, scalar_tag>
     > operator&(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<bit_and, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(bit_and(), lhs, val);
@@ -845,7 +845,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<bit_and, T, scalar_tag, T, Tag>
     > operator&(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<bit_and, T, scalar_tag, T, Tag> Closure;
@@ -866,7 +866,7 @@ namespace numcpp {
     inline base_tensor<T, Rank, lazy_binary_tag<bit_or, T, Tag, T, scalar_tag> >
     operator|(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<bit_or, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(bit_or(), lhs, val);
@@ -875,7 +875,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline base_tensor<T, Rank, lazy_binary_tag<bit_or, T, scalar_tag, T, Tag> >
     operator|(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<bit_or, T, scalar_tag, T, Tag> Closure;
@@ -897,7 +897,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<bit_xor, T, Tag, T, scalar_tag>
     > operator^(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<bit_xor, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(bit_xor(), lhs, val);
@@ -907,7 +907,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<bit_xor, T, scalar_tag, T, Tag>
     > operator^(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<bit_xor, T, scalar_tag, T, Tag> Closure;
@@ -929,7 +929,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<left_shift, T, Tag, T, scalar_tag>
     > operator<<(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<left_shift, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(left_shift(), lhs, val);
@@ -939,7 +939,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<left_shift, T, scalar_tag, T, Tag>
     > operator<<(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<left_shift, T, scalar_tag, T, Tag> Closure;
@@ -962,7 +962,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<right_shift, T, Tag, T, scalar_tag>
     > operator>>(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<right_shift, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(right_shift(), lhs, val);
@@ -972,7 +972,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<right_shift, T, scalar_tag, T, Tag>
     > operator>>(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<right_shift, T, scalar_tag, T, Tag> Closure;
@@ -997,7 +997,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<logical_and, T, Tag, T, scalar_tag>
     > operator&&(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<logical_and, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(logical_and(), lhs, val);
@@ -1007,7 +1007,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<logical_and, T, scalar_tag, T, Tag>
     > operator&&(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<logical_and, T, scalar_tag, T, Tag> Closure;
@@ -1030,7 +1030,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<logical_or, T, Tag, T, scalar_tag>
     > operator||(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<logical_or, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(logical_or(), lhs, val);
@@ -1040,7 +1040,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<logical_or, T, scalar_tag, T, Tag>
     > operator||(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<logical_or, T, scalar_tag, T, Tag> Closure;
@@ -1064,7 +1064,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<equal_to, T, Tag, T, scalar_tag>
     > operator==(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<equal_to, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(equal_to(), lhs, val);
@@ -1074,7 +1074,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<equal_to, T, scalar_tag, T, Tag>
     > operator==(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<equal_to, T, scalar_tag, T, Tag> Closure;
@@ -1097,7 +1097,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<not_equal_to, T, Tag, T, scalar_tag>
     > operator!=(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<not_equal_to, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(not_equal_to(), lhs, val);
@@ -1107,7 +1107,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<not_equal_to, T, scalar_tag, T, Tag>
     > operator!=(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<not_equal_to, T, scalar_tag, T, Tag> Closure;
@@ -1129,7 +1129,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<less, T, Tag, T, scalar_tag>
     > operator<(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<less, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(less(), lhs, val);
@@ -1139,7 +1139,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<less, T, scalar_tag, T, Tag>
     > operator<(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<less, T, scalar_tag, T, Tag> Closure;
@@ -1161,7 +1161,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<greater, T, Tag, T, scalar_tag>
     > operator>(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<greater, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(greater(), lhs, val);
@@ -1171,7 +1171,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<greater, T, scalar_tag, T, Tag>
     > operator>(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<greater, T, scalar_tag, T, Tag> Closure;
@@ -1194,7 +1194,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<less_equal, T, Tag, T, scalar_tag>
     > operator<=(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<less_equal, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(less_equal(), lhs, val);
@@ -1204,7 +1204,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<less_equal, T, scalar_tag, T, Tag>
     > operator<=(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<less_equal, T, scalar_tag, T, Tag> Closure;
@@ -1227,7 +1227,7 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<greater_equal, T, Tag, T, scalar_tag>
     > operator>=(
         const base_tensor<T, Rank, Tag> &lhs,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<greater_equal, T, Tag, T, scalar_tag> Closure;
         return base_tensor<bool, Rank, Closure>(greater_equal(), lhs, val);
@@ -1237,7 +1237,7 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<greater_equal, T, scalar_tag, T, Tag>
     > operator>=(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &rhs
     ) {
         typedef lazy_binary_tag<greater_equal, T, scalar_tag, T, Tag> Closure;
