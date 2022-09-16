@@ -16,7 +16,7 @@
 
  /** @file include/numcpp/functional/lazy_tensor.h
   *  This is an internal header file, included by other library headers.
-  *  Do not attempt to use it directly. @headername{numcpp/tensor.h}
+  *  Do not attempt to use it directly. @headername{numcpp/functional.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
@@ -27,7 +27,7 @@
 namespace numcpp {
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
-     * applying an unary function on each element in a tensor object. The
+     * applying an unary function to each element in a tensor object. The
      * function is evaluated only when required. A lazy_tensor is convertible
      * to a tensor object.
      *
@@ -52,9 +52,19 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             R, Rank, lazy_unary_tag<Function, T, Tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Function to apply.
+        Function m_fun;
+
+        // Tensor object where the function is applied.
+        const base_tensor<T, Rank, Tag> &m_arg;
+
+    public:
         /// Constructors.
 
         /**
@@ -85,11 +95,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -107,11 +117,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -120,16 +130,16 @@ namespace numcpp {
          * @brief Call operator. Returns the result of applying the
          * underlying function to an element in the tensor.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return m_fun(m_arg(index...));
         }
 
         /**
@@ -143,14 +153,14 @@ namespace numcpp {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        R operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_fun(m_arg[index]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -162,12 +172,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        auto shape() const
-         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
+        auto shape() const -> decltype(m_arg.shape()) {
             return m_arg.shape();
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_arg.shape(axis);
         }
 
@@ -175,7 +184,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_arg.size();
         }
 
@@ -204,18 +213,11 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Function to apply.
-        Function m_fun;
-
-        // Tensor object where the function is applied.
-        const base_tensor<T, Rank, Tag> &m_arg;
     };
 
     /**
      * @brief A lazy_tensor is a light-weight object which stores the result of
-     * applying a binary function on each element in two tensor objects. The
+     * applying a binary function to each element in two tensor objects. The
      * function is evaluated only when required. A lazy_tensor is convertible
      * to a tensor object.
      *
@@ -244,9 +246,28 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, TagT, U, TagU>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Function to apply.
+        Function m_fun;
+
+        // First tensor argument.
+        const base_tensor<T, Rank, TagT> &m_lhs;
+
+        // Second tensor argument.
+        const base_tensor<U, Rank, TagU> &m_rhs;
+
+        // Common shape.
+        shape_type m_shape;
+
+        // Common size.
+        size_type m_size;
+
+    public:
         /// Constructors.
 
         /**
@@ -283,11 +304,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -305,11 +326,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -318,16 +339,16 @@ namespace numcpp {
          * @brief Call operator. Returns the result of applying the
          * underlying function to an element in the tensor.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
         /**
@@ -341,7 +362,7 @@ namespace numcpp {
          * @return The result of the function evaluation at the specified
          *     position in the tensor.
          */
-        R operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_fun(
                 m_lhs[detail::broadcast_index(index, m_lhs.shape())],
                 m_rhs[detail::broadcast_index(index, m_rhs.shape())]
@@ -351,7 +372,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -363,11 +384,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -375,7 +396,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -407,22 +428,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Function to apply.
-        Function m_fun;
-
-        // First tensor argument.
-        const base_tensor<T, Rank, TagT> &m_lhs;
-
-        // Second tensor argument.
-        const base_tensor<U, Rank, TagU> &m_rhs;
-
-        // Common shape.
-        shape_t<Rank> m_shape;
-
-        // Common size.
-        size_t m_size;
     };
 
     /**
@@ -448,9 +453,22 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, Tag, U, scalar_tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Function to apply.
+        Function m_fun;
+
+        // First tensor argument.
+        const base_tensor<T, Rank, Tag> &m_lhs;
+
+        // Value to use as second argument.
+        U m_val;
+
+    public:
         /// Constructors.
 
         base_tensor(
@@ -465,48 +483,47 @@ namespace numcpp {
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return m_fun(m_lhs(index...), m_val);
         }
 
-        R operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_fun(m_lhs[index], m_val);
         }
 
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
-        auto shape() const
-         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
+        auto shape() const -> decltype(m_lhs.shape()) {
             return m_lhs.shape();
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_lhs.shape(axis);
         }
 
-        size_t size() const {
+        size_type size() const {
             return m_lhs.size();
         }
 
@@ -527,16 +544,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Function to apply.
-        Function m_fun;
-
-        // First tensor argument.
-        const base_tensor<T, Rank, Tag> &m_lhs;
-
-        // Value to use as second argument.
-        U m_val;
     };
 
     /**
@@ -562,9 +569,22 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             R, Rank, lazy_binary_tag<Function, T, scalar_tag, U, Tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Function to apply.
+        Function m_fun;
+
+        // Value to use as first argument.
+        T m_val;
+
+        // Second tensor argument.
+        const base_tensor<U, Rank, Tag> &m_rhs;
+
+    public:
         /// Constructors.
 
         base_tensor(
@@ -579,48 +599,47 @@ namespace numcpp {
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        R operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return m_fun(m_val, m_rhs(index...));
         }
 
-        R operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_fun(m_val, m_rhs[index]);
         }
 
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
-        auto shape() const
-         -> decltype(std::declval<base_tensor<U, Rank, Tag> >().shape()) {
+        auto shape() const -> decltype(m_rhs.shape()) {
             return m_rhs.shape();
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_rhs.shape(axis);
         }
 
-        size_t size() const {
+        size_type size() const {
             return m_rhs.size();
         }
 
@@ -641,16 +660,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Function to apply.
-        Function m_fun;
-
-        // Value to use as first argument.
-        T m_val;
-
-        // Second tensor argument.
-        const base_tensor<U, Rank, Tag> &m_rhs;
     };
 }
 
