@@ -136,14 +136,14 @@ namespace numcpp {
      * some axes and iterating over the remaining axes.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_reduce_iterator;
+    class base_tensor_axes_iterator;
 
     /**
      * @brief A random access iterator for const-qualified base_tensor class
      * obtained by fixing some axes and iterating over the remaining axes.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_const_reduce_iterator;
+    class base_tensor_const_axes_iterator;
 
     /// Subclases.
 
