@@ -28,7 +28,7 @@
 #include "numcpp/math/complexfwd.h"
 
 #include "numcpp/iterators/tensor_iterator.h"
-#include "numcpp/iterators/reduce_iterator.h"
+#include "numcpp/iterators/axes_iterator.h"
 
 namespace numcpp {
     /**

@@ -450,8 +450,8 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&self, index, axis, 0);
-            auto last = make_reduce_iterator(&self, index, axis, size);
+            auto first = make_axes_iterator(&self, index, axis, 0);
+            auto last = make_axes_iterator(&self, index, axis, size);
             std::nth_element(first, first + kth, last, comp);
         }
     }
@@ -463,8 +463,8 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&self, index, axis, 0);
-            auto last = make_reduce_iterator(&self, index, axis, size);
+            auto first = make_axes_iterator(&self, index, axis, 0);
+            auto last = make_axes_iterator(&self, index, axis, size);
             std::reverse(first, last);
         }
     }
@@ -476,8 +476,8 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&self, index, axis, 0);
-            auto last = make_reduce_iterator(&self, index, axis, size);
+            auto first = make_axes_iterator(&self, index, axis, 0);
+            auto last = make_axes_iterator(&self, index, axis, size);
             std::rotate(first, first + count, last);
         }
     }
@@ -497,8 +497,8 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&self, index, axis, 0);
-            auto last = make_reduce_iterator(&self, index, axis, size);
+            auto first = make_axes_iterator(&self, index, axis, 0);
+            auto last = make_axes_iterator(&self, index, axis, size);
             if (stable) {
                 std::stable_sort(first, last, comp);
             }
@@ -522,8 +522,8 @@ namespace detail {
         tensor<R, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = f(
-                make_const_reduce_iterator(&self, out_index, axis, 0),
-                make_const_reduce_iterator(&self, out_index, axis, size)
+                make_const_axes_iterator(&self, out_index, axis, 0),
+                make_const_axes_iterator(&self, out_index, axis, size)
             );
         }
         return out;
@@ -546,8 +546,8 @@ namespace detail {
         tensor<R, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = f(
-                make_const_reduce_iterator(&self, out_index, axes, 0),
-                make_const_reduce_iterator(&self, out_index, axes, size)
+                make_const_axes_iterator(&self, out_index, axes, 0),
+                make_const_axes_iterator(&self, out_index, axes, size)
             );
         }
         return out;
