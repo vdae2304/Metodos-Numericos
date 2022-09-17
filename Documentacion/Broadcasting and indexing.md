@@ -961,8 +961,9 @@ Axis 2:
 Construct a tensor by repeating `a` the number of times given by `reps`.
 ```cpp
 template <class T, size_t Rank>
-tensor<typename tensor<T, Rank>::value_type, Rank>
-tile(const tensor<T, Rank> &a, const shape_t<Rank> &reps);
+tensor<typename tensor<T, Rank>::value_type, Rank> tile(
+    const tensor<T, Rank> &a, const shape_t<Rank> &reps
+);
 ```
 
 Parameters
@@ -1025,8 +1026,9 @@ Output
 Repeat elements of a tensor.
 ```cpp
 template <class T, size_t Rank>
-tensor<typename tensor<T, Rank>::value_type, Rank>
-repeat(const tensor<T, Rank> &a, size_t reps, size_t axis = 0);
+tensor<typename tensor<T, Rank>::value_type, Rank> repeat(
+    const tensor<T, Rank> &a, size_t reps, size_t axis = 0
+);
 
 template <class T, size_t Rank, class IntegralType>
 tensor<typename tensor<T, Rank>::value_type, Rank> repeat(
@@ -1733,12 +1735,14 @@ Take elements from a tensor. For `tensor` class, a call such as
 always returned.
 ```cpp
 template <class T, size_t Rank, size_t N>
-tensor<typename tensor<T, Rank>::value_type, N>
-take(const tensor<T, Rank> &a, const tensor<index_t<Rank>, N> &indices);
+tensor<typename tensor<T, Rank>::value_type, N> take(
+    const tensor<T, Rank> &a, const tensor<index_t<Rank>, N> &indices
+);
 
 template <class T, class IntegralType, size_t N>
-tensor<typename tensor<T, 1>::value_type, N>
-take(const tensor<T, 1> &a, const tensor<IntegralType, N> &indices);
+tensor<typename tensor<T, 1>::value_type, N> take(
+    const tensor<T, 1> &a, const tensor<IntegralType, N> &indices
+);
 ```
 
 Parameters
@@ -1828,8 +1832,9 @@ tensor<typename tensor<T, Rank>::value_type, Rank> take(
 );
 
 template <class T, size_t Rank>
-tensor<typename tensor<T, Rank>::value_type, Rank - 1>
-take(const tensor<T, Rank> &a, size_t index, size_t axis);
+tensor<typename tensor<T, Rank>::value_type, Rank - 1> take(
+    const tensor<T, Rank> &a, size_t index, size_t axis
+);
 ```
 
 Parameters
@@ -2259,8 +2264,9 @@ class, a call such as `np::compress(a, condition)` is equivalent to
 `a[condition]`, except that a copy is always returned.
 ```cpp
 template <class T, size_t Rank>
-tensor<typename tensor<T, Rank>::value_type, 1>
-compress(const tensor<T, Rank> &a, const tensor<bool, Rank> &condition);
+tensor<typename tensor<T, Rank>::value_type, 1> compress(
+    const tensor<T, Rank> &a, const tensor<bool, Rank> &condition
+);
 ```
 
 Parameters
