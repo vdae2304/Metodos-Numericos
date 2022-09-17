@@ -818,8 +818,8 @@ namespace numcpp {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&out, out_index, axis, 0);
-            auto last = make_reduce_iterator(&out, out_index, axis, size);
+            auto first = make_axes_iterator(&out, out_index, axis, 0);
+            auto last = make_axes_iterator(&out, out_index, axis, size);
             std::iota(first, last, 0);
             index_t<Rank> i = out_index, j = out_index;
             auto comparator = [&](size_t i_axis, size_t j_axis) {
@@ -916,8 +916,8 @@ namespace numcpp {
         size_t size = shape[axis];
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
-            auto first = make_reduce_iterator(&out, out_index, axis, 0);
-            auto last = make_reduce_iterator(&out, out_index, axis, size);
+            auto first = make_axes_iterator(&out, out_index, axis, 0);
+            auto last = make_axes_iterator(&out, out_index, axis, size);
             std::iota(first, last, 0);
             index_t<Rank> i = out_index, j = out_index;
             auto comparator = [&](size_t i_axis, size_t j_axis) {
@@ -1623,9 +1623,9 @@ namespace detail {
         detail::assert_aligned_shapes(a.shape(), a_axes, b.shape(), b_axes);
         size_t size = a.size();
         index_t<Rank> index;
-        auto first1 = make_const_reduce_iterator(&a, index, a_axes, 0);
-        auto last1 = make_const_reduce_iterator(&a, index, a_axes, size);
-        auto first2 = make_const_reduce_iterator(&b, index, b_axes, 0);
+        auto first1 = make_const_axes_iterator(&a, index, a_axes, 0);
+        auto last1 = make_const_axes_iterator(&a, index, a_axes, size);
+        auto first2 = make_const_axes_iterator(&b, index, b_axes, 0);
         return std::inner_product(first1, last1, first2, T(0));
     }
 
@@ -1685,9 +1685,9 @@ namespace detail {
                     b_index[i] = out_index[n++];
                 }
             }
-            auto first1 = make_const_reduce_iterator(&a, a_index, a_axes, 0);
-            auto last1 = make_const_reduce_iterator(&a, a_index, a_axes, size);
-            auto first2 = make_const_reduce_iterator(&b, b_index, b_axes, 0);
+            auto first1 = make_const_axes_iterator(&a, a_index, a_axes, 0);
+            auto last1 = make_const_axes_iterator(&a, a_index, a_axes, size);
+            auto first2 = make_const_axes_iterator(&b, b_index, b_axes, 0);
             out[out_index] = std::inner_product(first1, last1, first2, T(0));
         }
         return out;
