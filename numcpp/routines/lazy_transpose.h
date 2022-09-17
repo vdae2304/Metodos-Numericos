@@ -25,6 +25,7 @@
 #define NUMCPP_LAZY_TRANSPOSE_H_INCLUDED
 
 namespace numcpp {
+    /// Forward declarations.
     template <class Tag>
     struct lazy_transpose_tag;
 
@@ -44,20 +45,36 @@ namespace numcpp {
     class base_tensor<T, Rank, lazy_transpose_tag<Tag> > {
     public:
         /// Member types.
-        typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-        typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
+        typedef typename base_tensor<T, Rank, Tag>::value_type
+            value_type;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference
+            reference;
         typedef typename base_tensor<T, Rank, Tag>::const_reference
             const_reference;
-        typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer
+            pointer;
         typedef typename base_tensor<T, Rank, Tag>::const_pointer
             const_pointer;
         typedef base_tensor_const_iterator<T, Rank, lazy_transpose_tag<Tag> >
             iterator;
         typedef base_tensor_const_iterator<T, Rank, lazy_transpose_tag<Tag> >
             const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Tensor object to transpose.
+        const base_tensor<T, Rank, Tag> &m_arg;
+
+        // Permuted shape.
+        shape_type m_shape;
+
+        // Permutation to apply.
+        shape_type m_axes;
+
+    public:
         /// Constructors.
 
         /**
@@ -69,18 +86,17 @@ namespace numcpp {
          *     (Rank - 1, ..., 1, 0).
          */
         base_tensor(const base_tensor<T, Rank, Tag> &arg)
-         : m_arg(arg), m_shape(arg.shape().transpose()),
-           m_size(m_shape.size()) {
+         : m_arg(arg) {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
                 m_axes[i] = m_axes.ndim() - 1 - i;
+                m_shape[i] = arg.shape(m_axes[i]);
             }
         }
 
         base_tensor(
             const base_tensor<T, Rank, Tag> &arg,
             const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)),
-            m_size(m_shape.size()), m_axes(axes) {}
+        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -100,11 +116,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -122,11 +138,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -134,15 +150,15 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns the element at the given position.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        const_reference operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const_reference operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
         /**
@@ -155,14 +171,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        const_reference operator[](const index_t<Rank> &index) const {
+        const_reference operator[](const index_type &index) const {
             return m_arg[index.permute(m_axes)];
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -174,11 +190,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -186,8 +202,8 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
-            return m_size;
+        size_type size() const {
+            return m_arg.size();
         }
 
         /**
@@ -208,19 +224,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Tensor object to transpose.
-        const base_tensor<T, Rank, Tag> &m_arg;
-
-        // Permuted shape.
-        shape_t<Rank> m_shape;
-
-        // Number of elements.
-        size_t m_size;
-
-        // Permutation to apply.
-        shape_t<Rank> m_axes;
     };
 
     /**
@@ -247,9 +250,22 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             std::complex<T>, Rank, lazy_conj_transpose_tag<Tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Tensor object to conjugate transpose.
+        const base_tensor<std::complex<T>, Rank, Tag> &m_arg;
+
+        // Permuted shape.
+        shape_type m_shape;
+
+        // Permutation to apply.
+        shape_type m_axes;
+
+    public:
         /// Constructors.
 
         /**
@@ -261,18 +277,17 @@ namespace numcpp {
          *     (Rank - 1, ..., 1, 0).
          */
         base_tensor(const base_tensor<std::complex<T>, Rank, Tag> &arg)
-         : m_arg(arg), m_shape(arg.shape().transpose()),
-           m_size(m_shape.size()) {
+         : m_arg(arg) {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
                 m_axes[i] = m_axes.ndim() - 1 - i;
+                m_shape[i] = arg.shape(m_axes[i]);
             }
         }
 
         base_tensor(
             const base_tensor<std::complex<T>, Rank, Tag> &arg,
             const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)),
-            m_size(m_shape.size()), m_axes(axes) {}
+        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -292,11 +307,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -314,11 +329,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -326,15 +341,15 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns the element at the given position.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        std::complex<T> operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
         /**
@@ -347,14 +362,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        std::complex<T> operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return std::conj(m_arg[index.permute(m_axes)]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -366,11 +381,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -378,8 +393,8 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
-            return m_size;
+        size_type size() const {
+            return m_arg.size();
         }
 
         /**
@@ -400,19 +415,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Tensor object to conjugate transpose.
-        const base_tensor<std::complex<T>, Rank, Tag> &m_arg;
-
-        // Permuted shape.
-        shape_t<Rank> m_shape;
-
-        // Number of elements.
-        size_t m_size;
-
-        // Permutation to apply.
-        shape_t<Rank> m_axes;
     };
 }
 

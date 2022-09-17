@@ -25,6 +25,7 @@
 #define NUMCPP_LAZY_REVERSE_H_INCLUDED
 
 namespace numcpp {
+    /// Forward declarations.
     template <class Tag, size_t N>
     struct lazy_reverse_tag;
 
@@ -42,20 +43,33 @@ namespace numcpp {
     class base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > {
     public:
         /// Member types.
-        typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-        typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
+        typedef typename base_tensor<T, Rank, Tag>::value_type
+            value_type;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference
+            reference;
         typedef typename base_tensor<T, Rank, Tag>::const_reference
             const_reference;
-        typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer
+            pointer;
         typedef typename base_tensor<T, Rank, Tag>::const_pointer
             const_pointer;
         typedef base_tensor_const_iterator<T, Rank, lazy_reverse_tag<Tag, N> >
             iterator;
         typedef base_tensor_const_iterator<T, Rank, lazy_reverse_tag<Tag, N> >
             const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Tensor object to reverse.
+        const base_tensor<T, Rank, Tag> &m_arg;
+
+        // Axes along which to reverse over.
+        shape_t<N> m_axes;
+
+    public:
         /// Constructors.
 
         /**
@@ -87,11 +101,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -109,11 +123,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -121,15 +135,15 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns the element at the given position.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        const_reference operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const_reference operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
         /**
@@ -142,10 +156,10 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        const_reference operator[](index_t<Rank> index) const {
+        const_reference operator[](index_type index) const {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
-                index[m_axes[i]] = m_arg.shape(m_axes[i]) - 1
-                                 - index[m_axes[i]];
+                size_t axis = m_axes[i];
+                index[axis] = m_arg.shape(axis) - 1 - index[axis];
             }
             return m_arg[index];
         }
@@ -153,7 +167,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -165,12 +179,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        auto shape() const
-         -> decltype(std::declval<base_tensor<T, Rank, Tag> >().shape()) {
+        auto shape() const -> decltype(m_arg.shape()) {
             return m_arg.shape();
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_arg.shape(axis);
         }
 
@@ -178,7 +191,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_arg.size();
         }
 
@@ -197,13 +210,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Tensor object to reverse.
-        const base_tensor<T, Rank, Tag> &m_arg;
-
-        // Axes along which to reverse over.
-        shape_t<N> m_axes;
     };
 }
 

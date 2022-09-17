@@ -27,12 +27,13 @@
 #include <cmath>
 
 namespace numcpp {
+    /// Forward declarations.
     struct sequence_tag;
 
     /**
      * @brief A lazy_sequence is a light-weight object which stores a sequence
      * of evenly spaced values. A lazy_sequence is convertible to a
-     * one-dimensional tensor object.
+     * 1-dimensional tensor object.
      *
      * @tparam T Type of the elements contained in the sequence.
      */
@@ -47,9 +48,28 @@ namespace numcpp {
         typedef nullptr_t const_pointer;
         typedef base_tensor_const_iterator<T, 1, sequence_tag> iterator;
         typedef base_tensor_const_iterator<T, 1, sequence_tag> const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<1> shape_type;
+        typedef index_t<1> index_type;
 
+    private:
+        // Starting value of the sequence.
+        T m_start;
+
+        // Number of elements in the sequence.
+        size_type m_size;
+
+        // Step of the sequence.
+        T m_step;
+
+        // Whether the sequence is in a log scale.
+        bool m_log;
+
+        // Base of the log scale.
+        T m_base;
+
+    public:
         /// Constructors.
 
         /**
@@ -60,13 +80,13 @@ namespace numcpp {
          * @param step Spacing between values.
          * @param base The base of the log-scale (if any).
          */
-        base_tensor(const T &start, size_t size, const T &step)
-         : m_start(start), m_shape(size), m_step(step),
-           m_log(false) {}
+        base_tensor(const T &start, size_type size, const T &step)
+         : m_start(start), m_size(size), m_step(step), m_log(false) {}
 
-        base_tensor(const T &start, size_t size, const T &step, const T &base)
-         : m_start(start), m_shape(size), m_step(step),
-           m_log(true), m_base(base) {}
+        base_tensor(
+            const T &start, size_type size, const T &step, const T &base
+        ) : m_start(start), m_size(size), m_step(step), m_log(true),
+            m_base(base) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -80,7 +100,7 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the sequence.
          */
         const_iterator begin(layout_t = row_major) const {
-            return make_tensor_const_iterator(this, 0);
+            return const_iterator(this, 0);
         }
 
         /**
@@ -92,7 +112,7 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end(layout_t = row_major) const {
-            return make_tensor_const_iterator(this, this->size());
+            return const_iterator(this, this->size());
         }
 
         /// Indexing.
@@ -104,7 +124,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator()(size_t i) const {
+        value_type operator()(size_type i) const {
             T val = m_start + T(i) * m_step;
             return m_log ? std::pow(m_base, val) : val;
         }
@@ -118,14 +138,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<1> &index) const {
+        value_type operator[](const index_type &index) const {
             return this->operator()(index[0]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return 1;
         }
 
@@ -137,20 +157,20 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<1>& shape() const {
-            return m_shape;
+        shape_type shape() const {
+            return shape_type(m_size);
         }
 
-        size_t shape(size_t axis) const {
-            return m_shape[axis];
+        size_type shape(size_type axis) const {
+            return (axis == 0) ? m_size : 0;
         }
 
         /**
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
-            return static_cast<size_t>(m_shape);
+        size_type size() const {
+            return m_size;
         }
 
         /**
@@ -165,25 +185,9 @@ namespace numcpp {
         /**
          * @brief Return a copy of the tensor.
          */
-        tensor<T, 1> copy() const {
-            return tensor<T, 1>(*this);
+        tensor<value_type, 1> copy() const {
+            return tensor<value_type, 1>(*this);
         }
-
-    private:
-        // Starting value of the sequence.
-        T m_start;
-
-        // Number of elements in the sequence.
-        shape_t<1> m_shape;
-
-        // Step of the sequence.
-        T m_step;
-
-        // Whether the sequence is in a log scale.
-        bool m_log;
-
-        // Base of the log scale.
-        T m_base;
     };
 }
 

@@ -25,6 +25,7 @@
 #define NUMCPP_LAZY_WHERE_H_INCLUDED
 
 namespace numcpp {
+    /// Forward declarations.
     template <class TagCond, class TagTrue, class TagFalse>
     struct lazy_where_tag;
 
@@ -58,9 +59,28 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Condition tensor argument.
+        const base_tensor<bool, Rank, TagCond> &m_cond;
+
+        // First tensor argument.
+        const base_tensor<T, Rank, TagTrue> &m_true;
+
+        // Second tensor argument.
+        const base_tensor<T, Rank, TagFalse> &m_false;
+
+        // Common shape.
+        shape_type m_shape;
+
+        // Common size.
+        size_type m_size;
+
+    public:
         /// Constructors.
 
         /**
@@ -97,11 +117,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -119,11 +139,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -131,15 +151,15 @@ namespace numcpp {
         /**
          * @brief Call operator. Returns the element at the given position.
          *
-         * @param args... Index arguments.
+         * @param index... Position of an element along each axis.
          *
          * @return The element at the specified position.
          */
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
         /**
@@ -152,7 +172,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true[detail::broadcast_index(index, m_true.shape())]
                 : m_false[detail::broadcast_index(index, m_false.shape())];
@@ -161,7 +181,7 @@ namespace numcpp {
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
@@ -173,11 +193,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -185,7 +205,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -204,22 +224,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Condition tensor argument.
-        const base_tensor<bool, Rank, TagCond> &m_cond;
-
-        // First tensor argument.
-        const base_tensor<T, Rank, TagTrue> &m_true;
-
-        // Second tensor argument.
-        const base_tensor<T, Rank, TagFalse> &m_false;
-
-        // Common shape.
-        shape_t<Rank> m_shape;
-
-        // Common size.
-        size_t m_size;
     };
 
     /**
@@ -242,9 +246,28 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Condition tensor argument.
+        const base_tensor<bool, Rank, TagCond> &m_cond;
+
+        // First tensor argument.
+        const base_tensor<T, Rank, TagTrue> &m_true;
+
+        // Second argument.
+        T m_false;
+
+        // Common shape.
+        shape_type m_shape;
+
+        // Common size.
+        size_type m_size;
+
+    public:
         /// Constructors.
 
         base_tensor(
@@ -261,49 +284,49 @@ namespace numcpp {
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
-        T operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true[detail::broadcast_index(index, m_true.shape())]
                 : m_false;
         }
 
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -316,22 +339,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Condition tensor argument.
-        const base_tensor<bool, Rank, TagCond> &m_cond;
-
-        // First tensor argument.
-        const base_tensor<T, Rank, TagTrue> &m_true;
-
-        // Second argument.
-        T m_false;
-
-        // Common shape.
-        shape_t<Rank> m_shape;
-
-        // Common size.
-        size_t m_size;
     };
 
     /**
@@ -354,9 +361,28 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Condition tensor argument.
+        const base_tensor<bool, Rank, TagCond> &m_cond;
+
+        // First tensor argument.
+        T m_true;
+
+        // Second argument.
+        const base_tensor<T, Rank, TagFalse> &m_false;
+
+        // Common shape.
+        shape_type m_shape;
+
+        // Common size.
+        size_type m_size;
+
+    public:
         /// Constructors.
 
         base_tensor(
@@ -373,49 +399,49 @@ namespace numcpp {
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
-        T operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_cond[detail::broadcast_index(index, m_cond.shape())]
                 ? m_true
                 : m_false[detail::broadcast_index(index, m_false.shape())];
         }
 
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
-        const shape_t<Rank>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -428,22 +454,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Condition tensor argument.
-        const base_tensor<bool, Rank, TagCond> &m_cond;
-
-        // First tensor argument.
-        T m_true;
-
-        // Second argument.
-        const base_tensor<T, Rank, TagFalse> &m_false;
-
-        // Common shape.
-        shape_t<Rank> m_shape;
-
-        // Common size.
-        size_t m_size;
     };
 
     /**
@@ -468,9 +478,22 @@ namespace numcpp {
         typedef base_tensor_const_iterator<
             T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>
         > const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<Rank> shape_type;
+        typedef index_t<Rank> index_type;
 
+    private:
+        // Condition tensor argument.
+        const base_tensor<bool, Rank, TagCond> &m_cond;
+
+        // First tensor argument.
+        T m_true;
+
+        // Second argument.
+        T m_false;
+
+    public:
         /// Constructors.
 
         base_tensor(
@@ -485,48 +508,47 @@ namespace numcpp {
         /// Iterators.
 
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
 
-        template <class... Args,
-                  detail::RequiresNArguments<Rank, Args...> = true,
-                  detail::RequiresIntegral<Args...> = true>
-        T operator()(Args... args) const {
-            return this->operator[](make_index(args...));
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        value_type operator()(Index... index) const {
+            return this->operator[](make_index(index...));
         }
 
-        T operator[](const index_t<Rank> &index) const {
+        value_type operator[](const index_type &index) const {
             return m_cond[index] ? m_true : m_false;
         }
 
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return Rank;
         }
 
-        auto shape() const
-         -> decltype(std::declval<base_tensor<bool,Rank,TagCond> >().shape()) {
+        auto shape() const -> decltype(m_cond.shape()) {
             return m_cond.shape();
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_cond.shape(axis);
         }
 
-        size_t size() const {
+        size_type size() const {
             return m_cond.size();
         }
 
@@ -539,16 +561,6 @@ namespace numcpp {
         tensor<value_type, Rank> copy() const {
             return tensor<value_type, Rank>(*this);
         }
-
-    private:
-        // Condition tensor argument.
-        const base_tensor<bool, Rank, TagCond> &m_cond;
-
-        // First tensor argument.
-        T m_true;
-
-        // Second argument.
-        T m_false;
     };
 }
 

@@ -25,6 +25,7 @@
 #define NUMCPP_LAZY_DIAGONAL_H_INCLUDED
 
 namespace numcpp {
+    /// Forward declarations.
     struct lazy_eye_tag;
 
     template <class Tag>
@@ -48,9 +49,22 @@ namespace numcpp {
         typedef nullptr_t const_pointer;
         typedef base_tensor_const_iterator<T, 2, lazy_eye_tag> iterator;
         typedef base_tensor_const_iterator<T, 2, lazy_eye_tag> const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<2> shape_type;
+        typedef index_t<2> index_type;
 
+    private:
+        // Number of rows and columns.
+        shape_type m_shape;
+
+        // Number of elements.
+        size_type m_size;
+
+        // Offset from the main diagonal.
+        difference_type m_offset;
+
+    public:
         /// Constructors.
 
         /**
@@ -61,8 +75,8 @@ namespace numcpp {
          * @param n Number of columns.
          * @param k Offset of the diagonal from the main diagonal
          */
-        base_tensor(size_t m, size_t n, ptrdiff_t k = 0)
-         : m_shape(m, n), m_size(m_shape.size()), m_offset(k) {}
+        base_tensor(size_type m, size_type n, difference_type k = 0)
+         : m_shape(m, n), m_size(m*n), m_offset(k) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -82,11 +96,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -104,11 +118,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -120,7 +134,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator()(size_t i, size_t j) const {
+        value_type operator()(size_type i, size_type j) const {
             if (m_offset >= 0) {
                 return (i + m_offset == j) ? T(1) : T();
             }
@@ -138,14 +152,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<2> &index) const {
+        value_type operator[](const index_type &index) const {
             return this->operator()(index[0], index[1]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return 2;
         }
 
@@ -157,11 +171,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<2>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -169,7 +183,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -188,22 +202,12 @@ namespace numcpp {
         tensor<value_type, 2> copy() const {
             return tensor<value_type, 2>(*this);
         }
-
-    private:
-        // Number of rows and columns.
-        shape_t<2> m_shape;
-
-        // Number of elements.
-        size_t m_size;
-
-        // Offset from the main diagonal.
-        ptrdiff_t m_offset;
     };
 
     /**
      * @brief A lazy_diagonal is a light-weight object with given values on the
      * diagonal and zeros elsewhere. A lazy_diagonal is convertible to a
-     * two-dimensional tensor object.
+     * 2-dimensional tensor object.
      *
      * @tparam T Type of the elements contained in the tensor.
      * @tparam Tag Type of the base_tensor container.
@@ -221,9 +225,25 @@ namespace numcpp {
             iterator;
         typedef base_tensor_const_iterator<T, 2, lazy_diagonal_tag<Tag> >
             const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<2> shape_type;
+        typedef index_t<2> index_type;
 
+    private:
+        // Elements on the diagonal.
+        const base_tensor<T, 1, Tag> &m_arg;
+
+        // Number of rows and columns.
+        shape_type m_shape;
+
+        // Number of elements.
+        size_type m_size;
+
+        // Offset from the main diagonal.
+        difference_type m_offset;
+
+    public:
         /// Constructors.
 
         /**
@@ -233,7 +253,7 @@ namespace numcpp {
          * @param a Array with the elements on the diagonal.
          * @param k Offset of the diagonal from the main diagonal
          */
-        base_tensor(const base_tensor<T, 1, Tag> &a, ptrdiff_t k = 0)
+        base_tensor(const base_tensor<T, 1, Tag> &a, difference_type k = 0)
          : m_arg(a), m_offset(k) {
             m_shape[0] = (k >= 0) ? a.size() + k : a.size() - k;
             m_shape[1] = m_shape[0];
@@ -258,11 +278,11 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin() const {
-            return this->begin(this->layout());
+            return const_iterator(this, 0, this->layout());
         }
 
         const_iterator begin(layout_t order) const {
-            return make_tensor_const_iterator(this, 0, order);
+            return const_iterator(this, 0, order);
         }
 
         /**
@@ -280,11 +300,11 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end() const {
-            return this->end(this->layout());
+            return const_iterator(this, this->size(), this->layout());
         }
 
         const_iterator end(layout_t order) const {
-            return make_tensor_const_iterator(this, this->size(), order);
+            return const_iterator(this, this->size(), order);
         }
 
         /// Indexing.
@@ -296,7 +316,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator()(size_t i, size_t j) const {
+        value_type operator()(size_type i, size_type j) const {
             if (m_offset >= 0) {
                 return (i + m_offset == j) ? m_arg[i] : T();
             }
@@ -314,14 +334,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<2> &index) const {
+        value_type operator[](const index_type &index) const {
             return this->operator()(index[0], index[1]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return 2;
         }
 
@@ -333,11 +353,11 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<2>& shape() const {
+        const shape_type& shape() const {
             return m_shape;
         }
 
-        size_t shape(size_t axis) const {
+        size_type shape(size_type axis) const {
             return m_shape[axis];
         }
 
@@ -345,7 +365,7 @@ namespace numcpp {
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
+        size_type size() const {
             return m_size;
         }
 
@@ -364,25 +384,12 @@ namespace numcpp {
         tensor<value_type, 2> copy() const {
             return tensor<value_type, 2>(*this);
         }
-
-    private:
-        // Elements on the diagonal.
-        const base_tensor<T, 1, Tag> &m_arg;
-
-        // Offset from the main diagonal.
-        ptrdiff_t m_offset;
-
-        // Number of rows and columns.
-        shape_t<2> m_shape;
-
-        // Number of elements.
-        size_t m_size;
     };
 
     /**
      * @brief A lazy_diagonal is a light-weight object with the elements on the
      * diagonal of a given matrix. A lazy_diagonal is convertible to a
-     * one-dimensional tensor object.
+     * 1-dimensional tensor object.
      *
      * @tparam T Type of the elements contained in the tensor.
      * @tparam Tag Type of the base_tensor container.
@@ -400,9 +407,22 @@ namespace numcpp {
             iterator;
         typedef base_tensor_const_iterator<T, 1, lazy_diagonal_tag<Tag> >
             const_iterator;
-        typedef ptrdiff_t difference_type;
         typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef shape_t<1> shape_type;
+        typedef index_t<1> index_type;
 
+    private:
+        // Matrix from which the diagonal is taken.
+        const base_tensor<T, 2, Tag> &m_arg;
+
+        // Number of elements.
+        size_type m_size;
+
+        // Offset from the main diagonal.
+        ptrdiff_t m_offset;
+
+    public:
         /// Constructors.
 
         /**
@@ -412,13 +432,13 @@ namespace numcpp {
          * @param a Matrix from which the diagonal is taken.
          * @param k Offset of the diagonal from the main diagonal
          */
-        base_tensor(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0)
-         : m_arg(a), m_offset(k), m_shape() {
-            if (k >= 0 && a.shape(1) > size_t(k)) {
-                m_shape[0] = std::min(a.shape(0), a.shape(1) - k);
+        base_tensor(const base_tensor<T, 2, Tag> &a, difference_type k = 0)
+         : m_arg(a), m_offset(k) {
+            if (k >= 0 && a.shape(1) > size_type(k)) {
+                m_size = std::min(a.shape(0), a.shape(1) - k);
             }
-            else if (k < 0 && a.shape(0) > size_t(-k)) {
-                m_shape[0] = std::min(a.shape(0) + k, a.shape(1));
+            else if (k < 0 && a.shape(0) > size_type(-k)) {
+                m_size = std::min(a.shape(0) + k, a.shape(1));
             }
         }
 
@@ -434,7 +454,7 @@ namespace numcpp {
          * @return A random access iterator to the beginning of the tensor.
          */
         const_iterator begin(layout_t = row_major) const {
-            return make_tensor_const_iterator(this, 0);
+            return const_iterator(this, 0);
         }
 
         /**
@@ -446,7 +466,7 @@ namespace numcpp {
          *     tensor.
          */
         const_iterator end(layout_t = row_major) const {
-            return make_tensor_const_iterator(this, this->size());
+            return const_iterator(this, this->size());
         }
 
         /// Indexing.
@@ -458,7 +478,7 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator()(size_t i) const {
+        value_type operator()(size_type i) const {
             if (m_offset >= 0) {
                 return m_arg(i, i + m_offset);
             }
@@ -476,14 +496,14 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        T operator[](const index_t<1> &index) const {
+        value_type operator[](const index_type &index) const {
             return this->operator()(index[0]);
         }
 
         /**
          * @brief Return the dimension of the tensor.
          */
-        static constexpr size_t ndim() {
+        static constexpr size_type ndim() {
             return 1;
         }
 
@@ -495,20 +515,20 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_t<1>& shape() const {
-            return m_shape;
+        shape_type shape() const {
+            return shape_type(m_size);
         }
 
-        size_t shape(size_t axis) const {
-            return m_shape[axis];
+        size_type shape(size_type axis) const {
+            return (axis == 0) ? m_size : 0;
         }
 
         /**
          * @brief Returns the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
          */
-        size_t size() const {
-            return static_cast<size_t>(m_shape);
+        size_type size() const {
+            return m_size;
         }
 
         /**
@@ -526,16 +546,6 @@ namespace numcpp {
         tensor<value_type, 1> copy() const {
             return tensor<value_type, 1>(*this);
         }
-
-    private:
-        // Matrix from which the diagonal is taken.
-        const base_tensor<T, 2, Tag> &m_arg;
-
-        // Offset from the main diagonal.
-        ptrdiff_t m_offset;
-
-        // Number of elements.
-        shape_t<1> m_shape;
     };
 }
 
