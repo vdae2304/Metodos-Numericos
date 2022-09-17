@@ -27,6 +27,26 @@
 
 namespace numcpp {
     /**
+     * @brief Constructs a base_tensor_iterator with its templates deduced from
+     * its arguments.
+     */
+    template <class T, size_t Rank, class Tag>
+    base_tensor_iterator<T, Rank, Tag> make_tensor_iterator(
+        base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+        layout_t order = row_major
+    );
+
+    /**
+     * @brief Constructs a base_tensor_const_iterator with its templates
+     * deduced from its arguments.
+     */
+    template <class T, size_t Rank, class Tag>
+    base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
+        const base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+        layout_t order = row_major
+    );
+
+    /**
      * @brief A generic random access iterator for base_tensor class.
      *
      * @tparam T Type of the elements contained in the base_tensor.
@@ -117,16 +137,6 @@ namespace numcpp {
         // Layout iteration.
         layout_t m_order;
     };
-
-    /**
-     * @brief Constructs a base_tensor_iterator with its templates deduced from
-     * its arguments.
-     */
-    template <class T, size_t Rank, class Tag>
-    base_tensor_iterator<T, Rank, Tag> make_tensor_iterator(
-        base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
-        layout_t order = row_major
-    );
 
     /// Arithmetic operators for base_tensor_iterator (non member functions).
 
@@ -289,16 +299,6 @@ namespace numcpp {
         // Layout iteration.
         layout_t m_order;
     };
-
-    /**
-     * @brief Constructs a base_tensor_const_iterator with its templates
-     * deduced from its arguments.
-     */
-    template <class T, size_t Rank, class Tag>
-    base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
-        const base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
-        layout_t order = row_major
-    );
 
     /// Arithmetic operators for base_tensor_const_iterator (non member
     /// functions).

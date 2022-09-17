@@ -33,6 +33,13 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
+    inline base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
+        const base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
+    ) {
+        return base_tensor_const_iterator<T, Rank, Tag>(ptr, index, order);
+    }
+
+    template <class T, size_t Rank, class Tag>
     base_tensor_iterator<T, Rank, Tag>::base_tensor_iterator()
      : m_ptr(NULL), m_index(0), m_order(row_major) {}
 
@@ -220,13 +227,6 @@ namespace numcpp {
         const base_tensor_iterator<T, Rank, Tag> &rhs
     ) {
         return lhs.index() >= rhs.index();
-    }
-
-    template <class T, size_t Rank, class Tag>
-    inline base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
-        const base_tensor<T, Rank, Tag> *ptr, size_t index, layout_t order
-    ) {
-        return base_tensor_const_iterator<T, Rank, Tag>(ptr, index, order);
     }
 
     template <class T, size_t Rank, class Tag>
