@@ -29,45 +29,55 @@ namespace numcpp {
     /**
      * @brief Constructs a base_tensor_axes_iterator with its templates
      * deduced from its arguments.
+     *
+     * @param ptr Pointer to the tensor to iterate over.
+     * @param indices An index_t object with the indices to fix.
+     * @param axes A shape_t object with the axes to iterate over.
+     * @param flat Flat index over the iterated axes. Defaults to 0.
+     *
+     * @return A random access iterator pointing to an element in the tensor.
+     *     The returned iterator iterates only over the given axes. The
+     *     remaining axes are fixed at the positions given by indices.
      */
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor_axes_iterator<T, Rank, Tag, N>
     make_axes_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat = 0
     );
 
     template <class T, size_t Rank, class Tag>
     base_tensor_axes_iterator<T, Rank, Tag, 1>
     make_axes_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
+        base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        size_t axis, size_t flat = 0
     );
 
     /**
      * @brief Constructs a base_tensor_const_axes_iterator with its templates
      * deduced from its arguments.
+     *
+     * @param ptr Pointer to the tensor to iterate over.
+     * @param indices An index_t object with the indices to fix.
+     * @param axes A shape_t object with the axes to iterate over.
+     * @param flat Flat index over the iterated axes. Defaults to 0.
+     *
+     * @return A const random access iterator pointing to an element in the
+     *     tensor. The returned iterator iterates only over the given axes. The
+     *     remaining axes are fixed at the positions given by indices.
      */
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor_const_axes_iterator<T, Rank, Tag, N>
     make_const_axes_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat = 0
     );
 
     template <class T, size_t Rank, class Tag>
     base_tensor_const_axes_iterator<T, Rank, Tag, 1>
     make_const_axes_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
+        const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        size_t axis, size_t flat = 0
     );
 
     /**
@@ -84,8 +94,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     class base_tensor_axes_iterator {
     public:
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N <= Rank, "Cannot fix more axes than the tensor"
+                      " dimension");
 
         /// Member types.
         typedef ptrdiff_t difference_type;
@@ -102,18 +112,11 @@ namespace numcpp {
         base_tensor_axes_iterator();
 
         /**
-         * @brief Reduction index constructor.
-         *
-         * @param ptr Pointer to the base_tensor object.
-         * @param indices An index_t object with the indices to fix.
-         * @param axes A shape_t object with the axes to iterate over.
-         * @param flat Flat index over the reduction axes.
+         * @brief Flat index (over iterated axes) constructor.
          */
         base_tensor_axes_iterator(
-            base_tensor<T, Rank, Tag> *ptr,
-            const index_t<Rank> &indices,
-            const shape_t<N> &axes,
-            size_t flat
+            base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+            const shape_t<N> &axes, size_t flat = 0
         );
 
         /**
@@ -150,7 +153,7 @@ namespace numcpp {
         base_tensor<T, Rank, Tag>* base() const;
 
         /**
-         * @brief Returns the flat index over the reduction axes.
+         * @brief Returns the flat index over the iterated axes.
          */
         size_t index() const;
 
@@ -174,7 +177,7 @@ namespace numcpp {
         // Axes to iterate over.
         shape_t<N> m_axes;
 
-        // Flat index over the reduction axes.
+        // Flat index over the iterated axes.
         size_t m_flat;
     };
 
@@ -258,8 +261,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     class base_tensor_const_axes_iterator {
     public:
-        static_assert(N <= Rank, "Reduction dimension must be less or equal to"
-                      " tensor dimension");
+        static_assert(N <= Rank, "Cannot fix more axes than the tensor"
+                      " dimension");
 
         /// Member types.
         typedef ptrdiff_t difference_type;
@@ -276,18 +279,11 @@ namespace numcpp {
         base_tensor_const_axes_iterator();
 
         /**
-         * @brief Reduction index constructor.
-         *
-         * @param ptr Pointer to the base_tensor object.
-         * @param indices An index_t object with the indices to fix.
-         * @param axes A shape_t object with the axes to iterate over.
-         * @param flat Flat index over the reduction axes.
+         * @brief Flat index (over iterated axes) constructor.
          */
         base_tensor_const_axes_iterator(
-            const base_tensor<T, Rank, Tag> *ptr,
-            const index_t<Rank> &indices,
-            const shape_t<N> &axes,
-            size_t flat
+            const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+            const shape_t<N> &axes, size_t flat = 0
         );
 
         /**
@@ -331,7 +327,7 @@ namespace numcpp {
         const base_tensor<T, Rank, Tag>* base() const;
 
         /**
-         * @brief Returns the flat index over the reduction axes.
+         * @brief Returns the flat index over the iterated axes.
          */
         size_t index() const;
 
@@ -355,7 +351,7 @@ namespace numcpp {
         // Axes to iterate over.
         shape_t<N> m_axes;
 
-        // Flat index over the reduction axes.
+        // Flat index over the iterated axes.
         size_t m_flat;
     };
 

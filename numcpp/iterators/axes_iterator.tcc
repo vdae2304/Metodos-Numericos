@@ -28,53 +28,41 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_axes_iterator<T, Rank, Tag, N>
     make_axes_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat
     ) {
-        return base_tensor_axes_iterator<T, Rank, Tag, N>(
-            ptr, indices, axes, flat
-        );
+        typedef base_tensor_axes_iterator<T, Rank, Tag, N> iterator;
+        return iterator(ptr, indices, axes, flat);
     }
 
     template <class T, size_t Rank, class Tag>
     inline base_tensor_axes_iterator<T, Rank, Tag, 1>
     make_axes_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
+        base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        size_t axis, size_t flat
     ) {
-        return base_tensor_axes_iterator<T, Rank, Tag, 1>(
-            ptr, indices, axis, flat
-        );
+        typedef base_tensor_axes_iterator<T, Rank, Tag, 1> iterator;
+        return iterator(ptr, indices, axis, flat);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_const_axes_iterator<T, Rank, Tag, N>
     make_const_axes_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat
     ) {
-        return base_tensor_const_axes_iterator<T, Rank, Tag, N>(
-            ptr, indices, axes, flat
-        );
+        typedef base_tensor_const_axes_iterator<T, Rank, Tag, N> const_iterator;
+        return const_iterator(ptr, indices, axes, flat);
     }
 
     template <class T, size_t Rank, class Tag>
-    base_tensor_const_axes_iterator<T, Rank, Tag, 1>
+    inline base_tensor_const_axes_iterator<T, Rank, Tag, 1>
     make_const_axes_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
+        const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        size_t axis, size_t flat
     ) {
-        return base_tensor_const_axes_iterator<T, Rank, Tag, 1>(
-            ptr, indices, axis, flat
-        );
+        typedef base_tensor_const_axes_iterator<T, Rank, Tag, 1> const_iterator;
+        return const_iterator(ptr, indices, axis, flat);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
@@ -83,10 +71,8 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor_axes_iterator<T, Rank, Tag, N>::base_tensor_axes_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat
     ) : m_ptr(ptr), m_indices(indices), m_axes(axes), m_flat(flat) {}
 
     template <class T, size_t Rank, class Tag, size_t N>
@@ -139,18 +125,14 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_axes_iterator<T, Rank, Tag, N>&
-    base_tensor_axes_iterator<T, Rank, Tag, N>::operator+=(
-        difference_type rhs
-    ) {
+    base_tensor_axes_iterator<T, Rank, Tag, N>::operator+=(ptrdiff_t rhs) {
         m_flat += rhs;
         return *this;
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_axes_iterator<T, Rank, Tag, N>&
-    base_tensor_axes_iterator<T, Rank, Tag, N>::operator-=(
-        difference_type rhs
-    ) {
+    base_tensor_axes_iterator<T, Rank, Tag, N>::operator-=(ptrdiff_t rhs) {
         m_flat -= rhs;
         return *this;
     }
@@ -169,8 +151,7 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag, size_t N>
     inline typename base_tensor_axes_iterator<T, Rank, Tag, N>::reference
-    base_tensor_axes_iterator<T, Rank, Tag, N>::operator[](difference_type n)
-    const {
+    base_tensor_axes_iterator<T, Rank, Tag, N>::operator[](ptrdiff_t n) const {
         base_tensor_axes_iterator<T, Rank, Tag, N> it = *this + n;
         return *it;
     }
@@ -189,16 +170,16 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     inline index_t<Rank>
     base_tensor_axes_iterator<T, Rank, Tag, N>::coords() const {
-        shape_t<N> reduced_shape;
+        index_t<Rank> out_index = m_indices;
+        shape_t<N> shape;
         for (size_t i = 0; i < N; ++i) {
-            reduced_shape[i] = m_ptr->shape(m_axes[i]);
+            shape[i] = m_ptr->shape(m_axes[i]);
         }
-        index_t<Rank> indices = m_indices;
-        index_t<N> reduced_index = unravel_index(m_flat, reduced_shape);
+        index_t<N> index = unravel_index(m_flat, shape);
         for (size_t i = 0; i < N; ++i) {
-            indices[m_axes[i]] = reduced_index[i];
+            out_index[m_axes[i]] = index[i];
         }
-        return indices;
+        return out_index;
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
@@ -298,10 +279,8 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     base_tensor_const_axes_iterator<T, Rank, Tag, N>
     ::base_tensor_const_axes_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
+        const base_tensor<T, Rank, Tag> *ptr, const index_t<Rank> &indices,
+        const shape_t<N> &axes, size_t flat
     ) : m_ptr(ptr), m_indices(indices), m_axes(axes), m_flat(flat) {}
 
     template <class T, size_t Rank, class Tag, size_t N>
@@ -375,7 +354,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_const_axes_iterator<T, Rank, Tag, N>&
     base_tensor_const_axes_iterator<T, Rank, Tag, N>::operator+=(
-        difference_type rhs
+        ptrdiff_t rhs
     ) {
         m_flat += rhs;
         return *this;
@@ -384,15 +363,14 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     inline base_tensor_const_axes_iterator<T, Rank, Tag, N>&
     base_tensor_const_axes_iterator<T, Rank, Tag, N>::operator-=(
-        difference_type rhs
+        ptrdiff_t rhs
     ) {
         m_flat -= rhs;
         return *this;
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline typename
-    base_tensor_const_axes_iterator<T, Rank, Tag, N>::reference
+    inline typename base_tensor_const_axes_iterator<T, Rank, Tag, N>::reference
     base_tensor_const_axes_iterator<T, Rank, Tag, N>::operator*() const {
         return m_ptr->operator[](this->coords());
     }
@@ -404,11 +382,9 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline typename
-    base_tensor_const_axes_iterator<T, Rank, Tag, N>::reference
-    base_tensor_const_axes_iterator<T, Rank, Tag, N>::operator[](
-        difference_type n
-    ) const {
+    inline typename base_tensor_const_axes_iterator<T, Rank, Tag, N>::reference
+    base_tensor_const_axes_iterator<T, Rank, Tag, N>::operator[](ptrdiff_t n)
+    const {
         base_tensor_const_axes_iterator<T, Rank, Tag, N> it = *this + n;
         return *it;
     }
@@ -428,16 +404,16 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag, size_t N>
     inline index_t<Rank>
     base_tensor_const_axes_iterator<T, Rank, Tag, N>::coords() const {
-        shape_t<N> reduced_shape;
+        index_t<Rank> out_index = m_indices;
+        shape_t<N> shape;
         for (size_t i = 0; i < N; ++i) {
-            reduced_shape[i] = m_ptr->shape(m_axes[i]);
+            shape[i] = m_ptr->shape(m_axes[i]);
         }
-        index_t<Rank> indices = m_indices;
-        index_t<N> reduced_index = unravel_index(m_flat, reduced_shape);
+        index_t<N> index = unravel_index(m_flat, shape);
         for (size_t i = 0; i < N; ++i) {
-            indices[m_axes[i]] = reduced_index[i];
+            out_index[m_axes[i]] = index[i];
         }
-        return indices;
+        return out_index;
     }
 
     template <class T, size_t Rank, class Tag, size_t N>

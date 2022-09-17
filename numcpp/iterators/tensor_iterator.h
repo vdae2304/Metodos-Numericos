@@ -29,6 +29,13 @@ namespace numcpp {
     /**
      * @brief Constructs a base_tensor_iterator with its templates deduced from
      * its arguments.
+     *
+     * @param ptr Pointer to the tensor to iterate over.
+     * @param index Flat index. Defaults to 0 (the start of the tensor).
+     * @param order Order in which elements are iterated. Defaults to row-major
+     *     order.
+     *
+     * @return An random access iterator pointing to an element in the tensor.
      */
     template <class T, size_t Rank, class Tag>
     base_tensor_iterator<T, Rank, Tag> make_tensor_iterator(
@@ -39,6 +46,14 @@ namespace numcpp {
     /**
      * @brief Constructs a base_tensor_const_iterator with its templates
      * deduced from its arguments.
+     *
+     * @param ptr Pointer to the tensor to iterate over.
+     * @param index Flat index. Defaults to 0 (the start of the tensor).
+     * @param order Order in which elements are iterated. Defaults to row-major
+     *     order.
+     *
+     * @return An const random access iterator pointing to an element in the
+     *     tensor.
      */
     template <class T, size_t Rank, class Tag>
     base_tensor_const_iterator<T, Rank, Tag> make_tensor_const_iterator(
