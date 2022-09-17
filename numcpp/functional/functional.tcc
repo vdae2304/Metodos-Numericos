@@ -161,16 +161,16 @@ namespace detail {
     inline tensor<
         detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>
         >, Rank
     > apply_along_axis(
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
         typedef detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>
         > Rt;
         tensor<Rt, Rank> out;
         apply_along_axis(out, std::forward<Function>(f), arg, axis);
@@ -181,8 +181,8 @@ namespace detail {
     inline tensor<
         detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>
         >, Rank
     > apply_over_axes(
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
@@ -190,8 +190,8 @@ namespace detail {
     ) {
         typedef detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>
         > Rt;
         tensor<Rt, Rank> out;
         apply_over_axes(out, std::forward<Function>(f), arg, axes);
@@ -211,8 +211,8 @@ namespace detail {
         detail::resize(out, shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = std::forward<Function>(f)(
-                make_const_reduce_iterator(&arg, out_index, axis, 0),
-                make_const_reduce_iterator(&arg, out_index, axis, size)
+                make_const_axes_iterator(&arg, out_index, axis, 0),
+                make_const_axes_iterator(&arg, out_index, axis, size)
             );
         }
     }
@@ -236,8 +236,8 @@ namespace detail {
         detail::resize(out, shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = std::forward<Function>(f)(
-                make_const_reduce_iterator(&arg, out_index, axes, 0),
-                make_const_reduce_iterator(&arg, out_index, axes, size)
+                make_const_axes_iterator(&arg, out_index, axes, 0),
+                make_const_axes_iterator(&arg, out_index, axes, size)
             );
         }
     }
@@ -323,8 +323,8 @@ namespace detail {
         detail::resize(out, shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = detail::reduce_impl(
-                make_const_reduce_iterator(&arg, out_index, axis, 0),
-                make_const_reduce_iterator(&arg, out_index, axis, size),
+                make_const_axes_iterator(&arg, out_index, axis, 0),
+                make_const_axes_iterator(&arg, out_index, axis, size),
                 std::forward<Function>(f), detail::has_identity<Function>()
             );
         }
@@ -349,8 +349,8 @@ namespace detail {
         detail::resize(out, shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             out[out_index] = detail::reduce_impl(
-                make_const_reduce_iterator(&arg, out_index, axes, 0),
-                make_const_reduce_iterator(&arg, out_index, axes, size),
+                make_const_axes_iterator(&arg, out_index, axes, 0),
+                make_const_axes_iterator(&arg, out_index, axes, size),
                 std::forward<Function>(f), detail::has_identity<Function>()
             );
         }
@@ -380,9 +380,9 @@ namespace detail {
         shape[axis] = 1;
         for (index_t<Rank> out_index : make_indices(shape)) {
             std::partial_sum(
-                make_const_reduce_iterator(&arg, out_index, axis, 0),
-                make_const_reduce_iterator(&arg, out_index, axis, size),
-                make_reduce_iterator(&out, out_index, axis, 0),
+                make_const_axes_iterator(&arg, out_index, axis, 0),
+                make_const_axes_iterator(&arg, out_index, axis, size),
+                make_axes_iterator(&out, out_index, axis, 0),
                 std::forward<Function>(f)
             );
         }

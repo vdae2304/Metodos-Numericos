@@ -177,8 +177,8 @@ namespace numcpp {
     tensor<
         detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, 1>
         >, Rank
     > apply_along_axis(
         Function &&f, const base_tensor<T, Rank, Tag> &arg, size_t axis
@@ -188,8 +188,8 @@ namespace numcpp {
     tensor<
         detail::result_of_t<
             Function,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>,
-            base_tensor_const_reduce_iterator<T, Rank, Tag, N>
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>,
+            base_tensor_const_axes_iterator<T, Rank, Tag, N>
         >, Rank
     > apply_over_axes(
         Function &&f, const base_tensor<T, Rank, Tag> &arg,
