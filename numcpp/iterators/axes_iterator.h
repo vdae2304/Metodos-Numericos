@@ -14,22 +14,65 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/iterators/reduce_iterator.h
+ /** @file include/numcpp/iterators/axes_iterator.h
   *  This header defines an iterator for reduction operations on tensor class.
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_TENSOR_REDUCE_ITERATOR_H_INCLUDED
-#define NUMCPP_TENSOR_REDUCE_ITERATOR_H_INCLUDED
+#ifndef NUMCPP_TENSOR_AXES_ITERATOR_H_INCLUDED
+#define NUMCPP_TENSOR_AXES_ITERATOR_H_INCLUDED
 
 #include <iterator>
 
 namespace numcpp {
     /**
+     * @brief Constructs a base_tensor_axes_iterator with its templates
+     * deduced from its arguments.
+     */
+    template <class T, size_t Rank, class Tag, size_t N>
+    base_tensor_axes_iterator<T, Rank, Tag, N>
+    make_axes_iterator(
+        base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        const shape_t<N> &axes,
+        size_t flat
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor_axes_iterator<T, Rank, Tag, 1>
+    make_axes_iterator(
+        base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
+        size_t flat
+    );
+
+    /**
+     * @brief Constructs a base_tensor_const_axes_iterator with its templates
+     * deduced from its arguments.
+     */
+    template <class T, size_t Rank, class Tag, size_t N>
+    base_tensor_const_axes_iterator<T, Rank, Tag, N>
+    make_const_axes_iterator(
+        const base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        const shape_t<N> &axes,
+        size_t flat
+    );
+
+    template <class T, size_t Rank, class Tag>
+    base_tensor_const_axes_iterator<T, Rank, Tag, 1>
+    make_const_axes_iterator(
+        const base_tensor<T, Rank, Tag> *ptr,
+        const index_t<Rank> &indices,
+        size_t axis,
+        size_t flat
+    );
+
+    /**
      * @brief A random access iterator for base_tensor class obtained by fixing
-     * some axes and iterating over the remaining axes. Useful for reduction
-     * operations.
+     * some axes and iterating over the remaining axes.
      *
      * @tparam T Type of the elements contained in the base_tensor.
      * @tparam Rank Dimension of the base_tensor. It must be a positive
@@ -39,7 +82,7 @@ namespace numcpp {
      * @tparam N Reduction dimension. Must be less or equal than Rank.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_reduce_iterator {
+    class base_tensor_axes_iterator {
     public:
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
@@ -56,7 +99,7 @@ namespace numcpp {
         /**
          * @brief Default constructor.
          */
-        base_tensor_reduce_iterator();
+        base_tensor_axes_iterator();
 
         /**
          * @brief Reduction index constructor.
@@ -66,7 +109,7 @@ namespace numcpp {
          * @param axes A shape_t object with the axes to iterate over.
          * @param flat Flat index over the reduction axes.
          */
-        base_tensor_reduce_iterator(
+        base_tensor_axes_iterator(
             base_tensor<T, Rank, Tag> *ptr,
             const index_t<Rank> &indices,
             const shape_t<N> &axes,
@@ -76,24 +119,24 @@ namespace numcpp {
         /**
          * @brief Copy constructor.
          */
-        base_tensor_reduce_iterator(const base_tensor_reduce_iterator &other);
+        base_tensor_axes_iterator(const base_tensor_axes_iterator &other);
 
         /// Assignment operator.
 
         /**
          * @brief Copy assignment.
          */
-        base_tensor_reduce_iterator&
-        operator=(const base_tensor_reduce_iterator &other);
+        base_tensor_axes_iterator&
+        operator=(const base_tensor_axes_iterator &other);
 
         /// Operator overloading.
 
-        base_tensor_reduce_iterator& operator++();
-        base_tensor_reduce_iterator& operator--();
-        base_tensor_reduce_iterator operator++(int);
-        base_tensor_reduce_iterator operator--(int);
-        base_tensor_reduce_iterator& operator+=(difference_type rhs);
-        base_tensor_reduce_iterator& operator-=(difference_type rhs);
+        base_tensor_axes_iterator& operator++();
+        base_tensor_axes_iterator& operator--();
+        base_tensor_axes_iterator operator++(int);
+        base_tensor_axes_iterator operator--(int);
+        base_tensor_axes_iterator& operator+=(difference_type rhs);
+        base_tensor_axes_iterator& operator-=(difference_type rhs);
 
         reference operator*() const;
         pointer operator->() const;
@@ -135,98 +178,75 @@ namespace numcpp {
         size_t m_flat;
     };
 
-    /**
-     * @brief Constructs a base_tensor_reduce_iterator with its templates
-     * deduced from its arguments.
-     */
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_reduce_iterator<T, Rank, Tag, N>
-    make_reduce_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
-    );
-
-    template <class T, size_t Rank, class Tag>
-    base_tensor_reduce_iterator<T, Rank, Tag, 1>
-    make_reduce_iterator(
-        base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
-    );
-
-    /// Arithmetic operators for base_tensor_reduce_iterator (non member
+    /// Arithmetic operators for base_tensor_axes_iterator (non member
     /// functions).
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_reduce_iterator<T, Rank, Tag, N> operator+(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
+    base_tensor_axes_iterator<T, Rank, Tag, N> operator+(
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
         ptrdiff_t rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_reduce_iterator<T, Rank, Tag, N> operator+(
+    base_tensor_axes_iterator<T, Rank, Tag, N> operator+(
         ptrdiff_t lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_reduce_iterator<T, Rank, Tag, N> operator-(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
+    base_tensor_axes_iterator<T, Rank, Tag, N> operator-(
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
         ptrdiff_t rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     ptrdiff_t operator-(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
-    /// Relational operators for base_tensor_reduce_iterator (non member
+    /// Relational operators for base_tensor_axes_iterator (non member
     /// functions).
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator==(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator!=(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator<(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator>(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator<=(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator>=(
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const  base_tensor_reduce_iterator<T, Rank, Tag, N> &rhs
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &lhs,
+        const  base_tensor_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     /**
      * @brief A random access iterator for const-qualified base_tensor class
      * obtained by fixing some axes and iterating over the remaining axes.
-     * Useful for reduction operations.
      *
      * @tparam T Type of the elements contained in the base_tensor.
      * @tparam Rank Dimension of the base_tensor. It must be a positive
@@ -236,7 +256,7 @@ namespace numcpp {
      * @tparam N Reduction dimension. Must be less or equal than Rank.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor_const_reduce_iterator {
+    class base_tensor_const_axes_iterator {
     public:
         static_assert(N <= Rank, "Reduction dimension must be less or equal to"
                       " tensor dimension");
@@ -253,7 +273,7 @@ namespace numcpp {
         /**
          * @brief Default constructor.
          */
-        base_tensor_const_reduce_iterator();
+        base_tensor_const_axes_iterator();
 
         /**
          * @brief Reduction index constructor.
@@ -263,7 +283,7 @@ namespace numcpp {
          * @param axes A shape_t object with the axes to iterate over.
          * @param flat Flat index over the reduction axes.
          */
-        base_tensor_const_reduce_iterator(
+        base_tensor_const_axes_iterator(
             const base_tensor<T, Rank, Tag> *ptr,
             const index_t<Rank> &indices,
             const shape_t<N> &axes,
@@ -273,11 +293,11 @@ namespace numcpp {
         /**
          * @brief Copy constructor.
          */
-        base_tensor_const_reduce_iterator(
-            const base_tensor_reduce_iterator<T, Rank, Tag, N> &other
+        base_tensor_const_axes_iterator(
+            const base_tensor_axes_iterator<T, Rank, Tag, N> &other
         );
-        base_tensor_const_reduce_iterator(
-            const base_tensor_const_reduce_iterator &other
+        base_tensor_const_axes_iterator(
+            const base_tensor_const_axes_iterator &other
         );
 
         /// Assignment operator.
@@ -285,19 +305,19 @@ namespace numcpp {
         /**
          * @brief Copy assignment.
          */
-        base_tensor_const_reduce_iterator&
-        operator=(const base_tensor_reduce_iterator<T, Rank, Tag, N> &other);
-        base_tensor_const_reduce_iterator&
-        operator=(const base_tensor_const_reduce_iterator &other);
+        base_tensor_const_axes_iterator&
+        operator=(const base_tensor_axes_iterator<T, Rank, Tag, N> &other);
+        base_tensor_const_axes_iterator&
+        operator=(const base_tensor_const_axes_iterator &other);
 
         /// Operator overloading.
 
-        base_tensor_const_reduce_iterator& operator++();
-        base_tensor_const_reduce_iterator& operator--();
-        base_tensor_const_reduce_iterator operator++(int);
-        base_tensor_const_reduce_iterator operator--(int);
-        base_tensor_const_reduce_iterator& operator+=(difference_type rhs);
-        base_tensor_const_reduce_iterator& operator-=(difference_type rhs);
+        base_tensor_const_axes_iterator& operator++();
+        base_tensor_const_axes_iterator& operator--();
+        base_tensor_const_axes_iterator operator++(int);
+        base_tensor_const_axes_iterator operator--(int);
+        base_tensor_const_axes_iterator& operator+=(difference_type rhs);
+        base_tensor_const_axes_iterator& operator-=(difference_type rhs);
 
         reference operator*() const;
         pointer operator->() const;
@@ -339,95 +359,73 @@ namespace numcpp {
         size_t m_flat;
     };
 
-    /**
-     * @brief Constructs a base_tensor_const_reduce_iterator with its templates
-     * deduced from its arguments.
-     */
-    template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_const_reduce_iterator<T, Rank, Tag, N>
-    make_const_reduce_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        const shape_t<N> &axes,
-        size_t flat
-    );
-
-    template <class T, size_t Rank, class Tag>
-    base_tensor_const_reduce_iterator<T, Rank, Tag, 1>
-    make_const_reduce_iterator(
-        const base_tensor<T, Rank, Tag> *ptr,
-        const index_t<Rank> &indices,
-        size_t axis,
-        size_t flat
-    );
-
-    /// Arithmetic operators for base_tensor_const_reduce_iterator (non member
+    /// Arithmetic operators for base_tensor_const_axes_iterator (non member
     /// functions).
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_const_reduce_iterator<T, Rank, Tag, N> operator+(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
+    base_tensor_const_axes_iterator<T, Rank, Tag, N> operator+(
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
         ptrdiff_t rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_const_reduce_iterator<T, Rank, Tag, N> operator+(
+    base_tensor_const_axes_iterator<T, Rank, Tag, N> operator+(
         ptrdiff_t lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor_const_reduce_iterator<T, Rank, Tag, N> operator-(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
+    base_tensor_const_axes_iterator<T, Rank, Tag, N> operator-(
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
         ptrdiff_t rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     ptrdiff_t operator-(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
-    /// Relational operators for base_tensor_const_reduce_iterator (non member
+    /// Relational operators for base_tensor_const_axes_iterator (non member
     /// functions).
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator==(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator!=(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator<(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator>(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator<=(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
     bool operator>=(
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &lhs,
-        const base_tensor_const_reduce_iterator<T, Rank, Tag, N> &rhs
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &lhs,
+        const base_tensor_const_axes_iterator<T, Rank, Tag, N> &rhs
     );
 }
 
-#include "numcpp/iterators/reduce_iterator.tcc"
+#include "numcpp/iterators/axes_iterator.tcc"
 
-#endif // NUMCPP_TENSOR_REDUCE_ITERATOR_H_INCLUDED
+#endif // NUMCPP_TENSOR_AXES_ITERATOR_H_INCLUDED
