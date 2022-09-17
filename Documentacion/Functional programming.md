@@ -384,9 +384,8 @@ struct minmax_difference {
     // Return the difference between the minimum and maximum values in the
     // range.
     template <class InputIterator>
-    typename std::iterator_traits<InputIterator>::value_type operator()(
-        InputIterator first, InputIterator last
-    ) const {
+    typename std::iterator_traits<InputIterator>::value_type
+    operator()(InputIterator first, InputIterator last) const {
         return *std::max_element(first, last) - *std::min_element(first, last);
     }
 };
