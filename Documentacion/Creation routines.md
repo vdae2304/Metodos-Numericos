@@ -951,7 +951,8 @@ Returns
 
 * The extracted diagonal or the constructed diagonal matrix. This function does
 not create a new tensor, instead, it returns a readonly view with the extracted
-diagonal or the constructed diagonal matrix.
+diagonal (when `a` is 2-dimensional) or with the constructed diagonal matrix
+(when `a` is 1-dimensional).
 
 Example
 
@@ -1050,12 +1051,8 @@ main diagonal (0).
 
 Returns
 
-* Lower triangle of `a`.
-
-Exceptions
-
-* `std::bad_alloc` If the function fails to allocate storage it may throw an
-exception.
+* Lower triangle of `a`. This function does not create a new tensor, instead,
+it returns a readonly view with elements above the `k`-th diagonal zeroed.
 
 Example
 
@@ -1119,12 +1116,8 @@ main diagonal (0).
 
 Returns
 
-* Upper triangle of `a`.
-
-Exceptions
-
-* `std::bad_alloc` If the function fails to allocate storage it may throw an
-exception.
+* Upper triangle of `a`. This function does not create a new tensor, instead,
+it returns a readonly view with elements below the `k`-th diagonal zeroed.
 
 Example
 
