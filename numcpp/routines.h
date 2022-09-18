@@ -25,15 +25,13 @@
 
 #include "numcpp/config.h"
 
-#include "numcpp/functional.h"
 #include "numcpp/routines/ranges.h"
 #include "numcpp/routines/sequence_array.h"
 #include "numcpp/routines/diagonal_view.h"
 
 #include "numcpp/routines/lazy_where.h"
-#include "numcpp/routines/lazy_reverse.h"
-#include "numcpp/routines/lazy_shift.h"
-#include "numcpp/routines/lazy_transpose.h"
+#include "numcpp/routines/reverse_view.h"
+#include "numcpp/routines/transpose_view.h"
 
 namespace numcpp {
     /// Tensor creation routines.
@@ -1381,12 +1379,12 @@ namespace numcpp {
      *     reversed order over the given axes.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
+    base_tensor<T, Rank, reverse_tag<Tag, 1> > reverse(
         const base_tensor<T, Rank, Tag> &a, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
+    base_tensor<T, Rank, reverse_tag<Tag, N> > reverse(
         const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     );
 
@@ -1407,13 +1405,13 @@ namespace numcpp {
      *     shifted over the given axes.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
+    base_tensor<T, Rank, shift_tag<Tag, 1> > shift(
         const base_tensor<T, Rank, Tag> &a,
         size_t count, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
+    base_tensor<T, Rank, shift_tag<Tag, N> > shift(
         const base_tensor<T, Rank, Tag> &a,
         const index_t<N> &count, const shape_t<N> &axes
     );
@@ -1949,12 +1947,12 @@ namespace numcpp {
      *     of a with its axes permuted.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+    base_tensor<T, Rank, transpose_tag<Tag> > transpose(
         const base_tensor<T, Rank, Tag> &a
     );
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+    base_tensor<T, Rank, transpose_tag<Tag> > transpose(
         const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
     );
 
@@ -1974,25 +1972,25 @@ namespace numcpp {
      *     permuted.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag> >
     conj_transpose(
         const base_tensor<std::complex<T>, Rank, Tag> &a
     );
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag> >
     conj_transpose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
         const shape_t<Rank> &axes
     );
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+    base_tensor<T, Rank, transpose_tag<Tag> > conj_transpose(
         const base_tensor<T, Rank, Tag> &a
     );
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+    base_tensor<T, Rank, transpose_tag<Tag> > conj_transpose(
         const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
     );
 

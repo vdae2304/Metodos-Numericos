@@ -24,6 +24,8 @@
 #ifndef NUMCPP_ROUTINES_TCC_INCLUDED
 #define NUMCPP_ROUTINES_TCC_INCLUDED
 
+#include "numcpp/functional.h"
+
 namespace numcpp {
     /// Tensor creation routines.
 
@@ -1017,36 +1019,36 @@ namespace numcpp {
     /// Rearranging elements.
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_reverse_tag<Tag, 1> > reverse(
+    inline base_tensor<T, Rank, reverse_tag<Tag, 1> > reverse(
         const base_tensor<T, Rank, Tag> &a, size_t axis
     ) {
-        typedef lazy_reverse_tag<Tag, 1> Closure;
+        typedef reverse_tag<Tag, 1> Closure;
         return base_tensor<T, Rank, Closure>(a, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline base_tensor<T, Rank, lazy_reverse_tag<Tag, N> > reverse(
+    inline base_tensor<T, Rank, reverse_tag<Tag, N> > reverse(
         const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     ) {
-        typedef lazy_reverse_tag<Tag, N> Closure;
+        typedef reverse_tag<Tag, N> Closure;
         return base_tensor<T, Rank, Closure>(a, axes);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_shift_tag<Tag, 1> > shift(
+    inline base_tensor<T, Rank, shift_tag<Tag, 1> > shift(
         const base_tensor<T, Rank, Tag> &a,
         size_t count, size_t axis
     ) {
-        typedef lazy_shift_tag<Tag, 1> Closure;
+        typedef shift_tag<Tag, 1> Closure;
         return base_tensor<T, Rank, Closure>(a, count, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline base_tensor<T, Rank, lazy_shift_tag<Tag, N> > shift(
+    inline base_tensor<T, Rank, shift_tag<Tag, N> > shift(
         const base_tensor<T, Rank, Tag> &a,
         const index_t<N> &count, const shape_t<N> &axes
     ) {
-        typedef lazy_shift_tag<Tag, N> Closure;
+        typedef shift_tag<Tag, N> Closure;
         return base_tensor<T, Rank, Closure>(a, count, axes);
     }
 
@@ -1668,53 +1670,53 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+    inline base_tensor<T, Rank, transpose_tag<Tag> > transpose(
         const base_tensor<T, Rank, Tag> &a
     ) {
-        typedef lazy_transpose_tag<Tag> Closure;
+        typedef transpose_tag<Tag> Closure;
         return base_tensor<T, Rank, Closure>(a);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > transpose(
+    inline base_tensor<T, Rank, transpose_tag<Tag> > transpose(
         const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
     ) {
-        typedef lazy_transpose_tag<Tag> Closure;
+        typedef transpose_tag<Tag> Closure;
         return base_tensor<T, Rank, Closure>(a, axes);
     }
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag> >
     conj_transpose(
         const base_tensor<std::complex<T>, Rank, Tag> &a
     ) {
-        typedef lazy_conj_transpose_tag<Tag> Closure;
+        typedef conj_transpose_tag<Tag> Closure;
         return base_tensor<std::complex<T>, Rank, Closure>(a);
     }
 
     template <class T, size_t Rank, class Tag>
-    base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> >
+    base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag> >
     conj_transpose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
         const shape_t<Rank> &axes
     ) {
-        typedef lazy_conj_transpose_tag<Tag> Closure;
+        typedef conj_transpose_tag<Tag> Closure;
         return base_tensor<std::complex<T>, Rank, Closure>(a, axes);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+    inline base_tensor<T, Rank, transpose_tag<Tag> > conj_transpose(
         const base_tensor<T, Rank, Tag> &a
     ) {
-        typedef lazy_transpose_tag<Tag> Closure;
+        typedef transpose_tag<Tag> Closure;
         return base_tensor<T, Rank, Closure>(a);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, lazy_transpose_tag<Tag> > conj_transpose(
+    inline base_tensor<T, Rank, transpose_tag<Tag> > conj_transpose(
         const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes
     ) {
-        typedef lazy_transpose_tag<Tag> Closure;
+        typedef transpose_tag<Tag> Closure;
         return base_tensor<T, Rank, Closure>(a, axes);
     }
 

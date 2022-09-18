@@ -14,35 +14,35 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/routines/lazy_transpose.h
+ /** @file include/numcpp/routines/reverse_view.h
   *  This is an internal header file, included by other library headers.
   *  Do not attempt to use it directly. @headername{numcpp/routines.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_LAZY_TRANSPOSE_H_INCLUDED
-#define NUMCPP_LAZY_TRANSPOSE_H_INCLUDED
+#ifndef NUMCPP_REVERSE_VIEW_H_INCLUDED
+#define NUMCPP_REVERSE_VIEW_H_INCLUDED
 
 namespace numcpp {
     /// Forward declarations.
-    template <class Tag>
-    struct lazy_transpose_tag;
+    template <class Tag, size_t N>
+    struct reverse_tag;
 
-    template <class Tag>
-    struct lazy_conj_transpose_tag;
+    template <class Tag, size_t N>
+    struct shift_tag;
 
     /**
-     * @brief A lazy_transpose is a light-weight object which stores the
-     * elements of a tensor with its axes permuted. A lazy_transpose is
-     * convertible to a tensor object.
+     * @brief A light-weight object which stores the elements of a tensor in
+     * reversed order over multiple axes. Convertible to a tensor object.
      *
      * @tparam T Type of the elements contained in the tensor.
      * @tparam Rank Dimension of the tensor. It must be a positive integer.
      * @tparam Tag Type of the base_tensor container.
+     * @tparam N Number of axes to reverse.
      */
-    template <class T, size_t Rank, class Tag>
-    class base_tensor<T, Rank, lazy_transpose_tag<Tag> > {
+    template <class T, size_t Rank, class Tag, size_t N>
+    class base_tensor<T, Rank, reverse_tag<Tag, N> > {
     public:
         /// Member types.
         typedef typename base_tensor<T, Rank, Tag>::value_type
@@ -55,9 +55,9 @@ namespace numcpp {
             pointer;
         typedef typename base_tensor<T, Rank, Tag>::const_pointer
             const_pointer;
-        typedef base_tensor_const_iterator<T, Rank, lazy_transpose_tag<Tag> >
+        typedef base_tensor_const_iterator<T, Rank, reverse_tag<Tag, N> >
             iterator;
-        typedef base_tensor_const_iterator<T, Rank, lazy_transpose_tag<Tag> >
+        typedef base_tensor_const_iterator<T, Rank, reverse_tag<Tag, N> >
             const_iterator;
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
@@ -65,38 +65,25 @@ namespace numcpp {
         typedef index_t<Rank> index_type;
 
     private:
-        // Tensor object to transpose.
+        // Tensor object to reverse.
         const base_tensor<T, Rank, Tag> &m_arg;
 
-        // Permuted shape.
-        shape_type m_shape;
-
-        // Permutation to apply.
-        shape_type m_axes;
+        // Axes along which to reverse over.
+        shape_t<N> m_axes;
 
     public:
         /// Constructors.
 
         /**
-         * @brief Constructs a lazy_transpose which permute the axes of a
-         * tensor.
+         * @brief Constructs a view which stores the elements of a tensor in
+         * reversed order.
          *
-         * @param arg Tensor to transpose.
-         * @param axes A permutation of (0, 1, ..., Rank - 1). Defaults to
-         *     (Rank - 1, ..., 1, 0).
+         * @param arg Tensor to reverse.
+         * @param axes Axes along which to reverse over.
          */
-        base_tensor(const base_tensor<T, Rank, Tag> &arg)
-         : m_arg(arg) {
-            for (size_t i = 0; i < m_axes.ndim(); ++i) {
-                m_axes[i] = m_axes.ndim() - 1 - i;
-                m_shape[i] = arg.shape(m_axes[i]);
-            }
-        }
-
         base_tensor(
-            const base_tensor<T, Rank, Tag> &arg,
-            const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
+            const base_tensor<T, Rank, Tag> &arg, const shape_t<N> &axes
+        ) : m_arg(arg), m_axes(axes) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -171,8 +158,12 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        const_reference operator[](const index_type &index) const {
-            return m_arg[index.permute(m_axes)];
+        const_reference operator[](index_type index) const {
+            for (size_t i = 0; i < m_axes.ndim(); ++i) {
+                size_t axis = m_axes[i];
+                index[axis] = m_arg.shape(axis) - 1 - index[axis];
+            }
+            return m_arg[index];
         }
 
         /**
@@ -190,12 +181,12 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_type& shape() const {
-            return m_shape;
+        auto shape() const -> decltype(m_arg.shape()) {
+            return m_arg.shape();
         }
 
         size_type shape(size_type axis) const {
-            return m_shape[axis];
+            return m_arg.shape(axis);
         }
 
         /**
@@ -210,10 +201,7 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            if (m_arg.layout() == row_major) {
-                return col_major;
-            }
-            return row_major;
+            return m_arg.layout();
         }
 
         /// Public methods.
@@ -227,67 +215,63 @@ namespace numcpp {
     };
 
     /**
-     * @brief A lazy_conj_transpose is a light-weight object which stores the
-     * complex conjugate of the elements in a tensor with its axes permuted. A
-     * lazy_conj_transpose is convertible to a tensor object.
+     * @brief A light-weight object which stores the elements of a tensor
+     * circularly shifted over multiple axes. Convertible to a tensor object.
      *
      * @tparam T Type of the elements contained in the tensor.
      * @tparam Rank Dimension of the tensor. It must be a positive integer.
      * @tparam Tag Type of the base_tensor container.
+     * @tparam N Number of axes to shift.
      */
-    template <class T, size_t Rank, class Tag>
-    class base_tensor<std::complex<T>, Rank, lazy_conj_transpose_tag<Tag> > {
+    template <class T, size_t Rank, class Tag, size_t N>
+    class base_tensor<T, Rank, shift_tag<Tag, N> > {
     public:
         /// Member types.
-        typedef std::complex<T> value_type;
-        typedef std::complex<T> reference;
-        typedef std::complex<T> const_reference;
-        typedef nullptr_t pointer;
-        typedef nullptr_t const_pointer;
-        typedef base_tensor_const_iterator<
-            std::complex<T>, Rank, lazy_conj_transpose_tag<Tag>
-        > iterator;
-        typedef base_tensor_const_iterator<
-            std::complex<T>, Rank, lazy_conj_transpose_tag<Tag>
-        > const_iterator;
+        typedef typename base_tensor<T, Rank, Tag>::value_type
+            value_type;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference
+            reference;
+        typedef typename base_tensor<T, Rank, Tag>::const_reference
+            const_reference;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer
+            pointer;
+        typedef typename base_tensor<T, Rank, Tag>::const_pointer
+            const_pointer;
+        typedef base_tensor_const_iterator<T, Rank, shift_tag<Tag, N> >
+            iterator;
+        typedef base_tensor_const_iterator<T, Rank, shift_tag<Tag, N> >
+            const_iterator;
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
         typedef shape_t<Rank> shape_type;
         typedef index_t<Rank> index_type;
 
     private:
-        // Tensor object to conjugate transpose.
-        const base_tensor<std::complex<T>, Rank, Tag> &m_arg;
+        // Tensor object to shift.
+        const base_tensor<T, Rank, Tag> &m_arg;
 
-        // Permuted shape.
-        shape_type m_shape;
+        // Number of positions to shift along each axis.
+        index_t<N> m_count;
 
-        // Permutation to apply.
-        shape_type m_axes;
+        // Axes along which to shift over.
+        shape_t<N> m_axes;
 
     public:
         /// Constructors.
 
         /**
-         * @brief Constructs a lazy_conj_transpose which permute the axes of a
-         * tensor.
+         * @brief Constructs a view which stores the elements of a tensor
+         * circularly shifted.
          *
-         * @param arg Tensor to conjugate transpose.
-         * @param axes A permutation of (0, 1, ..., Rank - 1). Defaults to
-         *     (Rank - 1, ..., 1, 0).
+         * @param arg Tensor to shift.
+         * @param count Number of positions to shift along each axis.
+         * @param axes Axes along which to shift over.
          */
-        base_tensor(const base_tensor<std::complex<T>, Rank, Tag> &arg)
-         : m_arg(arg) {
-            for (size_t i = 0; i < m_axes.ndim(); ++i) {
-                m_axes[i] = m_axes.ndim() - 1 - i;
-                m_shape[i] = arg.shape(m_axes[i]);
-            }
-        }
-
         base_tensor(
-            const base_tensor<std::complex<T>, Rank, Tag> &arg,
-            const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
+            const base_tensor<T, Rank, Tag> &arg,
+            const index_t<N> &count,
+            const shape_t<N> &axes
+        ) : m_arg(arg), m_count(count), m_axes(axes) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -348,7 +332,7 @@ namespace numcpp {
         template <class... Index,
                   detail::RequiresNArguments<Rank, Index...> = 0,
                   detail::RequiresIntegral<Index...> = 0>
-        value_type operator()(Index... index) const {
+        const_reference operator()(Index... index) const {
             return this->operator[](make_index(index...));
         }
 
@@ -362,8 +346,12 @@ namespace numcpp {
          *
          * @return The element at the specified position.
          */
-        value_type operator[](const index_type &index) const {
-            return std::conj(m_arg[index.permute(m_axes)]);
+        const_reference operator[](index_type index) const {
+            for (size_t i = 0; i < m_axes.ndim(); ++i) {
+                size_t axis = m_axes[i];
+                index[axis] = (index[axis] + m_count[i]) % m_arg.shape(axis);
+            }
+            return m_arg[index];
         }
 
         /**
@@ -381,12 +369,12 @@ namespace numcpp {
          *     Otherwise, return a shape_t object with the shape of the tensor
          *     along all axes.
          */
-        const shape_type& shape() const {
-            return m_shape;
+        auto shape() const -> decltype(m_arg.shape()) {
+            return m_arg.shape();
         }
 
         size_type shape(size_type axis) const {
-            return m_shape[axis];
+            return m_arg.shape(axis);
         }
 
         /**
@@ -401,10 +389,7 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            if (m_arg.layout() == row_major) {
-                return col_major;
-            }
-            return row_major;
+            return m_arg.layout();
         }
 
         /// Public methods.
@@ -418,4 +403,4 @@ namespace numcpp {
     };
 }
 
-#endif // NUMCPP_LAZY_TRANSPOSE_H_INCLUDED
+#endif // NUMCPP_REVERSE_VIEW_H_INCLUDED
