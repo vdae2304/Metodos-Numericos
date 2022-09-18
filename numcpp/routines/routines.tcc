@@ -149,68 +149,42 @@ namespace numcpp {
     /// Building matrices.
 
     template <class T>
-    inline base_tensor<T, 2, lazy_eye_tag> eye(size_t n) {
-        return base_tensor<T, 2, lazy_eye_tag>(n, n);
+    inline base_tensor<T, 2, eye_tag> eye(size_t n) {
+        return base_tensor<T, 2, eye_tag>(n, n);
     }
 
     template <class T>
-    inline base_tensor<T, 2, lazy_eye_tag>
+    inline base_tensor<T, 2, eye_tag>
     eye(size_t m, size_t n, ptrdiff_t k) {
-        return base_tensor<T, 2, lazy_eye_tag>(m, n, k);
+        return base_tensor<T, 2, eye_tag>(m, n, k);
     }
 
     template <class T, class Tag>
-    inline base_tensor<T, 1, lazy_diagonal_tag<Tag> >
+    inline base_tensor<T, 1, diagonal_tag<Tag> >
     diag(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
-        typedef lazy_diagonal_tag<Tag> Closure;
+        typedef diagonal_tag<Tag> Closure;
         return base_tensor<T, 1, Closure>(a, k);
     }
 
     template <class T, class Tag>
-    inline base_tensor<T, 2, lazy_diagonal_tag<Tag> >
+    inline base_tensor<T, 2, diagonal_tag<Tag> >
     diag(const base_tensor<T, 1, Tag> &a, ptrdiff_t k) {
-        typedef lazy_diagonal_tag<Tag> Closure;
+        typedef diagonal_tag<Tag> Closure;
         return base_tensor<T, 2, Closure>(a, k);
     }
 
     template <class T, class Tag>
-    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
-        tensor<T, 2> out(a.shape(), T());
-        if (k >= 0) {
-            for (size_t i = 0; i < a.shape(0); ++i) {
-                for (size_t j = 0; j <= i + k && j < a.shape(1); ++j) {
-                    out(i, j) = a(i, j);
-                }
-            }
-        }
-        else {
-            for (size_t j = 0; j < a.shape(1); ++j) {
-                for (size_t i = j - k; i < a.shape(0); ++i) {
-                    out(i, j) = a(i, j);
-                }
-            }
-        }
-        return out;
+    inline base_tensor<T, 2, triangular_tag<Tag> >
+    tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        typedef triangular_tag<Tag> Closure;
+        return base_tensor<T, 2, Closure>(a, true, k);
     }
 
     template <class T, class Tag>
-    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
-        tensor<T, 2> out(a.shape(), T());
-        if (k >= 0) {
-            for (size_t i = 0; i < a.shape(0); ++i) {
-                for (size_t j = i + k; j < a.shape(1); ++j) {
-                    out(i, j) = a(i, j);
-                }
-            }
-        }
-        else {
-            for (size_t j = 0; j < a.shape(1); ++j) {
-                for (size_t i = 0; i <= j - k && i < a.shape(0); ++i) {
-                    out(i, j) = a(i, j);
-                }
-            }
-        }
-        return out;
+    inline base_tensor<T, 2, triangular_tag<Tag> >
+    triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        typedef triangular_tag<Tag> Closure;
+        return base_tensor<T, 2, Closure>(a, false, k);
     }
 
     template <class T, class Tag>

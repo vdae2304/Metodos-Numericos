@@ -23,12 +23,12 @@
 #ifndef NUMCPP_ROUTINES_H_INCLUDED
 #define NUMCPP_ROUTINES_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
 
 #include "numcpp/functional.h"
 #include "numcpp/routines/ranges.h"
-#include "numcpp/routines/lazy_sequence.h"
-#include "numcpp/routines/lazy_diagonal.h"
+#include "numcpp/routines/sequence_array.h"
+#include "numcpp/routines/diagonal_view.h"
 
 #include "numcpp/routines/lazy_where.h"
 #include "numcpp/routines/lazy_reverse.h"
@@ -289,10 +289,10 @@ namespace numcpp {
      *     elsewhere.
      */
     template <class T>
-    base_tensor<T, 2, lazy_eye_tag> eye(size_t n);
+    base_tensor<T, 2, eye_tag> eye(size_t n);
 
     template <class T>
-    base_tensor<T, 2, lazy_eye_tag> eye(size_t m, size_t n, ptrdiff_t k = 0);
+    base_tensor<T, 2, eye_tag> eye(size_t m, size_t n, ptrdiff_t k = 0);
 
     /**
      * @brief Extract a diagonal or construct a diagonal matrix.
@@ -310,15 +310,15 @@ namespace numcpp {
      *
      * @return The extracted diagonal or the constructed diagonal matrix. This
      *     function does not create a new tensor, instead, it returns a
-     *     readonly view with the extracted diagonal or the constructed
-     *     diagonal matrix.
+     *     readonly view with the extracted diagonal (when a is 2-dimensional)
+     *     or with the constructed diagonal matrix (when a is 1-dimensional).
      */
     template <class T, class Tag>
-    base_tensor<T, 1, lazy_diagonal_tag<Tag> >
+    base_tensor<T, 1, diagonal_tag<Tag> >
     diag(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 
     template <class T, class Tag>
-    base_tensor<T, 2, lazy_diagonal_tag<Tag> >
+    base_tensor<T, 2, diagonal_tag<Tag> >
     diag(const base_tensor<T, 1, Tag> &a, ptrdiff_t k = 0);
 
     /**
@@ -329,13 +329,13 @@ namespace numcpp {
      *     to an upper diagonal and a negative value refers to a lower
      *     diagonal. Defaults to main diagonal (0).
      *
-     * @return Lower triangle of a.
-     *
-     * @throw std::bad_alloc If the function fails to allocate storage it may
-     *     throw an exception.
+     * @return Lower triangle of a. This function does not create a new tensor,
+     *     instead, it returns a readonly view with elements above the k-th
+     *     diagonal zeroed.
      */
     template <class T, class Tag>
-    tensor<T, 2> tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
+    base_tensor<T, 2, triangular_tag<Tag> >
+    tril(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 
     /**
      * @brief Return the upper triangle of a matrix.
@@ -345,13 +345,13 @@ namespace numcpp {
      *     to an upper diagonal and a negative value refers to a lower
      *     diagonal. Defaults to main diagonal (0).
      *
-     * @return Upper triangle of a.
-     *
-     * @throw std::bad_alloc If the function fails to allocate storage it may
-     *     throw an exception.
+     * @return Upper triangle of a. This function does not create a new tensor,
+     *     instead, it returns a readonly view with elements below the k-th
+     *     diagonal zeroed.
      */
     template <class T, class Tag>
-    tensor<T, 2> triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
+    base_tensor<T, 2, triangular_tag<Tag> >
+    triu(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 
     /**
      * @brief Generate a Vandermonde matrix.

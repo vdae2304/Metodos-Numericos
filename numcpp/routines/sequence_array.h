@@ -14,15 +14,15 @@
  * giving enough credit to its creators.
  */
 
- /** @file include/numcpp/routines/lazy_sequence.h
+ /** @file include/numcpp/routines/sequence_array.h
   *  This is an internal header file, included by other library headers.
   *  Do not attempt to use it directly. @headername{numcpp/routines.h}
   */
 
  // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_LAZY_SEQUENCE_H_INCLUDED
-#define NUMCPP_LAZY_SEQUENCE_H_INCLUDED
+#ifndef NUMCPP_SEQUENCE_ARRAY_H_INCLUDED
+#define NUMCPP_SEQUENCE_ARRAY_H_INCLUDED
 
 #include <cmath>
 
@@ -31,9 +31,8 @@ namespace numcpp {
     struct sequence_tag;
 
     /**
-     * @brief A lazy_sequence is a light-weight object which stores a sequence
-     * of evenly spaced values. A lazy_sequence is convertible to a
-     * 1-dimensional tensor object.
+     * @brief A light-weight object which stores a sequence of evenly spaced
+     * values. Convertible to a 1-dimensional tensor object.
      *
      * @tparam T Type of the elements contained in the sequence.
      */
@@ -73,12 +72,13 @@ namespace numcpp {
         /// Constructors.
 
         /**
-         * @brief Constructs a lazy_sequence.
+         * @brief Constructs a sequence of evenly spaced values.
          *
          * @param start The starting value of the sequence.
          * @param size Number of values in the sequence.
          * @param step Spacing between values.
-         * @param base The base of the log-scale (if any).
+         * @param base The base of the log-scale. If not provided, the sequence
+         *     is in linear scale.
          */
         base_tensor(const T &start, size_type size, const T &step)
          : m_start(start), m_size(size), m_step(step), m_log(false) {}
@@ -191,4 +191,4 @@ namespace numcpp {
     };
 }
 
-#endif // NUMCPP_LAZY_SEQUENCE_H_INCLUDED
+#endif // NUMCPP_SEQUENCE_ARRAY_H_INCLUDED
