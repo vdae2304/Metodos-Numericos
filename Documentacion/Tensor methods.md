@@ -23,7 +23,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor::nonzero`](#tensornonzero)
     - [`tensor::partition(axis)`](#tensorpartitionaxis)
     - [`tensor::reverse(axis)`](#tensorreverseaxis)
-    - [`tensor::shift(axis)`](#tensorshiftaxis)
+    - [`tensor::rotate(axis)`](#tensorrotateaxis)
     - [`tensor::sort(axis)`](#tensorsortaxis)
   - [Reductions](#reductions)
     - [`tensor::all`](#tensorall)
@@ -1117,22 +1117,23 @@ Axis 1:
  [15, -2, 13, -3, 18, 11]]
 ```
 
-### `tensor::shift(axis)`
+### `tensor::rotate(axis)`
 
-<h3><code>tensor_view::shift(axis)</code></h3>
+<h3><code>tensor_view::rotate(axis)</code></h3>
 
-<h3><code>indirect_tensor::shift(axis)</code></h3>
+<h3><code>indirect_tensor::rotate(axis)</code></h3>
 
-Shift the elements in-place. The elements are circularly shifted in such a way
-that the element at position `count` becomes the first element.
+Rotate the elements in-place. The elements are shifted circularly in such a way
+that the element at position `shift` becomes the first element and the element
+at position `shift - 1` becomes the last element.
 ```cpp
-void shift(size_t count, size_t axis = Rank - 1);
+void rotate(size_t shift, size_t axis = Rank - 1);
 ```
 
 Parameters
 
-* `count` Number of positions to shift the elements by.
-* `axis` Axis along which to shift. Defaults to `Rank - 1`, which means shift
+* `shift` Number of positions to shift the elements by.
+* `axis` Axis along which to rotate. Defaults to `Rank - 1`, which means rotate
 along the last axis.
 
 Returns
@@ -1147,9 +1148,9 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> a;
-    int count;
-    std::cin >> a >> count;
-    a.shift(count);
+    int shift;
+    std::cin >> a >> shift;
+    a.rotate(shift);
     std::cout << a << "\n";
     return 0;
 }
@@ -1176,12 +1177,12 @@ Example
 namespace np = numcpp;
 int main() {
     np::matrix<int> a;
-    int count;
-    std::cin >> a >> count;
-    a.shift(count, 0);
+    int shift;
+    std::cin >> a >> shift;
+    a.rotate(shift, 0);
     std::cout << "Axis 0:\n" << a << "\n";
-    std::cin >> count;
-    a.shift(count, 1);
+    std::cin >> shift;
+    a.rotate(shift, 1);
     std::cout << "Axis 1:\n" << a << "\n";
     return 0;
 }
