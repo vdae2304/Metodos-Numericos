@@ -159,7 +159,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     tensor<T, Rank> full_like(
         const base_tensor<T, Rank, Tag> &like,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     );
 
     /// Numerical ranges.
@@ -538,14 +538,14 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag>
     > maximum(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     );
 
     template <class T, size_t Rank, class Tag>
     base_tensor<
         T, Rank, lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag>
     > maximum(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b
     );
 
@@ -577,14 +577,14 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag>
     > minimum(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     );
 
     template <class T, size_t Rank, class Tag>
     base_tensor<
         T, Rank, lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag>
     > minimum(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b
     );
 
@@ -1379,41 +1379,42 @@ namespace numcpp {
      *     reversed order over the given axes.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, reverse_tag<Tag, 1> > reverse(
+    base_tensor<T, Rank, flip_tag<Tag, 1> > reverse(
         const base_tensor<T, Rank, Tag> &a, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, reverse_tag<Tag, N> > reverse(
+    base_tensor<T, Rank, flip_tag<Tag, N> > reverse(
         const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     );
 
     /**
-     * @brief Shift the elements in a tensor along the given axes. The elements
-     * are circularly shifted in such a way that the element at position count
-     * becomes the first element.
+     * @brief Rotate the elements in a tensor along the given axes. The
+     * elements are shifted circularly in such a way that the element at
+     * position shift becomes the first element and the element at position
+     * shift - 1 becomes the last element.
      *
-     * @param a A tensor-like object to shift.
-     * @param count Number of positions to shift the elements by along each
+     * @param a A tensor-like object to rotate.
+     * @param shift Number of positions to shift the elements by along each
      *     axis.
-     * @param axes Axis or axes along which the elements are shifted. The
-     *     default is Rank - 1, which shifts along the last axis.
+     * @param axes Axis or axes along which the elements are rotated. The
+     *     default is Rank - 1, which rotates along the last axis.
      *
-     * @return A light-weight object with the elements in the tensor circularly
-     *     shifted. This function does not create a new tensor, instead, it
-     *     returns a readonly view of the tensor with its elements circularly
-     *     shifted over the given axes.
+     * @return A light-weight object with the elements in the tensor shifted
+     *     circularly. This function does not create a new tensor, instead, it
+     *     returns a readonly view of the tensor with its elements shifted
+     *     circularly over the given axes.
      */
     template <class T, size_t Rank, class Tag>
-    base_tensor<T, Rank, shift_tag<Tag, 1> > shift(
+    base_tensor<T, Rank, roll_tag<Tag, 1> > rotate(
         const base_tensor<T, Rank, Tag> &a,
-        size_t count, size_t axis = Rank - 1
+        size_t shift, size_t axis = Rank - 1
     );
 
     template <class T, size_t Rank, class Tag, size_t N>
-    base_tensor<T, Rank, shift_tag<Tag, N> > shift(
+    base_tensor<T, Rank, roll_tag<Tag, N> > rotate(
         const base_tensor<T, Rank, Tag> &a,
-        const index_t<N> &count, const shape_t<N> &axes
+        const index_t<N> &shift, const shape_t<N> &axes
     );
 
     /// Basic statistics.

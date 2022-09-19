@@ -67,7 +67,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline tensor<T, Rank> full_like(
         const base_tensor<T, Rank, Tag> &like,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         return tensor<T, Rank>(like.shape(), val);
     }
@@ -312,7 +312,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag>
     > maximum(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(ranges::maximum(), a, val);
@@ -322,7 +322,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag>
     > maximum(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b
     ) {
         typedef lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag> Closure;
@@ -345,7 +345,7 @@ namespace numcpp {
         T, Rank, lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag>
     > minimum(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val
+        const typename base_tensor<T, Rank, Tag>::value_type &val
     ) {
         typedef lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(ranges::minimum(), a, val);
@@ -355,7 +355,7 @@ namespace numcpp {
     inline base_tensor<
         T, Rank, lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag>
     > minimum(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b
     ) {
         typedef lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag> Closure;
@@ -1019,37 +1019,37 @@ namespace numcpp {
     /// Rearranging elements.
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, reverse_tag<Tag, 1> > reverse(
+    inline base_tensor<T, Rank, flip_tag<Tag, 1> > reverse(
         const base_tensor<T, Rank, Tag> &a, size_t axis
     ) {
-        typedef reverse_tag<Tag, 1> Closure;
+        typedef flip_tag<Tag, 1> Closure;
         return base_tensor<T, Rank, Closure>(a, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline base_tensor<T, Rank, reverse_tag<Tag, N> > reverse(
+    inline base_tensor<T, Rank, flip_tag<Tag, N> > reverse(
         const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes
     ) {
-        typedef reverse_tag<Tag, N> Closure;
+        typedef flip_tag<Tag, N> Closure;
         return base_tensor<T, Rank, Closure>(a, axes);
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<T, Rank, shift_tag<Tag, 1> > shift(
+    inline base_tensor<T, Rank, roll_tag<Tag, 1> > rotate(
         const base_tensor<T, Rank, Tag> &a,
-        size_t count, size_t axis
+        size_t shift, size_t axis
     ) {
-        typedef shift_tag<Tag, 1> Closure;
-        return base_tensor<T, Rank, Closure>(a, count, axis);
+        typedef roll_tag<Tag, 1> Closure;
+        return base_tensor<T, Rank, Closure>(a, shift, axis);
     }
 
     template <class T, size_t Rank, class Tag, size_t N>
-    inline base_tensor<T, Rank, shift_tag<Tag, N> > shift(
+    inline base_tensor<T, Rank, roll_tag<Tag, N> > rotate(
         const base_tensor<T, Rank, Tag> &a,
-        const index_t<N> &count, const shape_t<N> &axes
+        const index_t<N> &shift, const shape_t<N> &axes
     ) {
-        typedef shift_tag<Tag, N> Closure;
-        return base_tensor<T, Rank, Closure>(a, count, axes);
+        typedef roll_tag<Tag, N> Closure;
+        return base_tensor<T, Rank, Closure>(a, shift, axes);
     }
 
     /// Basic statistics.

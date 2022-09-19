@@ -27,10 +27,10 @@
 namespace numcpp {
     /// Forward declarations.
     template <class Tag, size_t N>
-    struct reverse_tag;
+    struct flip_tag;
 
     template <class Tag, size_t N>
-    struct shift_tag;
+    struct roll_tag;
 
     /**
      * @brief A light-weight object which stores the elements of a tensor in
@@ -42,7 +42,7 @@ namespace numcpp {
      * @tparam N Number of axes to reverse.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor<T, Rank, reverse_tag<Tag, N> > {
+    class base_tensor<T, Rank, flip_tag<Tag, N> > {
     public:
         /// Member types.
         typedef typename base_tensor<T, Rank, Tag>::value_type
@@ -55,9 +55,9 @@ namespace numcpp {
             pointer;
         typedef typename base_tensor<T, Rank, Tag>::const_pointer
             const_pointer;
-        typedef base_tensor_const_iterator<T, Rank, reverse_tag<Tag, N> >
+        typedef base_tensor_const_iterator<T, Rank, flip_tag<Tag, N> >
             iterator;
-        typedef base_tensor_const_iterator<T, Rank, reverse_tag<Tag, N> >
+        typedef base_tensor_const_iterator<T, Rank, flip_tag<Tag, N> >
             const_iterator;
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
@@ -216,7 +216,7 @@ namespace numcpp {
 
     /**
      * @brief A light-weight object which stores the elements of a tensor
-     * circularly shifted over multiple axes. Convertible to a tensor object.
+     * shifted circularly over multiple axes. Convertible to a tensor object.
      *
      * @tparam T Type of the elements contained in the tensor.
      * @tparam Rank Dimension of the tensor. It must be a positive integer.
@@ -224,7 +224,7 @@ namespace numcpp {
      * @tparam N Number of axes to shift.
      */
     template <class T, size_t Rank, class Tag, size_t N>
-    class base_tensor<T, Rank, shift_tag<Tag, N> > {
+    class base_tensor<T, Rank, roll_tag<Tag, N> > {
     public:
         /// Member types.
         typedef typename base_tensor<T, Rank, Tag>::value_type
@@ -237,9 +237,9 @@ namespace numcpp {
             pointer;
         typedef typename base_tensor<T, Rank, Tag>::const_pointer
             const_pointer;
-        typedef base_tensor_const_iterator<T, Rank, shift_tag<Tag, N> >
+        typedef base_tensor_const_iterator<T, Rank, roll_tag<Tag, N> >
             iterator;
-        typedef base_tensor_const_iterator<T, Rank, shift_tag<Tag, N> >
+        typedef base_tensor_const_iterator<T, Rank, roll_tag<Tag, N> >
             const_iterator;
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
@@ -247,13 +247,13 @@ namespace numcpp {
         typedef index_t<Rank> index_type;
 
     private:
-        // Tensor object to shift.
+        // Tensor object to rotate.
         const base_tensor<T, Rank, Tag> &m_arg;
 
         // Number of positions to shift along each axis.
-        index_t<N> m_count;
+        index_t<N> m_shift;
 
-        // Axes along which to shift over.
+        // Axes along which to rotate over.
         shape_t<N> m_axes;
 
     public:
@@ -261,17 +261,17 @@ namespace numcpp {
 
         /**
          * @brief Constructs a view which stores the elements of a tensor
-         * circularly shifted.
+         * shifted circularly.
          *
-         * @param arg Tensor to shift.
-         * @param count Number of positions to shift along each axis.
-         * @param axes Axes along which to shift over.
+         * @param arg Tensor to rotate.
+         * @param shift Number of positions to shift along each axis.
+         * @param axes Axes along which to rotate over.
          */
         base_tensor(
             const base_tensor<T, Rank, Tag> &arg,
-            const index_t<N> &count,
+            const index_t<N> &shift,
             const shape_t<N> &axes
-        ) : m_arg(arg), m_count(count), m_axes(axes) {}
+        ) : m_arg(arg), m_shift(shift), m_axes(axes) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -349,7 +349,7 @@ namespace numcpp {
         const_reference operator[](index_type index) const {
             for (size_t i = 0; i < m_axes.ndim(); ++i) {
                 size_t axis = m_axes[i];
-                index[axis] = (index[axis] + m_count[i]) % m_arg.shape(axis);
+                index[axis] = (index[axis] + m_shift[i]) % m_arg.shape(axis);
             }
             return m_arg[index];
         }
