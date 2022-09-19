@@ -470,7 +470,7 @@ namespace detail {
     }
 
     template <class T, size_t Rank, class Tag>
-    void tensor_interface<T, Rank, Tag>::shift(size_t count, size_t axis) {
+    void tensor_interface<T, Rank, Tag>::rotate(size_t shift, size_t axis) {
         type& self = static_cast<type&>(*this);
         shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
@@ -478,7 +478,7 @@ namespace detail {
         for (index_t<Rank> index : make_indices(shape)) {
             auto first = make_axes_iterator(&self, index, axis, 0);
             auto last = make_axes_iterator(&self, index, axis, size);
-            std::rotate(first, first + count, last);
+            std::rotate(first, first + shift, last);
         }
     }
 
