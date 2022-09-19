@@ -609,8 +609,8 @@ namespace numcpp {
     base_tensor<T, Rank, lazy_unary_tag<ranges::clamp<T>, T, Tag> >
     clamp(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &a_min,
-        const typename tensor<T, Rank>::value_type &a_max
+        const typename base_tensor<T, Rank, Tag>::value_type &a_min,
+        const typename base_tensor<T, Rank, Tag>::value_type &a_max
     );
 
     /// Sums and products.
@@ -689,7 +689,8 @@ namespace numcpp {
      * @param axis Axis along which the cumulative sum is computed. Default is
      *     zero.
      *
-     * @return The cumulative sum of the tensor elements.
+     * @return The cumulative sum of the tensor elements. The output tensor
+     *     will have the same dimension and the same shape as a.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
@@ -706,7 +707,8 @@ namespace numcpp {
      * @param axis Axis along which the cumulative product is computed. Default
      *     is zero.
      *
-     * @return The cumulative product of the tensor elements.
+     * @return The cumulative product of the tensor elements. The output tensor
+     *     will have the same dimension and the same shape as a.
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
@@ -826,7 +828,7 @@ namespace numcpp {
      * be non-negative, typically very small numbers. For floating-point
      * values, the function uses the following equation to test whether two
      * numbers are equivalent:
-     *     abs(a - b) <= fmax(rtol * max(abs(a), abs(b)), atol)
+     *     abs(a - b) <= fmax(rtol * fmax(abs(a), abs(b)), atol)
      * NaN is not considered equal to any other value, including NaN. inf and
      * -inf are only considered equal to themselves.
      *
@@ -837,21 +839,23 @@ namespace numcpp {
      *
      * @return true if the values are considered equal and false otherwise.
      */
-    bool isclose(float a, float b, float rtol = 1e-8f, float atol = 0.f);
+    bool isclose(float a, float b, float rtol = 1e-4f, float atol = 0.f);
 
     bool isclose(double a, double b, double rtol = 1e-8, double atol = 0.);
 
     bool isclose(
         long double a, long double b,
-        long double rtol = 1e-8L, long double atol = 0.L
+        long double rtol = 1e-10L, long double atol = 0.L
     );
 
     /**
      * @brief Additional overloads for arithmetic types.
      *
-     * @details If any argument has integral type, it is cast to double. If any
-     * argument is long double, the other argument is promoted to long double.
-     * If any argument is float, it is promoted to double.
+     * @details If any argument has integral type, it is cast to double.
+     * If any argument is long double, the other argument is promoted to long
+     * double.
+     * If arguments are float and double (in any order), the float argument is
+     * promoted to double.
      */
     template <class T, class U>
     typename std::enable_if<
@@ -921,8 +925,8 @@ namespace numcpp {
     > isclose(
         const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag1>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag2>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag>
@@ -930,19 +934,19 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
     > isclose(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag>
     base_tensor<
         bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
     > isclose(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag1, class Tag2>
@@ -964,7 +968,7 @@ namespace numcpp {
         >
     > isclose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const typename std::complex<T>::value_type &rtol = T(1e-8),
         const typename std::complex<T>::value_type &atol = T(0)
     );
@@ -975,7 +979,7 @@ namespace numcpp {
             ranges::isclose<std::complex<T> >, T, scalar_tag, T, Tag
         >
     > isclose(
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const base_tensor<std::complex<T>, Rank, Tag> &b,
         const typename std::complex<T>::value_type &rtol = T(1e-8),
         const typename std::complex<T>::value_type &atol = T(0)
@@ -1002,24 +1006,24 @@ namespace numcpp {
     bool allclose(
         const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag1>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag2>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag>
     bool allclose(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag>
     bool allclose(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b,
-        const typename tensor<T, Rank>::value_type &rtol = T(1e-8),
-        const typename tensor<T, Rank>::value_type &atol = T(0)
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
+        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag1, class Tag2>
@@ -1033,14 +1037,14 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     bool allclose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const typename std::complex<T>::value_type &rtol = T(1e-8),
         const typename std::complex<T>::value_type &atol = T(0)
     );
 
     template <class T, size_t Rank, class Tag>
     bool allclose(
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const base_tensor<std::complex<T>, Rank, Tag> &b,
         const typename std::complex<T>::value_type &rtol = T(1e-8),
         const typename std::complex<T>::value_type &atol = T(0)

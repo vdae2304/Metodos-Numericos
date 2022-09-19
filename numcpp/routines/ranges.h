@@ -144,7 +144,7 @@ namespace ranges {
         bool operator()(const T &a, const T &b) const {
             if (std::isfinite(a) && std::isfinite(b)) {
                 T max_abs = std::fmax(std::abs(a), std::abs(b));
-                return std::abs(a - b) <= std::max(rtol * max_abs, atol);
+                return std::abs(a - b) <= std::fmax(rtol * max_abs, atol);
             }
             else if (std::isnan(a) || std::isnan(b)) {
                 return false;

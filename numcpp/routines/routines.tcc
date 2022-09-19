@@ -366,8 +366,8 @@ namespace numcpp {
     inline base_tensor<T, Rank, lazy_unary_tag<ranges::clamp<T>, T, Tag> >
     clamp(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &a_min,
-        const typename tensor<T, Rank>::value_type &a_max
+        const typename base_tensor<T, Rank, Tag>::value_type &a_min,
+        const typename base_tensor<T, Rank, Tag>::value_type &a_max
     ) {
         typedef lazy_unary_tag<ranges::clamp<T>, T, Tag> Closure;
         return base_tensor<T, Rank, Closure>(ranges::clamp<T>(a_min, a_max), a);
@@ -590,8 +590,8 @@ namespace numcpp {
     > isclose(
         const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag1>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag2>::value_type &atol
     ) {
         typedef lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2> Closure;
         return base_tensor<bool, Rank, Closure>(
@@ -604,9 +604,9 @@ namespace numcpp {
         bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
     > isclose(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag>::value_type &atol
     ) {
         typedef lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>
             Closure;
@@ -619,10 +619,10 @@ namespace numcpp {
     inline base_tensor<
         bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
     > isclose(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag>::value_type &atol
     ) {
         typedef lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>
             Closure;
@@ -657,7 +657,7 @@ namespace numcpp {
         >
     > isclose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const typename std::complex<T>::value_type &rtol,
         const typename std::complex<T>::value_type &atol
     ) {
@@ -675,7 +675,7 @@ namespace numcpp {
             ranges::isclose<std::complex<T> >, T, scalar_tag, T, Tag
         >
     > isclose(
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const base_tensor<std::complex<T>, Rank, Tag> &b,
         const typename std::complex<T>::value_type &rtol,
         const typename std::complex<T>::value_type &atol
@@ -692,8 +692,8 @@ namespace numcpp {
     inline bool allclose(
         const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag1>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag2>::value_type &atol
     ) {
         return all(isclose(a, b, rtol, atol));
     }
@@ -701,19 +701,19 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline bool allclose(
         const base_tensor<T, Rank, Tag> &a,
-        const typename tensor<T, Rank>::value_type &val,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag>::value_type &atol
     ) {
         return all(isclose(a, val, rtol, atol));
     }
 
     template <class T, size_t Rank, class Tag>
     inline bool allclose(
-        const typename tensor<T, Rank>::value_type &val,
+        const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b,
-        const typename tensor<T, Rank>::value_type &rtol,
-        const typename tensor<T, Rank>::value_type &atol
+        const typename base_tensor<T, Rank, Tag>::value_type &rtol,
+        const typename base_tensor<T, Rank, Tag>::value_type &atol
     ) {
         return all(isclose(val, b, rtol, atol));
     }
@@ -731,7 +731,7 @@ namespace numcpp {
     template <class T, size_t Rank, class Tag>
     inline bool allclose(
         const base_tensor<std::complex<T>, Rank, Tag> &a,
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const typename std::complex<T>::value_type &rtol,
         const typename std::complex<T>::value_type &atol
     ) {
@@ -740,7 +740,7 @@ namespace numcpp {
 
     template <class T, size_t Rank, class Tag>
     inline bool allclose(
-        const typename tensor<std::complex<T>, Rank>::value_type &val,
+        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
         const base_tensor<std::complex<T>, Rank, Tag> &b,
         const typename std::complex<T>::value_type &rtol,
         const typename std::complex<T>::value_type &atol
