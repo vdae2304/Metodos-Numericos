@@ -24,8 +24,11 @@
 #ifndef NUMCPP_IO_TCC_INCLUDED
 #define NUMCPP_IO_TCC_INCLUDED
 
+#include <cstdint>
+#include <cstring>
 #include <complex>
 #include <ios>
+#include <fstream>
 #include <istream>
 #include <limits>
 #include <ostream>
@@ -34,6 +37,264 @@
 #include <vector>
 
 namespace numcpp {
+    /// Binary data.
+
+namespace detail {
+    /**
+     * @brief Return a serializable descriptor from the data type.
+     *
+     * @note Since many of these have platform-dependent definitions, the use
+     * of fixed width data types is suggested (<cstding>) for cross-platform
+     * compatibility.
+     *
+     * Full documentation:
+     * @link https://numpy.org/doc/stable/user/basics.types.html @endlink
+     */
+    template <class T>
+    inline const char* dtype_to_descr(); // Not defined for non-arithmetic or
+                                         // complex types.
+
+    template <>
+    inline const char* dtype_to_descr<bool>() {
+        return "'|b1'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<signed char>() {
+        return "'|i1'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<unsigned char>() {
+        return "'|u1'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<short>() {
+        return "'<i2'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<unsigned short>() {
+        return "'<u2'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<int>() {
+        return (sizeof(int) == 4) ? "'<i4'" : "'<i2'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<unsigned int>() {
+        return (sizeof(unsigned int) == 4) ? "'<u4'" : "'<u2'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<long>() {
+        return (sizeof(long) == 8) ? "'<i8'" : "'<i4'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<unsigned long>() {
+        return (sizeof(unsigned long) == 8) ? "'<u8'" : "'<u4'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<long long>() {
+        return "'<i8'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<unsigned long long>() {
+        return "'<u8'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<float>() {
+        return "'<f4'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<double>() {
+        return "'<f8'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr<long double>() {
+        return (sizeof(long double) == 16) ? "'<f16'" : "'<f12'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr< std::complex<float> >() {
+        return "'<c8'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr< std::complex<double> >() {
+        return "'<c16'";
+    }
+
+    template <>
+    inline const char* dtype_to_descr< std::complex<long double> >() {
+        return (sizeof(long double) == 16) ? "'<c32'" : "'<c24'";
+    }
+
+    /**
+     * @brief Read the tensor header from a .npy file.
+     * Full documentation about the format of .npy files can be fount in @link
+     * https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
+     * @endlink
+     */
+    template <class T, size_t Rank>
+    void read_array_header(
+        std::ifstream &file, int version, shape_t<Rank> &shape, layout_t &order
+    ) {
+        std::uint32_t header_len = 0;
+        // Version 1.0 uses 2 bytes for the length while version 2.0 uses 4.
+        file.read(reinterpret_cast<char*>(&header_len), (version < 2) ? 2 : 4);
+        char *header = new char[header_len + 1];
+        file.read(header, header_len);
+        header[header_len] = '\0';
+        // Verify that the header contains the required fields.
+        char *descr_pos = std::strstr(header, "'descr':");
+        char *f_order_pos = std::strstr(header, "'fortran_order':");
+        char *shape_pos = std::strstr(header, "'shape':");
+        if (descr_pos == NULL || f_order_pos == NULL || shape_pos == NULL) {
+            throw std::runtime_error("File is corrupted or invalid");
+        }
+        // Parse header's data type. The format must be "'descr': dtype".
+        const char *dtype = dtype_to_descr<T>();
+        descr_pos += std::strlen("'descr':");
+        while (*descr_pos == ' ') {
+            ++descr_pos;
+        }
+        if (std::strncmp(descr_pos, dtype, std::strlen(dtype)) != 0) {
+            std::ostringstream error;
+            size_t end = std::strcspn(descr_pos, ",}\0");
+            descr_pos[end] = '\0';
+            error << "Stored data type " << descr_pos << " doesn't match the"
+                  << " desired data type " << dtype;
+            throw std::runtime_error(error.str());
+        }
+        // Parse header's layout order. The format must be
+        // "'fortran_order': True|False".
+        f_order_pos += std::strlen("'fortran_order':");
+        while (*f_order_pos == ' ') {
+            ++f_order_pos;
+        }
+        if (std::strncmp(f_order_pos, "True", std::strlen("True")) == 0) {
+            order = col_major;
+        }
+        else if (std::strncmp(f_order_pos, "False", std::strlen("False")) == 0){
+            order = row_major;
+        }
+        else {
+            throw std::runtime_error("File is corrupted or invalid");
+        }
+        // Parse header's shape. The format must be "'shape': shape".
+        shape_pos += std::strlen("'shape':");
+        while (*shape_pos == ' ') {
+            ++shape_pos;
+        }
+        std::istringstream parser(shape_pos);
+        if (!(parser >> shape)) {
+            size_t end = std::strcspn(shape_pos, ")}\0");
+            if (shape_pos[end] != '\0') {
+                shape_pos[end + 1] = '\0';
+            }
+            std::ostringstream error;
+            error << "Shape " << shape_pos << " is not a valid shape of rank "
+                  << Rank;
+            throw std::runtime_error(error.str());
+        }
+        delete[] header;
+    }
+
+    /**
+     * @brief Read the tensor's content from a .npy file.
+     */
+    template <class T, class OutputIterator>
+    void read_array(
+        std::ifstream &file, OutputIterator first, OutputIterator last
+    ) {
+        while (first != last) {
+            file.read(reinterpret_cast<char*>(&*first), sizeof(T));
+            ++first;
+        }
+    }
+}
+
+    template <class T, size_t Rank>
+    tensor<T, Rank> load(const std::string &filename) {
+        std::ifstream file(filename, std::ifstream::binary);
+        if (!file) {
+            std::ostringstream error;
+            error << "Input file " << filename << " does not exist or cannot"
+                  << " be read";
+            throw std::runtime_error(error.str());
+        }
+        uint8_t version[2];
+        file.ignore(6);
+        file.read(reinterpret_cast<char*>(version), 2);
+        shape_t<Rank> shape;
+        layout_t order;
+        detail::read_array_header<T>(file, version[0], shape, order);
+        tensor<T, Rank> out(shape);
+        detail::read_array<T>(file, out.begin(order), out.end(order));
+        return out;
+    }
+
+namespace detail {
+    /**
+     * @brief Writes the tensor header to a .npy file.
+     */
+    template <class T, size_t Rank>
+    void write_array_header(
+        std::ofstream &file, const shape_t<Rank> &shape, layout_t order
+    ) {
+        std::ostringstream buffer;
+        buffer << "{'descr': " << dtype_to_descr<T>() << ", 'fortran_order': "
+               << (order == col_major ? "True" : "False") << ", 'shape': "
+               << shape << "}";
+        std::string header = buffer.str();
+        std::uint16_t header_len = header.size();
+        file.write(reinterpret_cast<char*>(&header_len), 2);
+        file.write(header.data(), header_len);
+    }
+
+    /**
+     * @brief Write the tensor's contents to a .npy file.
+     */
+    template <class T, class InputIterator>
+    void write_array(
+        std::ofstream &file, InputIterator first, InputIterator last
+    ) {
+        while (first != last) {
+            T val = *first;
+            file.write(reinterpret_cast<const char*>(&val), sizeof(T));
+            ++first;
+        }
+    }
+}
+
+    template <class T, size_t Rank, class Tag>
+    void save(
+        const std::string &filename, const base_tensor<T, Rank, Tag> &data
+    ) {
+        std::ofstream file(filename, std::ofstream::binary);
+        if (!file) {
+            std::ostringstream error;
+            error << "Ouput file " << filename << " cannot be written";
+            throw std::runtime_error(error.str());
+        }
+        file.write("\x93NUMPY", 6);
+        file.write("\x01", 1);
+        file.write("\x00", 1);
+        detail::write_array_header<T>(file, data.shape(), data.layout());
+        detail::write_array<T>(file, data.begin(), data.end());
+        file.close();
+    }
+
     /// Input/output streams
 
     template <class charT, class traits, size_t Rank>

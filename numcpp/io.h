@@ -23,7 +23,7 @@
 #ifndef NUMCPP_IO_H_INCLUDED
 #define NUMCPP_IO_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
 #include <iosfwd>
 
 namespace numcpp {
@@ -96,6 +96,42 @@ namespace numcpp {
          */
         complexmode_t complexmode = complexmode_t::defaultmode;
     }
+
+    /// Binary data.
+
+    /**
+     * @brief Load tensor contents from a binary file in NumPy .npy format.
+     *
+     * @tparam T Type of the elements contained in the tensor. Must be an
+     *     arithmetic (either integer or floating-point type) or complex type.
+     * @tparam Rank Dimension of the tensor.
+     *
+     * @param filename The file to read.
+     *
+     * @return A new tensor with its contents loaded from the file.
+     *
+     * @throw std::runtime_error If the input file does not exist or cannot be
+     *     read; or if the tensor's data type and rank does not match the ones
+     *     stored in the file.
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> load(const std::string &filename);
+
+    /**
+     * @brief Save tensor contents to a binary file in NumPy .npy format.
+     *
+     * @param filename Filename to which the data is saved.
+     * @param data Tensor data to be saved. Only arithmetic and complex types
+     *     are supported.
+     *
+     * @throw std::runtime_error If the output file cannot be written.
+     */
+    template <class T, size_t Rank, class Tag>
+    void save(
+        const std::string &filename, const base_tensor<T, Rank, Tag> &data
+    );
 
     /// Input/output streams
 
