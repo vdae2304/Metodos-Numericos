@@ -148,23 +148,19 @@ namespace detail {
         if (match == std::string::npos) {
             throw std::runtime_error("File is corrupted or malformed");
         }
-        char prefix = header[match - 1];
-        char suffix = header[match + field.size()];
-        if (prefix != '\"' && prefix != '\'' && suffix != prefix) {
-            throw std::runtime_error("File is corrupted or malformed");
-        }
-        start = header.find_first_not_of(": ", match + field.size() + 1);
-        if (header[start] == '\"' || header[start] == '\'') {
+        start = header.find(':', match + field.size());
+        start = header.find_first_not_of(' ', start + 1);
+        if (header.at(start) == '\"' || header.at(start) == '\'') {
             ++start;
-            end = header.find_first_of(header[start - 1], start);
+            end = header.find_first_of(header[start - 1], start) - 1;
         }
-        else if (header[start] == '(') {
-            end = header.find_first_of(')', start) + 1;
+        else if (header.at(start) == '(') {
+            end = header.find_first_of(')', start);
         }
         else {
-            end = header.find_first_of(",}", start);
+            end = header.find_first_of(",}", start) - 1;
         }
-        return header.substr(start, end - start);
+        return header.substr(start, end - start + 1);
     }
 
     /**
@@ -190,10 +186,6 @@ namespace detail {
             header.resize(header_len);
         }
         file.read(&header[0], header.size());
-        // Check it is a valid header.
-        if (header.front() != '{' || header.back() != '}') {
-            throw std::runtime_error("File is corrupted or malformed");
-        }
         // Parse "descr" field.
         std::string descr = parse_array_header(header, "descr");
         if (descr != dtype_to_descr<T>()) {
