@@ -25,7 +25,6 @@
 #define NUMCPP_IO_TCC_INCLUDED
 
 #include <cstdint>
-#include <cstring>
 #include <complex>
 #include <ios>
 #include <fstream>
@@ -56,87 +55,116 @@ namespace detail {
 
     template <>
     inline const char* dtype_to_descr<bool>() {
-        return "'|b1'";
+        return "|b1";
     }
 
     template <>
     inline const char* dtype_to_descr<signed char>() {
-        return "'|i1'";
+        return "|i1";
     }
 
     template <>
     inline const char* dtype_to_descr<unsigned char>() {
-        return "'|u1'";
+        return "|u1";
     }
 
     template <>
     inline const char* dtype_to_descr<short>() {
-        return "'<i2'";
+        return "<i2";
     }
 
     template <>
     inline const char* dtype_to_descr<unsigned short>() {
-        return "'<u2'";
+        return "<u2";
     }
 
     template <>
     inline const char* dtype_to_descr<int>() {
-        return (sizeof(int) == 4) ? "'<i4'" : "'<i2'";
+        return (sizeof(int) == 4) ? "<i4" : "<i2";
     }
 
     template <>
     inline const char* dtype_to_descr<unsigned int>() {
-        return (sizeof(unsigned int) == 4) ? "'<u4'" : "'<u2'";
+        return (sizeof(unsigned int) == 4) ? "<u4" : "<u2";
     }
 
     template <>
     inline const char* dtype_to_descr<long>() {
-        return (sizeof(long) == 8) ? "'<i8'" : "'<i4'";
+        return (sizeof(long) == 8) ? "<i8" : "<i4";
     }
 
     template <>
     inline const char* dtype_to_descr<unsigned long>() {
-        return (sizeof(unsigned long) == 8) ? "'<u8'" : "'<u4'";
+        return (sizeof(unsigned long) == 8) ? "<u8" : "<u4";
     }
 
     template <>
     inline const char* dtype_to_descr<long long>() {
-        return "'<i8'";
+        return "<i8";
     }
 
     template <>
     inline const char* dtype_to_descr<unsigned long long>() {
-        return "'<u8'";
+        return "<u8";
     }
 
     template <>
     inline const char* dtype_to_descr<float>() {
-        return "'<f4'";
+        return "<f4";
     }
 
     template <>
     inline const char* dtype_to_descr<double>() {
-        return "'<f8'";
+        return "<f8";
     }
 
     template <>
     inline const char* dtype_to_descr<long double>() {
-        return (sizeof(long double) == 16) ? "'<f16'" : "'<f12'";
+        return (sizeof(long double) == 16) ? "<f16" : "<f12";
     }
 
     template <>
     inline const char* dtype_to_descr< std::complex<float> >() {
-        return "'<c8'";
+        return "<c8";
     }
 
     template <>
     inline const char* dtype_to_descr< std::complex<double> >() {
-        return "'<c16'";
+        return "<c16";
     }
 
     template <>
     inline const char* dtype_to_descr< std::complex<long double> >() {
-        return (sizeof(long double) == 16) ? "'<c32'" : "'<c24'";
+        return (sizeof(long double) == 16) ? "<c32" : "<c24";
+    }
+
+    /**
+     * @brief Parse a field from a tensor header.
+     */
+    std::string parse_array_header(
+        const std::string &header, const std::string &field
+    ) {
+        size_t start, end, match = header.find(field);
+        if (match == std::string::npos) {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
+        char prefix = header[match - 1];
+        char suffix = header[match + field.size()];
+        if (prefix != '\"' && prefix != '\'' && suffix != prefix) {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
+        start = header.find_first_not_of(": ", match + field.size() + 1);
+        if (header[start] == '\"' || header[start] == '\'') {
+            ++start;
+            end = header.find_first_of(header[start - 1], start);
+        }
+        else if (header[start] == '(') {
+            end = header.find_first_of(')', start) + 1;
+        }
+        else {
+            end = header.find_first_of(",}", start);
+        }
+        return header.substr(start, end - start);
     }
 
     /**
@@ -149,65 +177,51 @@ namespace detail {
     void read_array_header(
         std::ifstream &file, int version, shape_t<Rank> &shape, layout_t &order
     ) {
-        std::uint32_t header_len = 0;
+        std::string header;
         // Version 1.0 uses 2 bytes for the length while version 2.0 uses 4.
-        file.read(reinterpret_cast<char*>(&header_len), (version < 2) ? 2 : 4);
-        char *header = new char[header_len + 1];
-        file.read(header, header_len);
-        header[header_len] = '\0';
-        // Verify that the header contains the required fields.
-        char *descr_pos = std::strstr(header, "'descr':");
-        char *f_order_pos = std::strstr(header, "'fortran_order':");
-        char *shape_pos = std::strstr(header, "'shape':");
-        if (descr_pos == NULL || f_order_pos == NULL || shape_pos == NULL) {
-            throw std::runtime_error("File is corrupted or invalid");
+        if (version < 2) {
+            std::uint16_t header_len;
+            file.read(reinterpret_cast<char*>(&header_len), 2);
+            header.resize(header_len);
         }
-        // Parse header's data type. The format must be "'descr': dtype".
-        const char *dtype = dtype_to_descr<T>();
-        descr_pos += std::strlen("'descr':");
-        while (*descr_pos == ' ') {
-            ++descr_pos;
+        else {
+            std::uint32_t header_len;
+            file.read(reinterpret_cast<char*>(&header_len), 4);
+            header.resize(header_len);
         }
-        if (std::strncmp(descr_pos, dtype, std::strlen(dtype)) != 0) {
+        file.read(&header[0], header.size());
+        // Check it is a valid header.
+        if (header.front() != '{' || header.back() != '}') {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
+        // Parse "descr" field.
+        std::string descr = parse_array_header(header, "descr");
+        if (descr != dtype_to_descr<T>()) {
             std::ostringstream error;
-            size_t end = std::strcspn(descr_pos, ",}\0");
-            descr_pos[end] = '\0';
-            error << "Stored data type " << descr_pos << " doesn't match the"
-                  << " desired data type " << dtype;
+            error << "Stored data type \"" << descr << "\" doesn't match the"
+                  << " desired data type \"" << dtype_to_descr<T>() << "\"";
             throw std::runtime_error(error.str());
         }
-        // Parse header's layout order. The format must be
-        // "'fortran_order': True|False".
-        f_order_pos += std::strlen("'fortran_order':");
-        while (*f_order_pos == ' ') {
-            ++f_order_pos;
-        }
-        if (std::strncmp(f_order_pos, "True", std::strlen("True")) == 0) {
+        // Parse "fortran_order" field.
+        std::string f_order = parse_array_header(header, "fortran_order");
+        if (f_order == "True") {
             order = col_major;
         }
-        else if (std::strncmp(f_order_pos, "False", std::strlen("False")) == 0){
+        else if (f_order == "False") {
             order = row_major;
         }
         else {
-            throw std::runtime_error("File is corrupted or invalid");
+            throw std::runtime_error("File is corrupted or malformed");
         }
-        // Parse header's shape. The format must be "'shape': shape".
-        shape_pos += std::strlen("'shape':");
-        while (*shape_pos == ' ') {
-            ++shape_pos;
-        }
-        std::istringstream parser(shape_pos);
+        // Parse "shape" field.
+        std::string a_shape = parse_array_header(header, "shape");
+        std::istringstream parser(a_shape);
         if (!(parser >> shape)) {
-            size_t end = std::strcspn(shape_pos, ")}\0");
-            if (shape_pos[end] != '\0') {
-                shape_pos[end + 1] = '\0';
-            }
             std::ostringstream error;
-            error << "Shape " << shape_pos << " is not a valid shape of rank "
+            error << "Shape " << a_shape << " is not a valid shape of rank "
                   << Rank;
             throw std::runtime_error(error.str());
         }
-        delete[] header;
     }
 
     /**
@@ -253,9 +267,10 @@ namespace detail {
         std::ofstream &file, const shape_t<Rank> &shape, layout_t order
     ) {
         std::ostringstream buffer;
-        buffer << "{'descr': " << dtype_to_descr<T>() << ", 'fortran_order': "
-               << (order == col_major ? "True" : "False") << ", 'shape': "
-               << shape << "}";
+        std::string descr = dtype_to_descr<T>();
+        std::string f_order = (order == col_major) ? "True" : "False";
+        buffer << "{\"descr\": \"" << descr << "\", \"fortran_order\": "
+               << f_order << ", \"shape\": " << shape << "}";
         std::string header = buffer.str();
         std::uint16_t header_len = header.size();
         file.write(reinterpret_cast<char*>(&header_len), 2);
@@ -271,7 +286,7 @@ namespace detail {
     ) {
         while (first != last) {
             T val = *first;
-            file.write(reinterpret_cast<const char*>(&val), sizeof(T));
+            file.write(reinterpret_cast<char*>(&val), sizeof(T));
             ++first;
         }
     }
