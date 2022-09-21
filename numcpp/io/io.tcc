@@ -313,7 +313,7 @@ namespace detail {
     ) {
         file.write("\x93NUMPY", 6);
         file.write(reinterpret_cast<char*>(&major), 1);
-        file.write(reinterpret_cast<char*>(&minor), 1);
+        file.write(reinterpret_cast<char*>(&minor), 0);
     }
 
     /**
