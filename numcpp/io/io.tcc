@@ -258,8 +258,8 @@ namespace detail {
         std::istringstream parser(a_shape);
         if (!(parser >> shape)) {
             std::ostringstream error;
-            error << "Shape " << a_shape << " is not a valid shape of rank "
-                  << Rank;
+            error << "input file shape " << a_shape << " is not a valid shape"
+                  << " of rank " << Rank;
             throw std::runtime_error(error.str());
         }
     }
