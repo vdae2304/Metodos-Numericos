@@ -40,102 +40,141 @@ namespace numcpp {
 
 namespace detail {
     /**
+     * @brief Find the endiannes of scalar types.
+     *
+     * @return '<' for little endian, '>' for big endian.
+     */
+    inline char endian() {
+        std::uint16_t word = 0x0001;
+        std::uint8_t *byte = reinterpret_cast<std::uint8_t*>(&word);
+        return byte[0] ? '<' : '>';
+    }
+
+    /**
      * @brief Return a serializable descriptor from the data type.
      *
-     * @note Since many of these have platform-dependent definitions, the use
-     * of fixed width data types is suggested (<cstding>) for cross-platform
-     * compatibility.
+     * @note Many of these have platform-dependent definitions.
      *
      * Full documentation:
-     * @link https://numpy.org/doc/stable/user/basics.types.html @endlink
+     * @link https://numpy.org/doc/stable/reference/arrays.dtypes.html @endlink
      */
     template <class T>
-    inline const char* dtype_to_descr(); // Not defined for non-arithmetic or
-                                         // complex types.
+    inline std::string dtype_to_descr();
+
+    inline std::string dtype_to_descr_impl(
+        char byteorder, char kind, size_t itemsize
+    ) {
+        std::ostringstream buffer;
+        buffer << byteorder << kind << itemsize;
+        return buffer.str();
+    }
+
+    /// Specialization for fundamental types.
 
     template <>
-    inline const char* dtype_to_descr<bool>() {
-        return "|b1";
+    inline std::string dtype_to_descr<bool>() {
+        return dtype_to_descr_impl('|', 'b', sizeof(bool));
     }
 
     template <>
-    inline const char* dtype_to_descr<signed char>() {
-        return "|i1";
+    inline std::string dtype_to_descr<signed char>() {
+        return dtype_to_descr_impl('|', 'i', sizeof(signed char));
     }
 
     template <>
-    inline const char* dtype_to_descr<unsigned char>() {
-        return "|u1";
+    inline std::string dtype_to_descr<unsigned char>() {
+        return dtype_to_descr_impl('|', 'u', sizeof(unsigned char));
     }
 
     template <>
-    inline const char* dtype_to_descr<short>() {
-        return "<i2";
+    inline std::string dtype_to_descr<short>() {
+        return dtype_to_descr_impl(endian(), 'i', sizeof(short));
     }
 
     template <>
-    inline const char* dtype_to_descr<unsigned short>() {
-        return "<u2";
+    inline std::string dtype_to_descr<unsigned short>() {
+        return dtype_to_descr_impl(endian(), 'u', sizeof(unsigned short));
     }
 
     template <>
-    inline const char* dtype_to_descr<int>() {
-        return (sizeof(int) == 4) ? "<i4" : "<i2";
+    inline std::string dtype_to_descr<int>() {
+        return dtype_to_descr_impl(endian(), 'i', sizeof(int));
     }
 
     template <>
-    inline const char* dtype_to_descr<unsigned int>() {
-        return (sizeof(unsigned int) == 4) ? "<u4" : "<u2";
+    inline std::string dtype_to_descr<unsigned int>() {
+        return dtype_to_descr_impl(endian(), 'u', sizeof(unsigned int));
     }
 
     template <>
-    inline const char* dtype_to_descr<long>() {
-        return (sizeof(long) == 8) ? "<i8" : "<i4";
+    inline std::string dtype_to_descr<long>() {
+        return dtype_to_descr_impl(endian(), 'i', sizeof(long));
     }
 
     template <>
-    inline const char* dtype_to_descr<unsigned long>() {
-        return (sizeof(unsigned long) == 8) ? "<u8" : "<u4";
+    inline std::string dtype_to_descr<unsigned long>() {
+        return dtype_to_descr_impl(endian(), 'u', sizeof(unsigned long));
     }
 
     template <>
-    inline const char* dtype_to_descr<long long>() {
-        return "<i8";
+    inline std::string dtype_to_descr<long long>() {
+        return dtype_to_descr_impl(endian(), 'i', sizeof(long long));
     }
 
     template <>
-    inline const char* dtype_to_descr<unsigned long long>() {
-        return "<u8";
+    inline std::string dtype_to_descr<unsigned long long>() {
+        return dtype_to_descr_impl(endian(), 'u', sizeof(unsigned long long));
     }
 
     template <>
-    inline const char* dtype_to_descr<float>() {
-        return "<f4";
+    inline std::string dtype_to_descr<float>() {
+        return dtype_to_descr_impl(endian(), 'f', sizeof(float));
     }
 
     template <>
-    inline const char* dtype_to_descr<double>() {
-        return "<f8";
+    inline std::string dtype_to_descr<double>() {
+        return dtype_to_descr_impl(endian(), 'f', sizeof(double));
     }
 
     template <>
-    inline const char* dtype_to_descr<long double>() {
-        return (sizeof(long double) == 16) ? "<f16" : "<f12";
+    inline std::string dtype_to_descr<long double>() {
+        return dtype_to_descr_impl(endian(), 'f', sizeof(long double));
     }
 
     template <>
-    inline const char* dtype_to_descr< std::complex<float> >() {
-        return "<c8";
+    inline std::string dtype_to_descr< std::complex<float> >() {
+        return dtype_to_descr_impl(
+            endian(), 'c', sizeof(std::complex<float>)
+        );
     }
 
     template <>
-    inline const char* dtype_to_descr< std::complex<double> >() {
-        return "<c16";
+    inline std::string dtype_to_descr< std::complex<double> >() {
+        return dtype_to_descr_impl(
+            endian(), 'c', sizeof(std::complex<double>)
+        );
     }
 
     template <>
-    inline const char* dtype_to_descr< std::complex<long double> >() {
-        return (sizeof(long double) == 16) ? "<c32" : "<c24";
+    inline std::string dtype_to_descr< std::complex<long double> >() {
+        return dtype_to_descr_impl(
+            endian(), 'c', sizeof(std::complex<long double>)
+        );
+    }
+
+    /**
+     * @brief Read the magic string to get the version of the file format.
+     */
+    void read_magic(
+        std::ifstream &file, std::uint8_t &major, std::uint8_t &minor
+    ) {
+        std::string magic(6, ' ');
+        file.read(&magic[0], 6);
+        if (magic != "\x93NUMPY") {
+            throw std::runtime_error("File is not a valid .npy file");
+        }
+        file.read(reinterpret_cast<char*>(&major), 1);
+        file.read(reinterpret_cast<char*>(&minor), 1);
     }
 
     /**
@@ -165,13 +204,15 @@ namespace detail {
 
     /**
      * @brief Read the tensor header from a .npy file.
-     * Full documentation about the format of .npy files can be fount in @link
+     *
+     * Full documentation about the format of .npy files can be fount at @link
      * https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
      * @endlink
      */
     template <class T, size_t Rank>
     void read_array_header(
-        std::ifstream &file, int version, shape_t<Rank> &shape, layout_t &order
+        std::ifstream &file, std::uint8_t version,
+        shape_t<Rank> &shape, layout_t &order
     ) {
         std::string header;
         // Version 1.0 uses 2 bytes for the length while version 2.0 uses 4.
@@ -185,13 +226,20 @@ namespace detail {
             file.read(reinterpret_cast<char*>(&header_len), 4);
             header.resize(header_len);
         }
+        // Read header and check it is a valid Python dictionary.
         file.read(&header[0], header.size());
+        header = header.erase(0, header.find_first_not_of(" \f\n\r\t\v"));
+        header = header.erase(header.find_last_not_of(" \f\n\r\t\v") + 1);
+        if (header.size() < 2 || header.front() != '{' ||
+            header.back() != '}') {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
         // Parse "descr" field.
         std::string descr = parse_array_header(header, "descr");
         if (descr != dtype_to_descr<T>()) {
             std::ostringstream error;
-            error << "Stored data type \"" << descr << "\" doesn't match the"
-                  << " desired data type \"" << dtype_to_descr<T>() << "\"";
+            error << "input file data type \"" << descr << "\" doesn't match "
+                  << " output data type \"" << dtype_to_descr<T>() << "\"";
             throw std::runtime_error(error.str());
         }
         // Parse "fortran_order" field.
@@ -203,7 +251,7 @@ namespace detail {
             order = row_major;
         }
         else {
-            throw std::runtime_error("File is corrupted or malformed");
+            throw std::runtime_error("fortran_order must be True or False");
         }
         // Parse "shape" field.
         std::string a_shape = parse_array_header(header, "shape");
@@ -223,6 +271,13 @@ namespace detail {
     void read_array(
         std::ifstream &file, OutputIterator first, OutputIterator last
     ) {
+        std::streampos pos = file.tellg();
+        file.seekg(0, std::ios::end);
+        size_t bytesize = file.tellg() - pos;
+        file.seekg(pos, std::ios::beg);
+        if (bytesize != std::distance(first, last) * sizeof(T)) {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
         while (first != last) {
             file.read(reinterpret_cast<char*>(&*first), sizeof(T));
             ++first;
@@ -239,18 +294,28 @@ namespace detail {
                   << " be read";
             throw std::runtime_error(error.str());
         }
-        uint8_t version[2];
-        file.ignore(6);
-        file.read(reinterpret_cast<char*>(version), 2);
+        std::uint8_t major, minor;
+        detail::read_magic(file, major, minor);
         shape_t<Rank> shape;
         layout_t order;
-        detail::read_array_header<T>(file, version[0], shape, order);
+        detail::read_array_header<T>(file, major, shape, order);
         tensor<T, Rank> out(shape);
         detail::read_array<T>(file, out.begin(order), out.end(order));
         return out;
     }
 
 namespace detail {
+    /**
+     * @brief Write the magic string to a .npy file.
+     */
+    void write_magic(
+        std::ofstream &file, std::uint8_t major, std::uint8_t minor
+    ) {
+        file.write("\x93NUMPY", 6);
+        file.write(reinterpret_cast<char*>(&major), 1);
+        file.write(reinterpret_cast<char*>(&minor), 1);
+    }
+
     /**
      * @brief Writes the tensor header to a .npy file.
      */
@@ -294,9 +359,7 @@ namespace detail {
             error << "Ouput file " << filename << " cannot be written";
             throw std::runtime_error(error.str());
         }
-        file.write("\x93NUMPY", 6);
-        file.write("\x01", 1);
-        file.write("\x00", 1);
+        detail::write_magic(file, 1, 0);
         detail::write_array_header<T>(file, data.shape(), data.layout());
         detail::write_array<T>(file, data.begin(), data.end());
         file.close();
