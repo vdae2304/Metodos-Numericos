@@ -1074,7 +1074,7 @@ namespace numcpp {
     tensor<index_t<Rank>, 1> argsort(const base_tensor<T, Rank, Tag> &a);
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<index_t<Rank>, 1> argsort(
         const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false
     );
@@ -1106,7 +1106,7 @@ namespace numcpp {
     );
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<size_t, Rank> argsort(
         const base_tensor<T, Rank, Tag> &a, size_t axis,
         Compare comp, bool stable = false
@@ -1134,7 +1134,7 @@ namespace numcpp {
     sort(const base_tensor<T, Rank, Tag> &a);
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false);
 
@@ -1161,7 +1161,7 @@ namespace numcpp {
     sort(const base_tensor<T, Rank, Tag> &a, size_t axis);
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     sort(
         const base_tensor<T, Rank, Tag> &a, size_t axis,
@@ -1195,7 +1195,7 @@ namespace numcpp {
     );
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<index_t<Rank>, 1> argpartition(
         const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp
     );
@@ -1230,7 +1230,7 @@ namespace numcpp {
     );
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<size_t, Rank> argpartition(
         const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
         Compare comp
@@ -1260,7 +1260,7 @@ namespace numcpp {
     partition(const base_tensor<T, Rank, Tag> &a, size_t kth);
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
     partition(const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp);
 
@@ -1289,7 +1289,7 @@ namespace numcpp {
     partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis);
 
     template <class T, size_t Rank, class Tag, class Compare,
-              detail::RequiresCallable<Compare, T, T> = true>
+              detail::RequiresCallable<Compare, T, T> = 0>
     tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
     partition(
         const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
@@ -1313,7 +1313,7 @@ namespace numcpp {
      * @brief Return elements chosen from two tensors depending on condition.
      * When only condition is provided, this function is equivalent to nonzero.
      *
-     * @param condition A tensor-like object of bool, where true, yield x,
+     * @param condition A tensor-like object of bool. Where true, yield x,
      *     otherwise yield y.
      * @param x A single value or a tensor-like object with the values from
      *     which to choose where condition is true.
@@ -1348,23 +1348,15 @@ namespace numcpp {
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const base_tensor<T, Rank, TagTrue> &x,
-        const typename tensor<T, Rank>::value_type &y
+        const typename base_tensor<T, Rank, TagTrue>::value_type &y
     );
 
     template <class T, size_t Rank, class TagCond, class TagFalse>
     base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse> >
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
-        const typename tensor<T, Rank>::value_type &x,
+        const typename base_tensor<T, Rank, TagFalse>::value_type &x,
         const base_tensor<T, Rank, TagFalse> &y
-    );
-
-    template <class T, size_t Rank, class TagCond>
-    base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag> >
-    where(
-        const base_tensor<bool, Rank, TagCond> &condition,
-        const T &x,
-        const T &y
     );
 
     /// Rearranging elements.

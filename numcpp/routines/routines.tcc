@@ -987,7 +987,7 @@ namespace numcpp {
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
         const base_tensor<T, Rank, TagTrue> &x,
-        const typename tensor<T, Rank>::value_type &y
+        const typename base_tensor<T, Rank, TagTrue>::value_type &y
     ) {
         typedef lazy_where_tag<TagCond, TagTrue, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(condition, x, y);
@@ -997,22 +997,10 @@ namespace numcpp {
     inline base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse> >
     where(
         const base_tensor<bool, Rank, TagCond> &condition,
-        const typename tensor<T, Rank>::value_type &x,
+        const typename base_tensor<T, Rank, TagFalse>::value_type &x,
         const base_tensor<T, Rank, TagFalse> &y
     ) {
         typedef lazy_where_tag<TagCond, scalar_tag, TagFalse> Closure;
-        return base_tensor<T, Rank, Closure>(condition, x, y);
-    }
-
-    template <class T, size_t Rank, class TagCond>
-    inline base_tensor<
-        T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>
-    > where(
-        const base_tensor<bool, Rank, TagCond> &condition,
-        const T &x,
-        const T &y
-    ) {
-        typedef lazy_where_tag<TagCond, scalar_tag, scalar_tag> Closure;
         return base_tensor<T, Rank, Closure>(condition, x, y);
     }
 
