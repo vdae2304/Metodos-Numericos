@@ -11,13 +11,13 @@ Defined in `numcpp/routines.h`
     - [`argpartition`](#argpartition)
     - [`argpartition(axis)`](#argpartitionaxis)
     - [`partition`](#partition)
-    - [`partition`](#partition-1)
+    - [`partition(axis)`](#partitionaxis)
   - [Searching](#searching)
     - [`nonzero`](#nonzero)
     - [`where`](#where)
   - [Rearranging elements](#rearranging-elements)
-    - [`reverse`](#reverse)
-    - [`rotate`](#rotate)
+    - [`reverse(axes)`](#reverseaxes)
+    - [`rotate(axes)`](#rotateaxes)
 
 ## Sorting
 
@@ -819,7 +819,7 @@ Partition by absolute value:
  12, 13, 18, 18]
 ```
 
-### `partition`
+### `partition(axis)`
 
 Return a partitioned copy of the tensor.
 ```cpp
@@ -1079,7 +1079,7 @@ max(x - y, 0):
 
 ## Rearranging elements
 
-### `reverse`
+### `reverse(axes)`
 
 Reverse the order of the elements in a tensor along the given axes.
 ```cpp
@@ -1173,7 +1173,7 @@ Both axes:
  [15, -2, 13, -3, 18, 11]]
 ```
 
-### `rotate`
+### `rotate(axes)`
 
 Rotate the elements in a tensor along the given axes. The elements are shifted
 circularly in such a way that the element at position `shift` becomes the first
