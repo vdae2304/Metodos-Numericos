@@ -24,8 +24,8 @@
 #ifndef NUMCPP_IO_TCC_INCLUDED
 #define NUMCPP_IO_TCC_INCLUDED
 
-#include <cstdint>
 #include <complex>
+#include <cstdint>
 #include <ios>
 #include <fstream>
 #include <istream>
@@ -178,34 +178,20 @@ namespace detail {
     }
 
     /**
-     * @brief Parse a field from a tensor header.
+     * @brief Parse a Python dictionary from a string. Return whether the
+     * operation was successful.
      */
-    std::string parse_array_header(
-        const std::string &header, const std::string &field
-    ) {
-        size_t start, end, match = header.find(field);
-        if (match == std::string::npos) {
-            throw std::runtime_error("File is corrupted or malformed");
-        }
-        start = header.find(':', match + field.size());
-        start = header.find_first_not_of(' ', start + 1);
-        if (header.at(start) == '\"' || header.at(start) == '\'') {
-            ++start;
-            end = header.find_first_of(header[start - 1], start) - 1;
-        }
-        else if (header.at(start) == '(') {
-            end = header.find_first_of(')', start);
-        }
-        else {
-            end = header.find_first_of(",}", start) - 1;
-        }
-        return header.substr(start, end - start + 1);
-    }
+    bool parse_pydict(
+        const std::string &str,
+        std::vector< std::pair<std::string, std::string> > &dict
+    );
+    bool parse_pydict_key(std::istringstream &parser, std::string &key);
+    bool parse_pydict_value(std::istringstream &parser, std::string &value);
 
     /**
-     * @brief Read the tensor header from a .npy file.
+     * @brief Read the array header from a .npy file.
      *
-     * Full documentation about the format of .npy files can be fount at @link
+     * @note Full documentation about the format of .npy files at @link
      * https://numpy.org/doc/stable/reference/generated/numpy.lib.format.html
      * @endlink
      */
@@ -226,24 +212,29 @@ namespace detail {
             file.read(reinterpret_cast<char*>(&header_len), 4);
             header.resize(header_len);
         }
-        // Read header and check it is a valid Python dictionary.
         file.read(&header[0], header.size());
-        header = header.erase(0, header.find_first_not_of(" \f\n\r\t\v"));
-        header = header.erase(header.find_last_not_of(" \f\n\r\t\v") + 1);
-        if (header.size() < 2 || header.front() != '{' ||
-            header.back() != '}') {
+        // Check header is a valid Python dictionary with the required fields.
+        std::vector< std::pair<std::string, std::string> > dict;
+        if (!parse_pydict(header, dict)) {
+            throw std::runtime_error("File is corrupted or malformed");
+        }
+        std::sort(dict.begin(), dict.end());
+        if (dict.size() != 3
+            || dict[0].first != "descr"
+            || dict[1].first != "fortran_order"
+            || dict[2].first != "shape") {
             throw std::runtime_error("File is corrupted or malformed");
         }
         // Parse "descr" field.
-        std::string descr = parse_array_header(header, "descr");
+        std::string descr = dict[0].second;
         if (descr != dtype_to_descr<T>()) {
             std::ostringstream error;
-            error << "input file data type \"" << descr << "\" doesn't match "
-                  << " output data type \"" << dtype_to_descr<T>() << "\"";
+            error << "input file dtype '" << descr << "' doesn't match output"
+                  << " dtype '" << dtype_to_descr<T>() << "'";
             throw std::runtime_error(error.str());
         }
         // Parse "fortran_order" field.
-        std::string f_order = parse_array_header(header, "fortran_order");
+        std::string f_order = dict[1].second;
         if (f_order == "True") {
             order = col_major;
         }
@@ -254,7 +245,7 @@ namespace detail {
             throw std::runtime_error("fortran_order must be True or False");
         }
         // Parse "shape" field.
-        std::string a_shape = parse_array_header(header, "shape");
+        std::string a_shape = dict[2].second;
         std::istringstream parser(a_shape);
         if (!(parser >> shape)) {
             std::ostringstream error;
@@ -264,8 +255,97 @@ namespace detail {
         }
     }
 
+    bool parse_pydict(
+        const std::string &str,
+        std::vector< std::pair<std::string, std::string> > &dict
+    ) {
+        std::istringstream parser(str);
+        std::string key, value;
+        char delim;
+        dict.clear();
+        if (parser >> delim && delim == '{') {
+            while (parse_pydict_key(parser, key)) {
+                if (parser >> delim && delim == ':') {
+                    if (parse_pydict_value(parser, value)) {
+                        dict.emplace_back(key, value);
+                        if (parser >> delim) {
+                            if (delim == ',') {
+                                continue;
+                            }
+                            else if (delim == '}') {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            if (parser >> delim && delim == '}') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool parse_pydict_key(std::istringstream &parser, std::string &key) {
+        char delim;
+        if (parser >> delim) {
+            if (delim == '\"' || delim == '\'') {
+                if (std::getline(parser, key, delim)) {
+                    return true;
+                }
+            }
+            else {
+                parser.putback(delim);
+            }
+        }
+        return false;
+    }
+
+    bool parse_pydict_value(std::istringstream &parser, std::string &value) {
+        char delim;
+        if (parser >> delim) {
+            switch (delim) {
+            case '\"':
+            case '\'':
+                if (std::getline(parser, value, delim)) {
+                    return true;
+                }
+                break;
+            case '(':
+                if (std::getline(parser, value, ')')) {
+                    value = '(' + value + ')';
+                    return true;
+                }
+                break;
+            case '[':
+                if (std::getline(parser, value, ']')) {
+                    value = '[' + value + ']';
+                    return true;
+                }
+                break;
+            case '{':
+                if (std::getline(parser, value, '}')) {
+                    value = '{' + value + '}';
+                    return true;
+                }
+                break;
+            default:
+                value = delim;
+                while (parser.get(delim)) {
+                    if (std::isspace(delim) || delim == ',' || delim == '}') {
+                        parser.putback(delim);
+                        return true;
+                    }
+                    value.push_back(delim);
+                }
+            }
+        }
+        return false;
+    }
+
     /**
-     * @brief Read the tensor's content from a .npy file.
+     * @brief Read the arrays's content from a .npy file.
      */
     template <class T, class OutputIterator>
     void read_array(
@@ -317,7 +397,7 @@ namespace detail {
     }
 
     /**
-     * @brief Writes the tensor header to a .npy file.
+     * @brief Writes the array header to a .npy file.
      */
     template <class T, size_t Rank>
     void write_array_header(
@@ -326,8 +406,8 @@ namespace detail {
         std::ostringstream buffer;
         std::string descr = dtype_to_descr<T>();
         std::string f_order = (order == col_major) ? "True" : "False";
-        buffer << "{\"descr\": \"" << descr << "\", \"fortran_order\": "
-               << f_order << ", \"shape\": " << shape << "}";
+        buffer << "{'descr': '" << descr << "', 'fortran_order': "
+               << f_order << ", 'shape': " << shape << "}";
         std::string header = buffer.str();
         std::uint16_t header_len = header.size();
         file.write(reinterpret_cast<char*>(&header_len), 2);
@@ -335,7 +415,7 @@ namespace detail {
     }
 
     /**
-     * @brief Write the tensor's contents to a .npy file.
+     * @brief Write the arrays's contents to a .npy file.
      */
     template <class T, class InputIterator>
     void write_array(
