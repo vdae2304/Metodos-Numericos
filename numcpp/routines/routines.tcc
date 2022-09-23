@@ -25,6 +25,7 @@
 #define NUMCPP_ROUTINES_TCC_INCLUDED
 
 #include "numcpp/functional.h"
+#include <vector>
 
 namespace numcpp {
     /// Tensor creation routines.
@@ -1038,6 +1039,91 @@ namespace numcpp {
     ) {
         typedef roll_tag<Tag, N> Closure;
         return base_tensor<T, Rank, Closure>(a, shift, axes);
+    }
+
+    /// Set routines.
+
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    unique(const base_tensor<T, Rank, Tag> &arg) {
+        typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+        std::vector<Rt> buffer(arg.begin(), arg.end());
+        if (!std::is_sorted(buffer.begin(), buffer.end())) {
+            std::sort(buffer.begin(), buffer.end());
+        }
+        size_t size = std::unique(buffer.begin(), buffer.end())
+                    - buffer.begin();
+        return tensor<Rt, 1>(buffer.begin(), size);
+    }
+
+    template <class T, class Tag>
+    bool includes(
+        const base_tensor<T, 1, Tag> &arg,
+        const typename base_tensor<T, 1, Tag>::value_type &val
+    ) {
+        return std::binary_search(arg.begin(), arg.end(), val);
+    }
+
+    template <class T, class Tag1, class Tag2>
+    bool includes(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    ) {
+        return std::includes(
+            arg1.begin(), arg1.end(), arg2.begin(), arg2.end()
+        );
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_union(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    ) {
+        std::vector<T> buffer;
+        std::set_union(
+            arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+            std::back_inserter(buffer)
+        );
+        return tensor<T, 1>(buffer.begin(), buffer.size());
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_intersection(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    ) {
+        std::vector<T> buffer;
+        std::set_intersection(
+            arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+            std::back_inserter(buffer)
+        );
+        return tensor<T, 1>(buffer.begin(), buffer.size());
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_difference(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    ) {
+        std::vector<T> buffer;
+        std::set_difference(
+            arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+            std::back_inserter(buffer)
+        );
+        return tensor<T, 1>(buffer.begin(), buffer.size());
+    }
+
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_symmetric_difference(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    ) {
+        std::vector<T> buffer;
+        std::set_symmetric_difference(
+            arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+            std::back_inserter(buffer)
+        );
+        return tensor<T, 1>(buffer.begin(), buffer.size());
     }
 
     /// Basic statistics.

@@ -1413,6 +1413,142 @@ namespace numcpp {
         const index_t<N> &shift, const shape_t<N> &axes
     );
 
+    /// Set routines.
+
+    /**
+     * @brief Find the sorted unique elements of a tensor.
+     *
+     * @param arg A tensor-like object.
+     *
+     * @return A new tensor with the sorted unique elements in arg.
+     *
+     * @note The elements in arg are not required to be sorted before unique is
+     * called. However, unique might perform faster if the elements in arg are
+     * already sorted.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank, class Tag>
+    tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+    unique(const base_tensor<T, Rank, Tag> &arg);
+
+    /**
+     * @brief Test whether a value is present in a tensor.
+     *
+     * @param arg A 1-dimensional tensor-like object. The function tests
+     *     whether arg contains val. The elements in arg must be sorted.
+     * @param val The value to test.
+     *
+     * @return true if val is present in arg and false otherwise.
+     */
+    template <class T, class Tag>
+    bool includes(
+        const base_tensor<T, 1, Tag> &arg,
+        const typename base_tensor<T, 1, Tag>::value_type &val
+    );
+
+    /**
+     * @brief Test whether all the elements in a tensor are also present in
+     * another tensor.
+     *
+     * @param arg1 A 1-dimensional tensor-like object. The function test
+     *     whether arg1 contains all the elements of arg2. The elements in arg1
+     *     must be sorted.
+     * @param arg2 A 1-dimensional tensor-like object with the values to test.
+     *     The elements in arg2 must be sorted.
+     *
+     * @return true if arg2 is a subset of arg1 and false otherwise.
+     */
+    template <class T, class Tag1, class Tag2>
+    bool includes(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    );
+
+    /**
+     * @brief Find the set union of two sorted tensors. Return the unique
+     * sorted elements that are present in either one of two tensors, or in
+     * both.
+     *
+     * @param arg1 A 1-dimensional tensor-like object. The elements in arg1
+     *     must be sorted.
+     * @param arg2 A 1-dimensional tensor-like object. The elements in arg2
+     *     must be sorted.
+     *
+     * @return A new tensor with the set union of both tensors.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_union(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    );
+
+    /**
+     * @brief Find the set intersection of two sorted tensors. Return the
+     * unique sorted elements that are present in both tensors.
+     *
+     * @param arg1 A 1-dimensional tensor-like object. The elements in arg1
+     *     must be sorted.
+     * @param arg2 A 1-dimensional tensor-like object. The elements in arg2
+     *     must be sorted.
+     *
+     * @return A new tensor with the set intersection of both tensors.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_intersection(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    );
+
+    /**
+     * @brief Find the set difference of two sorted tensors. Return the unique
+     * sorted elements that are present in the first tensor, but not in the
+     * second.
+     *
+     * @param arg1 A 1-dimensional tensor-like object. The elements in arg1
+     *     must be sorted.
+     * @param arg2 A 1-dimensional tensor-like object. The elements in arg2
+     *     must be sorted.
+     *
+     * @return A new tensor with the set difference of both tensors.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_difference(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    );
+
+    /**
+     * @brief Find the set symmetric difference of two sorted tensors. Return
+     * the unique sorted elements that are present in one of the tensors, but
+     * not in the other.
+     *
+     * @param arg1 A 1-dimensional tensor-like object. The elements in arg1
+     *     must be sorted.
+     * @param arg2 A 1-dimensional tensor-like object. The elements in arg2
+     *     must be sorted.
+     *
+     * @return A new tensor with the set symmetric difference of both tensors.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag1, class Tag2>
+    tensor<T, 1> set_symmetric_difference(
+        const base_tensor<T, 1, Tag1> &arg1,
+        const base_tensor<T, 1, Tag2> &arg2
+    );
+
     /// Basic statistics.
 
     /**
