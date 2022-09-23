@@ -18,6 +18,14 @@ Defined in `numcpp/routines.h`
   - [Rearranging elements](#rearranging-elements)
     - [`reverse(axes)`](#reverseaxes)
     - [`rotate(axes)`](#rotateaxes)
+  - [Set routines](#set-routines)
+    - [`unique`](#unique)
+    - [`includes`](#includes)
+    - [`includes`](#includes-1)
+    - [`set_union`](#set_union)
+    - [`set_intersection`](#set_intersection)
+    - [`set_difference`](#set_difference)
+    - [`set_symmetric_difference`](#set_symmetric_difference)
 
 ## Sorting
 
@@ -1277,4 +1285,394 @@ Both axes:
  [-3, 13, -2, 15, 11, 18],
  [15,  1,  0, -5, 10, -4],
  [-1,  4,  3, -3,  9,  3]]
+```
+
+## Set routines
+
+### `unique`
+
+Find the sorted unique elements of a tensor.
+```cpp
+template <class T, size_t Rank>
+tensor<typename tensor<T, Rank>::value_type, 1>
+unique(const tensor<T, Rank> &arg);
+```
+
+Parameters
+
+* `arg` A tensor-like object.
+
+Returns
+
+* A new tensor with the sorted unique elements in `arg`.
+
+Notes
+
+* The elements in `arg` are not required to be sorted before `unique` is
+called. However, `unique` might perform faster if the elements in `arg` are
+already sorted.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a;
+    std::cin >> a;
+    std::cout << np::unique(a) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 2, 3, 3, 3, 4, 5, 8, 9, 9]
+```
+
+Output
+
+```
+[2, 3, 4, 5, 8, 9]
+```
+
+### `includes`
+
+Test whether a value is present in a tensor.
+```cpp
+template <class T>
+bool includes(
+    const tensor<T, 1> &arg, const typename tensor<T, 1>::value_type &val
+);
+```
+
+Parameters
+
+* `arg` A 1-dimensional tensor-like object. The function tests whether `arg`
+contains `val`. The elements in `arg` must be sorted.
+* `val` The value to test.
+
+Returns
+
+* `true` if `val` is present in `arg` and `false` otherwise.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, val;
+    std::cin >> a >> val;
+    for (unsigned i = 0; i < val.size(); ++i) {
+        if (np::includes(a, val[i])) {
+            std::cout << val[i] << " is in a\n";
+        }
+        else {
+            std::cout << val[i] << " is not in a\n";
+        }
+    }
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 4, 5, 8, 9, 10, 12, 15, 18]
+[1, 2, 3, 5, 7]
+```
+
+Output
+
+```
+1 is not in a
+2 is in a
+3 is in a
+5 is in a
+7 is not in a
+```
+
+### `includes`
+
+Test whether all the elements in a tensor are also present in another tensor.
+```cpp
+template <class T>
+bool includes(const tensor<T, 1> &arg1, const tensor<T, 1> &arg2);
+```
+
+Parameters
+
+* `arg1` A 1-dimensional tensor-like object. The function test whether `arg1`
+contains all the elements of `arg2`. The elements in `arg1` must be sorted.
+* `arg2` A 1-dimensional tensor-like object with the values to test. The
+elements in `arg2` must be sorted.
+
+Returns
+
+* `true` if `arg2` is a subset of `arg1` and `false` otherwise.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    if (np::includes(a, b)) {
+        std::cout << "b is a subset of a\n";
+    }
+    else {
+        std::cout << "b is not a subset of a\n";
+    }
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 4, 5, 8, 9, 10, 12, 15, 18]
+[1, 2, 3, 5, 7]
+```
+
+Output
+
+```
+b is not a subset of a
+```
+
+Input
+
+```
+[2, 3, 4, 5, 8, 9, 10, 12, 15, 18]
+[2, 3, 5, 10, 12]
+```
+
+Output
+
+```
+b is a subset of a
+```
+
+### `set_union`
+
+Find the set union of two sorted tensors. Return the unique sorted elements
+that are present in either one of two tensors, or in both.
+```cpp
+template <class T>
+tensor<T, 1> set_union(const tensor<T, 1> &arg1, const tensor<T, 1> &arg2);
+```
+
+Parameters
+
+* `arg1` A 1-dimensional tensor-like object. The elements in `arg1` must be
+sorted.
+* `arg2` A 1-dimensional tensor-like object. The elements in `arg2` must be
+sorted.
+
+Returns
+
+* A new tensor with the set union of both tensors.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    std::cout << np::set_union(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 5, 7, 8, 9, 10]
+[5, 6, 7, 8, 9, 12, 15]
+```
+
+Output
+
+```
+[ 2,  3,  5,  6,  7,  8,  9, 10, 12, 15]
+```
+
+### `set_intersection`
+
+Find the set intersection of two sorted tensors. Return the unique sorted
+elements that are present in both tensors.
+```cpp
+template <class T>
+tensor<T, 1> set_intersection(
+    const tensor<T, 1> &arg1, const tensor<T, 1> &arg2
+);
+```
+
+Parameters
+
+* `arg1` A 1-dimensional tensor-like object. The elements in `arg1` must be
+sorted.
+* `arg2` A 1-dimensional tensor-like object. The elements in `arg2` must be
+sorted.
+
+Returns
+
+* A new tensor with the set intersection of both tensors.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    std::cout << np::set_intersection(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 5, 7, 8, 9, 10]
+[5, 6, 7, 8, 9, 12, 15]
+```
+
+Output
+
+```
+[5, 7, 8, 9]
+```
+
+### `set_difference`
+
+Find the set difference of two sorted tensors. Return the unique sorted
+elements that are present in the first tensor, but not in the second.
+```cpp
+template <class T>
+tensor<T, 1> set_difference(const tensor<T, 1> &arg1, const tensor<T, 1> &arg2);
+```
+
+Parameters
+
+* `arg1` A 1-dimensional tensor-like object. The elements in `arg1` must be
+sorted.
+* `arg2` A 1-dimensional tensor-like object. The elements in `arg2` must be
+sorted.
+
+Returns
+
+* A new tensor with the set difference of both tensors.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    std::cout << np::set_difference(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 5, 7, 8, 9, 10]
+[5, 6, 7, 8, 9, 12, 15]
+```
+
+Output
+
+```
+[ 2,  3, 10]
+```
+
+### `set_symmetric_difference`
+
+Find the set symmetric difference of two sorted tensors. Return the unique
+sorted elements that are present in one of the tensors, but not in the other.
+```cpp
+template <class T>
+tensor<T, 1> set_symmetric_difference(
+    const tensor<T, 1> &arg1, const tensor<T, 1> &arg2
+);
+```
+
+Parameters
+
+* `arg1` A 1-dimensional tensor-like object. The elements in `arg1` must be
+sorted.
+* `arg2` A 1-dimensional tensor-like object. The elements in `arg2` must be
+sorted.
+
+Returns
+
+* A new tensor with the set symmetric difference of both tensors.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::array<int> a, b;
+    std::cin >> a >> b;
+    std::cout << np::set_symmetric_difference(a, b) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[2, 3, 5, 7, 8, 9, 10]
+[5, 6, 7, 8, 9, 12, 15]
+```
+
+Output
+
+```
+[ 2,  3,  6, 10, 12, 15]
 ```
