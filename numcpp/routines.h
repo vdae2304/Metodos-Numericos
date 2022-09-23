@@ -1618,7 +1618,7 @@ namespace numcpp {
      * @param axes A shape_t object with the axes along which the quantile is
      *     computed.
      * @param method This parameter specifies the method to use for estimating
-     *     the quantile. Must be one of "lower", "higher", nearest",
+     *     the quantile. Must be one of "lower", "higher", "nearest",
      *     "midpoint" or "linear".
      *
      * @return A new tensor with the quantile over the axes. The output tensor
@@ -1643,20 +1643,20 @@ namespace numcpp {
     );
 
     /**
-     * @brief Return the covariance of two one-dimensional tensors.
+     * @brief Return the covariance of two 1-dimensional tensors.
      *
      * @details The covariance is defined as the average of the element-wise
-     * products of the deviations from the mean:
-     *    cov(x, y) = mean((x - mean(x))*(y - mean(y)))
-     * For complex types, the complex conjugate of y is used:
-     *    cov(x, y) = mean((x - mean(x))*conj(y - mean(y)))
-     * The mean is calculated as sum(*)/n, where n = x.size(). However, if bias
+     * products of the deviations from the mean
+     *    cov(x, y) = mean(a),    a = (x - mean(x))*(y - mean(y))
+     * For complex types, the complex conjugate of y is used
+     *    cov(x, y) = mean(a),    a = (x - mean(x))*conj(y - mean(y))
+     * The mean is calculated as sum(a)/n, where n = a.size(). However, if bias
      * is false, the divisor n - 1 is used instead of n.
      *
-     * @param a First tensor-like argument.
-     * @param b Second tensor-like argument.
+     * @param x First tensor-like argument.
+     * @param y Second tensor-like argument.
      * @param bias If bias is true, then normalization is by n. Otherwise,
-     *     normalization is by n - 1.
+     *     normalization is by n - 1. Default is false.
      *
      * @return The covariance of the two tensors.
      *
@@ -1665,14 +1665,14 @@ namespace numcpp {
      */
     template <class T, class Tag1, class Tag2>
     T cov(
-        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b,
+        const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
         bool bias = false
     );
 
     template <class T, class Tag1, class Tag2>
     std::complex<T> cov(
-        const base_tensor<std::complex<T>, 1, Tag1> &a,
-        const base_tensor<std::complex<T>, 1, Tag2> &b,
+        const base_tensor<std::complex<T>, 1, Tag1> &x,
+        const base_tensor<std::complex<T>, 1, Tag2> &y,
         bool bias = false
     );
 
@@ -1683,9 +1683,9 @@ namespace numcpp {
      *     variables and observations.
      * @param rowvar If true, then each row represents a variable, with
      *     observations in the columns. Otherwise, each column represents a
-     *     variable, with observations in the rows.
+     *     variable, with observations in the rows. Default is true.
      * @param bias If bias is true, then normalization is by n. Otherwise,
-     *     normalization is by n - 1.
+     *     normalization is by n - 1. Default is false.
      *
      * @return The covariance matrix of the variables. The element (i, j) is
      *     equal to the covariance of the i-th and j-th variables.
@@ -1705,15 +1705,15 @@ namespace numcpp {
     );
 
     /**
-     * @brief Return the Pearson's correlation coefficient of two
-     * one-dimensional tensors.
+     * @brief Return the Pearson's correlation coefficient of two 1-dimensional
+     * tensors.
      *
      * @details The correlation coefficient is defined as the covariance of the
-     * two variables divided by the product of their standard deviations:
-     *     corr(x, y) = cov(x, y)/(stddev(x)*stddev(y))
+     * two variables divided by the product of their standard deviations
+     *     corr(x, y) = cov(x, y) / (stddev(x) * stddev(y))
      *
-     * @param a First tensor-like argument.
-     * @param b Second tensor-like argument.
+     * @param x First tensor-like argument.
+     * @param y Second tensor-like argument.
      *
      * @return The correlation coefficient of the two tensors.
      *
@@ -1722,7 +1722,7 @@ namespace numcpp {
      */
     template <class T, class Tag1, class Tag2>
     T corrcoef(
-        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+        const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y
     );
 
     /**
@@ -1732,7 +1732,7 @@ namespace numcpp {
      *     variables and observations.
      * @param rowvar If true, then each row represents a variable, with
      *     observations in the columns. Otherwise, each column represents a
-     *     variable, with observations in the rows.
+     *     variable, with observations in the rows. Default is true.
      *
      * @return The correlation matrix of the variables. The element (i, j) is
      *     equal to the correlation coefficient of the i-th and j-th variables.

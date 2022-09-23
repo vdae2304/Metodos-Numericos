@@ -596,13 +596,15 @@ namespace ranges {
             T *buffer = new T[size];
             std::copy(first, last, buffer);
             size_t ith = std::floor((size - 1) * q);
+            size_t jth = std::ceil((size - 1) * q);
             std::nth_element(buffer, buffer + ith, buffer + size);
             T lower = buffer[ith];
-            size_t jth = std::ceil((size - 1) * q);
-            std::nth_element(buffer, buffer + jth, buffer + size);
-            T higher = buffer[jth];
+            T higher = lower;
+            if (ith != jth) {
+                higher = *std::min_element(buffer + jth, buffer + size);
+            }
             delete[] buffer;
-            double t;
+            double t = (size - 1) * q - ith;
             if (method == "lower") {
                 t = 0;
             }
@@ -613,11 +615,8 @@ namespace ranges {
                 t = 0.5;
             }
             else if (method == "nearest") {
-                t = std::round((size - 1) * q - ith);
+                t = std::round(t);
             }
-            else if (method == "linear") {
-                t = (size - 1) * q - ith;
-            };
             return (1 - t) * lower + t * higher;
         }
     };

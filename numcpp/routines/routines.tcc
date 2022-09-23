@@ -1180,19 +1180,19 @@ namespace numcpp {
 
     template <class T, class Tag1, class Tag2>
     T cov(
-        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b,
+        const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
         bool bias
     ) {
-        if (a.size() != b.size()) {
+        if (x.size() != y.size()) {
             char error[] = "all the tensors must have the same shape";
             throw std::invalid_argument(error);
         }
-        size_t size = a.size();
+        size_t size = x.size();
         T val = T(0);
-        T a_mean = mean(a);
-        T b_mean = mean(b);
+        T x_mean = mean(x);
+        T y_mean = mean(y);
         for (size_t i = 0; i < size; ++i) {
-            val += (a[i] - a_mean) * (b[i] - b_mean);
+            val += (x[i] - x_mean) * (y[i] - y_mean);
         }
         val /= size - 1 + bias;
         return val;
@@ -1200,45 +1200,44 @@ namespace numcpp {
 
     template <class T, class Tag1, class Tag2>
     std::complex<T> cov(
-        const base_tensor<std::complex<T>, 1, Tag1> &a,
-        const base_tensor<std::complex<T>, 1, Tag2> &b,
+        const base_tensor<std::complex<T>, 1, Tag1> &x,
+        const base_tensor<std::complex<T>, 1, Tag2> &y,
         bool bias
     ) {
-        if (a.size() != b.size()) {
+        if (x.size() != y.size()) {
             char error[] = "all the tensors must have the same shape";
             throw std::invalid_argument(error);
         }
-        size_t size = a.size();
+        size_t size = x.size();
         std::complex<T> val = T(0);
-        std::complex<T> a_mean = mean(a);
-        std::complex<T> b_mean = mean(b);
+        std::complex<T> x_mean = mean(x);
+        std::complex<T> y_mean = mean(y);
         for (size_t i = 0; i < size; ++i) {
-            val += (a[i] - a_mean) * std::conj(b[i] - b_mean);
+            val += (x[i] - x_mean) * std::conj(y[i] - y_mean);
         }
         val /= size - 1 + bias;
         return val;
     }
 
     template <class T, class Tag>
-    tensor<T, 2> cov(
-        const base_tensor<T, 2, Tag> &a, bool rowvar, bool bias
-    ) {
+    tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar, bool bias) {
         size_t nvar = rowvar ? a.shape(0) : a.shape(1);
         size_t size = rowvar ? a.shape(1) : a.shape(0);
         tensor<T, 2> out(nvar, nvar);
         tensor<T, 2> a_mean = mean(a, rowvar);
         for (size_t i = 0; i < nvar; ++i) {
             for (size_t j = 0; j < nvar; ++j) {
-                T val = T(0);
+                T val = T(0), x, y;
                 for (size_t k = 0; k < size; ++k) {
                     if (rowvar) {
-                        val += (a(i, k) - a_mean(i, 0))
-                             * (a(j, k) - a_mean(j, 0));
+                        x = a(i, k) - a_mean(i, 0);
+                        y = a(j, k) - a_mean(j, 0);
                     }
                     else {
-                        val += (a(k, i) - a_mean(0, i))
-                             * (a(k, j) - a_mean(0, j));
+                        x = a(k, i) - a_mean(0, i);
+                        y = a(k, j) - a_mean(0, j);
                     }
+                    val += x * y;
                 }
                 val /= size - 1 + bias;
                 out(i, j) = val;
@@ -1257,16 +1256,17 @@ namespace numcpp {
         tensor<std::complex<T>, 2> a_mean = mean(a, rowvar);
         for (size_t i = 0; i < nvar; ++i) {
             for (size_t j = 0; j < nvar; ++j) {
-                std::complex<T> val = T(0);
+                std::complex<T> val = T(0), x, y;
                 for (size_t k = 0; k < size; ++k) {
                     if (rowvar) {
-                        val += (a(i, k) - a_mean(i, 0))
-                             * std::conj(a(j, k) - a_mean(j, 0));
+                        x = a(i, k) - a_mean(i, 0);
+                        y = a(j, k) - a_mean(j, 0);
                     }
                     else {
-                        val += (a(k, i) - a_mean(0, i))
-                             * std::conj(a(k, j) - a_mean(0, j));
+                        x = a(k, i) - a_mean(0, i);
+                        y = a(k, j) - a_mean(0, j);
                     }
+                    val += x * std::conj(y);
                 }
                 val /= size - 1 + bias;
                 out(i, j) = val;
@@ -1277,14 +1277,14 @@ namespace numcpp {
 
     template <class T, class Tag1, class Tag2>
     T corrcoef(
-        const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b
+        const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y
     ) {
-        return cov(a, b) / (stddev(a) * stddev(b));
+        return cov(x, y) / (stddev(x, false) * stddev(y, false));
     }
 
     template <class T, class Tag>
     tensor<T, 2> corrcoef(const base_tensor<T, 2, Tag> &a, bool rowvar) {
-        tensor<T, 2> out = cov(a, rowvar);
+        tensor<T, 2> out = std::move(cov(a, rowvar));
         for (size_t i = 0; i < out.shape(0); ++i) {
             for (size_t j = i + 1; j < out.shape(1); ++j) {
                 T denom = std::sqrt(out(i, i) * out(j, j));
