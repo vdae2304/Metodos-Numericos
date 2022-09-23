@@ -1448,9 +1448,8 @@ int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
     np::tensor<bool, 3> is_positive = (a > 0);
-    std::cout << std::boolalpha;
-    std::cout << "Last 2 axes:\n" << is_positive.all(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << std::boolalpha;
+    std::cout << is_positive.all(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -1610,9 +1609,8 @@ int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
     np::tensor<bool, 3> is_negative = (a < 0);
-    std::cout << std::boolalpha;
-    std::cout << "Last 2 axes:\n" << is_negative.any(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << std::boolalpha;
+    std::cout << is_negative.any(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -1970,8 +1968,7 @@ namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.max(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << a.max(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -2020,24 +2017,25 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::array<double> a = rng.normal<double>(9, 5, 10);
-    std::cout << a << "\n";
+    np::array<double> a;
+    std::cin >> a;
     std::cout << a.mean() << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
-  6.366814,  11.31266, 10.003497]
-8.67431
+[4, 3, 8, 1, 15, 3, 5, 1, 2, 2]
+```
+
+Output
+
+```
+4.4
 ```
 
 ### `tensor::mean(axes)`
@@ -2073,33 +2071,35 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
-    std::cout << a << "\n";
+    np::matrix<double> a;
+    std::cin >> a;
     std::cout << "Axis 0:\n" << a.mean(0) << "\n";
     std::cout << "Axis 1:\n" << a.mean(1) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
- [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
- [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
- [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
+[[ 8, 3,  9,  5,  3,  6],
+ [ 7, 2,  5,  7,  3,  9],
+ [ 3, 1,  2,  5,  7,  7],
+ [ 2,  9, 5,  6,  5, 10]]
+```
+
+Output
+
+```
 Axis 0:
-[[8.9959515, 4.6219839, 9.3078007, 6.8339142, 8.3193789, 12.094182]]
+[[   5, 3.75, 5.25, 5.75,  4.5,    8]]
 Axis 1:
-[[8.3153517],
- [11.222165],
- [10.634152],
- [ 3.277139]]
+[[5.6666667],
+ [      5.5],
+ [4.1666667],
+ [6.1666667]]
 ```
 
 Example
@@ -2107,32 +2107,33 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
-    std::cout << a << "\n";
-    std::cout << "Last 2 axes:\n" << a.mean(np::make_shape(1, 2));
+    np::tensor<double, 3> a;
+    std::cin >> a;
+    std::cout << "Last 2 axes:\n" << a.mean(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
-  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
-  [  11.31266,  10.003497,  19.623383,  10.858606]],
+[[[2, 3, 9, 1],
+  [3, 2, 1, 5],
+  [7, 3, 3, 2]],
+ [[8, 3, 2, 4],
+  [6, 1, 2, 3],
+  [3, 5, 7, 5]]]
+```
 
- [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
-  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
-  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
+Output
+
+```
 Last 2 axes:
-[[[9.7687585]],
+[[[3.4166667]],
 
- [[6.9556453]]]
+ [[4.0833333]]]
 ```
 
 ### `tensor::min`
@@ -2254,8 +2255,7 @@ namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.min(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << a.min(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -2398,8 +2398,7 @@ namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.prod(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << a.prod(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -2437,11 +2436,9 @@ T stddev(bool bias) const;
 
 The standard deviation is defined as the square root of the average of the
 squared deviations from the mean
-
 ```
     stddev(a) = sqrt(mean(x)),    x = abs(a - mean(a))**2
 ```
-
 The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `bias`
 is `false`, the divisor `n - 1` is used instead of `n`. In statistics, `n - 1`
 provides an unbiased estimator of the sample variance; while `n` provides the
@@ -2462,24 +2459,27 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::array<double> a = rng.normal<double>(9, 5, 10);
-    std::cout << a << "\n";
-    std::cout << a.stddev(true) << "\n";
+    np::array<double> a;
+    std::cin >> a;
+    std::cout << "Unbiased: " << a.stddev(false) << "\n";
+    std::cout << "Biased: " << a.stddev(true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
-  6.366814,  11.31266, 10.003497]
-3.10905
+[4, 3, 8, 1, 15, 3, 5, 1, 2, 2]
+```
+
+Output
+
+```
+Unbiased: 4.27395
+Biased: 4.05463
 ```
 
 ### `tensor::stddev(axes)`
@@ -2518,33 +2518,48 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
-    std::cout << a << "\n";
-    std::cout << "Axis 0:\n" << a.stddev(0, true) << "\n";
-    std::cout << "Axis 1:\n" << a.stddev(1, true) << "\n";
+    np::matrix<double> a;
+    std::cin >> a;
+    std::cout << "Axis 0:\n";
+    std::cout << "Uniased:\n" << a.stddev(0, false) << "\n";
+    std::cout << "Biased:\n" << a.stddev(0, true) << "\n";
+    std::cout << "Axis 1:\n";
+    std::cout << "Uniased:\n" << a.stddev(1, false) << "\n";
+    std::cout << "Biased:\n" << a.stddev(1, true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
- [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
- [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
- [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
+[[ 8, 3,  9,  5,  3,  6],
+ [ 7, 2,  5,  7,  3,  9],
+ [ 3, 1,  2,  5,  7,  7],
+ [ 2,  9, 5,  6,  5, 10]]
+```
+
+Output
+
+```
 Axis 0:
-[[3.4768586, 6.1983183, 2.8289795, 2.2790862, 7.4894955, 2.3393709]]
+Uniased:
+[[ 2.9439203,  3.5939764,  2.8722813, 0.95742711,  1.9148542,  1.8257419]]
+Biased:
+[[2.5495098, 3.1124749, 2.4874686, 0.8291562, 1.6583124, 1.5811388]]
 Axis 1:
-[[3.6876608],
- [4.0824806],
- [3.7244233],
- [ 4.605317]]
+Uniased:
+[[2.5033311],
+ [2.6645825],
+ [2.5625508],
+ [2.9268869]]
+Biased:
+[[2.2852182],
+ [2.4324199],
+ [2.3392781],
+ [2.6718699]]
 ```
 
 Example
@@ -2552,32 +2567,40 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
-    std::cout << a << "\n";
-    std::cout << "Last 2 axes:\n" << a.stddev(np::make_shape(1, 2), true);
+    np::tensor<double, 3> a;
+    std::cin >> a;
+    std::cout << "Last 2 axes:\n";
+    std::cout << "Unbiased:\n" << a.stddev(np::make_shape(1, 2), false) << "\n";
+    std::cout << "Biased:\n" << a.stddev(np::make_shape(1, 2), true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
-  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
-  [  11.31266,  10.003497,  19.623383,  10.858606]],
+[[[2, 3, 9, 1],
+  [3, 2, 1, 5],
+  [7, 3, 3, 2]],
+ [[8, 3, 2, 4],
+  [6, 1, 2, 3],
+  [3, 5, 7, 5]]]
+```
 
- [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
-  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
-  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
+Output
+
+```
 Last 2 axes:
-[[[4.1527264]],
+Unbiased:
+[[[2.4293034]],
 
- [[5.5741856]]]
+ [[2.1514618]]]
+Biased:
+[[[ 2.325881]],
+
+ [[2.0598678]]]
 ```
 
 ### `tensor::sum`
@@ -2698,8 +2721,7 @@ namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
-    std::cout << "Last 2 axes:\n" << a.sum(np::make_shape(1, 2));
-    std::cout << "\n";
+    std::cout << "Last 2 axes:\n" << a.sum(np::make_shape(1, 2)) << "\n";
     return 0;
 }
 ```
@@ -2736,11 +2758,9 @@ T var(bool bias) const;
 ```
 
 The variance is defined as the average of the squared deviations from the mean
-
 ```
     var(a) = mean(x),    x = abs(a - mean(a))**2
 ```
-
 The mean is calculated as `sum(x)/n`, where `n = x.size()`. However, if `bias`
 is `false`, the divisor `n - 1` is used instead of `n`. In statistics, `n - 1`
 provides an unbiased estimator of the sample variance; while `n` provides the
@@ -2761,24 +2781,27 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::array<double> a = rng.normal<double>(9, 5, 10);
-    std::cout << a << "\n";
-    std::cout << a.var(true) << "\n";
+    np::array<double> a;
+    std::cin >> a;
+    std::cout << "Unbiased: " << a.var(false) << "\n";
+    std::cout << "Biased: " << a.var(true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[8.3901711, 3.5659098,  12.42145, 3.6240543, 9.1663474, 12.724178, 9.1680306,
-  6.366814,  11.31266, 10.003497]
-9.66621
+[4, 3, 8, 1, 15, 3, 5, 1, 2, 2]
+```
+
+Output
+
+```
+Unbiased: 18.2667
+Biased: 16.44
 ```
 
 ### `tensor::var(axes)`
@@ -2816,33 +2839,48 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::matrix<double> a = rng.normal<double, 2>(9, 5, {4, 6});
-    std::cout << a << "\n";
-    std::cout << "Axis 0:\n" << a.var(0, true) << "\n";
-    std::cout << "Axis 1:\n" << a.var(1, true) << "\n";
+    np::matrix<double> a;
+    std::cin >> a;
+    std::cout << "Axis 0:\n";
+    std::cout << "Uniased:\n" << a.var(0, false) << "\n";
+    std::cout << "Biased:\n" << a.var(0, true) << "\n";
+    std::cout << "Axis 1:\n";
+    std::cout << "Uniased:\n" << a.var(1, false) << "\n";
+    std::cout << "Biased:\n" << a.var(1, true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[ 8.3901711,  3.5659098,   12.42145,  3.6240543,  9.1663474,  12.724178],
- [ 9.1680306,   6.366814,   11.31266,  10.003497,  19.623383,  10.858606],
- [ 14.104814,  12.917041,  8.3607905,  7.3159336,  5.5642258,  15.542105],
- [ 4.3207905, -4.3618293,  5.1363023,  6.3921718, -1.0764409,  9.2518397]]
+[[ 8, 3,  9,  5,  3,  6],
+ [ 7, 2,  5,  7,  3,  9],
+ [ 3, 1,  2,  5,  7,  7],
+ [ 2,  9, 5,  6,  5, 10]]
+```
+
+Output
+
+```
 Axis 0:
-[[12.088546, 38.419149, 8.0031247, 5.1942341, 56.092543,  5.472656]]
+Uniased:
+[[ 8.6666667,  12.916667,       8.25, 0.91666667,  3.6666667,  3.3333333]]
+Biased:
+[[   6.5, 9.6875, 6.1875, 0.6875,   2.75,    2.5]]
 Axis 1:
-[[13.598842],
- [16.666648],
- [13.871329],
- [21.208945]]
+Uniased:
+[[6.2666667],
+ [      7.1],
+ [6.5666667],
+ [8.5666667]]
+Biased:
+[[5.2222222],
+ [5.9166667],
+ [5.4722222],
+ [7.1388889]]
 ```
 
 Example
@@ -2850,30 +2888,38 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
-#include "numcpp/random.h"
 namespace np = numcpp;
 int main() {
-    // Sample from a normal distribution with mean 9 and standard deviation 5.
-    np::default_rng rng(0);
-    np::tensor<double, 3> a = rng.normal<double, 3>(9, 5, {2, 3, 4});
-    std::cout << a << "\n";
-    std::cout << "Last 2 axes:\n" << a.var(np::make_shape(1, 2), true);
+    np::tensor<double, 3> a;
+    std::cin >> a;
+    std::cout << "Last 2 axes:\n";
+    std::cout << "Unbiased:\n" << a.var(np::make_shape(1, 2), false) << "\n";
+    std::cout << "Biased:\n" << a.var(np::make_shape(1, 2), true) << "\n";
     return 0;
 }
 ```
 
-Possible output
+Input
 
 ```
-[[[ 8.3901711,  3.5659098,   12.42145,  3.6240543],
-  [ 9.1663474,  12.724178,  9.1680306,   6.366814],
-  [  11.31266,  10.003497,  19.623383,  10.858606]],
+[[[2, 3, 9, 1],
+  [3, 2, 1, 5],
+  [7, 3, 3, 2]],
+ [[8, 3, 2, 4],
+  [6, 1, 2, 3],
+  [3, 5, 7, 5]]]
+```
 
- [[ 14.104814,  12.917041,  8.3607905,  7.3159336],
-  [ 5.5642258,  15.542105,  4.3207905, -4.3618293],
-  [ 5.1363023,  6.3921718, -1.0764409,  9.2518397]]]
+Output
+
+```
 Last 2 axes:
-[[[17.245136]],
+Unbiased:
+[[[5.9015152]],
 
- [[31.071545]]]
+ [[4.6287879]]]
+Biased:
+[[[5.4097222]],
+
+ [[4.2430556]]]
 ```
