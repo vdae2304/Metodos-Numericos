@@ -6,6 +6,7 @@ Defined in `numcpp/slice.h`
   - [Constructors](#constructors)
     - [Default constructor](#default-constructor)
     - [Slice constructor](#slice-constructor)
+    - [Placeholders](#placeholders)
     - [Copy constructor](#copy-constructor)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
@@ -60,11 +61,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> arr{5, 8, 16, 16, 17, 20, 4, 10, 1, 6};
-    // Selects indices 0, 1, 2, 3, 4.
+    // Select positions 0, 1, 2, 3, 4.
     std::cout << arr(np::slice(5)) << "\n";
-    // Selects indices 2, 3, 4, 5, 6.
+    // Select positions 2, 3, 4, 5, 6.
     std::cout << arr(np::slice(2, 7)) << "\n";
-    // Selects indices 1, 3, 5, 7, 9.
+    // Select positions 1, 3, 5, 7, 9.
     std::cout << arr(np::slice(1, 10, 2)) << "\n";
     return 0;
 }
@@ -76,6 +77,45 @@ Output
 [ 5,  8, 16, 16, 17]
 [16, 16, 17, 20,  4]
 [ 8, 16, 20, 10,  6]
+```
+
+### Placeholders
+
+Additional constructors when either one of `start` or `stop` is omitted.
+
+The placeholder `_`, defined in the `placeholders` namespace, can be used where
+`start` and `stop` arguments is expected. If a placeholder is used in the place
+of `start`, its value is deduced to 0. If a placeholder is used in the place of
+`stop`, its value is deduced to the size of the tensor along the indexed axis.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    using namespace np::placeholders;
+    np::array<int> arr{5, 8, 16, 16, 17, 20, 4, 10, 1, 6};
+    // Select all positions.
+    std::cout << arr(np::slice(_, _)) << "\n";
+    // Select positions 0, 1, 2, 3, 4.
+    std::cout << arr(np::slice(_, 5)) << "\n";
+    // Select positions 5, 6, 7, 8, 9.
+    std::cout << arr(np::slice(5, _)) << "\n";
+    // Select positions 0, 2, 4, 6, 8.
+    std::cout << arr(np::slice(_, _, 2)) << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
+[ 5,  8, 16, 16, 17, 20,  4, 10,  1,  6]
+[ 5,  8, 16, 16, 17]
+[20,  4, 10,  1,  6]
+[ 5, 16, 17,  4,  1]
 ```
 
 ### Copy constructor
