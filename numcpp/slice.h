@@ -24,6 +24,14 @@
 #define NUMCPP_SLICE_H_INCLUDED
 
 namespace numcpp {
+    /// Namespace for placeholders.
+namespace placeholders {
+    /**
+     * @brief Placeholder used on slice constructor.
+     */
+    struct slice_ {} const _;
+}
+
     /**
      * @brief A slice is a class that identifies a subset of elements in an
      * array. It holds three values: the starting index, the stop index and the
@@ -65,6 +73,31 @@ namespace numcpp {
                 m_size = 1 + (stop - start - 1) / stride;
             }
         }
+
+        /**
+         * @brief Additional constructors when either one of start or stop is
+         * omitted.
+         *
+         * @details The placeholder _, defined in the placeholders namespace,
+         * can be used where start and stop arguments is expected. If a
+         * placeholder is used in the place of start, its value is deduced to
+         * 0. If a placeholder is used in the place of stop, its value is
+         * deduced to the size of the tensor along the indexed axis.
+         */
+        slice(placeholders::slice_, placeholders::slice_) : slice() {}
+
+        slice(placeholders::slice_, size_t stop) : slice(stop) {}
+
+        slice(size_t start, placeholders::slice_) : slice(start, SIZE_MAX) {}
+
+        slice(placeholders::slice_, placeholders::slice_, size_t stride)
+         : slice(0, SIZE_MAX, stride) {}
+
+        slice(placeholders::slice_, size_t stop, size_t stride)
+         : slice(0, stop, stride) {}
+
+        slice(size_t start, placeholders::slice_, size_t stride)
+         : slice(start, SIZE_MAX, stride) {}
 
         /**
          * @brief Copy constructor. Constructs a slice as a copy of other.
