@@ -1386,8 +1386,7 @@ namespace numcpp {
 
 namespace detail {
     /**
-     * @brief Helper function. Asserts that the shapes are aligned along the
-     * given axes.
+     * @brief Asserts that the shapes are aligned along the given axes.
      */
     template <size_t Rank1, size_t Rank2>
     void assert_aligned_shapes(
@@ -1414,18 +1413,18 @@ namespace detail {
     }
 
     /**
-     * @brief Helper function. Broadcast two shapes for cross product.
+     * @brief Broadcast two shapes for cross product.
      */
     template <size_t Rank>
     shape_t<Rank> broadcast_cross(
         const shape_t<Rank> &shape1, const shape_t<Rank> &shape2, size_t axis
     ) {
-        shape_t<Rank> out_shape = shape1;
         if (shape1[axis] != 3 || shape2[axis] != 3) {
             char error[] = "incompatible dimensions for cross product"
                 " (dimension must be 3)";
             throw std::invalid_argument(error);
         }
+        shape_t<Rank> out_shape = shape1;
         for (size_t i = 0; i < shape1.ndim(); ++i) {
             if (i == axis) {
                 out_shape[i] = 3;
@@ -1444,7 +1443,7 @@ namespace detail {
     }
 
     /**
-     * @brief Helper function. Broadcast two shapes for matrix multiplication.
+     * @brief Broadcast two shapes for matrix multiplication.
      */
     template <size_t Rank>
     shape_t<Rank> broadcast_matmul(
@@ -1510,19 +1509,18 @@ namespace detail {
         const base_tensor<T, Rank, Tag2> &b,
         size_t axis
     ) {
-        shape_t<Rank> shape =
-            detail::broadcast_cross(a.shape(), b.shape(), axis);
+        shape_t<Rank> shape = detail::broadcast_cross(a.shape(),b.shape(),axis);
         tensor<T, Rank> out(shape);
         shape[axis] = 1;
         for (index_t<Rank> index : make_indices(shape)) {
-            T v1[3], v2[3];
+            T u[3], v[3];
             for (index[axis] = 0; index[axis] < 3; ++index[axis]) {
-                v1[index[axis]] = a[detail::broadcast_index(index, a.shape())];
-                v2[index[axis]] = b[detail::broadcast_index(index, b.shape())];
+                u[index[axis]] = a[detail::broadcast_index(index, a.shape())];
+                v[index[axis]] = b[detail::broadcast_index(index, b.shape())];
             }
-            T v_out[3] = {v1[1] * v2[2] - v2[1] * v1[2],
-                          v2[0] * v1[2] - v1[0] * v2[2],
-                          v1[0] * v2[1] - v2[0] * v1[1]};
+            T v_out[3] = {u[1] * v[2] - v[1] * u[2],
+                          v[0] * u[2] - u[0] * v[2],
+                          u[0] * v[1] - v[0] * u[1]};
             for (index[axis] = 0; index[axis] < 3; ++index[axis]) {
                 out[index] = v_out[index[axis]];
             }

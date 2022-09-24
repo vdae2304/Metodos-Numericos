@@ -1891,7 +1891,7 @@ namespace numcpp {
      * @f]
      *
      * @note Unlike Numpy's dot, dot only supports computing the dot product of
-     * two one-dimensional tensors with the same number of elements.
+     * two 1-dimensional tensors with the same number of elements.
      *
      * @param a First tensor-like argument.
      * @param b Second tensor-like argument.
@@ -1957,19 +1957,19 @@ namespace numcpp {
     /**
      * @brief Return the matrix multiplication of two matrices.
      *
-     * @details The behaviour depends on the arguments in the following way.
-     * - If both arguments are one-dimensional, it is the dot product of
-     *   vectors (without complex conjugation).
-     * - If both arguments are two-dimensional, it is the conventional matrix
+     * @details The behaviour depends on the arguments in the following way
+     * - If both arguments are 1-dimensional, it is the dot product of vectors
+     *   (without complex conjugation).
+     * - If both arguments are 2-dimensional, it is the conventional matrix
      *   multiplication.
-     * - If the first argument is one-dimensional and the second argument is
-     *   two-dimensional, it is the matrix multiplication with the first
+     * - If the first argument is 1-dimensional and the second argument is
+     *   2-dimensional, it is the matrix multiplication with the first
      *   argument treated as a row-vector.
-     * - If the first argument is two-dimensional and the second argument is
-     *   one-dimensional, it is the matrix multiplication with the second
+     * - If the first argument is 2-dimensional and the second argument is
+     *   1-dimensional, it is the matrix multiplication with the second
      *   argument treated as a column-vector.
      * - If both arguments are n-dimensional, n > 2, it is treated as a stack
-     *   of matrices residing in the last two dimensions and broadcast
+     *   of matrices residing in the last 2 dimensions and broadcast
      *   accordingly.
      *
      * The matrix multiplication of a @f$m \times p@f$ matrix
