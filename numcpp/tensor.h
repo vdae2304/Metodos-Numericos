@@ -204,7 +204,7 @@ namespace numcpp {
 
         /**
          * @brief Slice indexing. Returns a tensor_view object that selects the
-         * elements given by the slices.
+         * elements specified by the slices.
          *
          * @param indices... Each argument can be either an integer or a slice.
          *     If an integer is given, an unique position is selected for that
