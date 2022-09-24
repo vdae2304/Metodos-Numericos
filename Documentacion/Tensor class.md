@@ -725,7 +725,8 @@ layout_t layout() const;
 
 ### Slice indexing
 
-Returns a `tensor_view` object that selects the elements given by the slices.
+Returns a `tensor_view` object that selects the elements specified by the
+slices.
 ```cpp
 template <class... Indices>
 tensor_view<T, /* Number of slice arguments */>
