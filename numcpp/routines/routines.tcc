@@ -1386,7 +1386,7 @@ namespace numcpp {
 
 namespace detail {
     /**
-     * @brief Asserts that the shapes are aligned along the given axes.
+     * @brief Asserts that the shapes are aligned along the given axis.
      */
     template <size_t Rank1, size_t Rank2>
     void assert_aligned_shapes(
@@ -1399,16 +1399,6 @@ namespace detail {
                   << " not aligned: " << shape1[axis1] << " (dim " << axis1
                   << ") != " << shape2[axis2] << " (dim " << axis2 << ")";
             throw std::invalid_argument(error.str());
-        }
-    }
-
-    template <size_t Rank1, size_t Rank2, size_t N>
-    void assert_aligned_shapes(
-        const shape_t<Rank1> &shape1, const shape_t<N> axes1,
-        const shape_t<Rank2> &shape2, const shape_t<N> axes2
-    ) {
-        for (size_t i = 0; i < axes1.ndim(); ++i) {
-            assert_aligned_shapes(shape1, axes1[i], shape2, axes2[i]);
         }
     }
 
@@ -1661,6 +1651,72 @@ namespace detail {
         return out;
     }
 
+namespace detail {
+    /**
+     * @brief Asserts that the shapes are aligned along the given axes.
+     * Return the size of the flattened dimensions if assertion doesn't fail.
+     */
+    template <size_t Rank1, size_t Rank2, size_t N>
+    size_t assert_aligned_shapes(
+        const shape_t<Rank1> &shape1, const shape_t<N> axes1,
+        const shape_t<Rank2> &shape2, const shape_t<N> axes2
+    ) {
+        size_t size = 1;
+        for (size_t i = 0; i < axes1.ndim(); ++i) {
+            assert_aligned_shapes(shape1, axes1[i], shape2, axes2[i]);
+            size *= shape1[axes1[i]];
+        }
+        return size;
+    }
+
+    /**
+     * @brief Constructs the output shape of tensordot. Extract the
+     * non-contracted axes of a shape and append them at the end of another
+     * shape.
+     */
+    template <size_t OutRank, size_t Rank, size_t N>
+    size_t tensordot_concat_shape(
+        shape_t<OutRank> &out_shape,
+        const shape_t<Rank> &shape, const shape_t<N> &axes,
+        size_t offset = 0
+    ) {
+        bool keep_axis[Rank];
+        std::fill_n(keep_axis, shape.ndim(), true);
+        for (size_t i = 0; i < axes.ndim(); ++i) {
+            keep_axis[axes[i]] = false;
+        }
+        for (size_t i = 0; i < shape.ndim(); ++i) {
+            if (keep_axis[i]) {
+                out_shape[offset++] = shape[i];
+            }
+        }
+        return offset;
+    }
+
+    /**
+     * @brief Split the output index of tensordot into suitable indices for its
+     * arguments.
+     */
+    template <size_t OutRank, size_t Rank, size_t N>
+    size_t tensordot_split_index(
+        const index_t<OutRank> &out_index,
+        index_t<Rank> &index, const shape_t<N> &axes,
+        size_t offset = 0
+    ) {
+        bool keep_axis[Rank];
+        std::fill_n(keep_axis, index.ndim(), true);
+        for (size_t i = 0; i < axes.ndim(); ++i) {
+            keep_axis[axes[i]] = false;
+        }
+        for (size_t i = 0; i < index.ndim(); ++i) {
+            if (keep_axis[i]) {
+                index[i] = out_index[offset++];
+            }
+        }
+        return offset;
+    }
+}
+
     template <class T, size_t Rank, class Tag1, class Tag2>
     T tensordot(
         const base_tensor<T, Rank, Tag1> &a,
@@ -1677,8 +1733,8 @@ namespace detail {
         return std::inner_product(first1, last1, first2, T(0));
     }
 
-    template <class T, size_t Rank1, class Tag1,
-              size_t Rank2, class Tag2,
+    template <class T,
+              size_t Rank1, class Tag1, size_t Rank2, class Tag2,
               size_t N>
     tensor<T, (Rank1 - N) + (Rank2 - N)> tensordot(
         const base_tensor<T, Rank1, Tag1> &a,
@@ -1688,51 +1744,18 @@ namespace detail {
     ) {
         static_assert(N <= Rank1 && N <= Rank2, "Contraction dimension must be"
                       " less or equal to tensor dimensions");
+        size_t size =
         detail::assert_aligned_shapes(a.shape(), a_axes, b.shape(), b_axes);
         constexpr size_t Rank = (Rank1 - N) + (Rank2 - N);
         shape_t<Rank> shape;
-        // Mask axes to sum over a.
-        size_t size = 1, n = 0;
-        bool keep_axis1[Rank1];
-        std::fill_n(keep_axis1, Rank1, true);
-        for (size_t i = 0; i < a_axes.ndim(); ++i) {
-            keep_axis1[a_axes[i]] = false;
-            size *= a.shape(a_axes[i]);
-        }
-        for (size_t i = 0; i < a.ndim(); ++i) {
-            if (keep_axis1[i]) {
-                shape[n++] = a.shape(i);
-            }
-        }
-        // Mask axes to sum over b.
-        bool keep_axis2[Rank2];
-        std::fill_n(keep_axis2, Rank2, true);
-        for (size_t i = 0; i < b_axes.ndim(); ++i) {
-            keep_axis2[b_axes[i]] = false;
-        }
-        for (size_t i = 0; i < b.ndim(); ++i) {
-            if (keep_axis2[i]) {
-                shape[n++] = b.shape(i);
-            }
-        }
-        // Tensordot computation.
+        size_t n = detail::tensordot_concat_shape(shape, a.shape(), a_axes);
+        n = detail::tensordot_concat_shape(shape, b.shape(), b_axes, n);
         tensor<T, Rank> out(shape);
         for (index_t<Rank> out_index : make_indices(shape)) {
             index_t<Rank1> a_index;
+            n = detail::tensordot_split_index(out_index, a_index, a_axes);
             index_t<Rank2> b_index;
-            // Unmask axes to sum over a.
-            n = 0;
-            for (size_t i = 0; i < a.ndim(); ++i) {
-                if (keep_axis1[i]) {
-                    a_index[i] = out_index[n++];
-                }
-            }
-            // Unmask axes to sum over b.
-            for (size_t i = 0; i < b.ndim(); ++i) {
-                if (keep_axis2[i]) {
-                    b_index[i] = out_index[n++];
-                }
-            }
+            n = detail::tensordot_split_index(out_index, b_index, b_axes, n);
             auto first1 = make_const_axes_iterator(&a, a_index, a_axes, 0);
             auto last1 = make_const_axes_iterator(&a, a_index, a_axes, size);
             auto first2 = make_const_axes_iterator(&b, b_index, b_axes, 0);
@@ -1792,84 +1815,40 @@ namespace detail {
         return base_tensor<T, Rank, Closure>(a, axes);
     }
 
-namespace ranges {
-    /**
-     * @brief Return the infinity norm of a vector.
-     */
-    template <class InputIterator, class T>
-    T infnorm(InputIterator first, InputIterator last, T init) {
-        if (first == last) {
-            return init;
-        }
-        init = std::abs(*first);
-        while (++first != last) {
-            init = std::max(init, std::abs(*first));
-        }
-        return init;
+    template <class T, class Tag>
+    T norm(const base_tensor<T, 1, Tag> &a, double ord) {
+        ranges::norm pred(ord);
+        return pred(a.begin(), a.end());
     }
 
-    /**
-     * @brief Return the -infinity norm of a vector.
-     */
-    template <class InputIterator, class T>
-    T neginfnorm(InputIterator first, InputIterator last, T init) {
-        if (first == last) {
-            return init;
-        }
-        init = std::abs(*first);
-        while (++first != last) {
-            init = std::min(init, std::abs(*first));
-        }
-        return init;
-    }
-
-    /**
-     * @brief Return the p-norm of a vector.
-     */
-    template <class InputIterator, class T>
-    T pnorm(InputIterator first, InputIterator last, T init, double p = 2) {
-        T max_abs = infnorm(first, last, T());
-        if (max_abs > T()) {
-            while (first != last) {
-                init = init + std::pow(std::abs(*first) / max_abs, p);
-                ++first;
-            }
-            init = max_abs * std::pow(init, 1./p);
-        }
-        return init;
-    }
-}
-
-    template <class T, size_t Rank, class Tag>
-    T norm(const base_tensor<T, Rank, Tag> &a, double p) {
-        if (p == 0) {
-            return count_nonzero(a);
-        }
-        else if (p == HUGE_VAL) {
-            return ranges::infnorm(a.begin(), a.end(), T(0));
-        }
-        else if (p == -HUGE_VAL) {
-            return ranges::neginfnorm(a.begin(), a.end(), T(0));
-        }
-        else {
-            return ranges::pnorm(a.begin(), a.end(), T(0), p);
-        }
+    template <class T, class Tag>
+    T norm(const base_tensor<std::complex<T>, 1, Tag> &a, double ord) {
+        ranges::norm pred(ord);
+        return pred(a.begin(), a.end());
     }
 
     template <class T, size_t Rank, class Tag>
-    T norm(const base_tensor<std::complex<T>, Rank, Tag> &a, double p) {
-        if (p == 0) {
-            return count_nonzero(a);
-        }
-        else if (p == HUGE_VAL) {
-            return ranges::infnorm(a.begin(), a.end(), T(0));
-        }
-        else if (p == -HUGE_VAL) {
-            return ranges::neginfnorm(a.begin(), a.end(), T(0));
-        }
-        else {
-            return ranges::pnorm(a.begin(), a.end(), T(0), p);
-        }
+    tensor<T, Rank> norm(
+        const base_tensor<T, Rank, Tag> &a, double ord, size_t axis
+    ) {
+        tensor<T, Rank> out;
+        apply_along_axis(out, ranges::norm(ord), a, axis);
+        return out;
+    }
+
+    template <class T, size_t Rank, class Tag>
+    tensor<T, Rank> norm(
+        const base_tensor<std::complex<T>, Rank, Tag> &a, double ord,
+        size_t axis
+    ) {
+        tensor<T, Rank> out;
+        apply_along_axis(out, ranges::norm(ord), a, axis);
+        return out;
+    }
+
+    template <class T, class Tag>
+    T trace(const base_tensor<T, 2, Tag> &a, ptrdiff_t k) {
+        return sum(diag(a, k));
     }
 }
 

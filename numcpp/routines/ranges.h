@@ -620,6 +620,101 @@ namespace ranges {
             return (1 - t) * lower + t * higher;
         }
     };
+
+    /**
+     * @brief Function object implementing vector norm of range.
+     */
+    struct norm {
+        // Order of the norm.
+        double ord;
+
+        /**
+         * @brief Constructor.
+         *
+         * @param ord Order of the norm.
+         */
+        norm(double ord = 2) : ord(ord) {}
+
+        /**
+         * @brief Returns the vector norm of the elements in the range
+         * [first, last).
+         *
+         * @param first Input iterator to the initial position of the sequence.
+         * @param last Input iterator to the final position of the sequence.
+         *
+         * @return The vector norm of the elements in the range.
+         */
+        template <class InputIterator>
+        auto operator()(InputIterator first, InputIterator last) const
+         -> decltype(std::abs(*first)) {
+            typedef decltype(std::abs(*first)) T;
+            if (first == last) {
+                return T();
+            }
+            else if (ord == 0) {
+                return __zeronorm<T>(first, last);
+            }
+            else if (ord == HUGE_VAL) {
+                return __posinfnorm<T>(first, last);
+            }
+            else if (ord == -HUGE_VAL) {
+                return __neginfnorm<T>(first, last);
+            }
+            else {
+                return __pnorm<T>(first, last);
+            }
+        }
+
+    private:
+        /**
+         * @brief Delegate to zero norm.
+         */
+        template <class T, class InputIterator>
+        T __zeronorm(InputIterator first, InputIterator last) const {
+            return std::distance(first, last) - std::count(first, last, T());
+        }
+
+        /**
+         * @brief Delegate to +infinity norm.
+         */
+        template <class T, class InputIterator>
+        T __posinfnorm(InputIterator first, InputIterator last) const {
+            T val = std::abs(*first);
+            while (++first != last) {
+                val = std::max(val, std::abs(*first));
+            }
+            return val;
+        }
+
+        /**
+         * @brief Delegate to -infinity norm.
+         */
+        template <class T, class InputIterator>
+        T __neginfnorm(InputIterator first, InputIterator last) const {
+            T val = std::abs(*first);
+            while (++first != last) {
+                val = std::min(val, std::abs(*first));
+            }
+            return val;
+        }
+
+        /**
+         * @brief Delegate to p-norm.
+         */
+        template <class T, class InputIterator>
+        T __pnorm(InputIterator first, InputIterator last) const {
+            T val = T();
+            T max_abs = __posinfnorm<T>(first, last);
+            if (max_abs > T()) {
+                while (first != last) {
+                    val = val + std::pow(std::abs(*first) / max_abs, ord);
+                    ++first;
+                }
+                val = max_abs * std::pow(val, 1./ord);
+            }
+            return val;
+        }
+    };
 }
 }
 

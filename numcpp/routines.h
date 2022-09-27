@@ -2043,8 +2043,8 @@ namespace numcpp {
      *     of the non-contracted axes of the first tensor, followed by the
      *     non-contracted axes of the second.
      *
-     * @throw std::invalid_argument Thrown if the shapes of and b are not equal
-     *     over the contracted axes.
+     * @throw std::invalid_argument Thrown if the shape of a is not equal to
+     *     the shape of b over the contracted axes.
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
@@ -2056,8 +2056,8 @@ namespace numcpp {
         const shape_t<Rank> &b_axes
     );
 
-    template <class T, size_t Rank1, class Tag1,
-              size_t Rank2, class Tag2,
+    template <class T,
+              size_t Rank1, class Tag1, size_t Rank2, class Tag2,
               size_t N>
     tensor<T, (Rank1 - N) + (Rank2 - N)> tensordot(
         const base_tensor<T, Rank1, Tag1> &a,
@@ -2072,12 +2072,12 @@ namespace numcpp {
      * @param a Input tensor.
      * @param axes If specified, it must be a permutation of (0, 1, ...,
      *     Rank - 1). The i-th axis of the returned tensor will correspond to
-     *     the axes[i]-th axis of the input. If not specified, reverses the
-     *     order of the axes.
+     *     the axis numbered axes[i] of the input. If not specified, reverses
+     *     the order of the axes.
      *
      * @return A light-weight object with the axes of a permuted. This function
      *     does not create a new tensor, instead, it returns a readonly view
-     *     of a with its axes permuted.
+     *     of a with its axes reversed or permuted.
      */
     template <class T, size_t Rank, class Tag>
     base_tensor<T, Rank, transpose_tag<Tag> > transpose(
@@ -2096,13 +2096,13 @@ namespace numcpp {
      * @param a Input tensor.
      * @param axes If specified, it must be a permutation of (0, 1, ...,
      *     Rank - 1). The i-th axis of the returned tensor will correspond to
-     *     the axes[i]-th axis of the input. If not specified, reverses the
-     *     order of the axes.
+     *     the axis numbered axes[i] of the input. If not specified, reverses
+     *     the order of the axes.
      *
      * @return A light-weight object with the conjugate transpose of a. This
      *     function does not create a new tensor, instead, it returns a
      *     readonly view of a with its elements complex conjugated and its axes
-     *     permuted.
+     *     reversed or permuted.
      */
     template <class T, size_t Rank, class Tag>
     base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag> >
@@ -2131,24 +2131,64 @@ namespace numcpp {
      * @brief Return the vector norm.
      *
      * @details This function is able to return one of the following norms:
-     *        p sum(abs(a)**p)**(1./p)
      *        0 sum(x != 0)
      *      inf amax(abs(x))
      *     -inf amin(abs(x))
+     *        p sum(abs(a)**p)**(1./p)
      *
-     * @param a A one-dimensional tensor-like object.
-     * @param p Order of the norm. The default is 2 (Euclidean norm). For
-     *     values of p < 1, the result is, strictly speaking, not a
+     * @param a A 1-dimensional tensor-like object.
+     * @param ord Order of the norm. The default is 2 (Euclidean norm). For
+     *     values of ord < 1, the result is, strictly speaking, not a
      *     mathematical norm, but it may still be useful for various numerical
      *     purposes.
      *
      * @return Norm of the vector.
      */
+    template <class T, class Tag>
+    T norm(const base_tensor<T, 1, Tag> &a, double ord = 2);
+
+    template <class T, class Tag>
+    T norm(const base_tensor<std::complex<T>, 1, Tag> &a, double ord = 2);
+
+    /**
+     * @brief Return the vector norm along the given axis.
+     *
+     * @param a A tensor-like object.
+     * @param ord Order of the norm.
+     * @param axis Axis along which to compute the vector norm.
+     *
+     * @return A new tensor with the norm of the vectors along an axis. The
+     *     output tensor will have the same dimension and the same shape,
+     *     except that the axis which is reduced is left as a dimension of size
+     *     one.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
     template <class T, size_t Rank, class Tag>
-    T norm(const base_tensor<T, Rank, Tag> &a, double p = 2);
+    tensor<T, Rank> norm(
+        const base_tensor<T, Rank, Tag> &a, double ord, size_t axis
+    );
 
     template <class T, size_t Rank, class Tag>
-    T norm(const base_tensor<std::complex<T>, Rank, Tag> &a, double p = 2);
+    tensor<T, Rank> norm(
+        const base_tensor<std::complex<T>, Rank, Tag> &a, double ord,
+        size_t axis
+    );
+
+    /**
+     * @brief Return the sum along a diagonal of the matrix, i.e., the sum of
+     * the elements of the form a(i, i + k).
+     *
+     * @param a Matrix from which the diagonal is taken.
+     * @param k Offset of the diagonal from the main diagonal. A positive value
+     *     refers to an upper diagonal and a negative value refers to a lower
+     *     diagonal. Defaults to main diagonal (0).
+     *
+     * @return The sum along the diagonal.
+     */
+    template <class T, class Tag>
+    T trace(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
 }
 
 #include "numcpp/routines/routines.tcc"
