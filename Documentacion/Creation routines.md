@@ -745,8 +745,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     // Return an expression equivalent to array<double>
     std::cout << "logspace(-3., 3., num=7):\n";
     std::cout << np::logspace(-3., 3., 7) << "\n";
@@ -815,8 +814,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     // Return an expression equivalent to array<double>
     std::cout << "geomspace(0.001., 1000., num=7):\n";
     std::cout << np::geomspace(0.001, 1000., 7) << "\n";
