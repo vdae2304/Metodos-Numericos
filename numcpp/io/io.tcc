@@ -1007,14 +1007,6 @@ namespace detail {
         return ostr << rhs;
     }
 
-    template <class charT, class traits, class T>
-    inline std::basic_ostream<charT, traits>& print(
-        std::basic_ostream<charT, traits> &ostr, const T &rhs, size_t width
-    ) {
-        ostr.width(width);
-        return print(ostr, rhs);
-    }
-
     /**
      * @brief Partial specialization of print for strings. Surround strings by
      * quotation marks when printing arrays of strings.
@@ -1105,7 +1097,8 @@ namespace detail {
                 ostr << " ";
                 linesize = axis + 1;
             }
-            print(ostr, arg[index], width);
+            ostr.width(width);
+            print(ostr, arg[index]);
             linesize += width;
             ++index[axis];
         }
