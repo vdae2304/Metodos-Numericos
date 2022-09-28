@@ -25,7 +25,6 @@
 #define NUMCPP_IO_TCC_INCLUDED
 
 #include <complex>
-#include <cstdint>
 #include <ios>
 #include <fstream>
 #include <istream>
@@ -65,7 +64,7 @@ namespace detail {
         char byteorder, char kind, size_t itemsize
     ) {
         std::ostringstream buffer;
-        buffer << byteorder << kind << itemsize;
+        buffer << '\'' << byteorder << kind << itemsize << '\'';
         return buffer.str();
     }
 
@@ -171,7 +170,7 @@ namespace detail {
         std::string magic(6, ' ');
         file.read(&magic[0], 6);
         if (magic != "\x93NUMPY") {
-            throw std::runtime_error("File is not a valid .npy file");
+            throw std::ifstream::failure("File is not a valid .npy file");
         }
         file.read(reinterpret_cast<char*>(&major), 1);
         file.read(reinterpret_cast<char*>(&minor), 1);
@@ -213,25 +212,25 @@ namespace detail {
             header.resize(header_len);
         }
         file.read(&header[0], header.size());
-        // Check header is a valid Python dictionary with the required fields.
+        // Check whether header is a valid Pydict with the required fields.
         std::vector< std::pair<std::string, std::string> > dict;
         if (!parse_pydict(header, dict)) {
-            throw std::runtime_error("File is corrupted or malformed");
+            throw std::ifstream::failure("File is corrupted or malformed");
         }
         std::sort(dict.begin(), dict.end());
         if (dict.size() != 3
             || dict[0].first != "descr"
             || dict[1].first != "fortran_order"
             || dict[2].first != "shape") {
-            throw std::runtime_error("File is corrupted or malformed");
+            throw std::ifstream::failure("File is corrupted or malformed");
         }
         // Parse "descr" field.
         std::string descr = dict[0].second;
         if (descr != dtype_to_descr<T>()) {
             std::ostringstream error;
-            error << "input file dtype '" << descr << "' doesn't match output"
-                  << " dtype '" << dtype_to_descr<T>() << "'";
-            throw std::runtime_error(error.str());
+            error << "input file dtype " << descr << " doesn't match output"
+                  << " dtype " << dtype_to_descr<T>();
+            throw std::invalid_argument(error.str());
         }
         // Parse "fortran_order" field.
         std::string f_order = dict[1].second;
@@ -242,7 +241,7 @@ namespace detail {
             order = row_major;
         }
         else {
-            throw std::runtime_error("fortran_order must be True or False");
+            throw std::ifstream::failure("fortran_order must be True or False");
         }
         // Parse "shape" field.
         std::string a_shape = dict[2].second;
@@ -251,7 +250,7 @@ namespace detail {
             std::ostringstream error;
             error << "input file shape " << a_shape << " is not a valid shape"
                   << " of rank " << Rank;
-            throw std::runtime_error(error.str());
+            throw std::invalid_argument(error.str());
         }
     }
 
@@ -309,6 +308,7 @@ namespace detail {
             case '\"':
             case '\'':
                 if (std::getline(parser, value, delim)) {
+                    value = '\'' + value + '\'';
                     return true;
                 }
                 break;
@@ -345,18 +345,18 @@ namespace detail {
     }
 
     /**
-     * @brief Read the arrays's content from a .npy file.
+     * @brief Read the array's content from a .npy file.
      */
     template <class T, class OutputIterator>
     void read_array(
         std::ifstream &file, OutputIterator first, OutputIterator last
     ) {
-        std::streampos pos = file.tellg();
+        std::streampos offset = file.tellg();
         file.seekg(0, std::ios::end);
-        size_t bytesize = file.tellg() - pos;
-        file.seekg(pos, std::ios::beg);
+        size_t bytesize = file.tellg() - offset;
+        file.seekg(offset, std::ios::beg);
         if (bytesize != std::distance(first, last) * sizeof(T)) {
-            throw std::runtime_error("File is corrupted or malformed");
+            throw std::ifstream::failure("File is corrupted or malformed");
         }
         while (first != last) {
             file.read(reinterpret_cast<char*>(&*first), sizeof(T));
@@ -372,7 +372,7 @@ namespace detail {
             std::ostringstream error;
             error << "Input file " << filename << " does not exist or cannot"
                   << " be read";
-            throw std::runtime_error(error.str());
+            throw std::ifstream::failure(error.str());
         }
         std::uint8_t major, minor;
         detail::read_magic(file, major, minor);
@@ -406,8 +406,8 @@ namespace detail {
         std::ostringstream buffer;
         std::string descr = dtype_to_descr<T>();
         std::string f_order = (order == col_major) ? "True" : "False";
-        buffer << "{'descr': '" << descr << "', 'fortran_order': "
-               << f_order << ", 'shape': " << shape << "}";
+        buffer << "{'descr': " << descr << ", 'fortran_order': " << f_order
+               << ", 'shape': " << shape << "}";
         std::string header = buffer.str();
         std::uint16_t header_len = header.size();
         file.write(reinterpret_cast<char*>(&header_len), 2);
@@ -415,7 +415,7 @@ namespace detail {
     }
 
     /**
-     * @brief Write the arrays's contents to a .npy file.
+     * @brief Write the array's contents to a .npy file.
      */
     template <class T, class InputIterator>
     void write_array(
@@ -437,7 +437,7 @@ namespace detail {
         if (!file) {
             std::ostringstream error;
             error << "Ouput file " << filename << " cannot be written";
-            throw std::runtime_error(error.str());
+            throw std::ofstream::failure(error.str());
         }
         detail::write_magic(file, 1, 0);
         detail::write_array_header<T>(file, data.shape(), data.layout());
@@ -445,7 +445,243 @@ namespace detail {
         file.close();
     }
 
-    /// Input/output streams
+    /// Text files.
+
+namespace detail {
+    /**
+     * @brief Parse a value from a string. If already an string, simply removes
+     * leading and trailing whitespaces.
+     */
+    template <class T>
+    inline void parse(const std::string &str, T &val) {
+        std::istringstream parser(str);
+        parser >> val;
+    }
+
+    inline void parse(const std::string &str, std::string &val) {
+        size_t start = str.find_first_not_of(" \f\n\r\t\v");
+        size_t end = str.find_last_not_of(" \f\n\r\t\v");
+        val = str.substr(start, end - start + 1);
+    }
+
+    /**
+     * @brief Find the number of rows and columns of the data stored in the
+     * text file. This function does not read any data, it only returns the
+     * shape of the data stored.
+     */
+    shape_t<2> scan_file_data(
+        std::ifstream &file, char delimiter, char newline, size_t max_rows
+    ) {
+        std::streampos offset = file.tellg();
+        std::string line, token;
+        shape_t<2> shape;
+        while (shape[0] < max_rows && std::getline(file, line, newline)) {
+            std::istringstream tokenizer(line);
+            size_t ntokens = 0;
+            while (std::getline(tokenizer, token, delimiter)) {
+                ++ntokens;
+            }
+            ++shape[0];
+            shape[1] = std::max(shape[1], ntokens);
+        }
+        file.clear();
+        file.seekg(offset, std::ios::beg);
+        return shape;
+    }
+
+    /**
+     * @brief Fill a tensor with data from an ifstream object.
+     */
+    template <class T>
+    void load_file_data(
+        std::ifstream &file, tensor<T, 2> &out, const shape_t<2> &shape,
+        char delimiter, char newline
+    ) {
+        std::string line, token;
+        out.resize(shape);
+        for (size_t i = 0; i < shape[0]; ++i) {
+            std::getline(file, line, newline);
+            std::istringstream tokenizer(line);
+            for (size_t j = 0; j < shape[1]; ++j) {
+                std::getline(tokenizer, token, delimiter);
+                parse(token, out(i, j));
+            }
+        }
+    }
+
+    template <class T>
+    void load_file_data(
+        std::ifstream &file, tensor<T, 2> &out, const shape_t<2> &shape,
+        char delimiter, char newline,
+        std::initializer_list<std::size_t> usecols
+    ) {
+        std::string line, token;
+        out.resize(shape[0], usecols.size());
+        for (size_t i = 0; i < shape[0]; ++i) {
+            std::getline(file, line, newline);
+            std::istringstream tokenizer(line);
+            std::vector<T> buffer(shape[1]);
+            for (size_t j = 0; j < shape[1]; ++j) {
+                std::getline(tokenizer, token, delimiter);
+                parse(token, buffer[j]);
+            }
+            for (size_t j = 0; j < usecols.size(); ++j) {
+                out(i, j) = buffer[*(usecols.begin() + j)];
+            }
+        }
+    }
+
+    template <class T>
+    void load_file_data(
+        std::ifstream &file, tensor<T, 1> &out, const shape_t<2> &shape,
+        char, char newline
+    ) {
+        std::string line;
+        out.resize(shape[0]);
+        for (size_t i = 0; i < shape[0]; ++i) {
+            std::getline(file, line, newline);
+            parse(line, out[i]);
+        }
+    }
+
+    template <class T>
+    void load_file_data(
+        std::ifstream &file, tensor<T, 1> &out, const shape_t<2> &shape,
+        char delimiter, char newline,
+        std::initializer_list<std::size_t> usecols
+    ) {
+        std::string line, token;
+        out.resize(shape[0]);
+        for (size_t i = 0; i < shape[0]; ++i) {
+            std::getline(file, line, newline);
+            std::istringstream tokenizer(line);
+            std::vector<T> buffer(shape[1]);
+            for (size_t j = 0; j < shape[1]; ++j) {
+                std::getline(tokenizer, token, delimiter);
+                parse(token, buffer[j]);
+            }
+            out[i] = buffer[*usecols.begin()];
+        }
+    }
+}
+
+    template <class T, size_t Rank>
+    tensor<T, Rank> loadtxt(
+        const std::string &filename, char delimiter, char newline,
+        size_t skiprows, size_t max_rows,
+        std::initializer_list<size_t> usecols
+    ) {
+        static_assert(Rank == 1 || Rank == 2, "Output tensor must be"
+                      " 1-dimensional or 2-dimensional");
+        std::ifstream file(filename, std::ifstream::binary);
+        if (!file) {
+            std::ostringstream error;
+            error << "Input file " << filename << " does not exist or cannot"
+                  << " be read";
+            throw std::ifstream::failure(error.str());
+        }
+        for (size_t i = 0; i < skiprows; ++i) {
+            file.ignore(std::numeric_limits<std::streamsize>::max(), newline);
+        }
+        shape_t<2> shape =
+            detail::scan_file_data(file, delimiter, newline, max_rows);
+        tensor<T, Rank> out;
+        if (usecols.size() == 0) {
+            detail::load_file_data(file, out, shape, delimiter, newline);
+        }
+        else {
+            detail::load_file_data(
+                file, out, shape, delimiter, newline, usecols
+            );
+        }
+        return out;
+    }
+
+namespace detail {
+    /**
+     * @brief Set all print options flags on the output stream object.
+     */
+    template <class T, class charT, class traits>
+    void set_printoptions_flags(std::basic_ostream<charT, traits> &ostr) {
+        using namespace printoptions;
+        if (precision == fullprecision) {
+            ostr.precision(std::numeric_limits<T>::max_digits10);
+        }
+        else {
+            ostr.precision(precision);
+        }
+        switch (floatmode) {
+        case defaultfloat:
+            ostr.unsetf(std::ios::floatfield);
+            break;
+        case fixed:
+            ostr.setf(std::ios::floatfield, std::ios::fixed);
+            break;
+        case scientific:
+            ostr.setf(std::ios::floatfield, std::ios::scientific);
+            break;
+        }
+    }
+
+    /**
+     * @brief Save the tensor's contents to a text file.
+     */
+    template <class T, class Tag>
+    void save_file_data(
+        std::ofstream &file, const base_tensor<T, 2, Tag> &data,
+        char delimiter, char newline
+    ) {
+        size_t rows = data.shape(0), cols = data.shape(1);
+        if (rows > 0 && cols > 0) {
+            for (size_t i = 0; i < rows; ++i) {
+                file << data(i, 0);
+                for (size_t j = 1; j < cols; ++j) {
+                    file << delimiter << data(i, j);
+                }
+                file << newline;
+            }
+        }
+    }
+
+    template <class T, class Tag>
+    void save_file_data(
+        std::ofstream &file, const base_tensor<T, 1, Tag> &data,
+        char, char newline
+    ) {
+        size_t size = data.size();
+        if (size > 0) {
+            for (size_t i = 0; i < size; ++i) {
+                file << data[i] << newline;
+            }
+        }
+    }
+}
+
+    template <class T, size_t Rank, class Tag>
+    void savetxt(
+        const std::string &filename, const base_tensor<T, Rank, Tag> &data,
+        char delimiter, char newline,
+        const std::string &header, const std::string &footer
+    ) {
+        static_assert(Rank == 1 || Rank == 2, "Input tensor must be"
+                      " 1-dimensional or 2-dimensional");
+        std::ofstream file(filename);
+        if (!file) {
+            std::ostringstream error;
+            error << "Ouput file " << filename << " cannot be written";
+            throw std::ofstream::failure(error.str());
+        }
+        if (!header.empty()) {
+            file << header << newline;
+        }
+        detail::set_printoptions_flags<T>(file);
+        detail::save_file_data(file, data, delimiter, newline);
+        if (!footer.empty()) {
+            file << footer << newline;
+        }
+    }
+
+    /// Input/output streams.
 
     template <class charT, class traits, size_t Rank>
     std::basic_istream<charT, traits>& operator>>(
@@ -457,21 +693,19 @@ namespace detail {
             if (traits::eq(ch, istr.widen('('))) {
                 for (size_t i = 0; i < shape.ndim(); ++i) {
                     if (istr >> shape[i] >> ch) {
-                        if (i < shape.ndim() - 1) {
-                            if (traits::eq(ch, istr.widen(','))) {
+                        if (traits::eq(ch, istr.widen(','))) {
+                            if (i < shape.ndim() - 1) {
                                 continue;
                             }
-                            else {
-                                istr.putback(ch);
+                        }
+                        else if (traits::eq(ch, istr.widen(')'))) {
+                            if (i == shape.ndim() - 1) {
+                                fail = false;
+                                break;
                             }
                         }
                         else {
-                            if (traits::eq(ch, istr.widen(')'))) {
-                                fail = false;
-                            }
-                            else {
-                                istr.putback(ch);
-                            }
+                            istr.putback(ch);
                         }
                     }
                     break;
@@ -550,46 +784,32 @@ namespace detail {
         return ostr << sstr.str();
     }
 
-    template <class charT, class traits>
-    std::basic_istream<charT, traits>& operator>>(
-        std::basic_istream<charT, traits> &istr, slice &slc
+namespace detail {
+    /**
+     * @brief Calls to operator>> on the input stream object.
+     */
+    template <class charT, class traits, class T>
+    inline std::basic_istream<charT, traits>& read(
+        std::basic_istream<charT, traits> &istr, T &rhs
     ) {
-        size_t start, stop, stride;
+        return istr >> rhs;
+    }
+
+    /**
+     * @brief Partial specialization of read for strings. Strings need to be
+     * delimited by quotation marks when reading arrays of strings.
+     */
+    template <class charT, class traits>
+    std::basic_istream<charT, traits>& read(
+        std::basic_istream<charT, traits> &istr,
+        std::basic_string<charT, traits> &rhs
+    ) {
         charT ch;
         bool fail = true;
         if (istr >> ch) {
-            if (traits::eq(ch, istr.widen('('))) {
-                if (istr >> stop >> ch) {
-                    if (traits::eq(ch, istr.widen(','))) {
-                        start = stop;
-                        if (istr >> stop >> ch) {
-                            if (traits::eq(ch, istr.widen(','))) {
-                                if (istr >> stride >> ch) {
-                                    if (traits::eq(ch, istr.widen(')'))) {
-                                        slc = slice(start, stop, stride);
-                                        fail = false;
-                                    }
-                                    else {
-                                        istr.putback(ch);
-                                    }
-                                }
-                            }
-                            else if (traits::eq(ch, istr.widen(')'))) {
-                                slc = slice(start, stop);
-                                fail = false;
-                            }
-                            else {
-                                istr.putback(ch);
-                            }
-                        }
-                    }
-                    else if (traits::eq(ch, istr.widen(')'))) {
-                        slc = slice(stop);
-                        fail = false;
-                    }
-                    else {
-                        istr.putback(ch);
-                    }
+            if (traits::eq(ch, '\"') || traits::eq(ch, '\'')) {
+                if (std::getline(istr, rhs, ch)) {
+                    fail = false;
                 }
             }
             else {
@@ -597,68 +817,30 @@ namespace detail {
             }
         }
         if (fail) {
-            slc = slice();
             istr.setstate(std::ios_base::failbit);
         }
         return istr;
     }
 
-    template <class charT, class traits>
-    std::basic_ostream<charT, traits>& operator<<(
-        std::basic_ostream<charT, traits> &ostr, const slice &slc
-    ) {
-        std::basic_ostringstream<charT, traits> sstr;
-        sstr.flags(ostr.flags());
-        sstr.imbue(ostr.getloc());
-        sstr << "(" << slc.start() << "," << slc.size() << "," << slc.stride()
-             << ")";
-        return ostr << sstr.str();
-    }
-
-namespace detail {
     /**
-     * @brief Helper function: Read the elements of a tensor recursively from
-     * the first axis to the last axis. Returns whether the operation was
-     * successfull.
-     */
-    template <class charT, class traits, class T, size_t Rank>
-    bool read_tensor(
-        std::basic_istream<charT, traits> &istr,
-        shape_t<Rank> &shape, std::vector<T> &buffer,
-        size_t axis
-    );
-
-    /**
-     * @brief Helper function: Read a value. Returns whether the operation was
-     * successful.
+     * @brief  Partial specialization of read for complex numbers. Complex
+     * numbers can be read using default format or using real + imag i format.
      */
     template <class charT, class traits, class T>
-    inline std::basic_istream<charT, traits>& read_value(
-        std::basic_istream<charT, traits> &istr, T &rhs
-    ) {
-        return istr >> rhs;
-    }
-
-    /**
-     * @brief Helper function: Read a value. Partial specialization for complex
-     * numbers.
-     */
-    template <class charT, class traits, class T>
-    std::basic_istream<charT, traits>& read_value(
+    std::basic_istream<charT, traits>& read(
         std::basic_istream<charT, traits> &istr, std::complex<T> &rhs
     ) {
         using namespace printoptions;
         switch (complexmode) {
-        case complexmode_t::defaultmode:
+        case defaultcomplex:
             return istr >> rhs;
-        case complexmode_t::algebraic:
+        case arithmetic:
             T x, y;
             charT ch;
             bool fail = true;
             if (istr >> x) {
-                if (!istr.eof()) {
+                if (istr >> ch) {
                     charT plus = istr.widen('+'), minus = istr.widen('-');
-                    istr >> ch;
                     if (traits::eq(ch, plus) || traits::eq(ch, minus)) {
                         bool sign = traits::eq(ch, minus);
                         if (istr >> y >> ch) {
@@ -694,21 +876,32 @@ namespace detail {
     }
 
     /**
-     * @brief Helper function: Read a list of values and append them at the end
-     * of a std::vector. Save in size the number of extracted values. Return
-     * whether the operation was sucessfull.
+     * @brief Read the elements of a tensor recursively from the first axis to
+     * the last axis. Returns whether the operation was successfull.
+     */
+    template <class charT, class traits, class T, size_t Rank>
+    bool read_tensor(
+        std::basic_istream<charT, traits> &istr,
+        shape_t<Rank> &shape, std::vector<T> &buffer,
+        size_t axis = 0
+    );
+
+    /**
+     * @brief Read a list of values and append them at the end of a
+     * std::vector. Save in size the number of extracted values. Return whether
+     * the operation was sucessfull.
      */
     template <class charT, class traits, class T>
     bool read_tensor_slice(
-        std::basic_istream<charT, traits> &istr, size_t &size,
-        std::vector<T> &buffer
+        std::basic_istream<charT, traits> &istr,
+        size_t &size, std::vector<T> &buffer
     ) {
         charT ch;
         T val;
         size = 0;
         if (istr >> ch) {
             if (traits::eq(ch, istr.widen('['))) {
-                while (read_value(istr, val) && istr >> ch) {
+                while (read(istr, val) && istr >> ch) {
                     ++size;
                     buffer.push_back(val);
                     if (traits::eq(ch, istr.widen(','))) {
@@ -731,38 +924,9 @@ namespace detail {
     }
 
     /**
-     * @brief Helper function: Read a list of values and append them at the end
-     * of a std::vector. Partial specialization for strings. Strings need to be
-     * handled separately to deal with whitespaces.
-     */
-    template <class charT, class traits>
-    bool read_tensor_slice(
-        std::basic_istream<charT, traits> &istr, size_t &size,
-        std::vector<std::basic_string<charT, traits> > &buffer
-    ) {
-        charT ch;
-        size = 0;
-        if (istr >> ch) {
-            if (traits::eq(ch, istr.widen('['))) {
-                std::basic_string<charT, traits> line, token;
-                std::getline(istr, line, istr.widen(']'));
-                std::basic_istringstream<charT, traits> tokenizer(line);
-                while (std::getline(tokenizer, token, istr.widen(','))) {
-                    ++size;
-                    token.erase(0, token.find_first_not_of(" \f\n\r\t\v"));
-                    token.erase(token.find_last_not_of(" \f\n\r\t\v") + 1);
-                    buffer.push_back(token);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @brief Helper function: Read a block of values and append them at the
-     * end of a std::vector. Save the size of the block in shape. Return
-     * whether the operation was sucessfull.
+     * @brief Read a block of values and append them at the end of a
+     * std::vector. Save the size of the block in shape. Return whether the
+     * operation was sucessfull.
      */
     template <class charT, class traits, class T, size_t Rank>
     bool read_tensor_block(
@@ -818,15 +982,15 @@ namespace detail {
 
     template <class charT, class traits, class T, size_t Rank>
     std::basic_istream<charT, traits>& operator>>(
-        std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arr
+        std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arg
     ) {
         shape_t<Rank> shape;
         std::vector<T> buffer;
-        if (detail::read_tensor(istr, shape, buffer, 0)) {
-            arr = std::move(tensor<T, Rank>(buffer.begin(), shape));
+        if (detail::read_tensor(istr, shape, buffer)) {
+            arg = std::move(tensor<T, Rank>(buffer.begin(), shape));
         }
         else {
-            arr = std::move(tensor<T, Rank>());
+            arg = std::move(tensor<T, Rank>());
             istr.setstate(std::ios_base::failbit);
         }
         return istr;
@@ -834,66 +998,53 @@ namespace detail {
 
 namespace detail {
     /**
-     * @brief Helper function: Set all the print options flags on the output
-     * stream object.
-     */
-    template <class T, class charT, class traits>
-    void set_printoptions_flags(std::basic_ostream<charT, traits> &ostr) {
-        using namespace printoptions;
-        if (precision == (size_t)fullprecision) {
-            ostr.precision(std::numeric_limits<T>::max_digits10);
-        }
-        else {
-            ostr.precision(precision);
-        }
-        switch (floatmode) {
-        case floatmode_t::defaultmode:
-            ostr.unsetf(std::ios::floatfield);
-            break;
-        case floatmode_t::fixed:
-            ostr.setf(std::ios::floatfield, std::ios::fixed);
-            break;
-        case floatmode_t::scientific:
-            ostr.setf(std::ios::floatfield, std::ios::scientific);
-            break;
-        }
-    }
-
-    /**
-     * @brief Helper function: Print the elements of a tensor recursively from
-     * the first axis to the last axis.
-     */
-    template <class charT, class traits, class T, size_t Rank, class Tag>
-    void print_tensor(
-        std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr,
-        index_t<Rank> &index, size_t axis,
-        size_t width
-    );
-
-    /**
-     * @brief Helper function. Print a value.
+     * @brief Calls to operator<< on the output stream object.
      */
     template <class charT, class traits, class T>
-    inline std::basic_ostream<charT, traits>& print_value(
+    inline std::basic_ostream<charT, traits>& print(
         std::basic_ostream<charT, traits> &ostr, const T &rhs
     ) {
         return ostr << rhs;
     }
 
+    template <class charT, class traits, class T>
+    inline std::basic_ostream<charT, traits>& print(
+        std::basic_ostream<charT, traits> &ostr, const T &rhs, size_t width
+    ) {
+        ostr.width(width);
+        return print(ostr, rhs);
+    }
+
     /**
-     * @brief Helper function. Print a value. Partial specialization for
-     * complex numbers.
+     * @brief Partial specialization of print for strings. Surround strings by
+     * quotation marks when printing arrays of strings.
+     */
+    template <class charT, class traits>
+    inline std::basic_ostream<charT, traits>& print(
+        std::basic_ostream<charT, traits> &ostr,
+        const std::basic_string<charT, traits> &rhs
+    ) {
+        char quotes = '\"';
+        if (rhs.find('\"') < rhs.size()) {
+            quotes = '\'';
+        }
+        return ostr << (quotes + rhs + quotes);
+    }
+
+    /**
+     * @brief Partial specialization of print for complex numbers. Complex
+     * numbers can be printed using default format or using real + imag i
+     * format.
      */
     template <class charT, class traits, class T>
-    inline std::basic_ostream<charT, traits>& print_value(
+    std::basic_ostream<charT, traits>& print(
         std::basic_ostream<charT, traits> &ostr, const std::complex<T> &rhs
     ) {
         using namespace printoptions;
         switch (complexmode) {
-        case complexmode_t::defaultmode:
+        case defaultcomplex:
             return ostr << rhs;
-        case complexmode_t::algebraic:
+        case arithmetic:
             std::basic_ostringstream<charT, traits> buffer;
             buffer.flags(ostr.flags());
             buffer.imbue(ostr.getloc());
@@ -905,18 +1056,30 @@ namespace detail {
     }
 
     /**
-     * @brief Helper function: Print the elements of a tensor along a given
-     * axis. The remaining axes are fixed with a given index.
+     * @brief Print the elements of a tensor recursively from the first axis to
+     * the last axis.
+     */
+    template <class charT, class traits, class T, size_t Rank, class Tag>
+    void print_tensor(
+        std::basic_ostream<charT, traits> &ostr,
+        const base_tensor<T, Rank, Tag> &arg,
+        index_t<Rank> &index, size_t axis,
+        size_t width
+    );
+
+    /**
+     * @brief Print the elements of a tensor along a given axis. The remaining
+     * axes are fixed with a given index.
      */
     template <class charT, class traits, class T, size_t Rank, class Tag>
     void print_tensor_slice(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr,
+        const base_tensor<T, Rank, Tag> &arg,
         index_t<Rank> &index, size_t axis,
         size_t width
     ) {
         using namespace printoptions;
-        size_t size = arr.shape(axis);
+        size_t size = arg.shape(axis);
         size_t linesize = axis + 1;
         std::string delim = "";
         index[axis] = 0;
@@ -928,69 +1091,71 @@ namespace detail {
                 && edgeitems <= index[axis] && index[axis] < size - edgeitems) {
                 delim = "..., ";
                 if (linesize + delim.size() >= linewidth) {
-                    ostr << "\n" << std::string(axis + 1, ' ');
+                    ostr << "\n";
+                    ostr.width(axis + 1);
+                    ostr << " ";
                     linesize = axis + 1;
                 }
                 index[axis] = size - edgeitems;
                 continue;
             }
-            if (index[axis] > 0 && linesize + width >= linewidth) {
-                ostr << "\n" << std::string(axis + 1, ' ');
+            if (linesize + width >= linewidth && index[axis] > 0) {
+                ostr << "\n";
+                ostr.width(axis + 1);
+                ostr << " ";
                 linesize = axis + 1;
             }
-            ostr.width(width);
-            print_value(ostr, arr[index]);
+            print(ostr, arg[index], width);
             linesize += width;
             ++index[axis];
         }
     }
 
     /**
-     * @brief Helper function: Print a block of tensor elements. The first
-     * axes are fixed with a given index while the later axes are printed
-     * recursively.
+     * @brief Print a block of tensor elements. The first axes are fixed with a
+     * given index while the later axes are printed recursively.
      */
     template <class charT, class traits, class T, size_t Rank, class Tag>
     void print_tensor_block(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr,
+        const base_tensor<T, Rank, Tag> &arg,
         index_t<Rank> &index, size_t axis,
         size_t width
     ) {
         using namespace printoptions;
-        size_t size = arr.shape(axis);
+        size_t size = arg.shape(axis);
         std::string delim = "";
         index[axis] = 0;
         while (index[axis] < size) {
             ostr << delim;
             delim = ",";
-            delim.append(arr.ndim() - axis - 1, '\n');
+            delim.append(arg.ndim() - axis - 1, '\n');
             delim.append(axis + 1, ' ');
             if (size >= threshold && size > 2*edgeitems
                 && edgeitems <= index[axis] && index[axis] < size - edgeitems) {
                 delim = "...,";
-                delim.append(arr.ndim() - axis - 1, '\n');
+                delim.append(arg.ndim() - axis - 1, '\n');
                 delim.append(axis + 1, ' ');
                 index[axis] = size - edgeitems;
                 continue;
             }
-            print_tensor(ostr, arr, index, axis + 1, width);
+            print_tensor(ostr, arg, index, axis + 1, width);
             ++index[axis];
         }
     }
 
     /**
-     * @brief Helper function: Get the common number of characters required
-     * to print each value along the last axis.
+     * @brief Get the number of characters required to print each value in the
+     * tensor.
      */
     template <class charT, class traits, class T, size_t Rank, class Tag>
     size_t print_tensor_width(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr,
-        index_t<Rank> &index, size_t axis
+        const base_tensor<T, Rank, Tag> &arg,
+        index_t<Rank> &index, size_t axis = 0
     ) {
         using namespace printoptions;
-        size_t size = arr.shape(axis);
+        size_t size = arg.shape(axis);
         size_t max_width = 0;
         index[axis] = 0;
         while (index[axis] < size) {
@@ -999,17 +1164,17 @@ namespace detail {
                 index[axis] = size - edgeitems;
                 continue;
             }
-            if (axis == arr.ndim() - 1) {
+            if (axis == arg.ndim() - 1) {
                 std::basic_ostringstream<charT, traits> buffer;
                 buffer.flags(ostr.flags());
                 buffer.imbue(ostr.getloc());
                 buffer.precision(ostr.precision());
-                print_value(buffer, arr[index]);
+                print(buffer, arg[index]);
                 max_width = std::max(max_width, buffer.str().size());
             }
             else {
                 max_width = std::max(
-                    max_width, print_tensor_width(ostr, arr, index, axis + 1)
+                    max_width, print_tensor_width(ostr, arg, index, axis + 1)
                 );
             }
             ++index[axis];
@@ -1020,16 +1185,16 @@ namespace detail {
     template <class charT, class traits, class T, size_t Rank, class Tag>
     void print_tensor(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr,
+        const base_tensor<T, Rank, Tag> &arg,
         index_t<Rank> &index, size_t axis,
         size_t width
     ) {
         ostr << "[";
-        if (axis == arr.ndim() - 1) {
-            print_tensor_slice(ostr, arr, index, axis, width);
+        if (axis == arg.ndim() - 1) {
+            print_tensor_slice(ostr, arg, index, axis, width);
         }
         else {
-            print_tensor_block(ostr, arr, index, axis, width);
+            print_tensor_block(ostr, arg, index, axis, width);
         }
         ostr << "]";
     }
@@ -1038,14 +1203,14 @@ namespace detail {
     template <class charT, class traits, class T, size_t Rank, class Tag>
     std::basic_ostream<charT, traits>& operator<<(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr
+        const base_tensor<T, Rank, Tag> &arg
     ) {
         std::ios_base::fmtflags default_flags = ostr.flags();
         size_t default_precision = ostr.precision();
         detail::set_printoptions_flags<T>(ostr);
         index_t<Rank> index;
-        size_t width = detail::print_tensor_width(ostr, arr, index, 0);
-        detail::print_tensor(ostr, arr, index, 0, width);
+        size_t width = detail::print_tensor_width(ostr, arg, index);
+        detail::print_tensor(ostr, arg, index, 0, width);
         ostr.flags(default_flags);
         ostr.precision(default_precision);
         return ostr;

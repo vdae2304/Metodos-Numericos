@@ -24,6 +24,7 @@
 #define NUMCPP_IO_H_INCLUDED
 
 #include "numcpp/config.h"
+#include <cstdint>
 #include <iosfwd>
 
 namespace numcpp {
@@ -35,7 +36,7 @@ namespace numcpp {
          * to fullprecision.
          */
         size_t precision = 8;
-        enum { fullprecision = -1 };
+        constexpr size_t fullprecision = SIZE_MAX;
 
         /**
          * @brief Total number of array elements which trigger summarization
@@ -43,7 +44,7 @@ namespace numcpp {
          * representation without summarization, set to nothreshold.
          */
         size_t threshold = 1000;
-        enum { nothreshold = -1 };
+        constexpr size_t nothreshold = SIZE_MAX;
 
         /**
          * @brief Number of array items in summary at beginning and end of each
@@ -57,11 +58,11 @@ namespace numcpp {
          */
         size_t linewidth = 80;
 
-        enum class floatmode_t {
+        enum floatmode_t {
             /**
              * @brief Write floating-point values in default notation.
              */
-            defaultmode,
+            defaultfloat,
             /**
              * @brief Write floating-point values in fixed-point notation.
              */
@@ -76,25 +77,25 @@ namespace numcpp {
          * @brief Controls the interpretation of the precision option for
          * floating-point types.
          */
-        floatmode_t floatmode = floatmode_t::defaultmode;
+        floatmode_t floatmode = defaultfloat;
 
-        enum class complexmode_t {
+        enum complexmode_t {
             /**
              * @brief Read and write complex values in default notation, i.e.,
              * as a pair (real,imag).
              */
-            defaultmode,
+            defaultcomplex,
             /**
-             * @brief Read and write complex values in algebraic notation,
+             * @brief Read and write complex values in arithmetic notation,
              * i.e., as real + imag i.
              */
-            algebraic
+            arithmetic
         };
 
         /**
          * @brief Controls the input and output format of complex types.
          */
-        complexmode_t complexmode = complexmode_t::defaultmode;
+        complexmode_t complexmode = defaultcomplex;
     }
 
     /// Binary data.
@@ -106,13 +107,15 @@ namespace numcpp {
      *     arithmetic (either integer or floating-point type) or complex type.
      * @tparam Rank Dimension of the tensor.
      *
-     * @param filename The file to read.
+     * @param filename A string representing the name of the file to load.
      *
      * @return A new tensor with its contents loaded from the file.
      *
-     * @throw std::runtime_error If the input file does not exist or cannot be
-     *     read; or if the tensor's data type and rank does not match the ones
-     *     stored in the file.
+     * @throw std::ios_base::failure Thrown if the input file doesn't exist or
+     *     cannot be read.
+     * @throw std::invalid_argument Thrown if T and Rank doesn't match the data
+     *     type and dimension stored by the input file. Be aware that some data
+     *     types might have platform dependent definitions.
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
@@ -122,23 +125,90 @@ namespace numcpp {
     /**
      * @brief Save tensor contents to a binary file in NumPy .npy format.
      *
-     * @param filename Filename to which the data is saved.
-     * @param data Tensor data to be saved. Only arithmetic and complex types
-     *     are supported.
+     * @param filename A string representing the name of the file destination.
+     * @param data Tensor data to be saved. Only arithmetic (either integer or
+     *     floating-point types) and complex types are supported.
      *
-     * @throw std::runtime_error If the output file cannot be written.
+     * @throw std::ios_base::failure Thrown if the output file cannot be
+     *     written.
      */
     template <class T, size_t Rank, class Tag>
     void save(
         const std::string &filename, const base_tensor<T, Rank, Tag> &data
     );
 
-    /// Input/output streams
+    /// Text files.
 
     /**
-     * @brief Overloads input stream for shape_t objects. The supported format
-     * for input extraction is (elem1, elem2, ..., elemN) if N > 1 and (elem1,)
-     * or elem1 if N == 1.
+     * @brief Load tensor data from a text file.
+     *
+     * @tparam T Type of the elements contained in the tensor.
+     * @tparam Rank Dimension of the tensor. Must be 1 or 2.
+     *
+     * @param filename A string representing the name of the file to load.
+     * @param delimiter Character used to separate values. Defaults to
+     *     whitespace.
+     * @param newline Character used to separate lines. Defaults to end of
+     *     line.
+     * @param skiprows Skip the first skiprows lines. Default is 0.
+     * @param max_rows Read max_rows lines of content after skiprows lines. The
+     *     default is to read all the lines.
+     * @param usecols An initializer_list indicating which columns to read,
+     *     with 0 being the first. If not provided, read all the columns.
+     *
+     * @return A new tensor with its contents loaded from the file.
+     *
+     * @throw std::ios_base::failure Thrown if the input file doesn't exist or
+     *     cannot be read.
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, size_t Rank>
+    tensor<T, Rank> loadtxt(
+        const std::string &filename, char delimiter = ' ', char newline = '\n',
+        size_t skiprows = 0, size_t max_rows = SIZE_MAX,
+        std::initializer_list<size_t> usecols = {}
+    );
+
+    /**
+     * @brief Save a tensor to a text file.
+     *
+     * @param filename A string representing the name of the file destination.
+     * @param data A 1-dimensional or 2-dimensional tensor with the data to be
+     *     saved to a text file.
+     * @param delimiter Character used to separate values. Defaults to
+     *     whitespace.
+     * @param newline Character used to separate lines. Defaults to end of
+     *     line.
+     * @param header String that will be written at the beginning of the file.
+     * @param footer String that will be written at the end of the file.
+     *
+     * @throw std::ios_base::failure Thrown if the output file cannot be
+     *     written.
+     */
+    template <class T, size_t Rank, class Tag>
+    void savetxt(
+        const std::string &filename, const base_tensor<T, Rank, Tag> &data,
+        char delimiter = ' ', char newline = '\n',
+        const std::string &header = "", const std::string &footer = ""
+    );
+
+    /// Input/output streams.
+
+    /**
+     * @brief Overloads input stream for shape_t objects.
+     *
+     * @details For 1-dimensional shapes, the supported formats are
+     *     - (size,)
+     *     - size
+     * For n-dimensional shapes, n > 1, the supported formats are
+     *     - (size_0, size_1, ..., size_n)
+     * If an error occurs, calls istr.setstate(std::ios_base::failbit).
+     *
+     * @param istr Input stream object.
+     * @param shape Shape to be extracted from the input stream.
+     *
+     * @return istr
      */
     template <class charT, class traits, size_t Rank>
     std::basic_istream<charT, traits>& operator>>(
@@ -151,9 +221,17 @@ namespace numcpp {
     );
 
     /**
-     * @brief Overloads output stream for shape_t objects. The format for
-     * output extraction is (elem1, elem2, ..., elemN) if N > 1 and (elem1,)
-     * if N == 1.
+     * @brief Overloads output stream for shape_t objects.
+     *
+     * @details For 1-dimensional shapes, the format used is
+     *     - (size,)
+     * For n-dimensional shapes, n > 1, the format used is
+     *     - (size_0, size_1, ..., size_n)
+     *
+     * @param ostr Output stream object.
+     * @param shape Shape to be inserted into the output stream.
+     *
+     * @return ostr
      */
     template <class charT, class traits, size_t Rank>
     std::basic_ostream<charT, traits>& operator<<(
@@ -166,57 +244,44 @@ namespace numcpp {
     );
 
     /**
-     * @brief Overloads input stream for slice objects. The supported formats
-     * for input extraction are (size), (start,size) and (start,size,stride).
-     */
-    template <class charT, class traits>
-    std::basic_istream<charT, traits>& operator>>(
-        std::basic_istream<charT, traits> &istr, slice &slc
-    );
-
-    /**
-     * @brief Overloads output stream for slice objects. The format for
-     * output extraction is (start,size,stride).
-     */
-    template <class charT, class traits>
-    std::basic_ostream<charT, traits>& operator<<(
-        std::basic_ostream<charT, traits> &ostr, const slice &slc
-    );
-
-    /**
-     * @brief Extracts a tensor from an input stream. The format for input
-     * extraction is a list of values separated by commas and delimited by
-     * brackets:
-     *     [rhs[0], rhs[1], rhs[2], ... , rhs[n - 1]]
-     * Each value in the list might be a list as well. If extraction fails, an
-     * empty tensor is written and failbit flag is set.
+     * @brief Extracts a tensor from an input stream.
+     *
+     * @details The format for input extraction is a list of values separated
+     * by commas and delimited by brackets:
+     *     [arg[0], arg[1], arg[2], ... , arg[n - 1]]
+     * Each value in the list might be a list as well. However, the number of
+     * nested lists must be equal to the dimension of the tensor to extract. If
+     * extraction fails, an empty tensor is written and failbit flag is set.
      *
      * @param istr Input stream object.
-     * @param rhs Reference to a tensor object to store the extracted values.
+     * @param arg Tensor to be extracted from the input stream.
      *
-     * @return The input stream object.
+     * @return istr
      *
      * @throw std::bad_alloc If the function fails to allocate storage it may
      *     throw an exception.
      */
     template <class charT, class traits, class T, size_t Rank>
     std::basic_istream<charT, traits>& operator>>(
-        std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arr
+        std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arg
     );
 
     /**
-     * @brief Inserts a tensor into the output stream. The format for output
-     * insertion is the same as input extraction.
+     * @brief Inserts a tensor into the output stream.
+     *
+     * @details The format for output insertion is the same as input
+     * extraction, i.e., a list of values separated by commas and delimited by
+     * brackets.
      *
      * @param ostr Output stream object.
-     * @param arr A tensor-like object to insert.
+     * @param arg A tensor-like object to insert.
      *
-     * @return The output stream object.
+     * @return ostr
      */
     template <class charT, class traits, class T, size_t Rank, class Tag>
     std::basic_ostream<charT, traits>& operator<<(
         std::basic_ostream<charT, traits> &ostr,
-        const base_tensor<T, Rank, Tag> &arr
+        const base_tensor<T, Rank, Tag> &arg
     );
 }
 
