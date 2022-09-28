@@ -673,7 +673,7 @@ Output
 
 ```
 Name:
-[Noelle, Mark  , Steve , David , Andrew]
+["Noelle", "Mark"  , "Steve" , "David" , "Andrew"]
 Age:
 [20, 24, 18, 26, 21]
 ```
@@ -705,9 +705,9 @@ Output
 
 ```
 Brand:
-[Ford     , BMW      , Chevrolet, Honda    , Nissan   ]
+["Ford"     , "BMW"      , "Chevrolet", "Honda"    , "Nissan"   ]
 Model:
-[Mustang , X5      , Corvette, Civic   , Tsuru   ]
+["Mustang" , "X5"      , "Corvette", "Civic"   , "Tsuru"   ]
 Year:
 [1969, 1999, 2005, 1998, 1990]
 ```
