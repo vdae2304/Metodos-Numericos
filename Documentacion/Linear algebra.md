@@ -829,8 +829,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::matrix<std::complex<double>> a;
     std::cin >> a;
     std::cout << np::conj_transpose(a) << "\n";
@@ -862,8 +861,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::tensor<std::complex<double>, 3> a;
     std::cin >> a;
     std::cout << "Reverse axes:\n";
