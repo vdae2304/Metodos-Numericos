@@ -90,8 +90,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << z.real() << "\n";
@@ -144,8 +143,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<double> x;
     std::cin >> x;
     np::array<std::complex<double> > z(x.size(), 0);
@@ -196,8 +194,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << z.imag() << "\n";
@@ -250,8 +247,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<double> y;
     std::cin >> y;
     np::array<std::complex<double> > z(y.size(), 0);
@@ -302,8 +298,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << z.conj() << "\n";
