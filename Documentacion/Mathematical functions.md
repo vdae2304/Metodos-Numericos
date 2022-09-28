@@ -2044,8 +2044,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    precision = fullprecision;
+    np::printoptions::precision = np::printoptions::fullprecision;
     np::array<double> x, y;
     std::cin >> x >> y;
     std::cout << np::nextafter(x, y) << "\n";
@@ -2252,8 +2251,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << np::real(z) << "\n";
@@ -2302,8 +2300,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << np::imag(z) << "\n";
@@ -2353,8 +2350,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << np::conj(z) << "\n";
@@ -2399,8 +2395,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << np::abs(z) << "\n";
@@ -2450,8 +2445,7 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = complexmode_t::algebraic;
+    np::printoptions::complexmode = np::printoptions::arithmetic;
     np::array<std::complex<double> > z;
     std::cin >> z;
     std::cout << np::arg(z) << "\n";
