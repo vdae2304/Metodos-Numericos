@@ -157,9 +157,9 @@ Exceptions
 
 * `std::ios_base::failure` Thrown if the input file doesn't exist or cannot be
 read.
-* `std::invalid_argument` Thrown if `T` and `Rank` doesn't match the data type
-and dimension stored by the input file. Be aware that some data types might
-have platform dependent definitions.
+* `std::invalid_argument` Thrown if either `T` or `Rank` doesn't match the data
+type and dimension stored by the input file. Be aware that some data types
+might have platform dependent definitions.
 * `std::bad_alloc` If the function fails to allocate storage it may throw an
 exception.
 
