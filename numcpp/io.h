@@ -104,7 +104,8 @@ namespace numcpp {
      * @brief Load tensor contents from a binary file in NumPy .npy format.
      *
      * @tparam T Type of the elements contained in the tensor. Must be an
-     *     arithmetic (either integer or floating-point type) or complex type.
+     *     arithmetic type (either integer or floating-point) or a complex
+     *     type.
      * @tparam Rank Dimension of the tensor.
      *
      * @param filename A string representing the name of the file to load.
@@ -126,8 +127,8 @@ namespace numcpp {
      * @brief Save tensor contents to a binary file in NumPy .npy format.
      *
      * @param filename A string representing the name of the file destination.
-     * @param data Tensor data to be saved. Only arithmetic (either integer or
-     *     floating-point types) and complex types are supported.
+     * @param data Tensor data to be saved. Only arithmetic types (either
+     *     integer or floating-point) and complex types are supported.
      *
      * @throw std::ios_base::failure Thrown if the output file cannot be
      *     written.
