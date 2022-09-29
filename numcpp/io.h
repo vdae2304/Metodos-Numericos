@@ -203,7 +203,7 @@ namespace numcpp {
      *     - (size,)
      *     - size
      * For n-dimensional shapes, n > 1, the supported formats are
-     *     - (size_0, size_1, ..., size_n)
+     *     - (size_1, size_2, ..., size_n)
      * If an error occurs, calls istr.setstate(std::ios_base::failbit).
      *
      * @param istr Input stream object.
@@ -227,7 +227,7 @@ namespace numcpp {
      * @details For 1-dimensional shapes, the format used is
      *     - (size,)
      * For n-dimensional shapes, n > 1, the format used is
-     *     - (size_0, size_1, ..., size_n)
+     *     - (size_1, size_2, ..., size_n)
      *
      * @param ostr Output stream object.
      * @param shape Shape to be inserted into the output stream.
