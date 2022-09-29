@@ -275,7 +275,7 @@ namespace numcpp {
      * brackets.
      *
      * @param ostr Output stream object.
-     * @param arg A tensor-like object to insert.
+     * @param arg A tensor-like object to be inserted into the output stream.
      *
      * @return ostr
      */
