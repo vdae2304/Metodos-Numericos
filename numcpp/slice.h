@@ -29,7 +29,7 @@ namespace placeholders {
     /**
      * @brief Placeholder used on slice constructor.
      */
-    struct slice_ {} const _;
+    struct underscore {} const _;
 }
 
     /**
@@ -84,19 +84,22 @@ namespace placeholders {
          * 0. If a placeholder is used in the place of stop, its value is
          * deduced to the size of the tensor along the indexed axis.
          */
-        slice(placeholders::slice_, placeholders::slice_) : slice() {}
+        slice(placeholders::underscore, placeholders::underscore)
+         : slice() {}
 
-        slice(placeholders::slice_, size_t stop) : slice(stop) {}
+        slice(placeholders::underscore, size_t stop)
+         : slice(stop) {}
 
-        slice(size_t start, placeholders::slice_) : slice(start, SIZE_MAX) {}
+        slice(size_t start, placeholders::underscore)
+         : slice(start, SIZE_MAX) {}
 
-        slice(placeholders::slice_, placeholders::slice_, size_t stride)
+        slice(placeholders::underscore, placeholders::underscore, size_t stride)
          : slice(0, SIZE_MAX, stride) {}
 
-        slice(placeholders::slice_, size_t stop, size_t stride)
+        slice(placeholders::underscore, size_t stop, size_t stride)
          : slice(0, stop, stride) {}
 
-        slice(size_t start, placeholders::slice_, size_t stride)
+        slice(size_t start, placeholders::underscore, size_t stride)
          : slice(start, SIZE_MAX, stride) {}
 
         /**
