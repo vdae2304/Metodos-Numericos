@@ -41,7 +41,7 @@ namespace printoptions {
 Context manager for setting print options.
 
 * `precision` Number of digits of precision for floating point output. To
-always use the maximum precission of each floating point type, set to
+always use the maximum precision of each floating point type, set to
 `fullprecision`. Default is 8.
 * `threshold` Total number of array elements which trigger summarization rather
 than full representation. To always use the full representation without
