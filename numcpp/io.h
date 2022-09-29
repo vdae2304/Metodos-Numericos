@@ -32,8 +32,8 @@ namespace numcpp {
     namespace printoptions {
         /**
          * @brief Number of digits of precision for floating point output. To
-         * always use the maximum precission of each floating point type, set
-         * to fullprecision.
+         * always use the maximum precision of each floating point type, set to
+         * fullprecision.
          */
         size_t precision = 8;
         constexpr size_t fullprecision = SIZE_MAX;
