@@ -58,9 +58,9 @@ namespace numcpp {
     template <class bit_generator>
     template <class OutputIterator, class Distribution>
     inline void Generator<bit_generator>::__sample_distribution(
-        OutputIterator first, OutputIterator last, Distribution &rvs
+        OutputIterator first, size_t n, Distribution &rvs
     ) {
-        while (first != last) {
+        for (size_t i = 0; i < n; ++i) {
             *first = rvs(m_rng);
             ++first;
         }
@@ -88,7 +88,7 @@ namespace numcpp {
     ) {
         uniform_int_distribution<T> rvs(low, high);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -112,7 +112,7 @@ namespace numcpp {
     ) {
         uniform_real_distribution<T> rvs;
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -121,7 +121,7 @@ namespace numcpp {
     T Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population
     ) {
-        if (population.empty()) {
+        if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
         }
         uniform_int_distribution<size_t> rvs(0, population.size() - 1);
@@ -134,7 +134,7 @@ namespace numcpp {
         const base_tensor<T, 1, Tag> &population,
         const base_tensor<TWeights, 1, TagWeights> &weights
     ) {
-        if (population.empty()) {
+        if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
         }
         if (population.size() != weights.size()) {
@@ -160,8 +160,13 @@ namespace numcpp {
         const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
         bool replace
     ) {
-        if (population.empty()) {
+        if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
+        }
+        if (!replace && size.size() > population.size()) {
+            char error[] = "cannot take a larger sample than population when"
+                " replace=false";
+            throw std::invalid_argument(error);
         }
         if (replace) {
             uniform_int_distribution<size_t> rvs(0, population.size() - 1);
@@ -172,11 +177,6 @@ namespace numcpp {
             return out;
         }
         else {
-            if (size.size() > population.size()) {
-                char error[] = "cannot take a larger sample than population "
-                               "when replace=false";
-                throw std::invalid_argument(error);
-            }
             size_t n = size.size();
             tensor<T, 1> out(population);
             for (size_t i = 0; i < n; ++i) {
@@ -205,11 +205,16 @@ namespace numcpp {
         const base_tensor<TWeights, 1, TagWeights> &weights,
         bool replace
     ) {
-        if (population.empty()) {
+        if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
         }
         if (population.shape() != weights.shape()) {
             char error[] = "population and weights must have same size";
+            throw std::invalid_argument(error);
+        }
+        if (!replace && size.size() > population.size()) {
+            char error[] = "cannot take a larger sample than population when"
+                " replace=false";
             throw std::invalid_argument(error);
         }
         if (replace) {
@@ -221,11 +226,6 @@ namespace numcpp {
             return out;
         }
         else {
-            if (size.size() > population.size()) {
-                char error[] = "cannot take a larger sample than population "
-                               "when replace=false";
-                throw std::invalid_argument(error);
-            }
             size_t n = size.size();
             tensor<T, 1> out(population);
             tensor<TWeights, 1> w(weights);
@@ -244,17 +244,35 @@ namespace numcpp {
 
     template <class bit_generator>
     template <class T, size_t Rank, class Tag>
-    inline void Generator<bit_generator>::shuffle(
-        base_tensor<T, Rank, Tag> &arg
+    void Generator<bit_generator>::shuffle(
+        base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
-        std::shuffle(arg.begin(), arg.end(), m_rng);
+        shape_t<Rank> shape = arg.shape();
+        size_t size = shape[axis];
+        shape[axis] = 1;
+        for (index_t<Rank> index : make_indices(shape)) {
+            auto first = make_axes_iterator(&arg, index, axis, 0);
+            auto last = make_axes_iterator(&arg, index, axis, size);
+            std::shuffle(first, last, m_rng);
+        }
     }
 
     template <class bit_generator>
     template <class T>
-    inline tensor<T, 1> Generator<bit_generator>::permutation(size_t n) {
-        tensor<T, 1> out(n);
-        std::iota(out.begin(), out.end(), 0);
+    inline tensor<T, 1> Generator<bit_generator>::permutation(T n) {
+        size_t size = (n > 0) ? n : 0;
+        tensor<T, 1> out(size);
+        std::iota(out.begin(), out.end(), T(0));
+        std::shuffle(out.begin(), out.end(), m_rng);
+        return out;
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank, class Tag>
+    inline tensor<T, 1> Generator<bit_generator>::permutation(
+        const base_tensor<T, Rank, Tag> &arg
+    ) {
+        tensor<T, 1> out(arg.begin(), arg.size());
         std::shuffle(out.begin(), out.end(), m_rng);
         return out;
     }
@@ -262,10 +280,10 @@ namespace numcpp {
     template <class bit_generator>
     template <class T, size_t Rank, class Tag>
     inline tensor<T, Rank> Generator<bit_generator>::permutation(
-        const base_tensor<T, Rank, Tag> &arg
+        const base_tensor<T, Rank, Tag> &arg, size_t axis
     ) {
         tensor<T, Rank> out(arg);
-        std::shuffle(out.begin(), out.end(), m_rng);
+        this->shuffle(out, axis);
         return out;
     }
 
@@ -293,13 +311,13 @@ namespace numcpp {
     ) {
         beta_distribution<T> rvs(shape1, shape2);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    inline T Generator<bit_generator>::binomial(size_t n, double prob) {
+    inline T Generator<bit_generator>::binomial(T n, double prob) {
         binomial_distribution<T> rvs(n, prob);
         return rvs(m_rng);
     }
@@ -307,7 +325,7 @@ namespace numcpp {
     template <class bit_generator>
     template <class T>
     inline tensor<T, 1> Generator<bit_generator>::binomial(
-        size_t n, double prob, size_t size
+        T n, double prob, size_t size
     ) {
         return this->binomial<T>(n, prob, make_shape(size));
     }
@@ -315,11 +333,11 @@ namespace numcpp {
     template <class bit_generator>
     template <class T, size_t Rank>
     inline tensor<T, Rank> Generator<bit_generator>::binomial(
-        size_t n, double prob, const shape_t<Rank> &size
+        T n, double prob, const shape_t<Rank> &size
     ) {
         binomial_distribution<T> rvs(n, prob);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -345,7 +363,7 @@ namespace numcpp {
     ) {
         cauchy_distribution<T> rvs(loc, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -369,7 +387,7 @@ namespace numcpp {
     ) {
         chi_squared_distribution<T> rvs(df);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -395,7 +413,7 @@ namespace numcpp {
     ) {
         exponential_distribution<T> rvs(rate);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -421,7 +439,7 @@ namespace numcpp {
     ) {
         fisher_f_distribution<T> rvs(df1, df2);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -447,7 +465,7 @@ namespace numcpp {
     ) {
         gamma_distribution<T> rvs(shape, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -473,7 +491,7 @@ namespace numcpp {
     ) {
         geometric_distribution<T> rvs(prob);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -499,7 +517,7 @@ namespace numcpp {
     ) {
         extreme_value_distribution<T> rvs(loc, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -525,7 +543,7 @@ namespace numcpp {
     ) {
         laplace_distribution<T> rvs(loc, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -551,7 +569,7 @@ namespace numcpp {
     ) {
         logistic_distribution<T> rvs(loc, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -577,15 +595,13 @@ namespace numcpp {
     ) {
         lognormal_distribution<T> rvs(logmean, logscale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
     template <class bit_generator>
     template <class T>
-    inline T Generator<bit_generator>::negative_binomial(
-        size_t n, double prob
-    ) {
+    inline T Generator<bit_generator>::negative_binomial(T n, double prob) {
         negative_binomial_distribution<T> rvs(n, prob);
         return rvs(m_rng);
     }
@@ -593,7 +609,7 @@ namespace numcpp {
     template <class bit_generator>
     template <class T>
     inline tensor<T, 1> Generator<bit_generator>::negative_binomial(
-        size_t n, double prob, size_t size
+        T n, double prob, size_t size
     ) {
         return this->negative_binomial<T>(n, prob, make_shape(size));
     }
@@ -601,11 +617,11 @@ namespace numcpp {
     template <class bit_generator>
     template <class T, size_t Rank>
     inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
-        size_t n, double prob, const shape_t<Rank> &size
+        T n, double prob, const shape_t<Rank> &size
     ) {
         negative_binomial_distribution<T> rvs(n, prob);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -631,7 +647,7 @@ namespace numcpp {
     ) {
         normal_distribution<T> rvs(mean, stddev);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -657,7 +673,7 @@ namespace numcpp {
     ) {
         pareto_distribution<T> rvs(shape, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -683,7 +699,7 @@ namespace numcpp {
     ) {
         poisson_distribution<T> rvs(rate);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -709,7 +725,31 @@ namespace numcpp {
     ) {
         rayleigh_distribution<T> rvs(scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
+        return out;
+    }
+
+    template <class bit_generator>
+    template <class T>
+    inline T Generator<bit_generator>::standard_normal() {
+        normal_distribution<T> rvs;
+        return rvs(m_rng);
+    }
+
+    template <class bit_generator>
+    template <class T>
+    inline tensor<T, 1> Generator<bit_generator>::standard_normal(size_t size) {
+        return this->standard_normal<T>(make_shape(size));
+    }
+
+    template <class bit_generator>
+    template <class T, size_t Rank>
+    inline tensor<T, Rank> Generator<bit_generator>::standard_normal(
+        const shape_t<Rank> &size
+    ) {
+        normal_distribution<T> rvs;
+        tensor<T, Rank> out(size);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -722,9 +762,7 @@ namespace numcpp {
 
     template <class bit_generator>
     template <class T>
-    inline tensor<T, 1> Generator<bit_generator>::student_t(
-        T df, const size_t size
-    ) {
+    inline tensor<T, 1> Generator<bit_generator>::student_t(T df, size_t size) {
         return this->student_t<T>(df, make_shape(size));
     }
 
@@ -735,7 +773,7 @@ namespace numcpp {
     ) {
         student_t_distribution<T> rvs(df);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -765,7 +803,7 @@ namespace numcpp {
         T weights[3] = {T(0), T(1), T(0)};
         piecewise_linear_distribution<T> rvs(breaks, breaks + 3, weights);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -791,7 +829,7 @@ namespace numcpp {
     ) {
         uniform_real_distribution<T> rvs(low, high);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -817,7 +855,7 @@ namespace numcpp {
     ) {
         inverse_gaussian_distribution<T> rvs(mean, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 
@@ -843,7 +881,7 @@ namespace numcpp {
     ) {
         weibull_distribution<T> rvs(shape, scale);
         tensor<T, Rank> out(size);
-        this->__sample_distribution(out.begin(), out.end(), rvs);
+        __sample_distribution(out.data(), out.size(), rvs);
         return out;
     }
 }

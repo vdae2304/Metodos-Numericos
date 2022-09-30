@@ -23,7 +23,7 @@
 #ifndef NUMCPP_RANDOM_H_INCLUDED
 #define NUMCPP_RANDOM_H_INCLUDED
 
-#include "numcpp/tensor.h"
+#include "numcpp/config.h"
 #include "numcpp/random/distributions.h"
 
 namespace numcpp {
@@ -84,6 +84,8 @@ namespace numcpp {
         /**
          * @brief Return random integers from low to high (inclusive).
          *
+         * @tparam T An integer type.
+         *
          * @param low Lowest integer to be drawn.
          * @param high Largest integer to be drawn.
          *
@@ -95,6 +97,9 @@ namespace numcpp {
         /**
          * @brief Return a tensor of random integers from low to high
          * (inclusive).
+         *
+         * @tparam T An integer type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param low Lowest integer to be drawn.
          * @param high Largest integer to be drawn.
@@ -114,6 +119,8 @@ namespace numcpp {
          * @brief Return random floating point numbers in the half-open
          * interval [0, 1).
          *
+         * @tparam T A floating-point type.
+         *
          * @return A random floating point number.
          */
         template <class T>
@@ -122,6 +129,9 @@ namespace numcpp {
         /**
          * @brief Return a tensor of random floating point numbers in the
          * half-open interval [0, 1).
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param size Output shape.
          *
@@ -138,16 +148,16 @@ namespace numcpp {
         /**
          * @brief Generates a random sample from a given sequence.
          *
-         * @param population A one dimensional tensor with the values to sample
+         * @param population A 1-dimensional tensor with the values to sample
          *     from.
-         * @param weights A one dimensional tensor with the weights associated
+         * @param weights A 1-dimensional tensor with the weights associated
          *     to each entry of population. If not provided, the sample assumes
          *     a uniform distribution over all entries of population.
          *
          * @return The generated random sample.
          *
          * @throw std::invalid_argument Thrown if the population size is 0 or
-         *     if the population and weights have different shapes.
+         *     if population and weights have different sizes.
          */
         template <class T, class Tag>
         T choice(const base_tensor<T, 1, Tag> &population);
@@ -161,10 +171,10 @@ namespace numcpp {
         /**
          * @brief Generates a random sample from a given sequence.
          *
-         * @param population A one dimensional tensor with the values to sample
+         * @param population A 1-dimensional tensor with the values to sample
          *     from.
          * @param size Output shape.
-         * @param weights A one dimensional tensor with the weights associated
+         * @param weights A 1-dimensional tensor with the weights associated
          *     to each entry of population. If not provided, the sample assumes
          *     a uniform distribution over all entries of population.
          * @param replace Whether the sample is with or without replacement.
@@ -174,7 +184,7 @@ namespace numcpp {
          * @return A tensor with the generated random samples.
          *
          * @throw std::invalid_argument Thrown if the population size is 0, if
-         *     the population and weights have different sizes or if
+         *     population and weights have different sizes or if
          *     replace = false and the sample size is greater than the
          *     population size.
          * @throw std::bad_alloc If the function fails to allocate storage it
@@ -211,28 +221,45 @@ namespace numcpp {
          * @brief Modify a tensor in-place by shuffling its contents.
          *
          * @param arg The tensor to be shuffled.
+         * @param axis Axis along which to shuffle. Defaults to Rank - 1, which
+         *     means shuffle along the last axis.
          */
         template <class T, size_t Rank, class Tag>
-        void shuffle(base_tensor<T, Rank, Tag> &arg);
+        void shuffle(base_tensor<T, Rank, Tag> &arg, size_t axis = Rank - 1);
 
         /**
-         * @brief Randomly permute a tensor or return a permuted range.
+         * @brief Return a permuted range.
          *
-         * @param n If an integer is given, randomly permute the range
-         *     0, 1, 2, ..., n - 1.
-         * @param arg If a tensor is given, make a copy and shuffle the
-         *     elements randomly.
+         * @param n Randomly permute the range 0, 1, 2, ..., n - 1.
          *
-         * @return The permuted tensor or range.
+         * @return The permuted range.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         template <class T>
-        tensor<T, 1> permutation(size_t n);
+        tensor<T, 1> permutation(T n);
+
+        /**
+         * @brief Randomly permute a tensor.
+         *
+         * @param arg Make a copy of the tensor and shuffle the elements
+         *     randomly.
+         * @param axis Axis along which to permute. If not provided, the
+         *     flattened tensor is used.
+         *
+         * @return The permuted tensor.
+         *
+         * @throw std::bad_alloc If the function fails to allocate storage it
+         *     may throw an exception.
+         */
+        template <class T, size_t Rank, class Tag>
+        tensor<T, 1> permutation(const base_tensor<T, Rank, Tag> &arg);
 
         template <class T, size_t Rank, class Tag>
-        tensor<T, Rank> permutation(const base_tensor<T, Rank, Tag> &arg);
+        tensor<T, Rank> permutation(
+            const base_tensor<T, Rank, Tag> &arg, size_t axis
+        );
 
         /// Distributions.
 
@@ -248,6 +275,8 @@ namespace numcpp {
          * for 0 <= x <= 1, where @f$\alpha@f$ and @f$\beta@f$ are shape
          * parameters.
          *
+         * @tparam T A floating-point type.
+         *
          * @param shape1 Shape parameter. This shall be a positive value.
          * @param shape2 Shape parameter. This shall be a positive value.
          *
@@ -258,6 +287,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Beta distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param shape1 Shape parameter. This shall be a positive value.
          * @param shape2 Shape parameter. This shall be a positive value.
@@ -284,6 +316,8 @@ namespace numcpp {
          * for x = 0, 1, 2, ... , n, where n is the number of trials and p is
          * the probability of success.
          *
+         * @tparam T An integer type.
+         *
          * @param n Number of trials.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
@@ -291,10 +325,13 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T binomial(size_t n, double prob);
+        T binomial(T n, double prob);
 
         /**
          * @brief Draw samples from a binomial distribution.
+         *
+         * @tparam T An integer type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param n Number of trials.
          * @param prob Probability of success. This shall be a value between 0
@@ -307,11 +344,9 @@ namespace numcpp {
          *     may throw an exception.
          */
         template <class T>
-        tensor<T, 1> binomial(size_t n, double prob, size_t size);
+        tensor<T, 1> binomial(T n, double prob, size_t size);
         template <class T, size_t Rank>
-        tensor<T, Rank> binomial(
-            size_t n, double prob, const shape_t<Rank> &size
-        );
+        tensor<T, Rank> binomial(T n, double prob, const shape_t<Rank> &size);
 
         /**
          * @brief Draw samples from a Cauchy distribution.
@@ -325,6 +360,8 @@ namespace numcpp {
          * for all x, where @f$x_0@f$ and @f$\gamma@f$ are location and scale
          * parameters.
          *
+         * @tparam T A floating-point type.
+         *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -335,6 +372,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Cauchy distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
@@ -360,6 +400,8 @@ namespace numcpp {
          * @f]
          * for x >= 0, where k is the degrees of freedom.
          *
+         * @tparam T A floating-point type.
+         *
          * @param df Degrees of freedom. This shall be a positive value.
          *
          * @return A sample from the distribution.
@@ -369,6 +411,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a chi-squared distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param df Degrees of freedom. This shall be a positive value.
          * @param size Output shape.
@@ -393,6 +438,8 @@ namespace numcpp {
          * @f]
          * for x >= 0, where @f$\lambda@f$ is the rate parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param rate Rate parameter. This shall be a positive value.
          *
          * @return A sample from the distribution.
@@ -402,6 +449,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from an exponential distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param rate Rate parameter. This shall be a positive value.
          * @param size Output shape.
@@ -428,6 +478,8 @@ namespace numcpp {
          * @f]
          * for x >= 0, where d1 and d2 are the degrees of freedom.
          *
+         * @tparam T A floating-point type.
+         *
          * @param df1 Degrees of freedom. This shall be a positive value.
          * @param df2 Degrees of freedom. This shall be a positive value.
          *
@@ -438,6 +490,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Fisher F-distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param df1 Degrees of freedom. This shall be a positive value.
          * @param df2 Degrees of freedom. This shall be a positive value.
@@ -465,6 +520,8 @@ namespace numcpp {
          * for x > 0, where @f$\alpha@f$ is the shape parameter and @f$\beta@f$
          * is the scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -475,6 +532,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Gamma distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
@@ -500,6 +560,8 @@ namespace numcpp {
          * @f]
          * for x = 0, 1, 2, ..., where p is the probability of success.
          *
+         * @tparam T An integer type.
+         *
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
          *
@@ -510,6 +572,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a geometric distribution.
+         *
+         * @tparam T An integer type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
@@ -536,6 +601,8 @@ namespace numcpp {
          * for all x, where a is the location parameter and b is the scale
          * parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -546,6 +613,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Gumbel distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
@@ -572,6 +642,8 @@ namespace numcpp {
          * for all x, where @f$\mu@f$ is the location parameter and s is the
          * scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -582,6 +654,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Laplace distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
@@ -609,6 +684,8 @@ namespace numcpp {
          * for all x, where @f$\mu@f$ is the location parameter and s is the
          * scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -619,6 +696,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a logistic distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param loc Location parameter.
          * @param scale Scale parameter. This shall be a positive value.
@@ -647,6 +727,8 @@ namespace numcpp {
          * standard deviation of the underlying normal distribution formed by
          * the logaritm transformation.
          *
+         * @tparam T A floating-point type.
+         *
          * @param logmean Mean of the underlying normal distribution.
          * @param logscale Standard deviation of the underlying normal
          *     distribution. This shall be a positive value.
@@ -658,6 +740,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a log-normal distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param logmean Mean of the underlying normal distribution.
          * @param logscale Standard deviation of the underlying normal
@@ -687,6 +772,8 @@ namespace numcpp {
          * for x = 0, 1, 2, ..., where n is the number of successes before the
          * experiment is stopped and p is the probability of success.
          *
+         * @tparam T An integer type.
+         *
          * @param n Number of successes.
          * @param prob Probability of success. This shall be a value between 0
          *     and 1 (inclusive).
@@ -694,10 +781,13 @@ namespace numcpp {
          * @return A sample from the distribution.
          */
         template <class T>
-        T negative_binomial(size_t n, double prob);
+        T negative_binomial(T n, double prob);
 
         /**
          * @brief Draw samples from a negative binomial distribution.
+         *
+         * @tparam T An integer type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param n Number of successes.
          * @param prob Probability of success. This shall be a value between 0
@@ -710,10 +800,10 @@ namespace numcpp {
          *     may throw an exception.
          */
         template <class T>
-        tensor<T, 1> negative_binomial(size_t n, double prob, size_t size);
+        tensor<T, 1> negative_binomial(T n, double prob, size_t size);
         template <class T, size_t Rank>
         tensor<T, Rank> negative_binomial(
-            size_t n, double prob, const shape_t<Rank> &size
+            T n, double prob, const shape_t<Rank> &size
         );
 
         /**
@@ -728,6 +818,8 @@ namespace numcpp {
          * for all x, where @f$\mu@f$ and @f$\sigma@f$ are the mean and
          * standard deviation.
          *
+         * @tparam T A floating-point type.
+         *
          * @param mean Mean of the distribution.
          * @param stddev Standard deviation of the distribution. This shall be
          *     a positive value.
@@ -739,6 +831,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a normal distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param mean Mean of the distribution.
          * @param stddev Standard deviation of the distribution. This shall be
@@ -766,6 +861,8 @@ namespace numcpp {
          * for x >= x_m, where @f$\alpha@f$ is the shape parameter and
          * @f$x_m@f$ is the scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -776,6 +873,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Pareto distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
@@ -801,6 +901,8 @@ namespace numcpp {
          * @f]
          * for x = 0, 1, 2, ..., where @f$\lambda@f$ is the rate parameter.
          *
+         * @tparam T An integer type.
+         *
          * @param rate Rate parameter. This shall be a positive value.
          *
          * @return A sample from the distribution.
@@ -810,6 +912,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Poisson distribution.
+         *
+         * @tparam T An integer type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param rate Rate parameter. This shall be a positive value.
          * @param size Output shape.
@@ -834,6 +939,8 @@ namespace numcpp {
          * @f]
          * for x >= 0, where @f$\sigma@f$ is the scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param scale Scale parameter. This shall be a positive value.
          *
          * @return A sample from the distribution.
@@ -843,6 +950,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Rayleigh distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param scale Scale parameter. This shall be a positive value.
          * @param size Output shape.
@@ -858,6 +968,36 @@ namespace numcpp {
         tensor<T, Rank> rayleigh(T scale, const shape_t<Rank> &size);
 
         /**
+         * @brief Draw samples from a standard normal distribution (mean = 0,
+         * stddev = 1).
+         *
+         * @tparam T A floating-point type.
+         *
+         * @return A sample from the distribution.
+         */
+        template <class T>
+        T standard_normal();
+
+        /**
+         * @brief Draw samples from a standard normal distribution (mean = 0,
+         * stddev = 1).
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
+         *
+         * @param size Output shape.
+         *
+         * @return A tensor with samples from the distribution.
+         *
+         * @throw std::bad_alloc If the function fails to allocate storage it
+         *     may throw an exception.
+         */
+        template <class T>
+        tensor<T, 1> standard_normal(size_t size);
+        template <class T, size_t Rank>
+        tensor<T, Rank> standard_normal(const shape_t<Rank> &size);
+
+        /**
          * @brief Draw samples from a Student's t distribution.
          *
          * @details The probability density function for the Student's t
@@ -870,6 +1010,8 @@ namespace numcpp {
          * @f]
          * for all x, where @f$\nu@f$ is the degrees of freedom.
          *
+         * @tparam T A floating-point type.
+         *
          * @param df Degrees of freedom. This shall be a positive value.
          *
          * @return A sample from the distribution.
@@ -879,6 +1021,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Student's t distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param df Degrees of freedom. This shall be a positive value.
          * @param size Output shape.
@@ -908,6 +1053,8 @@ namespace numcpp {
          * where a is the lower boundary, b is the upper boundary, and c is the
          * mode of the distribution.
          *
+         * @tparam T A floating-point type.
+         *
          * @param left Lower boundary.
          * @param mode Mode of the distribution.
          * @param right Upper boundary.
@@ -919,6 +1066,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a triangular distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param left Lower boundary.
          * @param mode Mode of the distribution.
@@ -948,6 +1098,8 @@ namespace numcpp {
          * for a <= x < b, where a and b are the lower and upper boundaries of
          * the distribution.
          *
+         * @tparam T A floating-point type.
+         *
          * @param low Lower boundary.
          * @param high Upper boundary.
          *
@@ -958,6 +1110,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from an uniform distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param low Lower boundary.
          * @param high Upper boundary.
@@ -985,6 +1140,8 @@ namespace numcpp {
          * for x > 0, where @f$\mu@f$ is the mean and @f$\lambda@f$ is the
          * scale parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param mean Mean of the distribution. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -995,6 +1152,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Wald distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param mean Mean of the distribution. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
@@ -1021,6 +1181,8 @@ namespace numcpp {
          * for x >= 0, where a is the shape parameter and b is the scale
          * parameter.
          *
+         * @tparam T A floating-point type.
+         *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
          *
@@ -1031,6 +1193,9 @@ namespace numcpp {
 
         /**
          * @brief Draw samples from a Weibull distribution.
+         *
+         * @tparam T A floating-point type.
+         * @tparam Rank Dimension of the tensor.
          *
          * @param shape Shape parameter. This shall be a positive value.
          * @param scale Scale parameter. This shall be a positive value.
@@ -1052,10 +1217,10 @@ namespace numcpp {
          */
         template <class OutputIterator, class Distribution>
         void __sample_distribution(
-            OutputIterator first, OutputIterator last, Distribution &rvs
+            OutputIterator first, size_t size, Distribution &rvs
         );
 
-        /// Underlying uniform random number generator.
+        // Underlying uniform random number generator.
         bit_generator m_rng;
     };
 
