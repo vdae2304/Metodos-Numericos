@@ -129,10 +129,10 @@ namespace numcpp {
     }
 
     template <class bit_generator>
-    template <class T, class Tag, class TWeights, class TagWeights>
+    template <class T, class Tag, class W, class TagW>
     T Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population,
-        const base_tensor<TWeights, 1, TagWeights> &weights
+        const base_tensor<W, 1, TagW> &weights
     ) {
         if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
@@ -146,19 +146,57 @@ namespace numcpp {
     }
 
     template <class bit_generator>
+    template <class RandomAccessIterator, class OutputIterator>
+    void Generator<bit_generator>::__sample_replacement(
+        RandomAccessIterator first, RandomAccessIterator last,
+        OutputIterator out, size_t n
+    ) {
+        size_t size = std::distance(first, last);
+        uniform_int_distribution<size_t> rvs(0, size - 1);
+        for (size_t i = 0; i < n; ++i) {
+            *out = first[rvs(m_rng)];
+            ++out;
+        }
+    }
+
+    template <class bit_generator>
+    template <class InputIterator, class RandomAccessIterator>
+    void Generator<bit_generator>::__sample_no_replacement(
+        InputIterator first, InputIterator last,
+        RandomAccessIterator out, size_t n
+    ) {
+        // Reservoir sampling algorithm.
+        typedef uniform_int_distribution<size_t>::param_type param_type;
+        uniform_int_distribution<size_t> rvs;
+        size_t size = 0;
+        while (size < n) {
+            out[size++] = *first;
+            ++first;
+        }
+        while (first != last) {
+            size_t i = rvs(m_rng, param_type(0, size));
+            if (i < n) {
+                out[i] = *first;
+            }
+            ++first;
+            ++size;
+        }
+    }
+
+    template <class bit_generator>
     template <class T, class Tag>
     inline tensor<T, 1> Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population, size_t size,
-        bool replace
+        bool replace, bool shuffle
     ) {
-        return this->choice(population, make_shape(size), replace);
+        return this->choice(population, make_shape(size), replace, shuffle);
     }
 
     template <class bit_generator>
     template <class T, size_t Rank, class Tag>
     tensor<T, Rank> Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-        bool replace
+        bool replace, bool shuffle
     ) {
         if (population.size() == 0) {
             throw std::invalid_argument("population cannot be empty");
@@ -168,41 +206,76 @@ namespace numcpp {
                 " replace=false";
             throw std::invalid_argument(error);
         }
+        tensor<T, Rank> out(size);
         if (replace) {
-            uniform_int_distribution<size_t> rvs(0, population.size() - 1);
-            tensor<T, Rank> out(size);
-            for (auto it = out.begin(); it != out.end(); ++it) {
-                *it = population[rvs(m_rng)];
-            }
-            return out;
+            __sample_replacement(
+                population.begin(), population.end(), out.data(), out.size()
+            );
         }
         else {
-            size_t n = size.size();
-            tensor<T, 1> out(population);
-            for (size_t i = 0; i < n; ++i) {
-                uniform_int_distribution<size_t> rvs(i, population.size() - 1);
-                std::swap(out[i], out[rvs(m_rng)]);
+            __sample_no_replacement(
+                population.begin(), population.end(), out.data(), out.size()
+            );
+            if (shuffle) {
+                std::shuffle(out.data(), out.data() + out.size(), m_rng);
             }
-            return tensor<T, Rank>(out.begin(), size);
+        }
+        return out;
+    }
+
+    template <class bit_generator>
+    template <class RandomAccessIterator1, class RandomAccessIterator2,
+              class OutputIterator>
+    void Generator<bit_generator>::__sample_replacement(
+        RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 weights,
+        OutputIterator out, size_t n
+    ) {
+        size_t size = std::distance(first, last);
+        discrete_distribution<size_t> rvs(weights, weights + size);
+        for (size_t i = 0; i < n; ++i) {
+            *out = first[rvs(m_rng)];
+            ++out;
         }
     }
 
     template <class bit_generator>
-    template <class T, class Tag, class TWeights, class TagWeights>
+    template <class RandomAccessIterator1, class RandomAccessIterator2,
+              class OutputIterator>
+    void Generator<bit_generator>::__sample_no_replacement(
+        RandomAccessIterator1 first, RandomAccessIterator1 last,
+        RandomAccessIterator2 weights,
+        OutputIterator out, size_t n
+    ) {
+        typedef discrete_distribution<size_t>::param_type param_type;
+        discrete_distribution<size_t> rvs;
+        size_t size = std::distance(first, last);
+        double *w = new double[size];
+        std::copy(weights, weights + size, w);
+        for (size_t i = 0; i < n; ++i) {
+            size_t k = rvs(m_rng, param_type(w, w + size));
+            *out = first[k];
+            w[k] = 0;
+            ++out;
+        }
+        delete[] w;
+    }
+
+    template <class bit_generator>
+    template <class T, class Tag, class W, class TagW>
     inline tensor<T, 1> Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population, size_t size,
-        const base_tensor<TWeights, 1, TagWeights> &weights,
+        const base_tensor<W, 1, TagW> &weights,
         bool replace
     ) {
         return this->choice(population, make_shape(size), weights, replace);
     }
 
     template <class bit_generator>
-    template <class T, size_t Rank, class Tag,
-              class TWeights, class TagWeights>
+    template <class T, size_t Rank, class Tag, class W, class TagW>
     tensor<T, Rank> Generator<bit_generator>::choice(
         const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-        const base_tensor<TWeights, 1, TagWeights> &weights,
+        const base_tensor<W, 1, TagW> &weights,
         bool replace
     ) {
         if (population.size() == 0) {
@@ -217,27 +290,20 @@ namespace numcpp {
                 " replace=false";
             throw std::invalid_argument(error);
         }
+        tensor<T, Rank> out(size);
         if (replace) {
-            discrete_distribution<size_t> rvs(weights.begin(), weights.end());
-            tensor<T, Rank> out(size);
-            for (auto it = out.begin(); it != out.end(); ++it) {
-                *it = population[rvs(m_rng)];
-            }
-            return out;
+            __sample_replacement(
+                population.begin(), population.end(), weights.begin(),
+                out.data(), out.size()
+            );
         }
         else {
-            size_t n = size.size();
-            tensor<T, 1> out(population);
-            tensor<TWeights, 1> w(weights);
-            for (size_t i = 0; i < n; ++i) {
-                discrete_distribution<size_t> rvs(w.begin() + i, w.end());
-                size_t idx = i + rvs(m_rng);
-                std::swap(out[i], out[idx]);
-                w[idx] = w[i];
-                w[i] = 0;
-            }
-            return tensor<T, Rank>(out.begin(), size);
+            __sample_no_replacement(
+                population.begin(), population.end(), weights.begin(),
+                out.data(), out.size()
+            );
         }
+        return out;
     }
 
     /// Permutations.

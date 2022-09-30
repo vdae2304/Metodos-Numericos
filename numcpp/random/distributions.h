@@ -58,7 +58,7 @@ namespace detail {
      * in [0, 1).
      */
     template <class RealType, class UniformRandomNumberGenerator>
-    RealType random_uniform(UniformRandomNumberGenerator &urng) {
+    RealType random(UniformRandomNumberGenerator &urng) {
         return std::generate_canonical<
             RealType, std::numeric_limits<RealType>::digits
         >(urng);
@@ -131,7 +131,7 @@ namespace detail {
          * @brief Resets the distribution state.
          */
         void reset() {
-            __random_gamma.reset();
+            __gamma_rvs.reset();
         }
 
         /**
@@ -195,7 +195,7 @@ namespace detail {
             const beta_distribution &d1, const beta_distribution &d2
         ) {
             return (d1.m_param == d2.m_param &&
-                    d1.__random_gamma == d2.__random_gamma);
+                    d1.__gamma_rvs == d2.__gamma_rvs);
         }
 
         /**
@@ -210,7 +210,7 @@ namespace detail {
     private:
         param_type m_param;
 
-        std::gamma_distribution<RealType> __random_gamma;
+        std::gamma_distribution<RealType> __gamma_rvs;
     };
 
     /**
@@ -280,7 +280,7 @@ namespace detail {
          * @brief Resets the distribution state.
          */
         void reset() {
-            __random_normal.reset();
+            __normal_rvs.reset();
         }
 
         /**
@@ -345,7 +345,7 @@ namespace detail {
             const inverse_gaussian_distribution &d2
         ) {
             return (d1.m_param == d2.m_param &&
-                    d1.__random_normal == d2.__random_normal);
+                    d1.__normal_rvs == d2.__normal_rvs);
         }
 
         /**
@@ -362,7 +362,7 @@ namespace detail {
     private:
         param_type m_param;
 
-        std::normal_distribution<RealType> __random_normal;
+        std::normal_distribution<RealType> __normal_rvs;
     };
 
     /**
@@ -930,16 +930,16 @@ namespace detail {
             // Use Johnk's algorithm.
             RealType U, V, X, Y;
             do {
-                U = detail::random_uniform<RealType>(urng);
-                V = detail::random_uniform<RealType>(urng);
+                U = detail::random<RealType>(urng);
+                V = detail::random<RealType>(urng);
                 X = std::pow(U, 1.0 / p.alpha());
                 Y = std::pow(V, 1.0 / p.beta());
             } while (X + Y > 1.0 || X + Y == 0.0);
             return X / (X + Y);
         }
         else {
-            RealType X = __random_gamma(urng, gamma_param_type(p.alpha()));
-            RealType Y = __random_gamma(urng, gamma_param_type(p.beta()));
+            RealType X = __gamma_rvs(urng, gamma_param_type(p.alpha()));
+            RealType Y = __gamma_rvs(urng, gamma_param_type(p.beta()));
             return X / (X + Y);
         }
     }
@@ -950,10 +950,10 @@ namespace detail {
         UniformRandomGenerator &urng, const param_type &p
     ) {
         RealType c = p.mu() / (2.0 * p.lambda());
-        RealType Y = __random_normal(urng);
+        RealType Y = __normal_rvs(urng);
         Y = p.mu() * Y * Y;
         RealType X = p.mu() + c * (Y - std::sqrt(4.0 * p.lambda() * Y + Y * Y));
-        RealType U = detail::random_uniform<RealType>(urng);
+        RealType U = detail::random<RealType>(urng);
         if (U <= p.mu() / (p.mu() + X)) {
             return X;
         }
@@ -970,7 +970,7 @@ namespace detail {
         // Use inverse CDF.
         RealType U;
         do {
-            U = detail::random_uniform<RealType>(urng);
+            U = detail::random<RealType>(urng);
         } while (U == 0.0);
         if (U <= 0.5) {
             return p.mu() + p.s() * std::log(2.0 * U);
@@ -988,7 +988,7 @@ namespace detail {
         // Use inverse CDF.
         RealType U;
         do {
-            U = detail::random_uniform<RealType>(urng);
+            U = detail::random<RealType>(urng);
         } while (U == 0.0);
         return p.mu() + p.s() * std::log(U / (1.0 - U));
     }
@@ -999,7 +999,7 @@ namespace detail {
         UniformRandomGenerator &urng, const param_type &p
     ) {
         // Use inverse CDF.
-        RealType U = detail::random_uniform<RealType>(urng);
+        RealType U = detail::random<RealType>(urng);
         return p.xm() * std::pow(1.0 - U, -1.0 / p.alpha());
     }
 
@@ -1009,7 +1009,7 @@ namespace detail {
         UniformRandomGenerator &urng, const param_type &p
     ) {
         // Use inverse CDF.
-        RealType U = detail::random_uniform<RealType>(urng);
+        RealType U = detail::random<RealType>(urng);
         return p.sigma() * std::sqrt(-2.0 * std::log1p(-U));
     }
 }

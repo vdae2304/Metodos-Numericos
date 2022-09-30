@@ -162,10 +162,10 @@ namespace numcpp {
         template <class T, class Tag>
         T choice(const base_tensor<T, 1, Tag> &population);
 
-        template <class T, class Tag, class TWeights, class TagWeights>
+        template <class T, class Tag, class W, class TagW>
         T choice(
             const base_tensor<T, 1, Tag> &population,
-            const base_tensor<TWeights, 1, TagWeights> &weights
+            const base_tensor<W, 1, TagW> &weights
         );
 
         /**
@@ -180,6 +180,8 @@ namespace numcpp {
          * @param replace Whether the sample is with or without replacement.
          *     Default is true, meaning that a value can be selected multiple
          *     times.
+         * @param shuffle Whether the sample is shuffled when sampling without
+         *     replacement. Default is true.
          *
          * @return A tensor with the generated random samples.
          *
@@ -193,25 +195,24 @@ namespace numcpp {
         template <class T, class Tag>
         tensor<T, 1> choice(
             const base_tensor<T, 1, Tag> &population, size_t size,
-            bool replace = true
+            bool replace = true, bool shuffle = true
         );
         template <class T, size_t Rank, class Tag>
         tensor<T, Rank> choice(
             const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-            bool replace = true
+            bool replace = true, bool shuffle = true
         );
 
-        template <class T, class Tag, class TWeights, class TagWeights>
+        template <class T, class Tag, class W, class TagW>
         tensor<T, 1> choice(
             const base_tensor<T, 1, Tag> &population, size_t size,
-            const base_tensor<TWeights, 1, TagWeights> &weights,
+            const base_tensor<W, 1, TagW> &weights,
             bool replace = true
         );
-        template <class T, size_t Rank, class Tag,
-                  class TWeights, class TagWeights>
+        template <class T, size_t Rank, class Tag, class W, class TagW>
         tensor<T, Rank> choice(
             const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-            const base_tensor<TWeights, 1, TagWeights> &weights,
+            const base_tensor<W, 1, TagW> &weights,
             bool replace = true
         );
 
@@ -1217,9 +1218,44 @@ namespace numcpp {
          */
         template <class OutputIterator, class Distribution>
         void __sample_distribution(
-            OutputIterator first, size_t size, Distribution &rvs
+            OutputIterator first, size_t n, Distribution &rvs
         );
 
+        /**
+         * @brief Sample n elements (with replacement) from the sequence
+         * [first, last).
+         */
+        template <class RandomAccessIterator, class OutputIterator>
+        void __sample_replacement(
+            RandomAccessIterator first, RandomAccessIterator last,
+            OutputIterator out, size_t n
+        );
+        template <class RandomAccessIterator1, class RandomAccessIterator2,
+                  class OutputIterator>
+        void __sample_replacement(
+            RandomAccessIterator1 first, RandomAccessIterator1 last,
+            RandomAccessIterator2 weights,
+            OutputIterator out, size_t n
+        );
+
+        /**
+         * @brief Sample n elements (without replacement) from the sequence
+         * [first, last).
+         */
+        template <class InputIterator, class RandomAccessIterator>
+        void __sample_no_replacement(
+            InputIterator first, InputIterator last,
+            RandomAccessIterator out, size_t n
+        );
+        template <class RandomAccessIterator1, class RandomAccessIterator2,
+                  class OutputIterator>
+        void __sample_no_replacement(
+            RandomAccessIterator1 first, RandomAccessIterator1 last,
+            RandomAccessIterator2 weights,
+            OutputIterator out, size_t n
+        );
+
+    private:
         // Underlying uniform random number generator.
         bit_generator m_rng;
     };
