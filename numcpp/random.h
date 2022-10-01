@@ -1094,7 +1094,7 @@ namespace numcpp {
          * @details The probability density function for the uniform
          * distribution is
          * @f[
-         *   f(x;a,b) = \frac{1}{b-a}
+         *     f(x;a,b) = \frac{1}{b-a}
          * @f]
          * for a <= x < b, where a and b are the lower and upper boundaries of
          * the distribution.
