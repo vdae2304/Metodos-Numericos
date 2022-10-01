@@ -675,8 +675,10 @@ T beta(T shape1, T shape2);
 ```
 
 The probability density function for the Beta distribution is
-$$ f(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}
-    {\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1} $$
+
+$$f(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}
+    {\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1}$$
+
 for $0 \leq x \leq 1$, where $\alpha$ and $\beta$ are shape parameters.
 
 Template parameters
@@ -768,7 +770,9 @@ T binomial(T n, double prob);
 ```
 
 The probability mass function for the binomial distribution is
-$$ f(x;n,p) = \binom{n}{x} p^x (1-p)^{n-x} $$
+
+$$f(x;n,p) = \binom{n}{x} p^x (1-p)^{n-x}$$
+
 for $x = 0, 1, 2, \ldots , n$, where $n$ is the number of trials and $p$ is the
 probability of success.
 
@@ -863,8 +867,10 @@ T cauchy(T loc, T scale);
 ```
 
 The probability density function for the Cauchy distribution is
-$$ f(x;x_0,\gamma) = \frac{1}
-    {\pi\gamma\left[1+\left(\frac{x-x_0}{\gamma}\right)^2\right]} $$
+
+$$f(x;x_0,\gamma) = \frac{1}
+    {\pi\gamma\left[1+\left(\frac{x-x_0}{\gamma}\right)^2\right]}$$
+
 for all $x$, where $x_0$ and $\gamma$ are location and scale parameters.
 
 Template parameters
@@ -956,7 +962,9 @@ T chisquare(T df);
 ```
 
 The probability density function for the chi-squared distribution is
-$$ f(x;k) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2} $$
+
+$$f(x;k) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2}$$
+
 for $x \geq 0$, where $k$ is the degrees of freedom.
 
 Template parameters
@@ -1046,7 +1054,9 @@ T exponential(T rate);
 ```
 
 The probability density function for the exponential distribution is
-$$ f(x;\lambda) = \lambda e^{-\lambda x} $$
+
+$$f(x;\lambda) = \lambda e^{-\lambda x}$$
+
 for $x \geq 0$, where $\lambda$ is the rate parameter.
 
 Template parameters
@@ -1137,10 +1147,12 @@ T fisher_f(T df1, T df2);
 ```
 
 The probability density function for the F distribution is
-$$ f(x;d_1,d_2) = \frac{\Gamma\left(\frac{d_1+d_2}{2}\right)}
+
+$$f(x;d_1,d_2) = \frac{\Gamma\left(\frac{d_1+d_2}{2}\right)}
     {\Gamma\left(\frac{d_1}{2}\right)\Gamma\left(\frac{d_2}{2}\right)}
     \frac{\left(\frac{d_1x}{d_2}\right)^{d_1/2}}
-    {x\left(1+\frac{d_1x}{d_2}\right)^{(d_1+d_2)/2}} $$
+    {x\left(1+\frac{d_1x}{d_2}\right)^{(d_1+d_2)/2}}$$
+
 for $x \geq 0$, where $d_1$ and $d_2$ are the degrees of freedom.
 
 Template parameters
@@ -1232,8 +1244,10 @@ T gamma(T shape, T scale);
 ```
 
 The probability density function for the Gamma distribution is
-$$ f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}}
-    x^{\alpha-1} e^{-x/\beta} $$
+
+$$f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}}
+    x^{\alpha-1} e^{-x/\beta}$$
+
 for $x > 0$, where $\alpha$ is the shape parameter and $\beta$ is the scale
 parameter.
 
@@ -1327,7 +1341,9 @@ T geometric(double prob);
 ```
 
 The probability mass function for the geometric distribution is
-$$ f(x;p) = p(1-p)^x $$
+
+$$f(x;p) = p(1-p)^x$$
+
 for $x = 0, 1, 2, \ldots,$ where $p$ is the probability of success.
 
 Template parameters
@@ -1419,7 +1435,9 @@ T gumbel(T loc, T scale);
 ```
 
 The probability density function for the Gumbel distribution is
-$$ f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b} $$
+
+$$f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b}$$
+
 for all $x$, where $a$ is the location parameter and $b$ is the scale
 parameter.
 
@@ -1512,7 +1530,9 @@ T laplace(T loc, T scale);
 ```
 
 The probability density function for the Laplace distribution is
-$$ f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right) $$
+
+$$f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)$$
+
 for all $x$, where $\mu$ is the location parameter and $s$ is the scale
 parameter.
 
@@ -1606,7 +1626,9 @@ T logistic(T loc, T scale);
 ```
 
 The probability density function for the logistic distribution is
-$$ f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2} $$
+
+$$f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}$$
+
 for all $x$, where $\mu$ is the location parameter and $s$ is the scale
 parameter.
 
@@ -1700,8 +1722,10 @@ T lognormal(T logmean, T logscale);
 ```
 
 The probability density function for the log-normal distribution is
-$$ f(x;\mu,\sigma) = \frac{1}{x\sigma\sqrt{2\pi}}
-    \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right) $$
+
+$$f(x;\mu,\sigma) = \frac{1}{x\sigma\sqrt{2\pi}}
+    \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right)$$
+
 for $x > 0$, where $\mu$ and $\sigma$ are the mean and standard deviation of
 the underlying normal distribution formed by the logaritm transformation.
 
@@ -1796,7 +1820,9 @@ T negative_binomial(T n, double prob);
 ```
 
 The probability mass function for the negative binomial distribution is
-$$ f(x;n,p) = \binom{n+x-1}{x} p^{n} (1-p)^{x} $$
+
+$$f(x;n,p) = \binom{n+x-1}{x} p^{n} (1-p)^{x}$$
+
 for $x = 0, 1, 2, \ldots$, where $n$ is the number of successes before the
 experiment is stopped and $p$ is the probability of success.
 
@@ -1892,8 +1918,10 @@ T normal(T mean, T stddev);
 ```
 
 The probability density function for the normal distribution is
-$$ f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
-    \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right) $$
+
+$$f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
+    \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$$
+
 for all $x$, where $\mu$ and $\sigma$ are the mean and standard deviation.
 
 Template parameters
@@ -1988,7 +2016,9 @@ T pareto(T shape, T scale);
 ```
 
 The probability density function for the Pareto distribution is
-$$ f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}} $$
+
+$$f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}$$
+
 for $x \geq x_m$, where $\alpha$ is the shape parameter and $x_m$ is the scale
 parameter.
 
@@ -2081,7 +2111,9 @@ T poisson(double rate);
 ```
 
 The probability mass function for the Poisson distribution is
-$$ f(x;\lambda) = \frac{\lambda^{x}}{x!} e^{-\lambda} $$
+
+$$f(x;\lambda) = \frac{\lambda^{x}}{x!} e^{-\lambda}$$
+
 for $x = 0, 1, 2, \ldots$, where $\lambda$ is the rate parameter.
 
 Template parameters
@@ -2171,7 +2203,9 @@ T rayleigh(T scale);
 ```
 
 The probability density function for the Rayleigh distribution is
-$$ f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)} $$
+
+$$f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}$$
+
 for $x \geq 0$, where $\sigma$ is the scale parameter.
 
 Template parameters
@@ -2310,9 +2344,11 @@ T student_t(T df);
 ```
 
 The probability density function for the Student's t distribution is
-$$ f(x;\nu) = \frac{1}{\sqrt{\pi\nu}}
+
+$$f(x;\nu) = \frac{1}{\sqrt{\pi\nu}}
     \frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\Gamma\left(\frac{\nu}{2}\right)}
-    \left(1+\frac{x^2}{\nu}\right)^{-(\nu+1)/2} $$
+    \left(1+\frac{x^2}{\nu}\right)^{-(\nu+1)/2}$$
+
 for all $x$, where $\nu$ is the degrees of freedom.
 
 Template parameters
@@ -2403,11 +2439,13 @@ T triangular(T left, T mode, T right);
 ```
 
 The probability density function for the triangular distribution is
-$$ f(x;a,c,b) = \begin{cases}
+
+$$f(x;a,c,b) = \begin{cases}
         \frac{2(x-a)}{(b-a)(c-a)}, & a \leq x \leq c,\\
         \frac{2(b-x)}{(b-a)(b-c)}, & c \leq x \leq b,\\
         0, & \text{otherwise}
-    \end{cases} $$
+    \end{cases}$$
+
 where $a$ is the lower boundary, $b$ is the upper boundary, and $c$ is the mode
 of the distribution.
 
@@ -2502,7 +2540,9 @@ T uniform(T low, T high);
 ```
 
 The probability density function for the uniform distribution is
-$$ f(x;a,b) = \frac{1}{b-a} $$
+
+$$f(x;a,b) = \frac{1}{b-a}$$
+
 for $a \leq x < b$, where $a$ and $b$ are the lower and upper boundaries of the
 distribution.
 
@@ -2595,8 +2635,10 @@ T wald(T mean, T scale);
 ```
 
 The probability density function for the Wald distribution is
-$$ f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
-    \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right) $$
+
+$$f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
+    \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)$$
+
 for $x > 0$, where $\mu$ is the mean and $\lambda$ is the scale parameter.
 
 Template parameters
@@ -2689,7 +2731,9 @@ T weibull(T shape, T scale);
 ```
 
 The probability density function for the Weibull distribution is
-$$ f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a} $$
+
+$$f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a}$$
+
 for $x \geq 0$, where $a$ is the shape parameter and $b$ is the scale
 parameter.
 
