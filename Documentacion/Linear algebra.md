@@ -1,6 +1,6 @@
 # Linear algebra
 
-Defined in `numcpp/routines.h`
+Defined in `numcpp/linalg.h`
 
 - [Linear algebra](#linear-algebra)
   - [Basic linear algebra](#basic-linear-algebra)
@@ -11,8 +11,8 @@ Defined in `numcpp/routines.h`
     - [`tensordot`](#tensordot)
     - [`transpose`](#transpose)
     - [`conj_transpose`](#conj_transpose)
-    - [`norm`](#norm)
-    - [`norm(axis)`](#normaxis)
+    - [`linalg::norm`](#linalgnorm)
+    - [`linalg::norm(axis)`](#linalgnormaxis)
     - [`trace`](#trace)
 
 ## Basic linear algebra
@@ -51,6 +51,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::array<int> a, b;
@@ -109,6 +110,7 @@ Example
 #include <iostream>
 #include <complex>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::array<std::complex<double>> a, b;
@@ -174,6 +176,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::array<int> a, b;
@@ -201,6 +204,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a, b;
@@ -302,6 +306,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::array<int> a, b;
@@ -330,6 +335,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a, b;
@@ -391,6 +397,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a;
@@ -425,6 +432,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::array<int> a;
@@ -459,6 +467,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a, b;
@@ -565,6 +574,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a, b;
@@ -637,6 +647,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a, b;
@@ -701,6 +712,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a;
@@ -732,6 +744,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
@@ -827,6 +840,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::printoptions::complexmode = np::printoptions::arithmetic;
@@ -859,6 +873,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::printoptions::complexmode = np::printoptions::arithmetic;
@@ -915,7 +930,7 @@ Swap last 2 axes:
   [  8-7i,   6-0i,  2-18i]]]
 ```
 
-### `norm`
+### `linalg::norm`
 
 Return the vector norm.
 ```cpp
@@ -951,15 +966,16 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     double inf = np::constants<double>::inf;
     np::array<double> a;
     std::cin >> a;
-    std::cout << "Euclidean norm: " << np::norm(a) << "\n";
-    std::cout << "Taxicab norm: " << np::norm(a, 1) << "\n";
-    std::cout << "Zero norm: " << np::norm(a, 0) << "\n";
-    std::cout << "Maximum norm: " << np::norm(a, inf) << "\n";
+    std::cout << "Euclidean norm: " << np::linalg::norm(a) << "\n";
+    std::cout << "Taxicab norm: " << np::linalg::norm(a, 1) << "\n";
+    std::cout << "Zero norm: " << np::linalg::norm(a, 0) << "\n";
+    std::cout << "Maximum norm: " << np::linalg::norm(a, inf) << "\n";
     return 0;
 }
 ```
@@ -979,7 +995,7 @@ Zero norm: 7
 Maximum norm: 7
 ```
 
-### `norm(axis)`
+### `linalg::norm(axis)`
 
 Return the vector norm along the given axis.
 ```cpp
@@ -1014,16 +1030,17 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     double inf = np::constants<double>::inf;
     np::matrix<double> a;
     int axis;
     std::cin >> a >> axis;
-    std::cout << "Euclidean norm:\n" << np::norm(a, 2, axis) << "\n";
-    std::cout << "Taxicab norm:\n" << np::norm(a, 1, axis) << "\n";
-    std::cout << "Zero norm:\n" << np::norm(a, 0, axis) << "\n";
-    std::cout << "Maximum norm:\n" << np::norm(a, inf, axis) << "\n";
+    std::cout << "Euclidean norm:\n" << np::linalg::norm(a, 2, axis) << "\n";
+    std::cout << "Taxicab norm:\n" << np::linalg::norm(a, 1, axis) << "\n";
+    std::cout << "Zero norm:\n" << np::linalg::norm(a, 0, axis) << "\n";
+    std::cout << "Maximum norm:\n" << np::linalg::norm(a, inf, axis) << "\n";
     return 0;
 }
 ```
@@ -1088,6 +1105,7 @@ Example
 ```cpp
 #include <iostream>
 #include "numcpp.h"
+#include "numcpp/linalg.h"
 namespace np = numcpp;
 int main() {
     np::matrix<int> a;
