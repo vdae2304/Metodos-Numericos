@@ -28,7 +28,6 @@
 #include "numcpp/broadcasting.h"
 #include "numcpp/functional.h"
 #include "numcpp/routines.h"
-#include "numcpp/random.h"
 #include "numcpp/io.h"
 
 namespace numcpp {
