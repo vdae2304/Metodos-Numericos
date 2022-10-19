@@ -489,6 +489,30 @@ namespace linalg {
         apply_along_axis(out, ranges::norm(ord), a, axis);
         return out;
     }
+
+    template <class T, class Tag>
+    T det(const base_tensor<T, 2, Tag> &a) {
+        if (a.shape(0) != a.shape(1)) {
+            throw std::invalid_argument("Expected square matrix");
+        }
+        size_t n = a.shape(0);
+        T det = T(1);
+        bool signbit = false;
+        // Compute determinant via LU decomposition.
+        lu_result<T> factor = lu(a);
+        const tensor<T, 2> &LU = factor.LU();
+        const tensor<size_t, 1> &piv = factor.piv();
+        for (size_t i = 0; i < n; ++i) {
+            det *= LU(i, i);
+            if (piv[i] != i) {
+                signbit = !signbit;
+            }
+        }
+        if (signbit) {
+            det = -det;
+        }
+        return det;
+    }
 }
 
     template <class T, class Tag>
@@ -506,6 +530,196 @@ namespace linalg {
         }
         return val;
     }
+
+namespace detail {
+    /**
+     * @brief Check if a value is zero within a given tolerance.
+     */
+    inline bool is_zero(float x) {
+        return std::isfinite(x) && std::abs(x) <= 1e-4f;
+    }
+
+    inline bool is_zero(double x) {
+        return std::isfinite(x) && std::abs(x) <= 1e-8;
+    }
+
+    inline bool is_zero(long double x) {
+        return std::isfinite(x) && std::abs(x) <= 1e-10L;
+    }
+
+    template <class T>
+    inline bool is_zero(const T &x) {
+        return x == T();
+    }
+
+    template <class T>
+    inline bool is_zero(const std::complex<T> &x) {
+        return is_zero(x.real()) && is_zero(x.imag());
+    }
+
+    /**
+     * @brief Check whether a value is real.
+     */
+    template <class T>
+    inline bool is_real(const std::complex<T> &z) {
+        return is_zero(z.imag());
+    }
+}
+
+    /// Decompositions.
+
+namespace linalg {
+    template <class T, class Tag>
+    lu_result<typename base_tensor<T, 2, Tag>::value_type>
+    lu(const base_tensor<T, 2, Tag> &A) {
+        typedef typename base_tensor<T, 2, Tag>::value_type Rt;
+        size_t m = A.shape(0), n = A.shape(1);
+        tensor<Rt, 2> LU(A);
+        tensor<size_t, 1> piv(m);
+        std::iota(piv.data(), piv.data() + m, 0);
+        for (size_t k = 0; k < m && k < n; ++k) {
+            // Partial pivoting.
+            for (size_t i = k + 1; i < m; ++i) {
+                if (std::abs(LU(piv[k], k)) < std::abs(LU(i, k))) {
+                    piv[k] = i;
+                }
+            }
+            if (piv[k] != k) {
+                for (size_t j = 0; j < n; ++j) {
+                    std::swap(LU(piv[k], j), LU(k, j));
+                }
+            }
+            // Gaussian elimination.
+            if (!detail::is_zero(LU(k, k))) {
+                for (size_t i = k + 1; i < m; ++i) {
+                    LU(i, k) /= LU(k, k);
+                    for (size_t j = k + 1; j < n; ++j) {
+                        LU(i, j) -= LU(i, k) * LU(k, j);
+                    }
+                }
+            }
+        }
+        return lu_result<Rt>(std::move(LU), std::move(piv));
+    }
+
+    template <class T, class Tag>
+    ldl_result<typename base_tensor<T, 2, Tag>::value_type>
+    ldl(const base_tensor<T, 2, Tag> &A) {
+        typedef typename base_tensor<T, 2, Tag>::value_type Rt;
+        if (A.shape(0) != A.shape(1)) {
+            throw std::invalid_argument("Expected square matrix");
+        }
+        size_t n = A.shape(0);
+        tensor<Rt, 2> L({n, n}, Rt());
+        tensor<Rt, 1> D(n);
+        for (size_t j = 0; j < n; ++j) {
+            Rt val = Rt();
+            for (size_t k = 0; k < j; ++k) {
+                val += L(j, k) * D[k] * L(j, k);
+            }
+            L(j, j) = T(1);
+            D[j] = A(j, j) - val;
+            if (!detail::is_zero(D[j])) {
+                for (size_t i = j + 1; i < n; ++i) {
+                    Rt val = Rt();
+                    for (size_t k = 0; k < j; ++k) {
+                        val += L(i, k) * D[k] * L(j, k);
+                    }
+                    L(i, j) = (A(i, j) - val) / D[j];
+                }
+            }
+        }
+        return ldl_result<Rt>(std::move(L), std::move(D));
+    }
+
+    template <class T, class Tag>
+    ldl_result< std::complex<T> >
+    ldl(const base_tensor<std::complex<T>, 2, Tag> &A) {
+        if (A.shape(0) != A.shape(1)) {
+            throw std::invalid_argument("Expected square matrix");
+        }
+        size_t n = A.shape(0);
+        tensor<std::complex<T>, 2> L({n, n}, T());
+        tensor<std::complex<T>, 1> D(n);
+        for (size_t j = 0; j < n; ++j) {
+            std::complex<T> val = T();
+            for (size_t k = 0; k < j; ++k) {
+                val += L(j, k) * D[k] * std::conj(L(j, k));
+            }
+            L(j, j) = T(1);
+            D[j] = A(j, j) - val;
+            if (!detail::is_zero(D[j])) {
+                for (size_t i = j + 1; i < n; ++i) {
+                    std::complex<T> val = T();
+                    for (size_t k = 0; k < j; ++k) {
+                        val += L(i, k) * D[k] * std::conj(L(j, k));
+                    }
+                    L(i, j) = (A(i, j) - val) / D[j];
+                }
+            }
+        }
+        return ldl_result< std::complex<T> >(std::move(L), std::move(D));
+    }
+
+    template <class T, class Tag>
+    cho_result<typename base_tensor<T, 2, Tag>::value_type>
+    cholesky(const base_tensor<T, 2, Tag> &A) {
+        typedef typename base_tensor<T, 2, Tag>::value_type Rt;
+        if (A.shape(0) != A.shape(1)) {
+            throw std::invalid_argument("Expected square matrix");
+        }
+        size_t n = A.shape(0);
+        tensor<Rt, 2> L({n, n}, Rt());
+        // Cholesky–Crout algorithm.
+        for (size_t j = 0; j < n; ++j) {
+            Rt val = Rt();
+            for (size_t k = 0; k < j; ++k) {
+                val += L(j, k) * L(j, k);
+            }
+            if (A(j, j) <= val) {
+                throw linalg_error("Non-symmetric positive-definite matrix");
+            }
+            L(j, j) = std::sqrt(A(j, j) - val);
+            for (size_t i = j + 1; i < n; ++i) {
+                Rt val = Rt();
+                for (size_t k = 0; k < j; ++k) {
+                    val += L(i, k) * L(j, k);
+                }
+                L(i, j) = (A(i, j) - val) / L(j, j);
+            }
+        }
+        return cho_result<Rt>(std::move(L));
+    }
+
+    template <class T, class Tag>
+    cho_result< std::complex<T> >
+    cholesky(const base_tensor<std::complex<T>, 2, Tag> &A) {
+        if (A.shape(0) != A.shape(1)) {
+            throw std::invalid_argument("Expected square matrix");
+        }
+        size_t n = A.shape(0);
+        tensor<std::complex<T>, 2> L({n, n}, T());
+        // Cholesky–Crout algorithm.
+        for (size_t j = 0; j < n; ++j) {
+            T val = T();
+            for (size_t k = 0; k < j; ++k) {
+                val += std::norm(L(j, k));
+            }
+            if (!detail::is_real(A(j, j)) || A(j, j).real() <= val) {
+                throw linalg_error("Non-hermitian positive-definite matrix");
+            }
+            L(j, j) = std::sqrt(A(j, j).real() - val);
+            for (size_t i = j + 1; i < n; ++i) {
+                std::complex<T> val = T();
+                for (size_t k = 0; k < j; ++k) {
+                    val += L(i, k) * std::conj(L(j, k));
+                }
+                L(i, j) = (A(i, j) - val) / L(j, j);
+            }
+        }
+        return cho_result< std::complex<T> >(std::move(L));
+    }
+}
 }
 
 #endif // NUMCPP_LINALG_TCC_INCLUDED

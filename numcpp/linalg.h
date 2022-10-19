@@ -26,6 +26,7 @@
 #include "numcpp/config.h"
 #include "numcpp/routines/ranges.h"
 #include "numcpp/linalg/transpose_view.h"
+#include "numcpp/linalg/lu_factor.h"
 
 namespace numcpp {
     /// Basic linear algebra.
@@ -325,6 +326,18 @@ namespace linalg {
         const base_tensor<std::complex<T>, Rank, Tag> &a, double ord,
         size_t axis
     );
+
+    /**
+     * @brief Compute the determinant of a matrix via LU decomposition.
+     *
+     * @param a Input matrix to compute determinant for.
+     *
+     * @return Determinant of a.
+     *
+     * @throw std::invalid_argument Thrown if input matrix is not square.
+     */
+    template <class T, class Tag>
+    T det(const base_tensor<T, 2, Tag> &a);
 }
 
     /**
@@ -340,6 +353,126 @@ namespace linalg {
      */
     template <class T, class Tag>
     T trace(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
+
+    /// Exceptions.
+
+namespace linalg {
+    /**
+     * @brief This class defines the type of objects thrown as exceptions by
+     * linalg functions. It reports when a Linear Algebra-related condition
+     * would prevent further correct execution of the function.
+     */
+    class linalg_error : public std::runtime_error {
+    public:
+        explicit linalg_error(const std::string &what_arg)
+         : std::runtime_error(what_arg) {}
+
+        explicit linalg_error(const char *what_arg)
+         : std::runtime_error(what_arg) {}
+
+        linalg_error(const linalg_error&) = default;
+        linalg_error(linalg_error&&) = default;
+        linalg_error& operator=(const linalg_error&) = default;
+        linalg_error& operator=(linalg_error&&) = default;
+
+        virtual ~linalg_error() = default;
+    };
+}
+
+    /// Decompositions.
+
+namespace linalg {
+    /**
+     * @brief Compute the pivoted LU decomposition of a matrix.
+     *
+     * @details Let @f$A@f$ be a @f$m \times n@f$ matrix. The decomposition is
+     * @f[
+     *     A = P L U
+     * @f]
+     * where
+     * - @f$P@f$ is a @f$m \times m@f$ permutation matrix,
+     * - @f$L@f$ is a @f$m \times k@f$, @f$k = \min(m, n)@f$, lower triangular
+     *   or trapezoidal matrix with unit diagonal, and
+     * - @f$U@f$ is a @f$k \times n@f$ upper triangular or trapezoidal matrix.
+     *
+     * @param A Matrix to decompose.
+     *
+     * @return A lu_result object with the pivoted LU decomposition of A.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    lu_result<typename base_tensor<T, 2, Tag>::value_type>
+    lu(const base_tensor<T, 2, Tag> &A);
+
+    /**
+     * @brief Compute the LDL decomposition of a matrix.
+     *
+     * @details Let @f$A@f$ be a Hermitian matrix. The decomposition is
+     * @f[
+     *     A = L D L^*
+     * @f]
+     * where
+     * - @f$L@f$ is a lower triangular matrix with unit diagonal,
+     * - @f$D@f$ is a diagonal matrix, and
+     * - @f$L^*@f$ denotes the conjugate transpose of @f$L@f$.
+     * When @f$A@f$ is a real matrix (hence symmetric), the decomposition may
+     * be written as
+     * @f[
+     *     A = L D L^T
+     * @f]
+     *
+     * @param A Matrix to decompose. Only the lower triangle of A is used.
+     *
+     * @return A ldl_result object with the LDL decomposition of A.
+     *
+     * @throw std::invalid_argument Thrown if input matrix is not square.
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     */
+    template <class T, class Tag>
+    ldl_result<typename base_tensor<T, 2, Tag>::value_type>
+    ldl(const base_tensor<T, 2, Tag> &A);
+
+    template <class T, class Tag>
+    ldl_result< std::complex<T> >
+    ldl(const base_tensor<std::complex<T>, 2, Tag> &A);
+
+    /**
+     * @brief Compute the Cholesky decomposition of a matrix.
+     *
+     * @details Let @f$A@f$ be a Hermitian positive-definite matrix. The
+     * decomposition is
+     * @f[
+     *     A = L L^*
+     * @f]
+     * where
+     * - @f$L@f$ is a lower triangular matrix, and
+     * - @f$L^*@f$ denotes the conjugate transpose of @f$L@f$.
+     * When @f$A@f$ is a real matrix (hence symmetric positive-definite), the
+     * decomposition may be written as
+     * @f[
+     *     A = L L^T
+     * @f]
+     *
+     * @param A Matrix to decompose. Only the lower triangle of A is used.
+     *
+     * @return A cho_result object with the Cholesky decomposition of A.
+     *
+     * @throw std::invalid_argument Thrown if input matrix is not square.
+     * @throw std::bad_alloc If the function fails to allocate storage it may
+     *     throw an exception.
+     * @throw linalg_error Thrown if decomposition fails.
+     */
+    template <class T, class Tag>
+    cho_result<typename base_tensor<T, 2, Tag>::value_type>
+    cholesky(const base_tensor<T, 2, Tag> &A);
+
+    template <class T, class Tag>
+    cho_result< std::complex<T> >
+    cholesky(const base_tensor<std::complex<T>, 2, Tag> &A);
+}
 }
 
 #include "numcpp/linalg/linalg.tcc"
