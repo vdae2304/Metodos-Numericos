@@ -13,7 +13,17 @@ Defined in `numcpp/linalg.h`
     - [`conj_transpose`](#conj_transpose)
     - [`linalg::norm`](#linalgnorm)
     - [`linalg::norm(axis)`](#linalgnormaxis)
+    - [`linalg::det`](#linalgdet)
     - [`trace`](#trace)
+  - [Exceptions](#exceptions)
+    - [`linalg::linalg_error`](#linalglinalg_error)
+  - [Decompositions](#decompositions)
+    - [`linalg::lu`](#linalglu)
+    - [`linalg::lu_result`](#linalglu_result)
+    - [`linalg::ldl`](#linalgldl)
+    - [`linalg::ldl_result`](#linalgldl_result)
+    - [`linalg::cholesky`](#linalgcholesky)
+    - [`linalg::cho_result`](#linalgcho_result)
 
 ## Basic linear algebra
 
@@ -1080,6 +1090,57 @@ Maximum norm:
  [8]]
 ```
 
+### `linalg::det`
+
+Compute the determinant of a matrix via LU decomposition.
+```cpp
+template <class T>
+T det(const tensor<T, 2> &a);
+```
+
+Parameters
+
+* `a` Input matrix to compute determinant for.
+
+Returns
+
+* Determinant of `a`.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if input matrix is not square.
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "numcpp/linalg.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<double> a;
+    std::cin >> a;
+    std::cout << np::linalg::det(a) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[10,  3, -4,  7, 13],
+ [11, -4, -5, 12, 14],
+ [-4,  1,  6,  9, -2],
+ [ 8,  2, -5, 12, -4],
+ [-1, 12, -1,  9, -1]]
+```
+
+Output
+
+```
+-104061
+```
+
 ### `trace`
 
 Return the sum along a diagonal of the matrix, i.e., the sum of the elements of
@@ -1132,4 +1193,646 @@ Output
 trace(a): 34
 trace(a, k=1): 21
 trace(a, k=-1): 30
+```
+
+## Exceptions
+
+### `linalg::linalg_error`
+
+This class defines the type of objects thrown as exceptions by linalg
+functions. It reports when a Linear Algebra-related condition would prevent
+further correct execution of the function.
+
+It is defined as
+```cpp
+class linalg_error : public std::runtime_error {
+public:
+    explicit linalg_error(const std::string &what_arg);
+    explicit linalg_error(const char *what_arg);
+};
+```
+
+## Decompositions
+
+### `linalg::lu`
+
+Compute the pivoted LU decomposition of a matrix.
+```cpp
+template <class T>
+lu_result<typename tensor<T, 2>::value_type> lu(const tensor<T, 2> &A);
+```
+
+Let $A$ be a $m \times n$ matrix. The decomposition is
+
+$$A = P L U$$
+
+where
+* $P$ is a $m \times m$ permutation matrix,
+* $L$ is a $m \times k$, $k = \min(m, n)$, lower triangular or trapezoidal
+matrix with unit diagonal, and
+* $U$ is a $k \times n$ upper triangular or trapezoidal matrix.
+
+Parameters
+
+* `A` Matrix to decompose.
+
+Returns
+
+* A [`lu_result`](#linalglu_result) object with the pivoted LU decomposition of
+`A`.
+
+Exceptions
+
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+### `linalg::lu_result`
+
+Class returned by [`linalg::lu`](#linalglu).
+```cpp
+template <class T> class lu_result;
+```
+
+**Constructors**
+
+Default constructor
+```cpp
+lu_result();
+```
+
+Copy constructor.
+```cpp
+lu_result(const lu_result &other);
+```
+
+Move constructor.
+```cpp
+lu_result(lu_result &&other);
+```
+
+**Destructor**
+
+```cpp
+~lu_result() = default;
+```
+
+**Assignment operator**
+
+Copy assignment.
+```cpp
+lu_result& operator=(const lu_result &other);
+```
+
+Move assignment.
+```cpp
+lu_result& operator=(lu_result &&other);
+```
+
+**Public methods**
+
+`lu_result::tie`
+
+Unpack $P$, $L$ and $U$ into the destination matrices.
+```cpp
+void tie(tensor<T, 2> &P, tensor<T, 2> &L, tensor<T, 2> &U) const;
+```
+
+Parameters
+
+* `P` A location into which the permutation matrix is stored.
+* `L` A location into which the lower triangular matrix with unit diagonal is
+stored.
+* `U` A location into which the upper triangular matrix is stored.
+
+Returns
+
+* None
+
+`lu_result::P`
+
+Return the permutation matrix.
+```cpp
+tensor<T, 2> P() const;
+```
+
+`lu_result::L`
+
+Return the lower triangular matrix with unit diagonal of the decomposition.
+```cpp
+tensor<T, 2> L() const;
+```
+
+`lu_result::U`
+
+Return the upper triangular matrix of the decomposition.
+```cpp
+tensor<T, 2> U() const;
+```
+
+`lu_result::A`
+
+Return the decomposed matrix.
+```cpp
+tensor<T, 2> A() const;
+```
+
+`lu_result::LU`
+
+Return a matrix containing $U$ in its upper triangle and $L$ in its lower
+triangle. The unit elements of $L$ are not stored.
+```cpp
+const tensor<T, 2>& LU() const;
+```
+
+`lu_result::piv`
+
+Return the pivot indices representing the permutation matrix. row `i` was
+interchanged with row `piv[i]`.
+```cpp
+const tensor<size_t, 1>& piv() const;
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "numcpp/linalg.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A;
+    std::cin >> A;
+    // Full decomposition.
+    np::matrix<double> P, L, U;
+    np::linalg::lu(A).tie(P, L, U);
+    if (np::allclose(np::matmul(P, np::matmul(L, U)), A)) {
+        std::cout << "Decomposition successful\n";
+    }
+    else {
+        std::cout << "Decomposition failed\n";
+    }
+    std::cout << "P:\n" << P << "\n";
+    std::cout << "L:\n" << L << "\n";
+    std::cout << "U:\n" << U << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[10,  3, -4,  7, 13],
+ [11, -4, -5, 12, 14],
+ [-4,  1,  6,  9, -2],
+ [ 8,  2, -5, 12, -4],
+ [-1, 12, -1,  9, -1]]
+```
+
+Output
+
+```
+Decomposition successful
+P:
+[[0, 0, 0, 1, 0],
+ [1, 0, 0, 0, 0],
+ [0, 0, 1, 0, 0],
+ [0, 0, 0, 0, 1],
+ [0, 1, 0, 0, 0]]
+L:
+[[           1,            0,            0,            0,            0],
+ [-0.090909091,            1,            0,            0,            0],
+ [ -0.36363636,   -0.0390625,            1,            0,            0],
+ [  0.90909091,    0.5703125,   0.33333333,            1,            0],
+ [  0.72727273,     0.421875,  -0.18181818,  -0.10645933,            1]]
+U:
+[[         11,          -4,          -5,          12,          14],
+ [          0,   11.636364,  -1.4545455,   10.090909,  0.27272727],
+ [          0,           0,       4.125,   13.757812,   3.1015625],
+ [          0,           0,           0,      -14.25, -0.91666667],
+ [          0,           0,           0,           0,  -13.830542]]
+```
+
+Input
+
+```
+[[ 1,  9,  5,  9, 13,  0],
+ [-5,  7, 10, -4, -3, -2],
+ [-2,  1, -3, -5,  6, -4],
+ [10,  1,  2,  6,  0,  0]]
+```
+
+Output
+
+```
+Decomposition successful
+P:
+[[0, 1, 0, 0],
+ [0, 0, 1, 0],
+ [0, 0, 0, 1],
+ [1, 0, 0, 0]]
+L:
+[[          1,           0,           0,           0],
+ [        0.1,           1,           0,           0],
+ [       -0.5,  0.84269663,           1,           0],
+ [       -0.2,  0.13483146, -0.46688207,           1]]
+U:
+[[        10,          1,          2,          6,          0,          0],
+ [         0,        8.9,        4.8,        8.4,         13,          0],
+ [         0,          0,  6.9550562, -8.0786517, -13.955056,         -2],
+ [         0,          0,          0, -8.7043619, -2.2681745, -4.9337641]]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "numcpp/linalg.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A;
+    std::cin >> A;
+    // Decomposition in compressed format.
+    np::linalg::lu_result<double> result = np::linalg::lu(A);
+    std::cout << "LU:\n" << result.LU() << "\n";
+    std::cout << "piv:\n" << result.piv() << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[10,  3, -4,  7, 13],
+ [11, -4, -5, 12, 14],
+ [-4,  1,  6,  9, -2],
+ [ 8,  2, -5, 12, -4],
+ [-1, 12, -1,  9, -1]]
+```
+
+Output
+
+```
+LU:
+[[          11,           -4,           -5,           12,           14],
+ [-0.090909091,    11.636364,   -1.4545455,    10.090909,   0.27272727],
+ [ -0.36363636,   -0.0390625,        4.125,    13.757812,    3.1015625],
+ [  0.90909091,    0.5703125,   0.33333333,       -14.25,  -0.91666667],
+ [  0.72727273,     0.421875,  -0.18181818,  -0.10645933,   -13.830542]]
+piv:
+[1, 4, 2, 4, 4]
+```
+
+Input
+
+```
+[[ 1,  9,  5,  9, 13,  0],
+ [-5,  7, 10, -4, -3, -2],
+ [-2,  1, -3, -5,  6, -4],
+ [10,  1,  2,  6,  0,  0]]
+```
+
+Output
+
+```
+LU:
+[[         10,           1,           2,           6,           0,           0],
+ [        0.1,         8.9,         4.8,         8.4,          13,           0],
+ [       -0.5,  0.84269663,   6.9550562,  -8.0786517,  -13.955056,          -2],
+ [       -0.2,  0.13483146, -0.46688207,  -8.7043619,  -2.2681745,  -4.9337641]]
+piv:
+[3, 3, 3, 3]
+```
+
+### `linalg::ldl`
+
+Compute the LDL decomposition of a matrix.
+```cpp
+template <class T>
+ldl_result<typename tensor<T, 2>::value_type> ldl(const tensor<T, 2> &A);
+
+template <class T>
+ldl_result< std::complex<T> > ldl(const tensor<std::complex<T>, 2> &A);
+```
+
+Let $A$ be a Hermitian matrix. The decomposition is
+
+$$A = L D L^*$$
+
+where
+* $L$ is a lower triangular matrix with unit diagonal,
+* $D$ is a diagonal matrix, and
+* $L^*$ denotes the conjugate transpose of $L$.
+
+When $A$ is a real matrix (hence symmetric), the decomposition may be written
+as
+
+$$A = L D L^T$$
+
+Parameters
+
+* `A` Matrix to decompose. Only the lower triangle of `A` is used.
+
+Returns
+
+* A [`ldl_result`](#linalgldl_result) object with the LDL decomposition of `A`.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if input matrix is not square.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+
+### `linalg::ldl_result`
+
+Class returned by [`linalg::ldl`](#linalgldl).
+```cpp
+template <class T> class ldl_result;
+```
+
+**Constructors**
+
+Default constructor.
+```cpp
+ldl_result();
+```
+
+Copy constructor.
+```cpp
+ldl_result(const ldl_result &other);
+```
+
+Move constructor.
+```cpp
+ldl_result(ldl_result &&other);
+```
+
+**Destructor**
+
+```cpp
+~ldl_result() = default;
+```
+
+**Assignment operator**
+
+Copy assignment.
+```cpp
+ldl_result& operator=(const ldl_result &other);
+```
+
+Move assignment.
+```cpp
+ldl_result& operator=(ldl_result &&other);
+```
+
+**Public methods.**
+
+`ldl_result::tie`
+
+Unpack $L$ and $D$ into the destination matrices.
+```cpp
+void tie(tensor<T, 2> &L, tensor<T, 2> &D) const;
+```
+
+Parameters
+
+* `L` A location into which the lower triangular matrix is stored.
+* `D` A location into which the diagonal matrix is stored.
+
+`ldl_result::L`
+
+Return the lower triangular matrix of the decomposition.
+```cpp
+const tensor<T, 2>& L() const;
+```
+
+`ldl_result::D`
+
+Return the diagonal matrix of the decomposition.
+```cpp
+tensor<T, 2> D() const;
+```
+
+`ldl_result::d`
+
+Return the diagonal of the diagonal matrix of the decomposition.
+```cpp
+const tensor<T, 1>& d() const;
+```
+
+`ldl_result::A`
+
+Return the decomposed matrix.
+```cpp
+tensor<T, 2> A() const;
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "numcpp/linalg.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A;
+    std::cin >> A;
+    np::matrix<double> L, D;
+    np::linalg::ldl(A).tie(L, D);
+    if (np::allclose(np::matmul(np::matmul(L, D), L.t()), A)) {
+        std::cout << "Decomposition successful\n";
+    }
+    else {
+        std::cout << "Decomposition failed\n";
+    }
+    std::cout << "L:\n" << L << "\n";
+    std::cout << "D:\n" << D << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[ 7,  1,  9, 11,  2],
+ [ 1, 10, -1,  0, 13],
+ [ 9, -1,  3, -4,  9],
+ [11,  0, -4, 11, -5],
+ [ 2, 13,  9, -5, 14]]
+```
+
+Output
+
+```
+Decomposition successful
+L:
+[[          1,           0,           0,           0,           0],
+ [ 0.14285714,           1,           0,           0,           0],
+ [  1.2857143, -0.23188406,           1,           0,           0],
+ [  1.5714286, -0.15942029,   2.0334395,           1,           0],
+ [ 0.28571429,   1.2898551,  -1.0302548, -0.80982129,           1]]
+D:
+[[         7,          0,          0,          0,          0],
+ [         0,  9.8571429,          0,          0,          0],
+ [         0,          0, -9.1014493,          0,          0],
+ [         0,          0,          0,  31.097134,          0],
+ [         0,          0,          0,          0, -13.704337]]
+```
+
+### `linalg::cholesky`
+
+Compute the Cholesky decomposition of a matrix.
+```cpp
+template <class T>
+cho_result<typename tensor<T, 2>::value_type> cholesky(const tensor<T, 2> &A);
+
+template <class T>
+cho_result< std::complex<T> > cholesky(const tensor<std::complex<T>, 2> &A);
+```
+
+Let $A$ be a Hermitian positive-definite matrix. The decomposition is
+
+$$A = L L^*$$
+
+where
+* $L$ is a lower triangular matrix, and
+* $L^*$ denotes the conjugate transpose of $L$.
+
+When $A$ is a real matrix (hence symmetric positive-definite), the
+decomposition may be written as
+
+$$A = L L^T$$
+
+Parameters
+
+* `A` Matrix to decompose. Only the lower triangle of `A` is used.
+
+Returns
+
+* A [`cho_result`](#linalgcho_result) object with the Cholesky decomposition of
+`A`.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if input matrix is not square.
+* `std::bad_alloc` If the function fails to allocate storage it may throw an
+exception.
+* `linalg_error` Thrown if decomposition fails.
+
+### `linalg::cho_result`
+
+Class returned by [`linalg::cholesky`](#linalgcholesky).
+```cpp
+template <class T> class cho_result;
+```
+
+**Constructors**
+
+Default constructor.
+```cpp
+cho_result();
+```
+
+Copy constructor.
+```cpp
+cho_result(const cho_result &other);
+```
+
+Move constructor.
+```cpp
+cho_result(cho_result &&other);
+```
+
+**Destructor**
+
+```cpp
+~cho_result() = default;
+```
+
+**Assignment operator**
+
+Copy assignment.
+```cpp
+cho_result& operator=(const cho_result &other);
+```
+
+Move assignment.
+```cpp
+cho_result& operator=(cho_result &&other);
+```
+
+**Public methods**
+
+`cho_result::tie`
+
+Unpack $L$ into the destination matrix.
+```cpp
+void tie(tensor<T, 2> &L) const;
+```
+
+Parameters
+
+* `L` A location into which the lower triangular matrix is stored.
+
+Returns
+
+* None
+
+`cho_result::L`
+
+Return the lower triangular matrix of the decomposition.
+```cpp
+const tensor<T, 2>& L() const;
+```
+
+`cho_result::A`
+
+Return the decomposed matrix.
+```cpp
+tensor<T, 2> A() const;
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+#include "numcpp/linalg.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<double> A;
+    std::cin >> A;
+    np::matrix<double> L;
+    np::linalg::cholesky(A).tie(L);
+    if (np::allclose(np::matmul(L, L.t()), A)) {
+        std::cout << "Decomposition successful\n";
+    }
+    else {
+        std::cout << "Decomposition failed\n";
+    }
+    std::cout << "L:\n" << L << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[[ 9, -2,  0, -1,  3],
+ [-2,  7,  4,  0,  6],
+ [ 0,  4, 11, -3,  2],
+ [-1,  0, -3, 10,  5],
+ [ 3,  6,  2,  5, 13]]
+```
+
+Output
+
+```
+Decomposition successful
+L:
+[[           3,            0,            0,            0,            0],
+ [ -0.66666667,    2.5603819,            0,            0,            0],
+ [           0,    1.5622669,    2.9256319,            0,            0],
+ [ -0.33333333, -0.086792607,  -0.97907285,     2.987101,            0],
+ [           1,    2.6037782,  -0.70678632,    1.6294483,    1.4372509]]
 ```
