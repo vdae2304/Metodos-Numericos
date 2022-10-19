@@ -1174,12 +1174,10 @@ namespace numcpp {
     }
 
     template <class T, size_t Rank, class Tag>
-    inline base_tensor<
-        std::complex<T>, Rank, lazy_unary_tag<math::conj, T, Tag>
-    > conj(const base_tensor<T, Rank, Tag> &z) {
-        typedef std::complex<T> Rt;
+    inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag> >
+    conj(const base_tensor<T, Rank, Tag> &z) {
         typedef lazy_unary_tag<math::conj, T, Tag> Closure;
-        return base_tensor<Rt, Rank, Closure>(math::conj(), z);
+        return base_tensor<T, Rank, Closure>(math::conj(), z);
     }
 
     /**

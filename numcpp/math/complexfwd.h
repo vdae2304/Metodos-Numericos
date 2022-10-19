@@ -25,7 +25,6 @@
 #define NUMCPP_COMPLEXFWD_H_INCLUDED
 
 #include <complex>
-#include <utility>
 
 namespace numcpp {
 
@@ -36,9 +35,13 @@ namespace math {
      */
     struct real {
         template <class T>
-        auto operator()(T&& z) const
-         -> decltype(std::real(std::forward<T>(z))) {
-            return std::real(std::forward<T>(z));
+        T operator()(const std::complex<T> &z) const {
+            return z.real();
+        }
+
+        template <class T>
+        T operator()(T x) const {
+            return x;
         }
     };
 
@@ -47,9 +50,13 @@ namespace math {
      */
     struct imag {
         template <class T>
-        auto operator()(T&& z) const
-         -> decltype(std::imag(std::forward<T>(z))) {
-            return std::imag(std::forward<T>(z));
+        T operator()(const std::complex<T> &z) const {
+            return z.imag();
+        }
+
+        template <class T>
+        T operator()(T x) const {
+            return T();
         }
     };
 
@@ -58,9 +65,13 @@ namespace math {
      */
     struct conj {
         template <class T>
-        auto operator()(T&& z) const
-         -> decltype(std::conj(std::forward<T>(z))) {
-            return std::conj(std::forward<T>(z));
+        std::complex<T> operator()(const std::complex<T> &z) const {
+            return std::conj(z);
+        }
+
+        template <class T>
+        T operator()(T x) const {
+            return x;
         }
     };
 
@@ -69,9 +80,13 @@ namespace math {
      */
     struct arg {
         template <class T>
-        auto operator()(T &&z) const
-         -> decltype(std::arg(std::forward<T>(z))) {
-            return std::arg(std::forward<T>(z));
+        T operator()(const std::complex<T> &z) const {
+            return std::arg(z);
+        }
+
+        template <class T>
+        auto operator()(T x) const -> decltype(std::arg(x)) {
+            return std::arg(x);
         }
     };
 }
