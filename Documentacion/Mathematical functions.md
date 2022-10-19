@@ -2329,7 +2329,7 @@ template <class T, size_t Rank>
 tensor<std::complex<T>, Rank> conj(const tensor<std::complex<T>, Rank> &z);
 
 template <class T, size_t Rank>
-tensor<std::complex<T>, Rank> conj(const tensor<T, Rank> &z);
+tensor<T, Rank> conj(const tensor<T, Rank> &z);
 ```
 
 Parameters
