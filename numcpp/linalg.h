@@ -26,7 +26,8 @@
 #include "numcpp/config.h"
 #include "numcpp/routines/ranges.h"
 #include "numcpp/linalg/transpose_view.h"
-#include "numcpp/linalg/lu_factor.h"
+#include "numcpp/linalg/lu.h"
+#include "numcpp/linalg/cholesky.h"
 
 namespace numcpp {
     /// Basic linear algebra.
