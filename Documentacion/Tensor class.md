@@ -24,6 +24,7 @@ Defined in `numcpp/tensor.h`
     - [`tensor::empty`](#tensorempty)
     - [`tensor::data`](#tensordata)
     - [`tensor::layout`](#tensorlayout)
+    - [`tensor::is_contiguous`](#tensoris_contiguous)
   - [Advanced indexing](#advanced-indexing)
     - [Slice indexing](#slice-indexing)
     - [Coordinate tensor indexing](#coordinate-tensor-indexing)
@@ -45,13 +46,15 @@ Defined in `numcpp/tensor.h`
 template <class T, size_t Rank> class tensor;
 ```
 Tensors are contiguous multidimensional sequence containers: they hold a
-specific number of elements arranged in multiple axis. Unlike a `tensor_view`,
-a tensor is always owner of its own data and the elements are always stored in
-row-major order.
+variable number of elements arranged in multiple axis. Unlike `tensor_view`,
+`tensor` is always owner of its own data, which means that the storage of the
+tensor is handled automatically.
 
 Tensors are designed to easily perform mathematical operations on them. Most
-mathematical operations can be applied directly to tensor objects, affecting
-all its elements.
+mathematical operations can be applied directly to tensor objects, including
+arithmetic and comparison operators, affecting all its elements. It also
+supports various forms of generalized subscript operators, slicing and indirect
+access.
 
 ## Template parameters
 
@@ -99,16 +102,19 @@ tensor();
 
 Constructs a tensor with given shape, each element is left uninitialized.
 ```cpp
-tensor(const shape_t<Rank> &shape);
-
 template <class... Sizes>
-tensor(Sizes... sizes);
+explicit tensor(Sizes... sizes);
+
+explicit tensor(const shape_t<Rank> &shape, layout_t order = row_major);
 ```
 
 Parameters
 
 * `shape` Number of elements along each axis. It can be a `shape_t` object or
 the elements of the shape passed as separate arguments.
+* `order` Memory layout in which elements are stored. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. Defaults to row-major order.
 
 Exceptions
 
@@ -144,13 +150,16 @@ Output
 
 Constructs a tensor with given shape, each element initialized to `val`.
 ```cpp
-tensor(const shape_t<Rank> &shape, const T &val);
+tensor(const shape_t<Rank> &shape, const T &val, layout_t order = row_major);
 ```
 
 Parameters
 
 * `shape` Number of elements along each axis.
 * `val` Value to which each of the elements is initialized.
+* `order` Memory layout in which elements are stored. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. Defaults to row-major order.
 
 Exceptions
 
@@ -198,14 +207,24 @@ Output
 Constructs a tensor with given shape, with each element constructed from its
 corresponding element in the range starting at `first`, in the same order.
 ```cpp
+template <class InputIterator, class... Sizes>
+tensor(InputIterator first, Sizes... sizes);
+
 template <class InputIterator>
-tensor(InputIterator first, const shape_t<Rank> &shape);
+tensor(
+    InputIterator first, const shape_t<Rank> &shape,
+    layout_t order = row_major
+);
 ```
 
 Parameters
 
 * `first` Input iterator to the initial position in a range.
-* `shape` Number of elements along each axis.
+* `shape` Number of elements along each axis. It can be a `shape_t` object or
+the elements of the shape passed as separate arguments.
+* `order` Memory layout in which elements are stored. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. Defaults to row-major order.
 
 Exceptions
 
@@ -219,12 +238,24 @@ Example
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
-    int ptr[12] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4, 11, 5};
-    np::array<int> arr(ptr, 12);
+    int ptr1[10] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
+    np::array<int> arr(ptr1, 10);
     std::cout << "1 dimensional:\n" << arr << "\n";
-    np::matrix<int> mat(ptr, {3, 4});
+
+    int ptr2[12] = {0, 10, -4, 5,
+                    6, 10, 8, 12,
+                    2, 11, 0, -1};
+    np::matrix<int> mat(ptr2, 3, 4);
     std::cout << "2 dimensional:\n" << mat << "\n";
-    np::tensor<int, 3> cube(ptr, {2, 2, 3});
+
+    int ptr3[24] = {1, 18, 11, 10,
+                    9, 19, 12, 10,
+                    13, 8, -4, 16,
+
+                    2, 4, 14, 19,
+                    18, 5, 19, 18,
+                    0, 0, 15, 17};
+    np::tensor<int, 3> cube(ptr3, 2, 3, 4);
     std::cout << "3 dimensional:\n" << cube << "\n";
     return 0;
 }
@@ -234,17 +265,19 @@ Output
 
 ```
 1 dimensional:
-[-4, 16, 14,  9, 18,  3,  7,  2,  1,  4, 11,  5]
+[-4, 16, 14,  9, 18,  3,  7,  2,  1,  4]
 2 dimensional:
-[[-4, 16, 14,  9],
- [18,  3,  7,  2],
- [ 1,  4, 11,  5]]
+[[ 0, 10, -4,  5],
+ [ 6, 10,  8, 12],
+ [ 2, 11,  0, -1]]
 3 dimensional:
-[[[-4, 16, 14],
-  [ 9, 18,  3]],
+[[[ 1, 18, 11, 10],
+  [ 9, 19, 12, 10],
+  [13,  8, -4, 16]],
 
- [[ 7,  2,  1],
-  [ 4, 11,  5]]]
+ [[ 2,  4, 14, 19],
+  [18,  5, 19, 18],
+  [ 0,  0, 15, 17]]]
 ```
 
 ### Copy constructor
@@ -253,13 +286,20 @@ Constructs a tensor with a copy of each of the elements in other, in the same
 order.
 ```cpp
 tensor(const tensor &other);
+tensor(const tensor &other, layout_t order);
+
 template <class U>
 tensor(const tensor<U, Rank> &other);
+template <class U>
+tensor(const tensor<U, Rank> &other, layout_t order);
 ```
 
 Parameters
 
 * `other` A tensor-like object of the same rank.
+* `order` Memory layout in which elements are stored. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. The default is to use the same layout as `other`.
 
 Exceptions
 
@@ -384,27 +424,31 @@ int main() {
     for (unsigned i = 0; i < arr.size(); ++i) {
         arr(i) = value++;
     }
-    std::cout << "1 dimensional:\n" << arr << "\n";
+    std::cout << arr << "\n";
+}
+```
 
+Output
+
+```
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
     np::matrix<int> mat(3, 4);
-    value = 0;
+    int value = 0;
     for (unsigned i = 0; i < mat.shape(0); ++i) {
         for (unsigned j = 0; j < mat.shape(1); ++j) {
             mat(i, j) = value++;
         }
     }
-    std::cout << "2 dimensional:\n" << mat << "\n";
-
-    np::tensor<int, 3> cube(2, 3, 4);
-    value = 0;
-    for (unsigned i = 0; i < cube.shape(0); ++i) {
-        for (unsigned j = 0; j < cube.shape(1); ++j) {
-            for (unsigned k = 0; k < cube.shape(2); ++k) {
-                cube(i, j, k) = value++;
-            }
-        }
-    }
-    std::cout << "3 dimensional:\n" << cube << "\n";
+    std::cout << mat << "\n";
     return 0;
 }
 ```
@@ -412,13 +456,35 @@ int main() {
 Output
 
 ```
-1 dimensional:
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-2 dimensional:
 [[ 0,  1,  2,  3],
  [ 4,  5,  6,  7],
  [ 8,  9, 10, 11]]
-3 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 3> cube(2, 3, 4);
+    int value = 0;
+    for (unsigned i = 0; i < cube.shape(0); ++i) {
+        for (unsigned j = 0; j < cube.shape(1); ++j) {
+            for (unsigned k = 0; k < cube.shape(2); ++k) {
+                cube(i, j, k) = value++;
+            }
+        }
+    }
+    std::cout << cube << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 [[[ 0,  1,  2,  3],
   [ 4,  5,  6,  7],
   [ 8,  9, 10, 11]],
@@ -435,14 +501,19 @@ Returns a reference to the element at the given position.
 T& operator[](const index_t<Rank> &index);
 const T& operator[](const index_t<Rank> &index) const;
 
-T& operator[](size_t i);
-const T& operator[](size_t i) const;
+// Since C++23
+template <class... Index>
+T& operator[](Index... index);
+
+// Since C++23
+template <class... Index>
+const T& operator[](Index... index) const;
 ```
 
 Parameters
 
-* `index` An `index_t` object with the position of an element in the tensor. If
-the tensor is one dimensional, an integer can be used instead.
+* `index` An `index_t` object with the position of an element in the tensor.
+Since C++23, the elements of the index can be passed as separate arguments.
 
 Returns
 
@@ -466,27 +537,7 @@ int main() {
     for (unsigned i = 0; i < arr.size(); ++i) {
         arr[i] = value++;
     }
-    std::cout << "1 dimensional:\n" << arr << "\n";
-
-    np::matrix<int> mat(3, 4);
-    value = 0;
-    for (unsigned i = 0; i < mat.shape(0); ++i) {
-        for (unsigned j = 0; j < mat.shape(1); ++j) {
-            mat[{i, j}] = value++;
-        }
-    }
-    std::cout << "2 dimensional:\n" << mat << "\n";
-
-    np::tensor<int, 3> cube(2, 3, 4);
-    value = 0;
-    for (unsigned i = 0; i < cube.shape(0); ++i) {
-        for (unsigned j = 0; j < cube.shape(1); ++j) {
-            for (unsigned k = 0; k < cube.shape(2); ++k) {
-                cube[{i, j, k}] = value++;
-            }
-        }
-    }
-    std::cout << "3 dimensional:\n" << cube << "\n";
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -494,13 +545,62 @@ int main() {
 Output
 
 ```
-1 dimensional:
 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-2 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat(3, 4);
+    int value = 0;
+    for (unsigned i = 0; i < mat.shape(0); ++i) {
+        for (unsigned j = 0; j < mat.shape(1); ++j) {
+            // mat[i, j] = value++; // OK since C++23.
+            mat[{i, j}] = value++;
+        }
+    }
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 [[ 0,  1,  2,  3],
  [ 4,  5,  6,  7],
  [ 8,  9, 10, 11]]
-3 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 3> cube(2, 3, 4);
+    int value = 0;
+    for (unsigned i = 0; i < cube.shape(0); ++i) {
+        for (unsigned j = 0; j < cube.shape(1); ++j) {
+            for (unsigned k = 0; k < cube.shape(2); ++k) {
+                // cube[i, j, k] = value++; // OK since C++23.
+                cube[{i, j, k}] = value++;
+            }
+        }
+    }
+    std::cout << cube << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 [[[ 0,  1,  2,  3],
   [ 4,  5,  6,  7],
   [ 8,  9, 10, 11]],
@@ -608,10 +708,6 @@ along all the axes).
 size_t size() const;
 ```
 
-Notes
-
-* Time complexity: $O(1)$
-
 Example
 
 ```cpp
@@ -647,8 +743,8 @@ bool empty() const;
 ### `tensor::data`
 
 Returns a pointer to the memory array used internally by the tensor. Because
-elements in the tensor are stored contiguously and in row-major order, the
-pointer retrieved can be offset to access any element in the tensor.
+elements in the tensor are stored contiguously, the pointer retrieved can be
+offset to access any element in the tensor.
 ```cpp
 T* data();
 const T* data() const;
@@ -673,23 +769,7 @@ int main() {
     for (unsigned i = 0; i < arr.size(); ++i) {
         data[i] = value++;
     }
-    std::cout << "1 dimensional:\n" << arr << "\n";
-
-    np::matrix<int> mat(3, 4);
-    data = mat.data();
-    value = 0;
-    for (unsigned i = 0; i < mat.size(); ++i) {
-        data[i] = value++;
-    }
-    std::cout << "2 dimensional:\n" << mat << "\n";
-
-    np::tensor<int, 3> cube(2, 3, 4);
-    data = cube.data();
-    value = 0;
-    for (unsigned i = 0; i < cube.size(); ++i) {
-        data[i] = value++;
-    }
-    std::cout << "3 dimensional:\n" << cube << "\n";
+    std::cout << arr << "\n";
     return 0;
 }
 ```
@@ -697,13 +777,56 @@ int main() {
 Output
 
 ```
-1 dimensional:
 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-2 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat(3, 4);
+    int *data = mat.data();
+    int value = 0;
+    for (unsigned i = 0; i < mat.size(); ++i) {
+        data[i] = value++;
+    }
+    std::cout << mat << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 [[ 0,  1,  2,  3],
  [ 4,  5,  6,  7],
  [ 8,  9, 10, 11]]
-3 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 3> cube(2, 3, 4);
+    int *data = cube.data();
+    int value = 0;
+    for (unsigned i = 0; i < cube.size(); ++i) {
+        data[i] = value++;
+    }
+    std::cout << cube << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 [[[ 0,  1,  2,  3],
   [ 4,  5,  6,  7],
   [ 8,  9, 10, 11]],
@@ -715,10 +838,17 @@ Output
 
 ### `tensor::layout`
 
-Returns the memory layout in which elements are stored. For tensor class,
-always returns `row_major`.
+Returns the memory layout in which elements are stored.
 ```cpp
 layout_t layout() const;
+```
+
+### `tensor::is_contiguous`
+
+Returns whether the elements in the tensor are stored contiguously. For
+`tensor` class, always returns `true`.
+```cpp
+bool is_contiguous() const;
 ```
 
 ## Advanced indexing
@@ -735,6 +865,16 @@ operator()(Indices... indices);
 template <class... Indices>
 tensor_view<const T, /* Number of slice arguments */>
 operator()(Indices... indices) const;
+
+// Since C++23
+template <class... Indices>
+tensor_view<T, /* Number of slice arguments */>
+operator[](Indices... indices);
+
+// Since C++23
+template <class... Indices>
+tensor_view<const T, /* Number of slice arguments */>
+operator[](Indices... indices) const;
 ```
 
 Parameters
@@ -874,7 +1014,7 @@ tensor<T, N> operator[](const tensor<IntegralType, N> &indices) const;
 Parameters
 
 * `indices` A tensor-like object of `index_t` with its elements identifying
-which elements of the tensor are selected. If the tensor is one dimensional, a
+which elements of the tensor are selected. If the tensor is 1-dimensional, a
 tensor-like object of integers can be used instead.
 
 Returns
@@ -1169,6 +1309,10 @@ Returns
 
 * `*this`
 
+Warnings
+
+* Invalidates all iterators, references and views to elements of the tensor.
+
 ### Initializer list assignment
 
 Assigns to each element the value of the corresponding element in `il` after
@@ -1251,21 +1395,29 @@ Output
 
 Return a `tensor_view` containing the same data with a new shape.
 ```cpp
-template <size_t N>
-tensor_view<T, N> reshape(const shape_t<N> &shape);
 template <class... Sizes>
 tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes);
-
-template <size_t N>
-tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
 template <class... Sizes>
 tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
+
+template <size_t N>
+tensor_view<T, N> reshape(const shape_t<N> &shape);
+template <size_t N>
+tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
+
+template <size_t N>
+tensor_view<T, N> reshape(const shape_t<N> &shape, layout_t order);
+template <size_t N>
+tensor_view<const T, N> reshape(const shape_t<N> &shape, layout_t order) const;
 ```
 
 Parameters
 
 * `shape` The new shape should be compatible with the original shape. It can be
 a `shape_t` object or the elements of the shape passed as separate arguments.
+* `order` Memory layout in which elements are read. In row-major order, the
+last dimension is contiguous. In column-major order, the first dimension is
+contiguous. The default is to use th same layout as `*this`.
 
 Returns
 
@@ -1318,11 +1470,12 @@ As 2 x 3 matrix:
 Resizes the tensor in-place to a given shape. If the new size is different from
 the number of elements stored in the tensor, a reallocation takes place to
 match the new shape, losing the previous contents in the process. Otherwise,
-the contents of the tensor are preserved, but aranged in a different order.
+the contents of the tensor are preserved, but arranged in a different order.
 ```cpp
-void resize(const shape_t<Rank> &shape);
 template <class... Sizes>
 void resize(Sizes... sizes);
+
+void resize(const shape_t<Rank> &shape);
 ```
 
 Parameters
@@ -1376,15 +1529,15 @@ Possible output
 
 Removes axes of length one.
 ```cpp
-template <size_t N>
-tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
 template <class... Axes>
 tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
-
-template <size_t N>
-tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 template <class... Axes>
 tensor_view<const T, Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
+
+template <size_t N>
+tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
+template <size_t N>
+tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 ```
 
 Parameters
@@ -1469,29 +1622,9 @@ Example
 namespace np = numcpp;
 int main() {
     np::array<int> arr{0, 14, -4, 5, 1, 1, -3, 1, 5, 0};
-    np::array_view<int> view1 = arr.t();
-    std::cout << "1 dimensional:\n";
-    std::cout << view1.shape() << "\n";
-    std::cout << view1 << "\n";
-
-    np::matrix<int> mat{{1, 14, 12, -3},
-                        {-5, -3, 11, 11},
-                        {-1, 18, -3, -1}};
-    np::matrix_view<int> view2 = mat.t();
-    std::cout << "2 dimensional:\n";
-    std::cout << view2.shape() << "\n";
-    std::cout << view2 << "\n";
-
-    np::tensor<int, 3> cube{{{16, 15, 14, -1},
-                             {5, 14, 9, 10},
-                             {18, 15, 2, 5}},
-                            {{11, 6, 19, -2},
-                             {7, 10, 1, -2},
-                             {14, 7, -2, 11}}};
-    np::tensor_view<int, 3> view3 = cube.t();
-    std::cout << "3 dimensional:\n";
-    std::cout << view3.shape() << "\n";
-    std::cout << view3 << "\n";
+    np::array_view<int> view = arr.t();
+    std::cout << view.shape() << "\n";
+    std::cout << view << "\n";
     return 0;
 }
 ```
@@ -1499,16 +1632,60 @@ int main() {
 Output
 
 ```
-1 dimensional:
 (10,)
 [ 0, 14, -4,  5,  1,  1, -3,  1,  5,  0]
-2 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::matrix<int> mat{{1, 14, 12, -3},
+                        {-5, -3, 11, 11},
+                        {-1, 18, -3, -1}};
+    np::matrix_view<int> view = mat.t();
+    std::cout << view.shape() << "\n";
+    std::cout << view << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 (4, 3)
 [[ 1, -5, -1],
  [14, -3, 18],
  [12, 11, -3],
  [-3, 11, -1]]
-3 dimensional:
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include "numcpp.h"
+namespace np = numcpp;
+int main() {
+    np::tensor<int, 3> cube{{{16, 15, 14, -1},
+                             {5, 14, 9, 10},
+                             {18, 15, 2, 5}},
+                            {{11, 6, 19, -2},
+                             {7, 10, 1, -2},
+                             {14, 7, -2, 11}}};
+    np::tensor_view<int, 3> view = cube.t();
+    std::cout << view.shape() << "\n";
+    std::cout << view << "\n";
+    return 0;
+}
+```
+
+Output
+
+```
 (4, 3, 2)
 [[[16, 11],
   [ 5,  7],
