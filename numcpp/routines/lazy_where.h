@@ -97,7 +97,7 @@ namespace numcpp {
             const base_tensor<T, Rank, TagFalse> &y
         ) : m_cond(condition), m_true(x), m_false(y),
             m_shape(broadcast_shapes(condition.shape(), x.shape(), y.shape())),
-            m_size(m_shape.size()) {}
+            m_size(m_shape.prod()) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -276,7 +276,7 @@ namespace numcpp {
             const T &y
         ) : m_cond(condition), m_true(x), m_false(y),
             m_shape(broadcast_shapes(condition.shape(), x.shape())),
-            m_size(m_shape.size()) {}
+            m_size(m_shape.prod()) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -391,7 +391,7 @@ namespace numcpp {
             const base_tensor<T, Rank, TagFalse> &y
         ) : m_cond(condition), m_true(x), m_false(y),
             m_shape(broadcast_shapes(condition.shape(), y.shape())),
-            m_size(m_shape.size()) {}
+            m_size(m_shape.prod()) {}
 
         /// Destructor.
         ~base_tensor() = default;

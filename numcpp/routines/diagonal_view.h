@@ -252,7 +252,7 @@ namespace numcpp {
          * @param k Offset of the diagonal from the main diagonal
          */
         base_tensor(const base_tensor<T, 2, Tag> &a, difference_type k = 0)
-         : m_arg(a), m_offset(k) {
+         : m_arg(a), m_size(0), m_offset(k) {
             if (k >= 0 && a.shape(1) > size_type(k)) {
                 m_size = std::min(a.shape(0), a.shape(1) - k);
             }
@@ -419,7 +419,7 @@ namespace numcpp {
          : m_arg(a), m_offset(k) {
             m_shape[0] = (k >= 0) ? a.size() + k : a.size() - k;
             m_shape[1] = m_shape[0];
-            m_size = m_shape.size();
+            m_size = m_shape.prod();
         }
 
         /// Destructor.

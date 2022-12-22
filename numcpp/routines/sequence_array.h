@@ -62,11 +62,8 @@ namespace numcpp {
         // Step of the sequence.
         T m_step;
 
-        // Whether the sequence is in a log scale.
-        bool m_log;
-
-        // Base of the log scale.
-        T m_base;
+        // Base of the log scale (if any).
+        T *m_base;
 
     public:
         /// Constructors.
@@ -81,15 +78,16 @@ namespace numcpp {
          *     is in linear scale.
          */
         base_tensor(const T &start, size_type size, const T &step)
-         : m_start(start), m_size(size), m_step(step), m_log(false) {}
+         : m_start(start), m_size(size), m_step(step), m_base(NULL) {}
 
         base_tensor(
             const T &start, size_type size, const T &step, const T &base
-        ) : m_start(start), m_size(size), m_step(step), m_log(true),
-            m_base(base) {}
+        ) : m_start(start), m_size(size), m_step(step), m_base(new T(base)) {}
 
         /// Destructor.
-        ~base_tensor() = default;
+        ~base_tensor() {
+            delete m_base;
+        };
 
         /// Iterators.
 
@@ -126,7 +124,7 @@ namespace numcpp {
          */
         value_type operator()(size_type i) const {
             T val = m_start + T(i) * m_step;
-            return m_log ? std::pow(m_base, val) : val;
+            return (m_base != NULL) ? std::pow(*m_base, val) : val;
         }
 
         /**
