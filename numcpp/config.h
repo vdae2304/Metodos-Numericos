@@ -65,7 +65,7 @@ namespace numcpp {
          * axis.
          * In row-major iteration, the last index is varying the fastest.
          */
-        row_major = 1,
+        row_major,
 
         /**
          * @brief Column-major order (Fortran/Matlab style).
@@ -74,7 +74,12 @@ namespace numcpp {
          * previous axis.
          * In column-major iteration, the first index is varying the fastest.
          */
-        col_major = 0
+        column_major,
+
+        /**
+         * @brief Default layout.
+         */
+        default_layout = row_major
     };
 
     /// Slices.
