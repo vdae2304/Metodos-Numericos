@@ -235,7 +235,7 @@ namespace detail {
         // Parse "fortran_order" field.
         std::string f_order = dict[1].second;
         if (f_order == "True") {
-            order = col_major;
+            order = column_major;
         }
         else if (f_order == "False") {
             order = row_major;
@@ -347,21 +347,16 @@ namespace detail {
     /**
      * @brief Read the array's content from a .npy file.
      */
-    template <class T, class OutputIterator>
-    void read_array(
-        std::ifstream &file, OutputIterator first, OutputIterator last
-    ) {
+    template <class T>
+    void read_array(std::ifstream &file, T *data, size_t n) {
         std::streampos offset = file.tellg();
         file.seekg(0, std::ios::end);
         size_t bytesize = file.tellg() - offset;
         file.seekg(offset, std::ios::beg);
-        if (bytesize != std::distance(first, last) * sizeof(T)) {
+        if (bytesize != n * sizeof(T)) {
             throw std::ifstream::failure("File is corrupted or malformed");
         }
-        while (first != last) {
-            file.read(reinterpret_cast<char*>(&*first), sizeof(T));
-            ++first;
-        }
+        file.read(reinterpret_cast<char*>(data), bytesize);
     }
 }
 
@@ -379,8 +374,8 @@ namespace detail {
         shape_t<Rank> shape;
         layout_t order;
         detail::read_array_header<T>(file, major, shape, order);
-        tensor<T, Rank> out(shape);
-        detail::read_array<T>(file, out.begin(order), out.end(order));
+        tensor<T, Rank> out(shape, order);
+        detail::read_array<T>(file, out.data(), out.size());
         return out;
     }
 
@@ -405,7 +400,7 @@ namespace detail {
     ) {
         std::ostringstream buffer;
         std::string descr = dtype_to_descr<T>();
-        std::string f_order = (order == col_major) ? "True" : "False";
+        std::string f_order = (order == column_major) ? "True" : "False";
         buffer << "{'descr': " << descr << ", 'fortran_order': " << f_order
                << ", 'shape': " << shape << "}";
         std::string header = buffer.str();
