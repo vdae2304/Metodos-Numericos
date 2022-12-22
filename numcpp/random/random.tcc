@@ -316,7 +316,7 @@ namespace numcpp {
         shape_t<Rank> shape = arg.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&arg, index, axis, 0);
             auto last = make_axes_iterator(&arg, index, axis, size);
             std::shuffle(first, last, m_rng);
