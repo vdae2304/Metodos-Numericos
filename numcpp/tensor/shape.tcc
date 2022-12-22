@@ -56,12 +56,22 @@ namespace numcpp {
     }
 
     template <size_t Rank>
-    inline size_t shape_t<Rank>::size() const {
-        size_t m_size = 1;
+    inline size_t shape_t<Rank>::prod() const {
+        size_t size = 1;
         for (size_t i = 0; i < Rank; ++i) {
-            m_size *= m_shape[i];
+            size *= m_shape[i];
         }
-        return m_size;
+        return size;
+    }
+
+    template <size_t Rank>
+    inline size_t* shape_t<Rank>::data() {
+        return m_shape;
+    }
+
+    template <size_t Rank>
+    inline const size_t* shape_t<Rank>::data() const {
+        return m_shape;
     }
 
 namespace detail {
@@ -117,37 +127,10 @@ namespace detail {
     }
 
     template <size_t Rank>
-    inline shape_t<Rank> shape_t<Rank>::transpose() const {
-        shape_t<Rank> out;
-        std::reverse_copy(m_shape, m_shape + Rank, out.m_shape);
-        return out;
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank> shape_t<Rank>::permute(const shape_t<Rank> &axes)
-    const {
-        shape_t<Rank> out;
-        for (size_t i = 0; i < Rank; ++i) {
-            out[i] = m_shape[axes[i]];
-        }
-        return out;
-    }
-
-    template <size_t Rank>
     template <class IntegralType, detail::RequiresIntegral<IntegralType> >
     inline shape_t<Rank>::operator IntegralType() const {
-        static_assert(Rank == 1, "Unknown conversion to integral type");
-        return m_shape[0];
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank>::operator size_t*() {
-        return m_shape;
-    }
-
-    template <size_t Rank>
-    inline shape_t<Rank>::operator const size_t*() const {
-        return m_shape;
+        static_assert(Rank == 1, "Input shape must be 1-dimensional");
+        return *m_shape;
     }
 
     template <class... Sizes, detail::RequiresIntegral<Sizes...> >
@@ -246,18 +229,14 @@ namespace detail {
     /**
      * @brief Concatenate one or more shapes.
      */
-    template <size_t Rank>
-    void shape_cat_impl(shape_t<Rank>&, size_t) {}
+    void shape_cat_impl(size_t*) {}
 
-    template <size_t OutRank, size_t Rank, class... Shapes>
+    template <size_t Rank, class... Shapes>
     void shape_cat_impl(
-        shape_t<OutRank> &out_shape, size_t offset,
-        const shape_t<Rank> &shape1, const Shapes&... shape2
+        size_t *out_shape, const shape_t<Rank> &shape1, const Shapes&... shape2
     ) {
-        for (size_t i = 0; i < shape1.ndim(); ++i) {
-            out_shape[offset++] = shape1[i];
-        }
-        shape_cat_impl(out_shape, offset, shape2...);
+        out_shape = std::copy_n(shape1.data(), shape1.ndim(), out_shape);
+        shape_cat_impl(out_shape, shape2...);
     }
 }
 
@@ -272,12 +251,10 @@ namespace detail {
 
     template <size_t Rank, class... Shapes>
     shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
-    shape_cat(
-        const shape_t<Rank> &shape1, const Shapes&... shape2
-    ) {
+    shape_cat(const shape_t<Rank> &shape1, const Shapes&... shape2) {
         shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
         out_shape;
-        detail::shape_cat_impl(out_shape, 0, shape1, shape2...);
+        detail::shape_cat_impl(out_shape.data(), shape1, shape2...);
         return out_shape;
     }
 
@@ -285,15 +262,10 @@ namespace detail {
     inline bool operator==(
         const shape_t<Rank1> &shape1, const shape_t<Rank2> &shape2
     ) {
-        if (shape1.ndim() != shape2.ndim()) {
-            return false;
-        }
-        for (size_t i = 0; i < shape1.ndim(); ++i) {
-            if (shape1[i] != shape2[i]) {
-                return false;
-            }
-        }
-        return true;
+        const size_t *first1 = shape1.data(), *last1 = first1 + shape1.ndim();
+        const size_t *first2 = shape2.data();
+        return (shape1.ndim() == shape2.ndim() &&
+                std::equal(first1, last1, first2));
     }
 
     template <size_t Rank1, size_t Rank2>

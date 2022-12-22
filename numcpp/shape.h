@@ -38,6 +38,11 @@ namespace numcpp {
         static_assert(Rank > 0, "Rank must be positive");
         static_assert(Rank <= 32, "Maximum supported Rank is 32");
 
+        /// Member types.
+        typedef size_t size_type;
+
+        /// Constructors.
+
         /**
          * @brief Default constructor. Set all sizes to zero.
          */
@@ -60,6 +65,8 @@ namespace numcpp {
          */
         shape_t(const shape_t &other);
 
+        /// Assignment operator.
+
         /**
          * @brief Copy assignment.
          *
@@ -69,6 +76,8 @@ namespace numcpp {
          */
         shape_t& operator=(const shape_t &other);
 
+        /// Public methods.
+
         /**
          * @brief Return the dimension of the shape.
          */
@@ -76,10 +85,17 @@ namespace numcpp {
 
         /**
          * @brief Return the product of the sizes along all the axes.
-         *
-         * @note Time complexity: O(Rank)
          */
-        size_t size() const;
+        size_t prod() const;
+
+        /**
+         * @brief Return a pointer to the block of memory containing the
+         * elements of the shape.
+         */
+        size_t* data();
+        const size_t* data() const;
+
+        /// Operator overloading.
 
         /**
          * @brief Return the size of the i-th axis.
@@ -94,31 +110,11 @@ namespace numcpp {
         const size_t& operator[](size_t i) const;
 
         /**
-         * @brief Return a copy with the axes in reversed order.
-         */
-        shape_t transpose() const;
-
-        /**
-         * @brief Return a copy with the axes permuted.
-         *
-         * @param axes A permutation of (0, 1, ..., Rank - 1). The i-th element
-         *     of the returned shape will correspond to the axis numbered
-         *     axes[i] of *this.
-         */
-        shape_t permute(const shape_t &axes) const;
-
-        /**
          * @brief Integer conversion. Dimension must be one.
          */
         template <class IntegralType,
                   detail::RequiresIntegral<IntegralType> = 0>
         explicit operator IntegralType() const;
-
-        /**
-         * @brief Pointer to size_t conversion.
-         */
-        explicit operator size_t*();
-        explicit operator const size_t*() const;
 
     private:
         // Shape elements.
@@ -230,9 +226,7 @@ namespace numcpp {
      */
     template <size_t Rank, class... Shapes>
     shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
-    shape_cat(
-        const shape_t<Rank> &shape1, const Shapes&... shape2
-    );
+    shape_cat(const shape_t<Rank> &shape1, const Shapes&... shape2);
 
     /**
      * @brief Compares two shapes. Returns true if they have the same dimension
