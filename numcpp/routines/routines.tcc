@@ -794,7 +794,7 @@ namespace numcpp {
         tensor<size_t, Rank> out(shape);
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&out, out_index, axis, 0);
             auto last = make_axes_iterator(&out, out_index, axis, size);
             std::iota(first, last, 0);
@@ -892,7 +892,7 @@ namespace numcpp {
         tensor<size_t, Rank> out(shape);
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&out, out_index, axis, 0);
             auto last = make_axes_iterator(&out, out_index, axis, size);
             std::iota(first, last, 0);
@@ -948,7 +948,7 @@ namespace numcpp {
         size -= std::count(a.begin(), a.end(), T());
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(a.shape())) {
+        for (index_t<Rank> i : make_index_sequence(a.shape())) {
             if (a[i] != T()) {
                 out[n++] = i;
             }
@@ -963,7 +963,7 @@ namespace numcpp {
         size_t size = std::count(condition.begin(), condition.end(), true);
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(condition.shape())) {
+        for (index_t<Rank> i : make_index_sequence(condition.shape())) {
             if (condition[i]) {
                 out[n++] = i;
             }
