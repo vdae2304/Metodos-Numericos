@@ -7,9 +7,9 @@ Defined in `numcpp/tensor.h`
   - [Member types](#member-types)
   - [Layouts](#layouts)
     - [`row_major`](#row_major)
-    - [`col_major`](#col_major)
+    - [`column_major`](#column_major)
   - [Index sequence](#index-sequence)
-    - [`make_indices`](#make_indices)
+    - [`make_index_sequence`](#make_index_sequence)
   - [Accessing to iterators](#accessing-to-iterators)
     - [`tensor::begin`](#tensorbegin)
     - [`tensor::end`](#tensorend)
@@ -57,7 +57,7 @@ definitions exists for `tensor_view<T, Rank>::const_iterator` and
 
 Layout in which elements are stored or iterated.
 ```cpp
-enum layout_t { row_major = 1, col_major = 0 };
+enum layout_t { row_major, column_major, default_layout = row_major };
 ```
 
 ### `row_major`
@@ -69,7 +69,7 @@ of each axis is a constant multiple of the following axis.
 
 In row-major iteration, the last index is varying the fastest.
 
-### `col_major`
+### `column_major`
 
 Column-major order (Fortran/Matlab style).
 
@@ -80,15 +80,15 @@ In column-major iteration, the first index is varying the fastest.
 
 ## Index sequence
 
-### `make_indices`
+### `make_index_sequence`
 
 An n-dimensional iterator to index tensors.
 ```cpp
 template <size_t Rank>
-index_sequence<Rank> make_indices(const shape_t<Rank> &shape);
+index_sequence<Rank> make_index_sequence(const shape_t<Rank> &shape);
 
 template <class... Sizes>
-index_sequence<sizeof...(Sizes)> make_indices(Sizes... sizes);
+index_sequence<sizeof...(Sizes)> make_index_sequence(Sizes... sizes);
 ```
 
 Parameters
@@ -112,10 +112,10 @@ int main() {
     // Equivalent (but shorter) to
     // for (size_t i = 0; i < 3; ++i) {
     //     for (size_t j = 0; j < 4; ++j) {
-    //         std::cout << np::make_index(i, j) << "\n";
+    //         std::cout << np::make_index_sequence(i, j) << "\n";
     //     }
     // }
-    np::index_sequence<2> indices = np::make_indices(3, 4);
+    np::index_sequence<2> indices = np::make_index_sequence(3, 4);
     np::index_sequence<2>::iterator it;
     for (it = indices.begin(); it != indices.end(); ++it) {
         std::cout << *it << "\n";
@@ -149,7 +149,7 @@ Example
 namespace np = numcpp;
 int main() {
     // Using C++11 range-based for loop
-    for (np::index_t<2> i : np::make_indices(3, 4)) {
+    for (np::index_t<2> i : np::make_index_sequence(3, 4)) {
         std::cout << i << "\n";
     }
     return 0;
@@ -271,7 +271,7 @@ int main() {
     }
     std::cout << "Row-major:\n" << mat << "\n";
     value = 0;
-    for (it = mat.begin(np::col_major); it != mat.end(np::col_major); ++it) {
+    for (it = mat.begin(np::column_major); it != mat.end(np::column_major); ++it) {
         *it = value++;
     }
     std::cout << "Column-major:\n" << mat << "\n";
@@ -307,7 +307,7 @@ int main() {
     }
     std::cout << "Row-major:\n" << cube << "\n";
     value = 0;
-    for (it = cube.begin(np::col_major); it != cube.end(np::col_major); ++it) {
+    for (it = cube.begin(np::column_major); it != cube.end(np::column_major); ++it) {
         *it = value++;
     }
     std::cout << "Column-major:\n" << cube << "\n";
@@ -499,7 +499,7 @@ int main() {
         }
     }
     std::cout << "\nColumn-major order:\n";
-    for (it = cube.begin(np::col_major); it != cube.end(np::col_major); ++it) {
+    for (it = cube.begin(np::column_major); it != cube.end(np::column_major); ++it) {
         std::cout << it.coords() << ", ";
         if (it.index() % 5 == 4) {
             std::cout << "\n";
@@ -547,12 +547,12 @@ namespace np = numcpp;
 int main() {
     np::matrix<int> mat(3, 4);
     np::matrix<int>::iterator it1 = mat.begin();
-    np::matrix<int>::iterator it2 = mat.begin(np::col_major);
+    np::matrix<int>::iterator it2 = mat.begin(np::column_major);
     switch (it1.layout()) {
     case np::row_major:
         std::cout << "it1 iterates in row-major order\n";
         break;
-    case np::col_major:
+    case np::column_major:
         std::cout << "it1 iterates in column-major order\n";
         break;
     }
@@ -560,7 +560,7 @@ int main() {
     case np::row_major:
         std::cout << "it2 iterates in row-major order\n";
         break;
-    case np::col_major:
+    case np::column_major:
         std::cout << "it2 iterates in column-major order\n";
         break;
     }
