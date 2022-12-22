@@ -58,16 +58,17 @@ namespace placeholders {
          * @param stride The span that separates the elements selected by the
          *     slice. Defaults to 1 if not provided.
          */
-        slice(size_t stop) : m_offset(0), m_size(stop), m_stride(1) {}
+        explicit slice(size_t stop)
+         : m_offset(0), m_size(stop), m_stride(1) {}
 
-        slice(size_t start, size_t stop)
+        explicit slice(size_t start, size_t stop)
          : m_offset(start), m_size(0), m_stride(1) {
             if (start < stop) {
                 m_size = stop - start;
             }
         }
 
-        slice(size_t start, size_t stop, size_t stride)
+        explicit slice(size_t start, size_t stop, size_t stride)
          : m_offset(start), m_size(0), m_stride(stride) {
             if (start < stop && stride > 0) {
                 m_size = 1 + (stop - start - 1) / stride;
@@ -84,22 +85,24 @@ namespace placeholders {
          * 0. If a placeholder is used in the place of stop, its value is
          * deduced to the size of the tensor along the indexed axis.
          */
+        explicit
         slice(placeholders::underscore, placeholders::underscore)
          : slice() {}
 
-        slice(placeholders::underscore, size_t stop)
+        explicit slice(placeholders::underscore, size_t stop)
          : slice(stop) {}
 
-        slice(size_t start, placeholders::underscore)
+        explicit slice(size_t start, placeholders::underscore)
          : slice(start, SIZE_MAX) {}
 
+        explicit
         slice(placeholders::underscore, placeholders::underscore, size_t stride)
          : slice(0, SIZE_MAX, stride) {}
 
-        slice(placeholders::underscore, size_t stop, size_t stride)
+        explicit slice(placeholders::underscore, size_t stop, size_t stride)
          : slice(0, stop, stride) {}
 
-        slice(size_t start, placeholders::underscore, size_t stride)
+        explicit slice(size_t start, placeholders::underscore, size_t stride)
          : slice(start, SIZE_MAX, stride) {}
 
         /**
