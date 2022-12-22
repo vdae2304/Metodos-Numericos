@@ -157,7 +157,7 @@ namespace detail {
                   << " doesn't match the broadcast shape " << common_shape;
             throw std::invalid_argument(error.str());
         }
-        for (index_t<Rank> i : make_indices(shape)) {
+        for (index_t<Rank> i : make_index_sequence(shape)) {
             self[i] = f(self[i], rhs[detail::broadcast_index(i, rhs.shape())]);
         }
         return self;
@@ -170,7 +170,7 @@ namespace detail {
         Function f, const T &val
     ) {
         type& self = static_cast<type&>(*this);
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             self[i] = f(self[i], val);
         }
         return self;
@@ -425,7 +425,7 @@ namespace detail {
         size -= std::count(this->begin(), this->end(), T());
         tensor<index_t<Rank>, 1> out(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             if (self[i] != T()) {
                 out[n++] = i;
             }
@@ -449,7 +449,7 @@ namespace detail {
         shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&self, index, axis, 0);
             auto last = make_axes_iterator(&self, index, axis, size);
             std::nth_element(first, first + kth, last, comp);
@@ -462,7 +462,7 @@ namespace detail {
         shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&self, index, axis, 0);
             auto last = make_axes_iterator(&self, index, axis, size);
             std::reverse(first, last);
@@ -475,7 +475,7 @@ namespace detail {
         shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&self, index, axis, 0);
             auto last = make_axes_iterator(&self, index, axis, size);
             std::rotate(first, first + shift, last);
@@ -496,7 +496,7 @@ namespace detail {
         shape_t<Rank> shape = self.shape();
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             auto first = make_axes_iterator(&self, index, axis, 0);
             auto last = make_axes_iterator(&self, index, axis, size);
             if (stable) {
@@ -520,7 +520,7 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         tensor<R, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = f(
                 make_const_axes_iterator(&self, out_index, axis, 0),
                 make_const_axes_iterator(&self, out_index, axis, size)
@@ -544,7 +544,7 @@ namespace detail {
             shape[axes[i]] = 1;
         }
         tensor<R, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = f(
                 make_const_axes_iterator(&self, out_index, axes, 0),
                 make_const_axes_iterator(&self, out_index, axes, size)
@@ -807,7 +807,7 @@ namespace detail {
                   << "output shape " << self.shape();
             throw std::invalid_argument(error.str());
         }
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             self[i].real(arg[i]);
         }
     }
@@ -815,7 +815,7 @@ namespace detail {
     template <class T, size_t Rank, class Tag>
     void complex_interface<std::complex<T>, Rank, Tag>::real(const T &val) {
         type& self = static_cast<type&>(*this);
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             self[i].real(val);
         }
     }
@@ -850,7 +850,7 @@ namespace detail {
                   << "output shape " << self.shape();
             throw std::invalid_argument(error.str());
         }
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             self[i].imag(arg[i]);
         }
     }
@@ -858,7 +858,7 @@ namespace detail {
     template <class T, size_t Rank, class Tag>
     void complex_interface<std::complex<T>, Rank, Tag>::imag(const T &val) {
         type& self = static_cast<type&>(*this);
-        for (index_t<Rank> i : make_indices(self.shape())) {
+        for (index_t<Rank> i : make_index_sequence(self.shape())) {
             self[i].imag(val);
         }
     }

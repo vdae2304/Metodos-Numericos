@@ -350,7 +350,7 @@ namespace numcpp {
     ) {
         size_t *indptr = new size_t[indices.size()];
         size_t n = 0;
-        for (index_t<N> i : make_indices(indices.shape())) {
+        for (index_t<N> i : make_index_sequence(indices.shape())) {
             detail::assert_within_bounds(m_shape, indices[i]);
             indptr[n++] = ravel_index(indices[i], m_shape, m_order);
         }
@@ -365,7 +365,7 @@ namespace numcpp {
         const base_tensor<index_t<Rank>, N, Tag> &indices
     ) const {
         tensor<T, N> subset(indices.shape());
-        for (index_t<N> i : make_indices(indices.shape())) {
+        for (index_t<N> i : make_index_sequence(indices.shape())) {
             subset[i] = this->operator[](indices[i]);
         }
         return subset;
@@ -380,7 +380,7 @@ namespace numcpp {
         static_assert(Rank == 1, "Input tensor must be 1-dimensional");
         size_t *indptr = new size_t[indices.size()];
         size_t n = 0;
-        for (index_t<N> i : make_indices(indices.shape())) {
+        for (index_t<N> i : make_index_sequence(indices.shape())) {
             detail::assert_within_bounds(m_size, indices[i]);
             indptr[n++] = indices[i];
         }
@@ -397,7 +397,7 @@ namespace numcpp {
     ) const {
         static_assert(Rank == 1, "Input tensor must be 1-dimensional");
         tensor<T, N> subset(indices.shape());
-        for (index_t<N> i : make_indices(indices.shape())) {
+        for (index_t<N> i : make_index_sequence(indices.shape())) {
             subset[i] = this->operator[](indices[i]);
         }
         return subset;
@@ -418,7 +418,7 @@ namespace numcpp {
         size_t size = std::count(mask.begin(), mask.end(), true);
         size_t *indptr = new size_t[size];
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(mask.shape())) {
+        for (index_t<Rank> i : make_index_sequence(mask.shape())) {
             if (mask[i]) {
                 indptr[n++] = ravel_index(i, m_shape, m_order);
             }
@@ -441,7 +441,7 @@ namespace numcpp {
         size_t size = std::count(mask.begin(), mask.end(), true);
         tensor<T, 1> subset(size);
         size_t n = 0;
-        for (index_t<Rank> i : make_indices(mask.shape())) {
+        for (index_t<Rank> i : make_index_sequence(mask.shape())) {
             if (mask[i]) {
                 subset[n++] = this->operator[](i);
             }
