@@ -86,15 +86,15 @@ Constructs an `indirect_tensor` that references a subset of elements from a
 multidimensional array.
 ```cpp
 indirect_tensor(
-    const shape_t<Rank> &shape, T *data, const size_t *indices,
+    T *data, const shape_t<Rank> &shape, const size_t *indices,
     layout_t order = row_major, int mode = 1
 );
 ```
 
 Parameters
 
-* `shape` Number of elements along each axis.
 * `data` Pointer to the memory array used by the `indirect_tensor`.
+* `shape` Number of elements along each axis.
 * `indices` Pointer to the array of indices with its elements identifying which
 elements of `data` are selected.
 * `order` Order in which elements shall be iterated. In row-major order, the
@@ -114,7 +114,7 @@ namespace np = numcpp;
 int main() {
     int data1d[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t indices1d[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data1d, indices1d, np::row_major, 0);
+    np::indirect_array<int> arr(data1d, 5, indices1d, np::row_major, 0);
     std::cout << "1 dimensional:\n" << arr << "\n";
 
     int data2d[12] = {0, 10, -4, 5,
@@ -123,7 +123,7 @@ int main() {
     size_t indices2d[6] = {0, 1,
                            5, 6,
                            10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data2d, indices2d, np::row_major, 0);
+    np::indirect_matrix<int> mat(data2d, {3, 2}, indices2d, np::row_major, 0);
     std::cout << "2 dimensional:\n" << mat << "\n";
     return 0;
 }
@@ -214,7 +214,7 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t indices[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data, indices, np::row_major, 0);
+    np::indirect_array<int> arr(data, 5, indices, np::row_major, 0);
     for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[indices[i]]
         std::cout << arr(i) << ", ";
@@ -243,7 +243,7 @@ int main() {
     size_t indices[6] = {0, 1,
                          5, 6,
                          10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data, indices, np::row_major, 0);
+    np::indirect_matrix<int> mat(data, {3, 2}, indices, np::row_major, 0);
     for (unsigned i = 0; i < mat.shape(0); ++i) {
         for (unsigned j = 0; j < mat.shape(1); ++j) {
             // Prints data[indices[np::ravel_index({i, j}, mat.shape())]]
@@ -299,7 +299,7 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t indices[5] = {1, 2, 3, 5, 7};
-    np::indirect_array<int> arr(5, data, indices, np::row_major, 0);
+    np::indirect_array<int> arr(data, 5, indices, np::row_major, 0);
     for (unsigned i = 0; i < arr.size(); ++i) {
         // Prints data[indices[i]]
         std::cout << arr[i] << ", ";
@@ -328,7 +328,7 @@ int main() {
     size_t indices[6] = {0, 1,
                          5, 6,
                          10, 11};
-    np::indirect_matrix<int> mat({3, 2}, data, indices, np::row_major, 0);
+    np::indirect_matrix<int> mat(data, {3, 2}, indices, np::row_major, 0);
     for (unsigned i = 0; i < mat.shape(0); ++i) {
         for (unsigned j = 0; j < mat.shape(1); ++j) {
             // Prints data[indices[np::ravel_index({i, j}, mat.shape())]]
@@ -400,12 +400,12 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t indices[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, indices, np::row_major, 0);
+    np::indirect_array<int> arr(data, 6, indices, np::row_major, 0);
     std::cout << "1 dimensional:\n";
     std::cout << "Shape: " << arr.shape() << "\n";
     std::cout << "Length: " << arr.shape(0) << "\n\n";
 
-    np::indirect_matrix<int> mat({3, 2}, data, indices, np::row_major, 0);
+    np::indirect_matrix<int> mat(data, {3, 2}, indices, np::row_major, 0);
     std::cout << "2 dimensional:\n";
     std::cout << "Shape: " << mat.shape() << "\n";
     std::cout << "Rows: " << mat.shape(0) << "\n";
@@ -448,9 +448,9 @@ namespace np = numcpp;
 int main() {
     int data[10] = {7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
     size_t indices[6] = {1, 2, 3, 5, 7, 8};
-    np::indirect_array<int> arr(6, data, indices, np::row_major, 0);
+    np::indirect_array<int> arr(data, 6, indices, np::row_major, 0);
     std::cout << arr.size() << "\n";
-    np::indirect_matrix<int> mat({3, 2}, data, indices, np::row_major, 0);
+    np::indirect_matrix<int> mat(data, {3, 2}, indices, np::row_major, 0);
     std::cout << mat.size() << "\n";
     return 0;
 }
