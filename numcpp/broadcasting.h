@@ -126,6 +126,140 @@ namespace numcpp {
         tensor_view<T, Rank> arg, const shape_t<N> &axes
     );
 
+    /// Tensor creation routines from existing data.
+
+    /**
+     * @brief Convert the input to a tensor. The data-type and dimension
+     * of the tensor is deduced from the input data.
+     *
+     * @param first Input iterator to the initial position in a range.
+     * @param last Input iterator to the final position in a range. The
+     *     range used is [first, last), which includes all the elements
+     *     between first and last, including the element pointed by first
+     *     but not the element pointed by last.
+     * @param shape Number of elements along each axis. It can be a shape_t
+     *     object or the elements of the shape passed as separate arguments.
+     * @param order Memory layout in which elements are stored. In
+     *     row-major order, the last dimension is contiguous. In
+     *     column-major order, the first dimension is contiguous. Defaults
+     *     to row-major order.
+     *
+     * @return Tensor interpretation of the input data.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class InputIterator,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
+    asarray(InputIterator first, InputIterator last);
+
+    template <class InputIterator, class... Sizes,
+              detail::RequiresInputIterator<InputIterator> = 0,
+              detail::RequiresIntegral<Sizes...> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type,
+           sizeof...(Sizes)>
+    asarray(InputIterator first, Sizes... sizes);
+
+    template <class InputIterator, size_t Rank,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+    asarray(
+        InputIterator first, const shape_t<Rank> &shape,
+        layout_t order = row_major
+    );
+
+    /**
+     * @brief Return a tensor laid out in C/C++ (row-major) order in memory.
+     *
+     * @param first Input iterator to the initial position in a range.
+     * @param shape Number of elements along each axis. It can be a shape_t
+     *     object or the elements of the shape passed as separate arguments.
+     *
+     * @return Tensor interpretation of the input data in row-major order.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class InputIterator, class... Sizes,
+              detail::RequiresInputIterator<InputIterator> = 0,
+              detail::RequiresIntegral<Sizes...> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type,
+           sizeof...(Sizes)>
+    ascontiguousarray(InputIterator first, Sizes... sizes);
+
+    template <class InputIterator, size_t Rank,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+    ascontiguousarray(InputIterator first, const shape_t<Rank> &shape);
+
+    /**
+     * @brief Return a tensor laid out in Fortran/Matlab (column-major) order
+     * in memory.
+     *
+     * @param first Input iterator to the initial position in a range.
+     * @param shape Number of elements along each axis. It can be a shape_t
+     *     object or the elements of the shape passed as separate arguments.
+     *
+     * @return Tensor interpretation of the input data in column-major order.
+     *
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class InputIterator, class... Sizes,
+              detail::RequiresInputIterator<InputIterator> = 0,
+              detail::RequiresIntegral<Sizes...> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type,
+           sizeof...(Sizes)>
+    asfortranarray(InputIterator first, Sizes... sizes);
+
+    template <class InputIterator, size_t Rank,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+    asfortranarray(InputIterator first, const shape_t<Rank> &shape);
+
+    /**
+     * @brief Convert the input to a tensor, checking for NaNs or Infs.
+     *
+     * @param first Input iterator to the initial position in a range.
+     * @param last Input iterator to the final position in a range. The
+     *     range used is [first, last), which includes all the elements
+     *     between first and last, including the element pointed by first
+     *     but not the element pointed by last.
+     * @param shape Number of elements along each axis. It can be a shape_t
+     *     object or the elements of the shape passed as separate arguments.
+     * @param order Memory layout in which elements are stored. In
+     *     row-major order, the last dimension is contiguous. In
+     *     column-major order, the first dimension is contiguous. Defaults
+     *     to row-major order.
+     *
+     * @return Tensor interpretation of the input data.
+     *
+     * @throw std::invalid_argument Thrown if input data contains NaN (Not a
+     *     Number) or Inf (Infinity).
+     * @throw std::bad_alloc If the function fails to allocate storage it
+     *     may throw an exception.
+     */
+    template <class InputIterator,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
+    asarray_chkfinite(InputIterator first, InputIterator last);
+
+    template <class InputIterator, class... Sizes,
+              detail::RequiresInputIterator<InputIterator> = 0,
+              detail::RequiresIntegral<Sizes...> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type,
+           sizeof...(Sizes)>
+    asarray_chkfinite(InputIterator first, Sizes... sizes);
+
+    template <class InputIterator, size_t Rank,
+              detail::RequiresInputIterator<InputIterator> = 0>
+    tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+    asarray_chkfinite(
+        InputIterator first, const shape_t<Rank> &shape,
+        layout_t order = row_major
+    );
+
     /// Basic manipulation routines.
 
     /**
@@ -140,7 +274,7 @@ namespace numcpp {
      *     casted to the specified type.
      */
     template <class U, class T, size_t Rank, class Tag>
-    base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
+    base_tensor<U, Rank, lazy_unary_tag<cast_to<T, U>, T, Tag> >
     astype(const base_tensor<T, Rank, Tag> &a);
 
     /**
