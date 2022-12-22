@@ -145,7 +145,7 @@ namespace detail {
         shape_t<Rank> shape = detail::broadcast_cross(a.shape(),b.shape(),axis);
         tensor<T, Rank> out(shape);
         shape[axis] = 1;
-        for (index_t<Rank> index : make_indices(shape)) {
+        for (index_t<Rank> index : make_index_sequence(shape)) {
             T u[3], v[3];
             for (index[axis] = 0; index[axis] < 3; ++index[axis]) {
                 u[index[axis]] = a[detail::broadcast_index(index, a.shape())];
@@ -231,7 +231,7 @@ namespace detail {
         shape_t<Rank> shape = detail::broadcast_matmul(a.shape(), b.shape());
         size_t n = a.shape(axis1);
         tensor<T, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             index_t<Rank> a_index =
                 detail::broadcast_index(out_index, a.shape());
             index_t<Rank> b_index =
@@ -257,7 +257,7 @@ namespace detail {
         shape[axis1] = b.shape(1);
         size_t n = a.shape(axis1);
         tensor<T, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             index_t<Rank> a_index = out_index;
             index_t<2> b_index(0, out_index[out_index.ndim() - 1]);
             T val = T(0);
@@ -281,7 +281,7 @@ namespace detail {
         shape[axis2] = a.shape(0);
         size_t n = a.shape(axis1);
         tensor<T, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             index_t<2> a_index(out_index[out_index.ndim() - 2], 0);
             index_t<Rank> b_index = out_index;
             T val = T(0);
@@ -394,7 +394,7 @@ namespace detail {
         size_t n = detail::tensordot_concat_shape(shape, a.shape(), a_axes);
         n = detail::tensordot_concat_shape(shape, b.shape(), b_axes, n);
         tensor<T, Rank> out(shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             index_t<Rank1> a_index;
             n = detail::tensordot_split_index(out_index, a_index, a_axes);
             index_t<Rank2> b_index;
