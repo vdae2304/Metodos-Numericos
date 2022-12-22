@@ -84,10 +84,10 @@ namespace numcpp {
         // Second tensor argument.
         const base_tensor<U, N, TagU> &m_rhs;
 
-        // Common shape.
+        // Output shape.
         shape_type m_shape;
 
-        // Common size.
+        // Output size.
         size_type m_size;
 
     public:
@@ -107,7 +107,7 @@ namespace numcpp {
             const base_tensor<U, N, TagU> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs),
             m_shape(shape_cat(lhs.shape(), rhs.shape())),
-            m_size(m_shape.size()) {}
+            m_size(lhs.size() * rhs.size()) {}
 
         /// Destructor.
         ~base_tensor() = default;
@@ -186,13 +186,9 @@ namespace numcpp {
          */
         value_type operator[](const index_type &index) const {
             index_t<M> i;
-            for (size_t k = 0; k < i.ndim(); ++k) {
-                i[k] = index[k];
-            }
+            std::copy_n(index.data(), i.ndim(), i.data());
             index_t<N> j;
-            for (size_t k = 0; k < j.ndim(); ++k) {
-                j[k] = index[i.ndim() + k];
-            }
+            std::copy_n(index.data() + i.ndim(), j.ndim(), j.data());
             return m_fun(m_lhs[i], m_rhs[j]);
         }
 

@@ -67,7 +67,7 @@ namespace detail {
         Function &&f, const base_tensor<T, Rank, Tag> &arg
     ) {
         detail::resize(out, arg.shape());
-        for (index_t<Rank> i : make_indices(out.shape())) {
+        for (index_t<Rank> i : make_index_sequence(out.shape())) {
             out[i] = std::forward<Function>(f)(arg[i]);
         }
     }
@@ -123,7 +123,7 @@ namespace detail {
         const base_tensor<U, Rank, TagU> &arg2
     ) {
         detail::resize(out, broadcast_shapes(arg1.shape(), arg2.shape()));
-        for (index_t<Rank> i : make_indices(out.shape())) {
+        for (index_t<Rank> i : make_index_sequence(out.shape())) {
             out[i] = std::forward<Function>(f)(
                 arg1[detail::broadcast_index(i, arg1.shape())],
                 arg2[detail::broadcast_index(i, arg2.shape())]
@@ -139,7 +139,7 @@ namespace detail {
         Function &&f, const base_tensor<T, Rank, Tag> &arg1, const U &val
     ) {
         detail::resize(out, arg1.shape());
-        for (index_t<Rank> i : make_indices(out.shape())) {
+        for (index_t<Rank> i : make_index_sequence(out.shape())) {
             out[i] = std::forward<Function>(f)(arg1[i], val);
         }
     }
@@ -152,7 +152,7 @@ namespace detail {
         Function &&f, const T &val, const base_tensor<U, Rank, Tag> &arg2
     ) {
         detail::resize(out, arg2.shape());
-        for (index_t<Rank> i : make_indices(out.shape())) {
+        for (index_t<Rank> i : make_index_sequence(out.shape())) {
             out[i] = std::forward<Function>(f)(val, arg2[i]);
         }
     }
@@ -209,7 +209,7 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         detail::resize(out, shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = std::forward<Function>(f)(
                 make_const_axes_iterator(&arg, out_index, axis, 0),
                 make_const_axes_iterator(&arg, out_index, axis, size)
@@ -234,7 +234,7 @@ namespace detail {
             shape[axes[i]] = 1;
         }
         detail::resize(out, shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = std::forward<Function>(f)(
                 make_const_axes_iterator(&arg, out_index, axes, 0),
                 make_const_axes_iterator(&arg, out_index, axes, size)
@@ -321,7 +321,7 @@ namespace detail {
         size_t size = shape[axis];
         shape[axis] = 1;
         detail::resize(out, shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = detail::reduce_impl(
                 make_const_axes_iterator(&arg, out_index, axis, 0),
                 make_const_axes_iterator(&arg, out_index, axis, size),
@@ -347,7 +347,7 @@ namespace detail {
             shape[axes[i]] = 1;
         }
         detail::resize(out, shape);
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             out[out_index] = detail::reduce_impl(
                 make_const_axes_iterator(&arg, out_index, axes, 0),
                 make_const_axes_iterator(&arg, out_index, axes, size),
@@ -378,7 +378,7 @@ namespace detail {
         detail::resize(out, shape);
         size_t size = shape[axis];
         shape[axis] = 1;
-        for (index_t<Rank> out_index : make_indices(shape)) {
+        for (index_t<Rank> out_index : make_index_sequence(shape)) {
             std::partial_sum(
                 make_const_axes_iterator(&arg, out_index, axis, 0),
                 make_const_axes_iterator(&arg, out_index, axis, size),
@@ -417,11 +417,10 @@ namespace detail {
         const base_tensor<U, N, TagU> &arg2
     ) {
         detail::resize(out, shape_cat(arg1.shape(), arg2.shape()));
-        for (index_t<M> i : make_indices(arg1.shape())) {
-            for (index_t<N> j : make_indices(arg2.shape())) {
-                out[shape_cat(i, j)] = std::forward<Function>(f)(
-                    arg1[i], arg2[j]
-                );
+        for (index_t<M> i : make_index_sequence(arg1.shape())) {
+            for (index_t<N> j : make_index_sequence(arg2.shape())) {
+                out[shape_cat(i, j)] =
+                    std::forward<Function>(f)(arg1[i], arg2[j]);
             }
         }
     }

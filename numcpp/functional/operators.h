@@ -29,11 +29,10 @@ namespace numcpp {
     /**
      * @brief Function object implementing static_cast.
      */
-    template <class U>
+    template <class From, class To>
     struct cast_to {
-        template <class T>
-        constexpr U operator()(T &&arg) const {
-            return static_cast<U>(arg);
+        constexpr To operator()(const From &arg) const {
+            return static_cast<To>(arg);
         }
     };
 

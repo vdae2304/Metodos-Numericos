@@ -284,7 +284,7 @@ namespace numcpp {
             const base_tensor<U, Rank, TagU> &rhs
         ) : m_fun(f), m_lhs(lhs), m_rhs(rhs),
             m_shape(broadcast_shapes(lhs.shape(), rhs.shape())),
-            m_size(m_shape.size()) {}
+            m_size(m_shape.prod()) {}
 
         /// Destructor.
         ~base_tensor() = default;
