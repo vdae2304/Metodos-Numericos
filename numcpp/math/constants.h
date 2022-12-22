@@ -27,8 +27,7 @@
 
 namespace numcpp {
     template <class T>
-    class constants {
-    public:
+    struct constants {
         /// Floating point representation of (positive) infinity.
         static constexpr T inf = std::numeric_limits<T>::infinity();
 
