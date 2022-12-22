@@ -4,6 +4,7 @@ Defined in `numcpp/shape.h`
 
 - [Shapes](#shapes)
   - [Template parameters](#template-parameters)
+  - [Member types](#member-types)
   - [Constructors](#constructors)
     - [Default constructor](#default-constructor)
     - [From a list of sizes](#from-a-list-of-sizes)
@@ -12,13 +13,11 @@ Defined in `numcpp/shape.h`
     - [Copy assignment](#copy-assignment)
   - [Public methods](#public-methods)
     - [`shape_t::ndim`](#shape_tndim)
-    - [`shape_t::size`](#shape_tsize)
-    - [`shape_t::transpose`](#shape_ttranspose)
-    - [`shape_t::permute`](#shape_tpermute)
+    - [`shape_t::prod`](#shape_tprod)
+    - [`shape_t::data`](#shape_tdata)
   - [Operators](#operators)
     - [`shape_t::operator[]`](#shape_toperator)
     - [`shape_t::operator IntegralType`](#shape_toperator-integraltype)
-    - [`shape_t::operator size_t*`](#shape_toperator-size_t)
     - [`operator==`](#operator)
     - [`operator!=`](#operator-1)
   - [Routines](#routines)
@@ -39,6 +38,12 @@ template <size_t Rank> class shape_t;
 ## Template parameters
 
 * `Rank` Dimension of the shape. It must be a positive integer.
+
+## Member types
+
+| Member type | Definition |
+| ----------- | ---------- |
+| `size_type` | `size_t`   |
 
 ## Constructors
 
@@ -144,16 +149,12 @@ Output
 3
 ```
 
-### `shape_t::size`
+### `shape_t::prod`
 
 Return the product of the sizes along all the axes.
 ```cpp
-size_t size() const;
+size_t prod() const;
 ```
-
-Notes
-
-* Time complexity: $O(Rank)$
 
 Example
 
@@ -163,11 +164,11 @@ Example
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);
-    std::cout << shape1.size() << "\n";
+    std::cout << shape1.prod() << "\n";
     np::shape_t<2> shape2(4, 6);
-    std::cout << shape2.size() << "\n";
+    std::cout << shape2.prod() << "\n";
     np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3.size() << "\n";
+    std::cout << shape3.prod() << "\n";
     return 0;
 }
 ```
@@ -180,68 +181,33 @@ Output
 72
 ```
 
-### `shape_t::transpose`
+### `shape_t::data`
 
-Return a copy with the axes in reversed order.
+Return a pointer to the block of memory containing the elements of the shape.
 ```cpp
-shape_t transpose() const;
+size_t* data();
+const size_t* data() const;
 ```
 
 Example
 
 ```cpp
 #include <iostream>
-#include "numcpp.h"
-namespace np = numcpp;
-int main() {
-    np::shape_t<1> shape1(10);
-    std::cout << shape1.transpose() << "\n";
-    np::shape_t<2> shape2(4, 6);
-    std::cout << shape2.transpose() << "\n";
-    np::shape_t<3> shape3(3, 4, 6);
-    std::cout << shape3.transpose() << "\n";
-    return 0;
-}
-```
-
-Output
-
-```
-(10,)
-(6, 4)
-(6, 4, 3)
-```
-
-### `shape_t::permute`
-
-Return a copy with the axes permuted.
-```cpp
-shape_t permute(const shape_t &axes) const;
-```
-
-Parameters
-
-* `axes` A permutation of (0, 1, ..., `Rank` - 1). The i-th element of the
-returned shape will correspond to the axis numbered `axes[i]` of `*this`.
-
-Example
-
-```cpp
-#include <iostream>
+#include <algorithm> // std::reverse
 #include "numcpp.h"
 namespace np = numcpp;
 int main() {
     np::shape_t<3> shape(3, 4, 6);
-    std::cout << shape.permute({0, 2, 1}) << "\n";
+    std::reverse(shape.data(), shape.data() + 3);
+    std::cout << shape << "\n";
     return 0;
 }
 ```
 
-
 Output
 
 ```
-(3, 6, 4)
+(6, 4, 3)
 ```
 
 ## Operators
@@ -291,14 +257,6 @@ Integer conversion. Dimension must be one.
 ```cpp
 template <class IntegralType>
 explicit operator IntegralType() const;
-```
-
-### `shape_t::operator size_t*`
-
-Pointer to `size_t` conversion.
-```cpp
-explicit operator size_t*();
-explicit operator const size_t*() const;
 ```
 
 ### `operator==`
@@ -481,7 +439,7 @@ int main() {
     int data[12] = {-5, -3, 10, 4, 6, -1, -5, 9, 9, 14, 3, 5};
 
     std::cout << "Row-major order:\n";
-    np::shape_t<2> strides = np::make_strides(shape);
+    np::shape_t<2> strides = np::make_strides(shape, np::row_major);
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
             std::cout.width(2);
@@ -491,7 +449,7 @@ int main() {
     }
 
     std::cout << "Column-major order:\n";
-    strides = np::make_strides(shape, np::col_major);
+    strides = np::make_strides(shape, np::column_major);
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
             std::cout.width(2);
@@ -552,7 +510,7 @@ int main() {
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
             std::cout.width(2);
-            std::cout << data[np::ravel_index({i, j}, shape)];
+            std::cout << data[np::ravel_index({i, j}, shape, np::row_major)];
             std::cout << ", ";
         }
         std::cout << "\n";
@@ -562,7 +520,7 @@ int main() {
     for (unsigned i = 0; i < shape[0]; ++i) {
         for (unsigned j = 0; j < shape[1]; ++j) {
             std::cout.width(2);
-            std::cout << data[np::ravel_index({i, j}, shape, np::col_major)];
+            std::cout << data[np::ravel_index({i, j}, shape, np::column_major)];
             std::cout << ", ";
         }
         std::cout << "\n";
@@ -619,14 +577,14 @@ int main() {
 
     std::cout << "Row-major iteration:\n";
     for (unsigned flat = 0; flat < 12; ++flat) {
-        np::index_t<2> index = np::unravel_index(flat, shape);
+        np::index_t<2> index = np::unravel_index(flat, shape, np::row_major);
         std::cout << data[index[0]][index[1]] << ", ";
     }
     std::cout << "\n";
 
     std::cout << "Column-major iteration:\n";
     for (unsigned flat = 0; flat < 12; ++flat) {
-        np::index_t<2> index = np::unravel_index(flat, shape, np::col_major);
+        np::index_t<2> index = np::unravel_index(flat, shape, np::column_major);
         std::cout << data[index[0]][index[1]] << ", ";
     }
     std::cout << "\n";
