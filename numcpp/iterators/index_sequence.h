@@ -108,7 +108,7 @@ namespace numcpp {
          * @param shape The size of each dimension.
          */
         index_sequence(const shape_t<Rank> &shape)
-         : m_size(shape.size()), m_shape(shape) {}
+         : m_size(shape.prod()), m_shape(shape) {}
 
         /**
          * @brief Return an iterator to the first index.
@@ -167,12 +167,12 @@ namespace numcpp {
      *     fastest.
      */
     template <size_t Rank>
-    index_sequence<Rank> make_indices(const shape_t<Rank> &shape) {
+    index_sequence<Rank> make_index_sequence(const shape_t<Rank> &shape) {
         return index_sequence<Rank>(shape);
     }
 
     template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
-    index_sequence<sizeof...(Sizes)> make_indices(Sizes... sizes) {
+    index_sequence<sizeof...(Sizes)> make_index_sequence(Sizes... sizes) {
         return index_sequence<sizeof...(Sizes)>(make_shape(sizes...));
     }
 }
