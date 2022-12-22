@@ -396,11 +396,11 @@ namespace detail {
 
     template <class T, size_t Rank, class Tag>
     template <class U>
-    inline base_tensor<U, Rank, lazy_unary_tag<cast_to<U>, T, Tag> >
+    inline base_tensor<U, Rank, lazy_unary_tag<cast_to<T, U>, T, Tag> >
     tensor_interface<T, Rank, Tag>::astype() const {
-        typedef lazy_unary_tag<cast_to<U>, T, Tag> Closure;
+        typedef lazy_unary_tag<cast_to<T, U>, T, Tag> Closure;
         const type& self = static_cast<const type&>(*this);
-        return base_tensor<U, Rank, Closure>(cast_to<U>(), self);
+        return base_tensor<U, Rank, Closure>(cast_to<T, U>(), self);
     }
 
     template <class T, size_t Rank, class Tag>

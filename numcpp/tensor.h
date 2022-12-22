@@ -40,13 +40,15 @@ compiler options.
 namespace numcpp {
     /**
      * @brief Tensors are contiguous multidimensional sequence containers: they
-     * hold a specific number of elements arranged in multiple axis. Unlike
-     * a tensor_view, a tensor is always owner of its own data and the elements
-     * are always stored in row-major order.
+     * hold a variable number of elements arranged in multiple axis. Unlike
+     * tensor_view, tensor is always owner of its own data, which means that
+     * the storage of the tensor is handled automatically.
      *
      * Tensors are designed to easily perform mathematical operations on them.
      * Most mathematical operations can be applied directly to tensor objects,
-     * affecting all its elements.
+     * including arithmetic and comparison operators, affecting all its
+     * elements. It also supports various forms of generalized subscript
+     * operators, slicing and indirect access.
      *
      * @tparam T Type of the elements contained in the tensor. This shall be an
      *     arithmetic type or a class that behaves like one (such as
@@ -83,16 +85,22 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis. It can be a shape_t
          *     object or the elements of the shape passed as separate arguments.
+         * @param order Memory layout in which elements are stored. In
+         *     row-major order, the last dimension is contiguous. In
+         *     column-major order, the first dimension is contiguous. Defaults
+         *     to row-major order.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        base_tensor(const shape_t<Rank> &shape);
-
         template <class... Sizes,
                   detail::RequiresNArguments<Rank, Sizes...> = 0,
                   detail::RequiresIntegral<Sizes...> = 0>
-        base_tensor(Sizes... sizes);
+        explicit base_tensor(Sizes... sizes);
+
+        explicit base_tensor(
+            const shape_t<Rank> &shape, layout_t order = row_major
+        );
 
         /**
          * @brief Fill constructor. Constructs a tensor with given shape, each
@@ -100,11 +108,18 @@ namespace numcpp {
          *
          * @param shape Number of elements along each axis.
          * @param val Value to which each of the elements is initialized.
+         * @param order Memory layout in which elements are stored. In
+         *     row-major order, the last dimension is contiguous. In
+         *     column-major order, the first dimension is contiguous. Defaults
+         *     to row-major order.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
-        base_tensor(const shape_t<Rank> &shape, const T &val);
+        base_tensor(
+            const shape_t<Rank> &shape, const T &val,
+            layout_t order = row_major
+        );
 
         /**
          * @brief Range constructor. Constructs a tensor with given shape, with
@@ -112,27 +127,49 @@ namespace numcpp {
          * starting at first, in the same order.
          *
          * @param first Input iterator to the initial position in a range.
-         * @param shape Number of elements along each axis.
+         * @param shape Number of elements along each axis. It can be a shape_t
+         *     object or the elements of the shape passed as separate arguments.
+         * @param order Memory layout in which elements are stored. In
+         *     row-major order, the last dimension is contiguous. In
+         *     column-major order, the first dimension is contiguous. Defaults
+         *     to row-major order.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
+        template <class InputIterator, class... Sizes,
+                  detail::RequiresInputIterator<InputIterator> = 0,
+                  detail::RequiresNArguments<Rank, Sizes...> = 0,
+                  detail::RequiresIntegral<Sizes...> = 0>
+        base_tensor(InputIterator first, Sizes... sizes);
+
         template <class InputIterator,
                   detail::RequiresInputIterator<InputIterator> = 0>
-        base_tensor(InputIterator first, const shape_t<Rank> &shape);
+        base_tensor(
+            InputIterator first, const shape_t<Rank> &shape,
+            layout_t order = row_major
+        );
 
         /**
          * @brief Copy constructor. Constructs a tensor with a copy of each of
          * the elements in other, in the same order.
          *
          * @param other A tensor-like object of the same rank.
+         * @param order Memory layout in which elements are stored. In
+         *     row-major order, the last dimension is contiguous. In
+         *     column-major order, the first dimension is contiguous. The
+         *     default is to use the same layout as other.
          *
          * @throw std::bad_alloc If the function fails to allocate storage it
          *     may throw an exception.
          */
         base_tensor(const base_tensor &other);
+        base_tensor(const base_tensor &other, layout_t order);
+
         template <class U, class Tag>
         base_tensor(const base_tensor<U, Rank, Tag> &other);
+        template <class U, class Tag>
+        base_tensor(const base_tensor<U, Rank, Tag> &other, layout_t order);
 
         /**
          * @brief Move constructor. Constructs a tensor that acquires the
@@ -187,8 +224,8 @@ namespace numcpp {
          * given position.
          *
          * @param index An index_t object with the position of an element in
-         *     the tensor. If the tensor is one dimensional, an integer can be
-         *     used instead.
+         *     the tensor. Since C++23, the elements of the index can be passed
+         *     as separate arguments.
          *
          * @return The element at the specified position. If the tensor is
          *     const-qualified, the function returns a reference to const T.
@@ -199,8 +236,17 @@ namespace numcpp {
         T& operator[](const index_t<Rank> &index);
         const T& operator[](const index_t<Rank> &index) const;
 
-        T& operator[](size_t i);
-        const T& operator[](size_t i) const;
+#ifdef __cpp_multidimensional_subscript
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        T& operator[](Index... index);
+
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const T& operator[](Index... index) const;
+#endif // C++23
 
         /**
          * @brief Slice indexing. Returns a tensor_view object that selects the
@@ -235,14 +281,28 @@ namespace numcpp {
         tensor_view<const T, detail::slicing_rank<Indices...>::value>
         operator()(Indices... indices) const;
 
+#ifdef __cpp_multidimensional_subscript
+        template <class... Indices,
+                  detail::RequiresNArguments<Rank, Indices...> = 0,
+                  detail::RequiresSlicing<Indices...> = 0>
+        tensor_view<T, detail::slicing_rank<Indices...>::value>
+        operator[](Indices... indices);
+
+        template <class... Indices,
+                  detail::RequiresNArguments<Rank, Indices...> = 0,
+                  detail::RequiresSlicing<Indices...> = 0>
+        tensor_view<const T, detail::slicing_rank<Indices...>::value>
+        operator[](Indices... indices) const;
+#endif // C++23
+
         /**
          * @brief Coordinate tensor indexing. Returns an indirect_tensor that
          * selects the elements specified by the tensor of indices.
          *
          * @param indices A tensor-like object of index_t with its elements
          *     identifying which elements of the tensor are selected. If the
-         *     tensor is one dimensional, a tensor-like object of integers can
-         *     be used instead.
+         *     tensor is 1-dimensional, a tensor-like object of integers can be
+         *     used instead.
          *
          * @return If the tensor is const-qualified, the function returns a new
          *     tensor object with a copy of the selection. Otherwise, the
@@ -320,8 +380,6 @@ namespace numcpp {
         /**
          * @brief Return the number of elements in the tensor (i.e., the
          * product of the sizes along all the axes).
-         *
-         * @note Time complexity: O(1)
          */
         size_t size() const;
 
@@ -333,9 +391,8 @@ namespace numcpp {
 
         /**
          * @brief Returns a pointer to the memory array used internally by the
-         * tensor. Because elements in the tensor are stored contiguously and
-         * in row-major order, the pointer retrieved can be offset to access
-         * any element in the tensor.
+         * tensor. Because elements in the tensor are stored contiguously, the
+         * pointer retrieved can be offset to access any element in the tensor.
          *
          * @return A pointer to the memory array used internally by the tensor.
          *     If the tensor is const-qualified, the function returns a pointer
@@ -345,10 +402,15 @@ namespace numcpp {
         const T* data() const;
 
         /**
-         * @brief Returns the memory layout in which elements are stored. For
-         * tensor class, always returns row_major.
+         * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const;
+
+        /**
+         * @brief Returns whether the elements in the tensor are stored
+         * contiguously. For tensor class, always returns true.
+         */
+        bool is_contiguous() const;
 
         /// Assignment operator.
 
@@ -391,6 +453,9 @@ namespace numcpp {
          *     state.
          *
          * @return *this
+         *
+         * @warning Invalidates all iterators, references and views to elements
+         *     of the tensor.
          */
         base_tensor& operator=(base_tensor &&other);
 
@@ -447,6 +512,10 @@ namespace numcpp {
          * @param shape The new shape should be compatible with the original
          *     shape. It can be a shape_t object or the elements of the shape
          *     passed as separate arguments.
+         * @param order Memory layout in which elements are read. In row-major
+         *     order, the last dimension is contiguous. In column-major order,
+         *     the first dimension is contiguous. The default is to use the
+         *     same layout as *this.
          *
          * @return If the tensor is const-qualified, the function returns a
          *     tensor_view to const T, which is convertible to a tensor
@@ -455,24 +524,29 @@ namespace numcpp {
          *
          * @throw std::invalid_argument Thrown if the tensor could not reshaped.
          */
-        template <size_t N>
-        tensor_view<T, N> reshape(const shape_t<N> &shape);
-
         template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
         tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes);
+        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+        tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
 
+        template <size_t N>
+        tensor_view<T, N> reshape(const shape_t<N> &shape);
         template <size_t N>
         tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
 
-        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
-        tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
+        template <size_t N>
+        tensor_view<T, N> reshape(const shape_t<N> &shape, layout_t order);
+        template <size_t N>
+        tensor_view<const T, N> reshape(
+            const shape_t<N> &shape, layout_t order
+        ) const;
 
         /**
          * @brief Resizes the tensor in-place to a given shape. If the new size
          * is different from the number of elements stored in the tensor, a
          * reallocation takes place to match the new shape, losing the previous
          * contents in the process. Otherwise, the contents of the tensor are
-         * preserved, but aranged in a different order.
+         * preserved, but arranged in a different order.
          *
          * @param shape New shape of the tensor. It can be a shape_t object or
          *     the elements of the shape passed as separate arguments.
@@ -480,12 +554,12 @@ namespace numcpp {
          * @warning Invalidates all iterators, references and views to elements
          *     of the tensor.
          */
-        void resize(const shape_t<Rank> &shape);
-
         template <class... Sizes,
                   detail::RequiresNArguments<Rank, Sizes...> = 0,
                   detail::RequiresIntegral<Sizes...> = 0>
         void resize(Sizes... sizes);
+
+        void resize(const shape_t<Rank> &shape);
 
         /**
          * @brief Removes axes of length one.
@@ -502,17 +576,15 @@ namespace numcpp {
          * @throw std::invalid_argument Thrown if an axis with shape entry
          *     greater than one is selected.
          */
-        template <size_t N>
-        tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-
         template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
         tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
-
-        template <size_t N>
-        tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-
         template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
         tensor_view<const T,Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
+
+        template <size_t N>
+        tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
+        template <size_t N>
+        tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
 
         /**
          * @brief Return a view of the tensor with its axes in reversed order.
@@ -543,14 +615,13 @@ namespace numcpp {
         template <size_t Depth>
         typename std::enable_if<(Depth == 1)>::type
         __initializer_list_shape(
-            shape_t<Rank> &shape, const std::initializer_list<T> &il
+            shape_t<Rank> &shape, std::initializer_list<T> il
         );
 
         template <size_t Depth>
         typename std::enable_if<(Depth > 1)>::type
         __initializer_list_shape(
-            shape_t<Rank> &shape,
-            const detail::nested_initializer_list_t<T, Depth> &il
+            shape_t<Rank> &shape, detail::nested_initializer_list_t<T, Depth> il
         );
 
         /**
@@ -560,14 +631,13 @@ namespace numcpp {
         template <size_t Depth>
         typename std::enable_if<(Depth == 1)>::type
         __fill_from_initializer_list(
-            index_t<Rank> &index, const std::initializer_list<T> &il
+            index_t<Rank> &index, std::initializer_list<T> il
         );
 
         template <size_t Depth>
         typename std::enable_if<(Depth > 1)>::type
         __fill_from_initializer_list(
-            index_t<Rank> &index,
-            const detail::nested_initializer_list_t<T, Depth> &il
+            index_t<Rank> &index, detail::nested_initializer_list_t<T, Depth> il
         );
 
         /**
@@ -576,31 +646,35 @@ namespace numcpp {
          * throws a std::out_of_range error.
          */
         template <size_t N>
-        size_t __unpack_slices(
-            shape_t<N> &shape, size_t &offset, shape_t<N> &strides
+        void __unpack_slices(
+            size_t &size, shape_t<N> &shape, ptrdiff_t &offset,
+            shape_t<N> &strides
         ) const;
 
         template <size_t N, class... Indices>
-        size_t __unpack_slices(
-            shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-            size_t i, Indices... indices
+        void __unpack_slices(
+            size_t &size, shape_t<N> &shape, ptrdiff_t &offset,
+            shape_t<N> &strides, size_t i, Indices... indices
         ) const;
 
         template <size_t N, class... Indices>
-        size_t __unpack_slices(
-            shape_t<N> &shape, size_t &offset, shape_t<N> &strides,
-            slice slc, Indices... indices
+        void __unpack_slices(
+            size_t &size, shape_t<N> &shape, ptrdiff_t &offset,
+            shape_t<N> &strides, slice slc, Indices... indices
         ) const;
 
     private:
         // Pointer to data.
         T *m_data;
 
+        // Number of elements along each axis.
+        shape_t<Rank> m_shape;
+
         // Number of elements.
         size_t m_size;
 
-        // Number of elements along each axis.
-        shape_t<Rank> m_shape;
+        // Memory layout.
+        layout_t m_order;
     };
 
     /**

@@ -63,24 +63,32 @@ namespace numcpp {
          * @brief Tensor constructor. Constructs a tensor_view that references
          * a multidimensional array.
          *
-         * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the tensor_view.
+         * @param shape Number of elements along each axis. It can be a shape_t
+         *     object or the elements of the shape passed as separate arguments.
          * @param order Memory layout in which elements are stored. In
          *     row-major order, the last dimension is contiguous. In
          *     column-major order, the first dimension is contiguous. Defaults
          *     to row-major order.
          */
+        template <class... Sizes,
+                  detail::RequiresNArguments<Rank, Sizes...> = 0,
+                  detail::RequiresIntegral<Sizes...> = 0>
+        base_tensor(T *data, Sizes... sizes);
+
         base_tensor(
-            const shape_t<Rank> &shape, T *data, layout_t order = row_major
+            T *data, const shape_t<Rank> &shape,
+            layout_t order = row_major
         );
 
         /**
          * @brief Slice constructor. Constructs a tensor_view that references a
          * subset of elements from a multidimensional array.
          *
-         * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the tensor_view.
-         * @param offset Index of the first element selected by the tensor_view.
+         * @param shape Number of elements along each axis.
+         * @param offset Relative position of the first element selected by the
+         *     tensor_view.
          * @param strides Span that separates the selected elements along each
          *     axis.
          * @param order Order in which elements shall be iterated. In row-major
@@ -89,8 +97,8 @@ namespace numcpp {
          *     row-major order.
          */
         base_tensor(
-            const shape_t<Rank> &shape, T *data,
-            size_t offset, const shape_t<Rank> &strides,
+            T *data, const shape_t<Rank> &shape,
+            ptrdiff_t offset, const shape_t<Rank> &strides,
             layout_t order = row_major
         );
 
@@ -144,8 +152,8 @@ namespace numcpp {
          * given position.
          *
          * @param index An index_t object with the position of an element in
-         *     the tensor_view. If the tensor is one dimensional, an integer
-         *     can be used instead.
+         *     the tensor_view. Since C++23, the elements of the index can be
+         *     passed as separate arguments.
          *
          * @return The element at the specified position. If the tensor_view is
          *     const-qualified, the function returns a reference to const T.
@@ -156,8 +164,17 @@ namespace numcpp {
         T& operator[](const index_t<Rank> &index);
         const T& operator[](const index_t<Rank> &index) const;
 
-        T& operator[](size_t i);
-        const T& operator[](size_t i) const;
+#ifdef __cpp_multidimensional_subscript
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        T& operator[](Index... index);
+
+        template <class... Index,
+                  detail::RequiresNArguments<Rank, Index...> = 0,
+                  detail::RequiresIntegral<Index...> = 0>
+        const T& operator[](Index... index) const;
+#endif // C++23
 
         /**
          * @brief Return the dimension of the tensor_view.
@@ -178,8 +195,6 @@ namespace numcpp {
         /**
          * @brief Returns the number of elements in the tensor_view (i.e.,
          * the product of the sizes along all the axes).
-         *
-         * @note Time complexity: O(1)
          */
         size_t size() const;
 
@@ -205,7 +220,7 @@ namespace numcpp {
          * @brief Returns the position in the memory array of the first
          * element.
          */
-        size_t offset() const;
+        ptrdiff_t offset() const;
 
         /**
          * @brief Returns the span that separates the elements in the memory
@@ -222,9 +237,15 @@ namespace numcpp {
         /**
          * @brief Returns the order in which elements are iterated. It is not
          * necessarily the memory layout in which elements are stored as the
-         * elements might not be continuous in memory.
+         * elements might not be contiguous in memory.
          */
         layout_t layout() const;
+
+        /**
+         * @brief Returns whether the elements in the tensor_view are stored
+         * contiguously.
+         */
+        bool is_contiguous() const;
 
         /// Assignment operator.
 
@@ -238,6 +259,7 @@ namespace numcpp {
          *
          * @throw std::invalid_argument Thrown if the shapes are different.
          */
+        base_tensor& operator=(const base_tensor &other);
         template <class U, class Tag>
         base_tensor& operator=(const base_tensor<U, Rank, Tag> &other);
 
@@ -279,6 +301,58 @@ namespace numcpp {
         tensor_view<const T, 1> diagonal(ptrdiff_t k = 0) const;
 
         /**
+         * @brief Return a view of the tensor collapsed into one dimension.
+         *
+         * @return If the tensor is const-qualified, the function returns a
+         *     tensor_view to const T, which is convertible to a tensor
+         *     object. Otherwise, the function returns a tensor_view to T,
+         *     which has reference semantics to the original tensor.
+         *
+         * @throw std::runtime_error Thrown if the elements in the view are
+         *     non-contiguous.
+         */
+        tensor_view<T, 1> flatten();
+        tensor_view<const T, 1> flatten() const;
+
+        /**
+         * @brief Return a tensor_view containing the same data with a new
+         * shape.
+         *
+         * @param shape The new shape should be compatible with the original
+         *     shape. It can be a shape_t object or the elements of the shape
+         *     passed as separate arguments.
+         * @param order Memory layout in which elements are read. In row-major
+         *     order, the last dimension is contiguous. In column-major order,
+         *     the first dimension is contiguous. The default is to use the
+         *     same layout as *this.
+         *
+         * @return If the tensor is const-qualified, the function returns a
+         *     tensor_view to const T, which is convertible to a tensor
+         *     object. Otherwise, the function returns a tensor_view to T,
+         *     which has reference semantics to the original tensor.
+         *
+         * @throw std::invalid_argument Thrown if the tensor could not reshaped.
+         * @throw std::runtime_error Thrown if the elements in the view are
+         *     non-contiguous.
+         */
+        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+        tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes);
+        template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+        tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const;
+
+        template <size_t N>
+        tensor_view<T, N> reshape(const shape_t<N> &shape);
+        template <size_t N>
+        tensor_view<const T, N> reshape(const shape_t<N> &shape) const;
+
+        template <size_t N>
+        tensor_view<T, N> reshape(const shape_t<N> &shape, layout_t order);
+        template <size_t N>
+        tensor_view<const T, N> reshape(
+            const shape_t<N> &shape, layout_t order
+        ) const;
+
+        /**
          * @brief Removes axes of length one.
          *
          * @param axes Selects a subset of the entries of length one in the
@@ -293,20 +367,19 @@ namespace numcpp {
          * @throw std::invalid_argument Thrown if an axis with shape entry
          *     greater than one is selected.
          */
-        template <size_t N>
-        tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-
         template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
         tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
-
-        template <size_t N>
-        tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-
         template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
         tensor_view<const T,Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
 
+        template <size_t N>
+        tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
+        template <size_t N>
+        tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
+
         /**
-         * @brief Interchanges two axes of a tensor_view in-place.
+         * @brief Interchanges two axes of a tensor_view in-place. The internal
+         * layout order is preserved.
          *
          * @param axis1 First axis.
          * @param axis2 Second axis.
@@ -328,14 +401,14 @@ namespace numcpp {
         // Pointer to data.
         T *m_data;
 
-        // Number of elements.
-        size_t m_size;
-
         // Number of elements along each axis.
         shape_t<Rank> m_shape;
 
+        // Number of elements.
+        size_t m_size;
+
         // Offset of array data in memory.
-        size_t m_offset;
+        ptrdiff_t m_offset;
 
         // Strides of data in memory.
         shape_t<Rank> m_stride;

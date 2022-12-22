@@ -65,8 +65,8 @@ namespace numcpp {
          * @brief Index array constructor. Constructs an indirect_tensor that
          * references a subset of elements from a multidimensional array.
          *
-         * @param shape Number of elements along each axis.
          * @param data Pointer to the memory array used by the indirect_tensor.
+         * @param shape Number of elements along each axis.
          * @param indices Pointer to the array of indices with its elements
          *     identifying which elements of data are selected.
          * @param order Order in which elements shall be iterated. In row-major
@@ -79,7 +79,7 @@ namespace numcpp {
          *     along with the indirect_tensor. Defaults to make a copy.
          */
         base_tensor(
-            const shape_t<Rank> &shape, T *data, const size_t *indices,
+            T *data, const shape_t<Rank> &shape, const size_t *indices,
             layout_t order = row_major, int mode = 1
         );
 
@@ -256,13 +256,13 @@ namespace numcpp {
         // Pointer to data.
         T *m_data;
 
-        // Number of elements.
-        size_t m_size;
-
         // Number of elements along each axis.
         shape_t<Rank> m_shape;
 
-        // Array of indices.
+        // Number of elements.
+        size_t m_size;
+
+        // Pointer to the array of indices.
         const size_t *m_indices;
 
         // Memory layout.

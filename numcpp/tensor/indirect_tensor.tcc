@@ -31,15 +31,15 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor()
-     : m_data(NULL), m_size(0), m_shape(), m_indices(NULL), m_order(row_major),
+     : m_data(NULL), m_shape(), m_size(0), m_indices(NULL), m_order(row_major),
        m_owner(false)
      {}
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(
-        const shape_t<Rank> &shape, T *data, const size_t *indices,
+        T *data, const shape_t<Rank> &shape, const size_t *indices,
         layout_t order, int mode
-    ) : m_data(data), m_size(shape.size()), m_shape(shape), m_order(order)
+    ) : m_data(data), m_shape(shape), m_size(shape.prod()), m_order(order)
     {
         if (mode > 0) {
             size_t *indptr = new size_t[m_size];
@@ -55,7 +55,7 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(const base_tensor &other)
-     : m_data(other.m_data), m_size(other.m_size), m_shape(other.m_shape),
+     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
        m_order(other.m_order), m_owner(other.m_owner)
     {
         if (other.m_owner) {
@@ -70,13 +70,13 @@ namespace numcpp {
 
     template <class T, size_t Rank>
     indirect_tensor<T, Rank>::base_tensor(base_tensor &&other)
-     : m_data(other.m_data), m_size(other.m_size), m_shape(other.m_shape),
+     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
        m_indices(other.m_indices), m_order(other.m_order),
        m_owner(other.m_owner)
     {
         other.m_data = NULL;
-        other.m_size = 0;
         other.m_shape = shape_t<Rank>();
+        other.m_size = 0;
         other.m_indices = NULL;
         other.m_order = row_major;
         other.m_owner = false;
@@ -201,7 +201,7 @@ namespace numcpp {
         }
         std::transform(
             other.begin(m_order), other.end(m_order), this->begin(),
-            cast_to<T>()
+            cast_to<U, T>()
         );
         return *this;
     }
@@ -221,14 +221,14 @@ namespace numcpp {
                 delete[] m_indices;
             }
             m_data = other.m_data;
-            m_size = other.m_size;
             m_shape = other.m_shape;
+            m_size = other.m_size;
             m_indices = other.m_indices;
             m_order = other.m_order;
             m_owner = other.m_owner;
             other.m_data = NULL;
-            other.m_size = 0;
             other.m_shape = shape_t<Rank>();
+            other.m_size = 0;
             other.m_indices = NULL;
             other.m_order = row_major;
             other.m_owner = false;
