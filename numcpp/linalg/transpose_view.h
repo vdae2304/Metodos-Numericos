@@ -94,8 +94,12 @@ namespace numcpp {
 
         base_tensor(
             const base_tensor<T, Rank, Tag> &arg,
-            const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
+            const shape_type &axes
+        ) : m_arg(arg), m_axes(axes) {
+            for (size_t i = 0; i < m_axes.ndim(); ++i) {
+                m_shape[i] = arg.shape(m_axes[i]);
+            }
+        }
 
         /// Destructor.
         ~base_tensor() = default;
@@ -171,7 +175,11 @@ namespace numcpp {
          * @return The element at the specified position.
          */
         const_reference operator[](const index_type &index) const {
-            return m_arg[index.permute(m_axes)];
+            index_type permute_index;
+            for (size_t i = 0; i < index.ndim(); ++i) {
+                permute_index[i] = index[m_axes[i]];
+            }
+            return m_arg[permute_index];
         }
 
         /**
@@ -209,10 +217,7 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            if (m_arg.layout() == row_major) {
-                return col_major;
-            }
-            return row_major;
+            return m_arg.layout();
         }
 
         /// Public methods.
@@ -285,8 +290,12 @@ namespace numcpp {
 
         base_tensor(
             const base_tensor<std::complex<T>, Rank, Tag> &arg,
-            const shape_t<Rank> &axes
-        ) : m_arg(arg), m_shape(arg.shape().permute(axes)), m_axes(axes) {}
+            const shape_type &axes
+        ) : m_arg(arg), m_axes(axes) {
+            for (size_t i = 0; i < m_axes.ndim(); ++i) {
+                m_shape[i] = arg.shape(m_axes[i]);
+            }
+        }
 
         /// Destructor.
         ~base_tensor() = default;
@@ -362,7 +371,11 @@ namespace numcpp {
          * @return The element at the specified position.
          */
         value_type operator[](const index_type &index) const {
-            return std::conj(m_arg[index.permute(m_axes)]);
+            index_type permute_index;
+            for (size_t i = 0; i < index.ndim(); ++i) {
+                permute_index[i] = index[m_axes[i]];
+            }
+            return std::conj(m_arg[permute_index]);
         }
 
         /**
@@ -400,10 +413,7 @@ namespace numcpp {
          * @brief Returns the memory layout in which elements are stored.
          */
         layout_t layout() const {
-            if (m_arg.layout() == row_major) {
-                return col_major;
-            }
-            return row_major;
+            return m_arg.layout();
         }
 
         /// Public methods.
