@@ -870,19 +870,19 @@ copysign(const base_tensor<T, Rank, Tag1> &x,
 
 template <class T, size_t Rank, class Tag>
 inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag>>
-copysign(const typename base_tensor<T, Rank, Tag>::value_type &x,
-         const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag> Closure;
+                   lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag>>
+copysign(const base_tensor<T, Rank, Tag> &x,
+         const typename base_tensor<T, Rank, Tag>::value_type &y) {
+  typedef lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag> Closure;
   return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
 }
 
 template <class T, size_t Rank, class Tag>
 inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag>>
-copysign(const base_tensor<T, Rank, Tag> &x,
-         const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag> Closure;
+                   lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag>>
+copysign(const typename base_tensor<T, Rank, Tag>::value_type &x,
+         const base_tensor<T, Rank, Tag> &y) {
+  typedef lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag> Closure;
   return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
 }
 
@@ -909,19 +909,19 @@ nextafter(const base_tensor<T, Rank, Tag1> &x,
 
 template <class T, size_t Rank, class Tag>
 inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag>>
-nextafter(const typename base_tensor<T, Rank, Tag>::value_type &x,
-          const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag> Closure;
+                   lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag>>
+nextafter(const base_tensor<T, Rank, Tag> &x,
+          const typename base_tensor<T, Rank, Tag>::value_type &y) {
+  typedef lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag> Closure;
   return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
 }
 
 template <class T, size_t Rank, class Tag>
 inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag>>
-nextafter(const base_tensor<T, Rank, Tag> &x,
-          const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag> Closure;
+                   lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag>>
+nextafter(const typename base_tensor<T, Rank, Tag>::value_type &x,
+          const base_tensor<T, Rank, Tag> &y) {
+  typedef lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag> Closure;
   return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
 }
 
