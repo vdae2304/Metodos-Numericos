@@ -30,6 +30,115 @@
 #include <stdexcept>
 
 namespace numcpp {
+/// Tensor creation routines from existing data.
+
+template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
+asarray(InputIterator first, InputIterator last) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  size_t size = std::distance(first, last);
+  return tensor<T, 1>(first, size);
+}
+
+template <class InputIterator, class... Sizes,
+          detail::RequiresInputIterator<InputIterator>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type,
+              sizeof...(Sizes)>
+asarray(InputIterator first, Sizes... sizes) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  constexpr size_t Rank = sizeof...(Sizes);
+  return tensor<T, Rank>(first, sizes...);
+}
+
+template <class InputIterator, size_t Rank,
+          detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+asarray(InputIterator first, const shape_t<Rank> &shape, layout_t order) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  return tensor<T, Rank>(first, shape, order);
+}
+
+template <class InputIterator, class... Sizes,
+          detail::RequiresInputIterator<InputIterator>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type,
+              sizeof...(Sizes)>
+ascontiguousarray(InputIterator first, Sizes... sizes) {
+  return asarray(first, make_shape(sizes...), row_major);
+}
+
+template <class InputIterator, size_t Rank,
+          detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+ascontiguousarray(InputIterator first, const shape_t<Rank> &shape) {
+  return asarray(first, shape, row_major);
+}
+
+template <class InputIterator, class... Sizes,
+          detail::RequiresInputIterator<InputIterator>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type,
+              sizeof...(Sizes)>
+asfortranarray(InputIterator first, Sizes... sizes) {
+  return asarray(first, make_shape(sizes...), column_major);
+}
+
+template <class InputIterator, size_t Rank,
+          detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+asfortranarray(InputIterator first, const shape_t<Rank> &shape) {
+  return asarray(first, shape, column_major);
+}
+
+namespace detail {
+/**
+ * @brief Throws a std::invalid_argument exception if the range
+ * [first, first + size) containts NaNs or Infs.
+ */
+template <class InputIterator>
+void assert_finite(InputIterator first, size_t size) {
+  for (size_t i = 0; i < size; ++i) {
+    if (!std::isfinite(*first)) {
+      throw std::invalid_argument("array must not contain infs or NaNs");
+    }
+    ++first;
+  }
+}
+} // namespace detail
+
+template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
+asarray_chkfinite(InputIterator first, InputIterator last) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  size_t size = std::distance(first, last);
+  detail::assert_finite(first, size);
+  return tensor<T, 1>(first, size);
+}
+
+template <class InputIterator, class... Sizes,
+          detail::RequiresInputIterator<InputIterator>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type,
+              sizeof...(Sizes)>
+asarray_chkfinite(InputIterator first, Sizes... sizes) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  constexpr size_t Rank = sizeof...(Sizes);
+  shape_t<Rank> shape(sizes...);
+  detail::assert_finite(first, shape.prod());
+  return tensor<T, Rank>(first, shape);
+}
+
+template <class InputIterator, size_t Rank,
+          detail::RequiresInputIterator<InputIterator>>
+inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
+asarray_chkfinite(InputIterator first, const shape_t<Rank> &shape,
+                  layout_t order) {
+  typedef typename std::iterator_traits<InputIterator>::value_type T;
+  detail::assert_finite(first, shape.prod());
+  return tensor<T, Rank>(first, shape, order);
+}
+
 /// Broadcasting.
 
 template <class T, size_t Rank>
@@ -145,9 +254,8 @@ tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &arg, const shape_t<N> &axes) {
     if (keep_axis[i]) {
       shape[n++] = arg.shape(i);
     } else if (arg.shape(i) != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
+      throw std::invalid_argument("cannot select an axis to squeeze out which "
+                                  "has size not equal to one");
     }
   }
   return tensor_view<T, Rank - N>(arg.data(), shape, arg.layout());
@@ -175,122 +283,12 @@ tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> arg,
       shape[n] = arg.shape(i);
       strides[n++] = arg.strides(i);
     } else if (arg.shape(i) != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
+      throw std::invalid_argument("cannot select an axis to squeeze out which "
+                                  "has size not equal to one");
     }
   }
   return tensor_view<T, Rank - N>(arg.data(), shape, arg.offset(), strides,
                                   arg.layout());
-}
-
-/// Tensor creation routines from existing data.
-
-template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
-asarray(InputIterator first, InputIterator last) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  size_t size = std::distance(first, last);
-  return tensor<T, 1>(first, size);
-}
-
-template <class InputIterator, class... Sizes,
-          detail::RequiresInputIterator<InputIterator>,
-          detail::RequiresIntegral<Sizes...>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>
-asarray(InputIterator first, Sizes... sizes) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  constexpr size_t Rank = sizeof...(Sizes);
-  return tensor<T, Rank>(first, sizes...);
-}
-
-template <class InputIterator, size_t Rank,
-          detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
-asarray(InputIterator first, const shape_t<Rank> &shape, layout_t order) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  return tensor<T, Rank>(first, shape, order);
-}
-
-template <class InputIterator, class... Sizes,
-          detail::RequiresInputIterator<InputIterator>,
-          detail::RequiresIntegral<Sizes...>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>
-ascontiguousarray(InputIterator first, Sizes... sizes) {
-  return asarray(first, make_shape(sizes...), row_major);
-}
-
-template <class InputIterator, size_t Rank,
-          detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
-ascontiguousarray(InputIterator first, const shape_t<Rank> &shape) {
-  return asarray(first, shape, row_major);
-}
-
-template <class InputIterator, class... Sizes,
-          detail::RequiresInputIterator<InputIterator>,
-          detail::RequiresIntegral<Sizes...>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>
-asfortranarray(InputIterator first, Sizes... sizes) {
-  return asarray(first, make_shape(sizes...), column_major);
-}
-
-template <class InputIterator, size_t Rank,
-          detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
-asfortranarray(InputIterator first, const shape_t<Rank> &shape) {
-  return asarray(first, shape, column_major);
-}
-
-namespace detail {
-/**
- * @brief Throws a std::invalid_argument exception if the range
- * [first, first + size) containts NaNs or Infs.
- */
-template <class InputIterator>
-void assert_finite(InputIterator first, size_t size) {
-  for (size_t i = 0; i < size; ++i) {
-    if (!std::isfinite(*first)) {
-      throw std::invalid_argument("array must not contain infs or NaNs");
-    }
-    ++first;
-  }
-}
-} // namespace detail
-
-template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, 1>
-asarray_chkfinite(InputIterator first, InputIterator last) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  size_t size = std::distance(first, last);
-  detail::assert_finite(first, size);
-  return tensor<T, 1>(first, size);
-}
-
-template <class InputIterator, class... Sizes,
-          detail::RequiresInputIterator<InputIterator>,
-          detail::RequiresIntegral<Sizes...>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>
-asarray_chkfinite(InputIterator first, Sizes... sizes) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  constexpr size_t Rank = sizeof...(Sizes);
-  shape_t<Rank> shape(sizes...);
-  detail::assert_finite(first, shape.prod());
-  return tensor<T, Rank>(first, shape);
-}
-
-template <class InputIterator, size_t Rank,
-          detail::RequiresInputIterator<InputIterator>>
-inline tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
-asarray_chkfinite(InputIterator first, const shape_t<Rank> &shape,
-                  layout_t order) {
-  typedef typename std::iterator_traits<InputIterator>::value_type T;
-  detail::assert_finite(first, shape.prod());
-  return tensor<T, Rank>(first, shape, order);
 }
 
 /// Basic manipulation routines.

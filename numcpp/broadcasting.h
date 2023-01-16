@@ -27,97 +27,6 @@
 #include "numcpp/broadcasting/utilities.h"
 
 namespace numcpp {
-/// Broadcasting.
-
-/**
- * @brief Broadcast a value to a new shape.
- *
- * @details Return a @c tensor_view of given shape filled with @a val. This
- * function does not create a new tensor, instead, it broadcasts the given value
- * as a tensor of given shape. All the elements in the broadcasted tensor refer
- * to the same memory location, and thus shall not be modified.
- *
- * @param val Reference to the fill value.
- * @param shape The shape of the desired tensor.
- *
- * @return A view of the original value with the given shape.
- */
-template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(T &val, const shape_t<Rank> &shape);
-
-/**
- * @brief Broadcast a tensor to a new shape.
- *
- * @details Return a @c tensor_view of given shape constructed by repeating
- * elements along each axis of size one. This function does not create a new
- * tensor, instead, it broadcasts the given tensor to a new shape. Some elements
- * in the broadcasted tensor may refer to the same memory location, and thus
- * shall not be modified.
- *
- * @param arg Reference to the tensor or tensor_view to broadcast.
- * @param shape The shape of the desired tensor.
- *
- * @return A view of the original tensor with the given shape.
- *
- * @throw std::invalid_argument Thrown if the tensor is not compatible with the
- *                              new shape according to broadcasting rules.
- */
-template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(tensor<T, Rank> &arg,
-                                  const shape_t<Rank> &shape);
-
-template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(tensor_view<T, Rank> arg,
-                                  const shape_t<Rank> &shape);
-
-/**
- * @brief Expand the shape of a tensor by inserting new axes.
- *
- * @param arg Input tensor.
- * @param axes Position in the expanded axes where the new axis (or axes) is
- *             placed.
- *
- * @return A view of the original tensor with the number of dimensions
- *         increased.
- */
-template <class T, size_t Rank>
-tensor_view<T, Rank + 1> expand_dims(tensor<T, Rank> &arg, size_t axis);
-
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank + N> expand_dims(tensor<T, Rank> &arg,
-                                     const shape_t<N> &axes);
-
-template <class T, size_t Rank>
-tensor_view<T, Rank + 1> expand_dims(tensor_view<T, Rank> arg, size_t axis);
-
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> arg,
-                                     const shape_t<N> &axes);
-
-/**
- * @brief Removes axes of length one.
- *
- * @param arg Input tensor.
- * @param axes Selects a subset of the entries of length one in the shape.
- *
- * @return A view of the original tensor with the axes removed.
- *
- * @throw std::invalid_argument Thrown if an axis with shape entry greater than
- *                              one is selected.
- */
-template <class T, size_t Rank>
-tensor_view<T, Rank - 1> squeeze(tensor<T, Rank> &arg, size_t axis);
-
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &arg, const shape_t<N> &axes);
-
-template <class T, size_t Rank>
-tensor_view<T, Rank - 1> squeeze(tensor_view<T, Rank> arg, size_t axis);
-
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> arg,
-                                 const shape_t<N> &axes);
-
 /// Tensor creation routines from existing data.
 
 /**
@@ -243,6 +152,97 @@ template <class InputIterator, size_t Rank,
 tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>
 asarray_chkfinite(InputIterator first, const shape_t<Rank> &shape,
                   layout_t order = default_layout);
+
+/// Broadcasting.
+
+/**
+ * @brief Broadcast a value to a new shape.
+ *
+ * @details Return a @c tensor_view of given shape filled with @a val. This
+ * function does not create a new tensor, instead, it broadcasts the given value
+ * as a tensor of given shape. All the elements in the broadcasted tensor refer
+ * to the same memory location, and thus shall not be modified.
+ *
+ * @param val Reference to the fill value.
+ * @param shape The shape of the desired tensor.
+ *
+ * @return A view of the original value with the given shape.
+ */
+template <class T, size_t Rank>
+tensor_view<T, Rank> broadcast_to(T &val, const shape_t<Rank> &shape);
+
+/**
+ * @brief Broadcast a tensor to a new shape.
+ *
+ * @details Return a @c tensor_view of given shape constructed by repeating
+ * elements along each axis of size one. This function does not create a new
+ * tensor, instead, it broadcasts the given tensor to a new shape. Some elements
+ * in the broadcasted tensor may refer to the same memory location, and thus
+ * shall not be modified.
+ *
+ * @param arg Reference to the tensor or tensor_view to broadcast.
+ * @param shape The shape of the desired tensor.
+ *
+ * @return A view of the original tensor with the given shape.
+ *
+ * @throw std::invalid_argument Thrown if the tensor is not compatible with the
+ *                              new shape according to broadcasting rules.
+ */
+template <class T, size_t Rank>
+tensor_view<T, Rank> broadcast_to(tensor<T, Rank> &arg,
+                                  const shape_t<Rank> &shape);
+
+template <class T, size_t Rank>
+tensor_view<T, Rank> broadcast_to(tensor_view<T, Rank> arg,
+                                  const shape_t<Rank> &shape);
+
+/**
+ * @brief Expand the shape of a tensor by inserting new axes.
+ *
+ * @param arg Input tensor.
+ * @param axes Position in the expanded axes where the new axis (or axes) is
+ *             placed.
+ *
+ * @return A view of the original tensor with the number of dimensions
+ *         increased.
+ */
+template <class T, size_t Rank>
+tensor_view<T, Rank + 1> expand_dims(tensor<T, Rank> &arg, size_t axis);
+
+template <size_t N, class T, size_t Rank>
+tensor_view<T, Rank + N> expand_dims(tensor<T, Rank> &arg,
+                                     const shape_t<N> &axes);
+
+template <class T, size_t Rank>
+tensor_view<T, Rank + 1> expand_dims(tensor_view<T, Rank> arg, size_t axis);
+
+template <size_t N, class T, size_t Rank>
+tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> arg,
+                                     const shape_t<N> &axes);
+
+/**
+ * @brief Removes axes of length one.
+ *
+ * @param arg Input tensor.
+ * @param axes Selects a subset of the entries of length one in the shape.
+ *
+ * @return A view of the original tensor with the axes removed.
+ *
+ * @throw std::invalid_argument Thrown if an axis with shape entry greater than
+ *                              one is selected.
+ */
+template <class T, size_t Rank>
+tensor_view<T, Rank - 1> squeeze(tensor<T, Rank> &arg, size_t axis);
+
+template <size_t N, class T, size_t Rank>
+tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &arg, const shape_t<N> &axes);
+
+template <class T, size_t Rank>
+tensor_view<T, Rank - 1> squeeze(tensor_view<T, Rank> arg, size_t axis);
+
+template <size_t N, class T, size_t Rank>
+tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> arg,
+                                 const shape_t<N> &axes);
 
 /// Basic manipulation routines.
 
