@@ -141,8 +141,8 @@ template <class T, size_t Rank>
 tensor<T, Rank> full(const shape_t<Rank> &shape, const T &val);
 
 /**
- * @brief Return a new tensor with the same shape and type as a given tensor
- * filled with @a val.
+ * @brief Return a new tensor filled with @a val with the same shape and type as
+ * a given tensor.
  *
  * @param like Tensor-like object defining the shape and data type.
  * @param val Fill value.
