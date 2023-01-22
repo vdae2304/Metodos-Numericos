@@ -876,8 +876,7 @@ isclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
         const typename detail::complex_traits<T>::value_type &atol = 0);
 
 /**
- * @brief Test whether all elements in two tensors are element-wise equal within
- * a tolerance.
+ * @brief Test whether two tensors are element-wise equal within a tolerance.
  *
  * @param a First tensor-like object to compare.
  * @param b Second tensor-like object to compare.
