@@ -30,6 +30,7 @@ standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
 compiler options.
 #else
 
+#include <complex>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
@@ -204,6 +205,17 @@ template <class T, class... Ts>
 struct are_integral<T, Ts...>
     : std::integral_constant<bool, std::is_integral<T>::value &&
                                        are_integral<Ts...>::value> {};
+
+/**
+ * @brief Type traits for complex types.
+ */
+template <class T> struct complex_traits {
+  typedef T value_type;
+};
+
+template <class T> struct complex_traits<std::complex<T>> {
+  typedef T value_type;
+};
 
 /**
  * @brief Rank of shape concatenation.
