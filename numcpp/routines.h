@@ -856,50 +856,24 @@ template <class T, size_t Rank, class Tag1, class Tag2>
 base_tensor<bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2>>
 isclose(const base_tensor<T, Rank, Tag1> &a,
         const base_tensor<T, Rank, Tag2> &b,
-        const typename base_tensor<T, Rank, Tag1>::value_type &rtol = T(1e-8),
-        const typename base_tensor<T, Rank, Tag2>::value_type &atol = T(0));
+        const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+        const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
 base_tensor<bool, Rank,
             lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>>
 isclose(const base_tensor<T, Rank, Tag> &a,
         const typename base_tensor<T, Rank, Tag>::value_type &val,
-        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
-        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0));
+        const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+        const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
 base_tensor<bool, Rank,
             lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>>
 isclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
         const base_tensor<T, Rank, Tag> &b,
-        const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
-        const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag1, class Tag2>
-base_tensor<bool, Rank,
-            lazy_binary_tag<ranges::isclose<std::complex<T>>, T, Tag1, T, Tag2>>
-isclose(const base_tensor<std::complex<T>, Rank, Tag1> &a,
-        const base_tensor<std::complex<T>, Rank, Tag2> &b,
-        const typename std::complex<T>::value_type &rtol = T(1e-8),
-        const typename std::complex<T>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag>
-base_tensor<
-    bool, Rank,
-    lazy_binary_tag<ranges::isclose<std::complex<T>>, T, Tag, T, scalar_tag>>
-isclose(const base_tensor<std::complex<T>, Rank, Tag> &a,
-        const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
-        const typename std::complex<T>::value_type &rtol = T(1e-8),
-        const typename std::complex<T>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag>
-base_tensor<
-    bool, Rank,
-    lazy_binary_tag<ranges::isclose<std::complex<T>>, T, scalar_tag, T, Tag>>
-isclose(const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
-        const base_tensor<std::complex<T>, Rank, Tag> &b,
-        const typename std::complex<T>::value_type &rtol = T(1e-8),
-        const typename std::complex<T>::value_type &atol = T(0));
+        const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+        const typename detail::complex_traits<T>::value_type &atol = 0);
 
 /**
  * @brief Test whether all elements in two tensors are element-wise equal within
@@ -921,42 +895,22 @@ isclose(const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
 template <class T, size_t Rank, class Tag1, class Tag2>
 bool allclose(
     const base_tensor<T, Rank, Tag1> &a, const base_tensor<T, Rank, Tag2> &b,
-    const typename base_tensor<T, Rank, Tag1>::value_type &rtol = T(1e-8),
-    const typename base_tensor<T, Rank, Tag2>::value_type &atol = T(0));
+    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+    const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
 bool allclose(
     const base_tensor<T, Rank, Tag> &a,
     const typename base_tensor<T, Rank, Tag>::value_type &val,
-    const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
-    const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0));
+    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+    const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
 bool allclose(
     const typename base_tensor<T, Rank, Tag>::value_type &val,
     const base_tensor<T, Rank, Tag> &b,
-    const typename base_tensor<T, Rank, Tag>::value_type &rtol = T(1e-8),
-    const typename base_tensor<T, Rank, Tag>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag1, class Tag2>
-bool allclose(const base_tensor<std::complex<T>, Rank, Tag1> &a,
-              const base_tensor<std::complex<T>, Rank, Tag2> &b,
-              const typename std::complex<T>::value_type &rtol = T(1e-8),
-              const typename std::complex<T>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag>
-bool allclose(
-    const base_tensor<std::complex<T>, Rank, Tag> &a,
-    const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
-    const typename std::complex<T>::value_type &rtol = T(1e-8),
-    const typename std::complex<T>::value_type &atol = T(0));
-
-template <class T, size_t Rank, class Tag>
-bool allclose(
-    const typename base_tensor<std::complex<T>, Rank, Tag>::value_type &val,
-    const base_tensor<std::complex<T>, Rank, Tag> &b,
-    const typename std::complex<T>::value_type &rtol = T(1e-8),
-    const typename std::complex<T>::value_type &atol = T(0));
+    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+    const typename detail::complex_traits<T>::value_type &atol = 0);
 
 /// Sorting and searching.
 
