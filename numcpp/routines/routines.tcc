@@ -1072,25 +1072,9 @@ T cov(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
   T val = T(0);
   T x_mean = mean(x);
   T y_mean = mean(y);
+  math::conj __conj;
   for (size_t i = 0; i < size; ++i) {
-    val += (x[i] - x_mean) * (y[i] - y_mean);
-  }
-  val /= size - 1 + bias;
-  return val;
-}
-
-template <class T, class Tag1, class Tag2>
-std::complex<T> cov(const base_tensor<std::complex<T>, 1, Tag1> &x,
-                    const base_tensor<std::complex<T>, 1, Tag2> &y, bool bias) {
-  if (x.size() != y.size()) {
-    throw std::invalid_argument("all the tensors must have the same shape");
-  }
-  size_t size = x.size();
-  std::complex<T> val = T(0);
-  std::complex<T> x_mean = mean(x);
-  std::complex<T> y_mean = mean(y);
-  for (size_t i = 0; i < size; ++i) {
-    val += (x[i] - x_mean) * std::conj(y[i] - y_mean);
+    val += (x[i] - x_mean) * __conj(y[i] - y_mean);
   }
   val /= size - 1 + bias;
   return val;
@@ -1102,6 +1086,7 @@ tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar, bool bias) {
   size_t size = rowvar ? a.shape(1) : a.shape(0);
   tensor<T, 2> out(nvar, nvar);
   tensor<T, 2> a_mean = mean(a, rowvar);
+  math::conj __conj;
   for (size_t i = 0; i < nvar; ++i) {
     for (size_t j = 0; j < nvar; ++j) {
       T val = T(0);
@@ -1114,35 +1099,7 @@ tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar, bool bias) {
           x = a(k, i) - a_mean(0, i);
           y = a(k, j) - a_mean(0, j);
         }
-        val += x * y;
-      }
-      val /= size - 1 + bias;
-      out(i, j) = val;
-    }
-  }
-  return out;
-}
-
-template <class T, class Tag>
-tensor<std::complex<T>, 2> cov(const base_tensor<std::complex<T>, 2, Tag> &a,
-                               bool rowvar, bool bias) {
-  size_t nvar = rowvar ? a.shape(0) : a.shape(1);
-  size_t size = rowvar ? a.shape(1) : a.shape(0);
-  tensor<std::complex<T>, 2> out(nvar, nvar);
-  tensor<std::complex<T>, 2> a_mean = mean(a, rowvar);
-  for (size_t i = 0; i < nvar; ++i) {
-    for (size_t j = 0; j < nvar; ++j) {
-      std::complex<T> val = T(0);
-      for (size_t k = 0; k < size; ++k) {
-        std::complex<T> x, y;
-        if (rowvar) {
-          x = a(i, k) - a_mean(i, 0);
-          y = a(j, k) - a_mean(j, 0);
-        } else {
-          x = a(k, i) - a_mean(0, i);
-          y = a(k, j) - a_mean(0, j);
-        }
-        val += x * std::conj(y);
+        val += x * __conj(y);
       }
       val /= size - 1 + bias;
       out(i, j) = val;

@@ -1612,11 +1612,6 @@ template <class T, class Tag1, class Tag2>
 T cov(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
       bool bias = false);
 
-template <class T, class Tag1, class Tag2>
-std::complex<T> cov(const base_tensor<std::complex<T>, 1, Tag1> &x,
-                    const base_tensor<std::complex<T>, 1, Tag2> &y,
-                    bool bias = false);
-
 /**
  * @brief Return the covariance matrix of given data.
  *
@@ -1638,10 +1633,6 @@ std::complex<T> cov(const base_tensor<std::complex<T>, 1, Tag1> &x,
 template <class T, class Tag>
 tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar = true,
                  bool bias = false);
-
-template <class T, class Tag>
-tensor<std::complex<T>, 2> cov(const base_tensor<std::complex<T>, 2, Tag> &a,
-                               bool rowvar = true, bool bias = false);
 
 /**
  * @brief Return the Pearson's correlation coefficient of two 1-dimensional
