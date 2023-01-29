@@ -874,9 +874,9 @@ rotate(const base_tensor<T, Rank, Tag> &a, const index_t<N> &shift,
 
 template <class T, size_t Rank, class Tag>
 tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-unique(const base_tensor<T, Rank, Tag> &arg) {
+unique(const base_tensor<T, Rank, Tag> &a) {
   typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
-  std::vector<Rt> buffer(arg.begin(), arg.end());
+  std::vector<Rt> buffer(a.begin(), a.end());
   if (!std::is_sorted(buffer.begin(), buffer.end())) {
     std::sort(buffer.begin(), buffer.end());
   }
@@ -885,50 +885,50 @@ unique(const base_tensor<T, Rank, Tag> &arg) {
 }
 
 template <class T, class Tag>
-bool includes(const base_tensor<T, 1, Tag> &arg,
+bool includes(const base_tensor<T, 1, Tag> &a,
               const typename base_tensor<T, 1, Tag>::value_type &val) {
-  return std::binary_search(arg.begin(), arg.end(), val);
+  return std::binary_search(a.begin(), a.end(), val);
 }
 
 template <class T, class Tag1, class Tag2>
-bool includes(const base_tensor<T, 1, Tag1> &arg1,
-              const base_tensor<T, 1, Tag2> &arg2) {
-  return std::includes(arg1.begin(), arg1.end(), arg2.begin(), arg2.end());
+bool includes(const base_tensor<T, 1, Tag1> &a,
+              const base_tensor<T, 1, Tag2> &b) {
+  return std::includes(a.begin(), a.end(), b.begin(), b.end());
 }
 
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &arg1,
-                       const base_tensor<T, 1, Tag2> &arg2) {
+tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &a,
+                       const base_tensor<T, 1, Tag2> &b) {
   std::vector<T> buffer;
-  std::set_union(arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+  std::set_union(a.begin(), a.end(), b.begin(), b.end(),
                  std::back_inserter(buffer));
   return tensor<T, 1>(buffer.begin(), buffer.size());
 }
 
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &arg1,
-                              const base_tensor<T, 1, Tag2> &arg2) {
+tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &a,
+                              const base_tensor<T, 1, Tag2> &b) {
   std::vector<T> buffer;
-  std::set_intersection(arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+  std::set_intersection(a.begin(), a.end(), b.begin(), b.end(),
                         std::back_inserter(buffer));
   return tensor<T, 1>(buffer.begin(), buffer.size());
 }
 
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &arg1,
-                            const base_tensor<T, 1, Tag2> &arg2) {
+tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &a,
+                            const base_tensor<T, 1, Tag2> &b) {
   std::vector<T> buffer;
-  std::set_difference(arg1.begin(), arg1.end(), arg2.begin(), arg2.end(),
+  std::set_difference(a.begin(), a.end(), b.begin(), b.end(),
                       std::back_inserter(buffer));
   return tensor<T, 1>(buffer.begin(), buffer.size());
 }
 
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &arg1,
-                                      const base_tensor<T, 1, Tag2> &arg2) {
+tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &a,
+                                      const base_tensor<T, 1, Tag2> &b) {
   std::vector<T> buffer;
-  std::set_symmetric_difference(arg1.begin(), arg1.end(), arg2.begin(),
-                                arg2.end(), std::back_inserter(buffer));
+  std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(),
+                                std::back_inserter(buffer));
   return tensor<T, 1>(buffer.begin(), buffer.size());
 }
 

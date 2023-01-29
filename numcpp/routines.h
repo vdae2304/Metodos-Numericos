@@ -892,24 +892,22 @@ isclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
  *                              rules.
  */
 template <class T, size_t Rank, class Tag1, class Tag2>
-bool allclose(
-    const base_tensor<T, Rank, Tag1> &a, const base_tensor<T, Rank, Tag2> &b,
-    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-    const typename detail::complex_traits<T>::value_type &atol = 0);
+bool allclose(const base_tensor<T, Rank, Tag1> &a,
+              const base_tensor<T, Rank, Tag2> &b,
+              const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+              const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
-bool allclose(
-    const base_tensor<T, Rank, Tag> &a,
-    const typename base_tensor<T, Rank, Tag>::value_type &val,
-    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-    const typename detail::complex_traits<T>::value_type &atol = 0);
+bool allclose(const base_tensor<T, Rank, Tag> &a,
+              const typename base_tensor<T, Rank, Tag>::value_type &val,
+              const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+              const typename detail::complex_traits<T>::value_type &atol = 0);
 
 template <class T, size_t Rank, class Tag>
-bool allclose(
-    const typename base_tensor<T, Rank, Tag>::value_type &val,
-    const base_tensor<T, Rank, Tag> &b,
-    const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-    const typename detail::complex_traits<T>::value_type &atol = 0);
+bool allclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
+              const base_tensor<T, Rank, Tag> &b,
+              const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
+              const typename detail::complex_traits<T>::value_type &atol = 0);
 
 /// Sorting and searching.
 
@@ -1253,58 +1251,58 @@ rotate(const base_tensor<T, Rank, Tag> &a, const index_t<N> &shift,
 /**
  * @brief Find the sorted unique elements of a tensor.
  *
- * @param arg A tensor-like object.
+ * @param a A tensor-like object.
  *
- * @return A new tensor with the sorted unique elements of @a arg.
+ * @return A new tensor with the sorted unique elements of @a a.
  *
- * @note The elements of @a arg are not required to be sorted before calling
- * @c unique. However, the function might perform faster if the elements of
- * @a arg are already sorted.
+ * @note The elements of @a a are not required to be sorted before calling
+ * @c unique. However, the function might perform faster if the elements of @a a
+ * are already sorted.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
 template <class T, size_t Rank, class Tag>
 tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-unique(const base_tensor<T, Rank, Tag> &arg);
+unique(const base_tensor<T, Rank, Tag> &a);
 
 /**
  * @brief Test whether a value is present in a tensor.
  *
- * @param arg A 1-dimensional tensor-like object. The function tests whether
- *            @a arg contains @a val. The elements of @a arg must be sorted.
+ * @param a A 1-dimensional tensor-like object. The function tests whether @a a
+ *          contains @a val. The elements of @a a must be sorted.
  * @param val The value to test.
  *
- * @return true if @a val is present in @a arg and false otherwise.
+ * @return true if @a val is present in @a a and false otherwise.
  */
 template <class T, class Tag>
-bool includes(const base_tensor<T, 1, Tag> &arg,
+bool includes(const base_tensor<T, 1, Tag> &a,
               const typename base_tensor<T, 1, Tag>::value_type &val);
 
 /**
  * @brief Test whether all the elements in a tensor are also present in another
  * tensor.
  *
- * @param arg1 A 1-dimensional tensor-like object. The function test whether
- *            @a arg1 contains all the elements of @a arg2. The elements of
- *            @a arg1 must be sorted.
- * @param arg2 A 1-dimensional tensor-like object with the values to test. The
- *             elements of @a arg2 must be sorted.
+ * @param a A 1-dimensional tensor-like object. The function test whether @a a
+ *          contains all the elements of @a b. The elements of @a a must be
+ *          sorted.
+ * @param b A 1-dimensional tensor-like object with the values to test. The
+ *          elements of @a b must be sorted.
  *
- * @return true if @a arg2 is a subset of @a arg1 and false otherwise.
+ * @return true if @a b is a subset of @a a and false otherwise.
  */
 template <class T, class Tag1, class Tag2>
-bool includes(const base_tensor<T, 1, Tag1> &arg1,
-              const base_tensor<T, 1, Tag2> &arg2);
+bool includes(const base_tensor<T, 1, Tag1> &a,
+              const base_tensor<T, 1, Tag2> &b);
 
 /**
  * @brief Find the set union of two sorted tensors. Return the unique sorted
  * elements that are present in either one of two tensors, or in both.
  *
- * @param arg1 A 1-dimensional tensor-like object. The elements in @a arg1 must
- *             be sorted.
- * @param arg2 A 1-dimensional tensor-like object. The elements in @a arg2 must
- *             be sorted.
+ * @param a A 1-dimensional tensor-like object. The elements in @a a must be
+ *          sorted.
+ * @param b A 1-dimensional tensor-like object. The elements in @a b must be
+ *          sorted.
  *
  * @return A new tensor with the set union of both tensors.
  *
@@ -1312,17 +1310,17 @@ bool includes(const base_tensor<T, 1, Tag1> &arg1,
  *                       an exception.
  */
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &arg1,
-                       const base_tensor<T, 1, Tag2> &arg2);
+tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &a,
+                       const base_tensor<T, 1, Tag2> &b);
 
 /**
  * @brief Find the set intersection of two sorted tensors. Return the unique
  * sorted elements that are present in both tensors.
  *
- * @param arg1 A 1-dimensional tensor-like object. The elements in @a arg1 must
- *             be sorted.
- * @param arg2 A 1-dimensional tensor-like object. The elements in @a arg2 must
- *             be sorted.
+ * @param a A 1-dimensional tensor-like object. The elements in @a a must be
+ *          sorted.
+ * @param b A 1-dimensional tensor-like object. The elements in @a b must be
+ *          sorted.
  *
  * @return A new tensor with the set intersection of both tensors.
  *
@@ -1330,17 +1328,17 @@ tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &arg1,
  *                       an exception.
  */
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &arg1,
-                              const base_tensor<T, 1, Tag2> &arg2);
+tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &a,
+                              const base_tensor<T, 1, Tag2> &b);
 
 /**
  * @brief Find the set difference of two sorted tensors. Return the unique
  * sorted elements that are present in the first tensor, but not in the second.
  *
- * @param arg1 A 1-dimensional tensor-like object. The elements in @a arg1 must
- *             be sorted.
- * @param arg2 A 1-dimensional tensor-like object. The elements in @a arg2 must
- *             be sorted.
+ * @param a A 1-dimensional tensor-like object. The elements in @a a must be
+ *          sorted.
+ * @param b A 1-dimensional tensor-like object. The elements in @a b must be
+ *          sorted.
  *
  * @return A new tensor with the set difference of both tensors.
  *
@@ -1348,18 +1346,18 @@ tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &arg1,
  *                       an exception.
  */
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &arg1,
-                            const base_tensor<T, 1, Tag2> &arg2);
+tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &a,
+                            const base_tensor<T, 1, Tag2> &b);
 
 /**
  * @brief Find the set symmetric difference of two sorted tensors. Return the
  * unique sorted elements that are present in one of the tensors, but not in the
  * other.
  *
- * @param arg1 A 1-dimensional tensor-like object. The elements in @a arg1 must
- *             be sorted.
- * @param arg2 A 1-dimensional tensor-like object. The elements in @a arg2 must
- *             be sorted.
+ * @param a A 1-dimensional tensor-like object. The elements in @a a must be
+ *          sorted.
+ * @param b A 1-dimensional tensor-like object. The elements in @a b must be
+ *          sorted.
  *
  * @return A new tensor with the set symmetric difference of both tensors.
  *
@@ -1367,8 +1365,8 @@ tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &arg1,
  *                       an exception.
  */
 template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &arg1,
-                                      const base_tensor<T, 1, Tag2> &arg2);
+tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &a,
+                                      const base_tensor<T, 1, Tag2> &b);
 
 /// Basic statistics.
 
