@@ -150,11 +150,13 @@ public:
    *                              sizes.
    */
   template <class T, class Tag>
-  T choice(const base_tensor<T, 1, Tag> &population);
+  typename base_tensor<T, 1, Tag>::value_type
+  choice(const base_tensor<T, 1, Tag> &population);
 
   template <class T, class Tag, class W, class TagW>
-  T choice(const base_tensor<T, 1, Tag> &population,
-           const base_tensor<W, 1, TagW> &weights);
+  typename base_tensor<T, 1, Tag>::value_type
+  choice(const base_tensor<T, 1, Tag> &population,
+         const base_tensor<W, 1, TagW> &weights);
 
   /**
    * @brief Generates a random sample from a given sequence.
@@ -180,19 +182,22 @@ public:
    *                       throw an exception.
    */
   template <class T, class Tag>
-  tensor<T, 1> choice(const base_tensor<T, 1, Tag> &population, size_t size,
-                      bool replace = true, bool shuffle = true);
+  tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
+  choice(const base_tensor<T, 1, Tag> &population, size_t size,
+         bool replace = true, bool shuffle = true);
+
   template <class T, size_t Rank, class Tag>
-  tensor<T, Rank> choice(const base_tensor<T, 1, Tag> &population,
-                         const shape_t<Rank> &size, bool replace = true,
-                         bool shuffle = true);
+  tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
+  choice(const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
+         bool replace = true, bool shuffle = true);
 
   template <class T, class Tag, class W, class TagW>
-  tensor<T, 1> choice(const base_tensor<T, 1, Tag> &population, size_t size,
-                      const base_tensor<W, 1, TagW> &weights,
-                      bool replace = true);
+  tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
+  choice(const base_tensor<T, 1, Tag> &population, size_t size,
+         const base_tensor<W, 1, TagW> &weights, bool replace = true);
+
   template <class T, size_t Rank, class Tag, class W, class TagW>
-  tensor<T, Rank>
+  tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
   choice(const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
          const base_tensor<W, 1, TagW> &weights, bool replace = true);
 
@@ -233,11 +238,12 @@ public:
    *                       throw an exception.
    */
   template <class T, size_t Rank, class Tag>
-  tensor<T, 1> permutation(const base_tensor<T, Rank, Tag> &arg);
+  tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
+  permutation(const base_tensor<T, Rank, Tag> &arg);
 
   template <class T, size_t Rank, class Tag>
-  tensor<T, Rank> permutation(const base_tensor<T, Rank, Tag> &arg,
-                              size_t axis);
+  tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
+  permutation(const base_tensor<T, Rank, Tag> &arg, size_t axis);
 
   /// Distributions.
 

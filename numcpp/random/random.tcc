@@ -107,7 +107,8 @@ Generator<bit_generator>::random(const shape_t<Rank> &size) {
 
 template <class bit_generator>
 template <class T, class Tag>
-T Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population) {
+typename base_tensor<T, 1, Tag>::value_type
+Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
@@ -117,14 +118,15 @@ T Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population) {
 
 template <class bit_generator>
 template <class T, class Tag, class W, class TagW>
-T Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
-                                   const base_tensor<W, 1, TagW> &weights) {
+typename base_tensor<T, 1, Tag>::value_type
+Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
+                                 const base_tensor<W, 1, TagW> &weights) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
   if (population.size() != weights.size()) {
-    char error[] = "population and weights must have the same size";
-    throw std::invalid_argument(error);
+    throw std::invalid_argument(
+        "population and weights must have the same size");
   }
   discrete_distribution<size_t> rvs(weights.begin(), weights.end());
   return population[rvs(m_rng)];
@@ -170,7 +172,7 @@ void Generator<bit_generator>::__sample_no_replacement(InputIterator first,
 
 template <class bit_generator>
 template <class T, class Tag>
-inline tensor<T, 1>
+inline tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
 Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
                                  size_t size, bool replace, bool shuffle) {
   return this->choice(population, make_shape(size), replace, shuffle);
@@ -178,19 +180,19 @@ Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
 
 template <class bit_generator>
 template <class T, size_t Rank, class Tag>
-tensor<T, Rank>
+tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
 Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
                                  const shape_t<Rank> &size, bool replace,
                                  bool shuffle) {
+  typedef typename base_tensor<T, 1, Tag>::value_type Rt;
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
   if (!replace && size.prod() > population.size()) {
-    char error[] = "cannot take a larger sample than population when"
-                   " replace=false";
-    throw std::invalid_argument(error);
+    throw std::invalid_argument(
+        "cannot take a larger sample than population when replace=false");
   }
-  tensor<T, Rank> out(size);
+  tensor<Rt, Rank> out(size);
   if (replace) {
     __sample_replacement(population.begin(), population.end(), out.data(),
                          out.size());
@@ -240,30 +242,34 @@ void Generator<bit_generator>::__sample_no_replacement(
 
 template <class bit_generator>
 template <class T, class Tag, class W, class TagW>
-inline tensor<T, 1> Generator<bit_generator>::choice(
-    const base_tensor<T, 1, Tag> &population, size_t size,
-    const base_tensor<W, 1, TagW> &weights, bool replace) {
+inline tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
+Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
+                                 size_t size,
+                                 const base_tensor<W, 1, TagW> &weights,
+                                 bool replace) {
   return this->choice(population, make_shape(size), weights, replace);
 }
 
 template <class bit_generator>
 template <class T, size_t Rank, class Tag, class W, class TagW>
-tensor<T, Rank> Generator<bit_generator>::choice(
-    const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-    const base_tensor<W, 1, TagW> &weights, bool replace) {
+tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
+Generator<bit_generator>::choice(const base_tensor<T, 1, Tag> &population,
+                                 const shape_t<Rank> &size,
+                                 const base_tensor<W, 1, TagW> &weights,
+                                 bool replace) {
+  typedef typename base_tensor<T, 1, Tag>::value_type Rt;
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
   if (population.shape() != weights.shape()) {
-    char error[] = "population and weights must have the same size";
-    throw std::invalid_argument(error);
+    throw std::invalid_argument(
+        "population and weights must have the same size");
   }
   if (!replace && size.prod() > population.size()) {
-    char error[] = "cannot take a larger sample than population when"
-                   " replace=false";
-    throw std::invalid_argument(error);
+    throw std::invalid_argument(
+        "cannot take a larger sample than population when replace=false");
   }
-  tensor<T, Rank> out(size);
+  tensor<Rt, Rank> out(size);
   if (replace) {
     __sample_replacement(population.begin(), population.end(), weights.begin(),
                          out.data(), out.size());
@@ -302,19 +308,21 @@ inline tensor<T, 1> Generator<bit_generator>::permutation(T n) {
 
 template <class bit_generator>
 template <class T, size_t Rank, class Tag>
-inline tensor<T, 1>
+inline tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
 Generator<bit_generator>::permutation(const base_tensor<T, Rank, Tag> &arg) {
-  tensor<T, 1> out(arg.begin(), arg.size());
+  typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+  tensor<Rt, 1> out(arg.begin(), arg.size());
   std::shuffle(out.begin(), out.end(), m_rng);
   return out;
 }
 
 template <class bit_generator>
 template <class T, size_t Rank, class Tag>
-inline tensor<T, Rank>
+inline tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
 Generator<bit_generator>::permutation(const base_tensor<T, Rank, Tag> &arg,
                                       size_t axis) {
-  tensor<T, Rank> out(arg);
+  typedef typename base_tensor<T, Rank, Tag>::value_type Rt;
+  tensor<Rt, Rank> out(arg);
   this->shuffle(out, axis);
   return out;
 }
