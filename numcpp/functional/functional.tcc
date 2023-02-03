@@ -221,9 +221,8 @@ reduce_impl(InputIterator first, InputIterator last, Function f,
             std::false_type) {
   typedef typename std::iterator_traits<InputIterator>::value_type T;
   if (first == last) {
-    char error[] = "attempt to call reduce on an empty sequence with no "
-                   "identity";
-    throw std::invalid_argument(error);
+    throw std::invalid_argument(
+        "attempt to call reduce on an empty sequence with no identity");
   }
   T init = *first;
   ++first;

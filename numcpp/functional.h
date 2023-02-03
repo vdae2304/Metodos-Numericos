@@ -38,11 +38,11 @@ namespace numcpp {
  *            invoked.
  *
  * @return A light-weight object which stores the result of invoking the
- *         function on each element. This function does not create a new tensor
- *         object, instead, an expression object is returned. The returned
- *         object uses lazy-evaluation, which means that the function is called
- *         only when required, i.e., when the whole expression is evaluated or
- *         assigned to a tensor object.
+ *         function on each element. This function does not create a new tensor,
+ *         instead, an expression object is returned. The returned object uses
+ *         lazy-evaluation, which means that the function is called only when
+ *         required, i.e., when the whole expression is evaluated or assigned to
+ *         a tensor object.
  */
 template <class Function, class T, size_t Rank, class Tag>
 base_tensor<detail::result_of_t<Function, T>, Rank,
@@ -74,11 +74,11 @@ void apply(base_tensor<R, Rank, TagR> &out, Function &&f,
  *            are broadcasted to an appropriate shape.
  *
  * @return A light-weight object which stores the result of invoking the
- *         function on each element. This function does not create a new tensor
- *         object, instead, an expression object is returned. The returned
- *         object uses lazy-evaluation, which means that the function is called
- *         only when required, i.e., when the whole expression is evaluated or
- *         assigned to a tensor object.
+ *         function on each element. This function does not create a new tensor,
+ *         instead, an expression object is returned. The returned object uses
+ *         lazy-evaluation, which means that the function is called only when
+ *         required, i.e., when the whole expression is evaluated or assigned to
+ *         a tensor object.
  *
  * @throw std::invalid_argument Thrown if the shapes are not compatible and
  *                              cannot be broadcasted according to broadcasting
@@ -315,10 +315,10 @@ void accumulate(base_tensor<R, Rank, TagR> &out, Function &&f,
  *
  * @return A light-weight object which stores the result of invoking the
  *         function to all pairs of elements. This function does not create a
- *         new tensor object, instead, an expression object is returned. The
- *         returned object uses lazy-evaluation, which means that the function
- *         is called only when required, i.e., when the whole expression is
- *         evaluated or assigned to a tensor object.
+ *         new tensor, instead, an expression object is returned. The returned
+ *         object uses lazy-evaluation, which means that the function is called
+ *         only when required, i.e., when the whole expression is evaluated or
+ *         assigned to a tensor object.
  */
 template <class Function, class T, size_t M, class TagT, class U, size_t N,
           class TagU>
