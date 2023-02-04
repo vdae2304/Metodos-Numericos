@@ -233,7 +233,7 @@ operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape);
  *
  * @details The format for input extraction is a list of values separated by
  * commas and delimited by brackets:
- *     [arg_0, arg_1, arg_2, ... , arg_n]
+ *     [arg_1, arg_2, arg_3 ... , arg_n]
  * Each value in the list might be a list as well. However, the number of nested
  * lists must be equal to the dimension of the tensor to extract. If extraction
  * fails, an empty tensor is written and failbit flag is set.
