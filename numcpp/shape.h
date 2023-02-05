@@ -43,12 +43,14 @@ public:
   /// Constructors.
 
   /**
-   * @brief Default constructor. Set all sizes to zero.
+   * @brief Default constructor. Constructs a shape_t object with its elements
+   * initialized to zero.
    */
   shape_t();
 
   /**
-   * @brief Construct a new shape_t object from a list of sizes.
+   * @brief Initialization constructor. Initializes each element with the
+   * corresponding element in @a sizes.
    *
    * @param sizes... Size along each axis.
    */
@@ -57,7 +59,8 @@ public:
   shape_t(Sizes... sizes);
 
   /**
-   * @brief Copy constructor.
+   * @brief Copy constructor. The object is initialized with the contents of
+   * @a other.
    *
    * @param other A shape_t object with the same dimension to copy.
    */
@@ -221,16 +224,16 @@ shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
 shape_cat(const shape_t<Rank> &shape1, const Shapes &...shape2);
 
 /**
- * @brief Compares two shapes. Returns true if they have the same dimension and
- * the same size along each axis.
+ * @brief Compares if two shapes are equal. Returns true if they have the same
+ * dimension and the same size along each axis.
  */
 template <size_t Rank1, size_t Rank2>
 inline bool operator==(const shape_t<Rank1> &shape1,
                        const shape_t<Rank2> &shape2);
 
 /**
- * @brief Compares two shapes. Returns true if they have different dimensions or
- * if they have different sizes along one axis.
+ * @brief Compares if two shapes are not equal. Returns true if they have
+ *  different dimensions or if they have different sizes along an axis.
  */
 template <size_t Rank1, size_t Rank2>
 inline bool operator!=(const shape_t<Rank1> &shape1,
