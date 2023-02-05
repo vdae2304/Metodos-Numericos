@@ -36,10 +36,11 @@ namespace numcpp {
 template <class T, size_t Rank, class Tag> class base_tensor_iterator {
 public:
   /// Member types.
+  typedef base_tensor<T, Rank, Tag> container_type;
   typedef ptrdiff_t difference_type;
-  typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-  typedef typename base_tensor<T, Rank, Tag>::pointer pointer;
-  typedef typename base_tensor<T, Rank, Tag>::reference reference;
+  typedef typename container_type::value_type value_type;
+  typedef typename container_type::pointer pointer;
+  typedef typename container_type::reference reference;
   typedef std::random_access_iterator_tag iterator_category;
 
   /// Constructors.
@@ -58,7 +59,7 @@ public:
    * @param order Order in which elements are iterated. Defaults to row-major
    *              order.
    */
-  base_tensor_iterator(base_tensor<T, Rank, Tag> *ptr, size_t index = 0,
+  base_tensor_iterator(container_type *ptr, size_t index = 0,
                        layout_t order = default_layout)
       : m_ptr(ptr), m_index(index), m_order(order) {}
 
@@ -157,7 +158,7 @@ public:
   /**
    * @brief Accesses the underlying tensor.
    */
-  base_tensor<T, Rank, Tag> *base() const { return m_ptr; }
+  container_type *base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index.
@@ -178,7 +179,7 @@ public:
 
 private:
   // Pointer to the base_tensor associated to the iterator.
-  base_tensor<T, Rank, Tag> *m_ptr;
+  container_type *m_ptr;
 
   // Flat index associated to the iterator.
   size_t m_index;
@@ -265,10 +266,11 @@ inline bool operator>=(const base_tensor_iterator<T, Rank, Tag> &lhs,
 template <class T, size_t Rank, class Tag> class base_tensor_const_iterator {
 public:
   /// Member types.
+  typedef base_tensor<T, Rank, Tag> container_type;
   typedef ptrdiff_t difference_type;
-  typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-  typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
-  typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
+  typedef typename container_type::value_type value_type;
+  typedef typename container_type::const_pointer pointer;
+  typedef typename container_type::const_reference reference;
   typedef std::random_access_iterator_tag iterator_category;
 
   /// Constructors.
@@ -288,8 +290,8 @@ public:
    * @param order Order in which elements are iterated. Defaults to row-major
    *              order.
    */
-  base_tensor_const_iterator(const base_tensor<T, Rank, Tag> *ptr,
-                             size_t index = 0, layout_t order = default_layout)
+  base_tensor_const_iterator(const container_type *ptr, size_t index = 0,
+                             layout_t order = default_layout)
       : m_ptr(ptr), m_index(index), m_order(order) {}
 
   /**
@@ -399,7 +401,7 @@ public:
   /**
    * @brief Accesses the underlying tensor.
    */
-  const base_tensor<T, Rank, Tag> *base() const { return m_ptr; }
+  const container_type *base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index.
@@ -420,7 +422,7 @@ public:
 
 private:
   // Pointer to the base_tensor associated to the iterator.
-  const base_tensor<T, Rank, Tag> *m_ptr;
+  const container_type *m_ptr;
 
   // Flat index associated to the iterator.
   size_t m_index;

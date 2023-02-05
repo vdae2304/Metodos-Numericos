@@ -41,10 +41,11 @@ public:
   static_assert(N <= Rank, "Cannot fix more axes than the tensor dimension");
 
   /// Member types.
+  typedef base_tensor<T, Rank, Tag> container_type;
   typedef ptrdiff_t difference_type;
-  typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-  typedef typename base_tensor<T, Rank, Tag>::pointer pointer;
-  typedef typename base_tensor<T, Rank, Tag>::reference reference;
+  typedef typename container_type::value_type value_type;
+  typedef typename container_type::pointer pointer;
+  typedef typename container_type::reference reference;
   typedef std::random_access_iterator_tag iterator_category;
 
   /// Constructors.
@@ -62,8 +63,7 @@ public:
    * @param axes A shape_t object with the axes to iterate over.
    * @param flat Flat index over the iterated axes. Defaults to 0.
    */
-  base_tensor_axes_iterator(base_tensor<T, Rank, Tag> *ptr,
-                            const index_t<Rank> &indices,
+  base_tensor_axes_iterator(container_type *ptr, const index_t<Rank> &indices,
                             const shape_t<N> &axes, size_t flat = 0)
       : m_ptr(ptr), m_indices(indices), m_axes(axes), m_flat(flat) {}
 
@@ -164,7 +164,7 @@ public:
   /**
    * @brief Accesses the underlying tensor.
    */
-  base_tensor<T, Rank, Tag> *base() const { return m_ptr; }
+  container_type *base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index over the iterated axes.
@@ -194,7 +194,7 @@ public:
 
 private:
   // Pointer to the base_tensor associated to the iterator.
-  base_tensor<T, Rank, Tag> *m_ptr;
+  container_type *m_ptr;
 
   // Indices to fix.
   index_t<Rank> m_indices;
@@ -292,10 +292,11 @@ public:
   static_assert(N <= Rank, "Cannot fix more axes than the tensor dimension");
 
   /// Member types.
+  typedef base_tensor<T, Rank, Tag> container_type;
   typedef ptrdiff_t difference_type;
-  typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-  typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
-  typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
+  typedef typename container_type::value_type value_type;
+  typedef typename container_type::const_pointer pointer;
+  typedef typename container_type::const_reference reference;
   typedef std::random_access_iterator_tag iterator_category;
 
   /// Constructors.
@@ -314,7 +315,7 @@ public:
    * @param axes A shape_t object with the axes to iterate over.
    * @param flat Flat index over the iterated axes. Defaults to 0.
    */
-  base_tensor_const_axes_iterator(const base_tensor<T, Rank, Tag> *ptr,
+  base_tensor_const_axes_iterator(const container_type *ptr,
                                   const index_t<Rank> &indices,
                                   const shape_t<N> &axes, size_t flat = 0)
       : m_ptr(ptr), m_indices(indices), m_axes(axes), m_flat(flat) {}
@@ -431,7 +432,7 @@ public:
   /**
    * @brief Accesses the underlying tensor.
    */
-  const base_tensor<T, Rank, Tag> *base() const { return m_ptr; }
+  const container_type *base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index over the iterated axes.
@@ -461,7 +462,7 @@ public:
 
 private:
   // Pointer to the base_tensor associated to the iterator.
-  const base_tensor<T, Rank, Tag> *m_ptr;
+  const container_type *m_ptr;
 
   // Indices to fix.
   index_t<Rank> m_indices;
