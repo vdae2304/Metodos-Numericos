@@ -27,7 +27,7 @@
 
 namespace numcpp {
 /**
- * @brief A forward iterator to index tensors.
+ * @brief An index_sequence is a class that identifies the indices of a tensor.
  *
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
@@ -35,15 +35,13 @@ template <size_t Rank> class index_sequence {
 public:
   /// Member types.
   typedef index_t<Rank> value_type;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
 
   class iterator {
   public:
     /// Member types.
     typedef ptrdiff_t difference_type;
     typedef index_t<Rank> value_type;
-    typedef nullptr_t pointer;
+    typedef void pointer;
     typedef index_t<Rank> reference;
     typedef std::forward_iterator_tag iterator_category;
 
@@ -136,12 +134,12 @@ public:
       : m_shape(shape), m_size(shape.prod()) {}
 
   /**
-   * @brief Return an iterator to the first index.
+   * @brief Return a forward iterator to the first index.
    */
   iterator begin() const { return iterator(m_shape, 0); }
 
   /**
-   * @brief Return an iterator to the past the end index.
+   * @brief Return a forward iterator to the past the end index.
    */
   iterator end() const { return iterator(m_shape, m_size); }
 
@@ -149,8 +147,8 @@ public:
    * @brief Return the number of elements along each axis.
    *
    * @param axis It is an optional parameter that changes the return value. If
-   *     provided, returns the size along the given axis. Otherwise, returns a
-   *     shape_t object with the shape along all axes.
+   *             provided, returns the size along the given axis. Otherwise,
+   *             returns a shape_t object with the shape along all axes.
    */
   const shape_t<Rank> &shape() const { return m_shape; }
 
@@ -170,7 +168,8 @@ private:
 };
 
 /**
- * @brief A forward iterator to index tensors.
+ * @brief Create an index_sequence object deducing its dimension from the number
+ * of arguments.
  *
  * @param shape Number of elements along each axis. It can be a shape_t object
  *              or the elements of the shape passed as separate arguments.

@@ -113,7 +113,7 @@ template <class T, size_t Rank, class Tag> class complex_interface;
 /// Iterators.
 
 /**
- * @brief An n-dimensional iterator to index tensors.
+ * @brief An index_sequence is a class that identifies the indices of a tensor.
  */
 template <size_t Rank> class index_sequence;
 
