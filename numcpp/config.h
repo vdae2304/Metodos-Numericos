@@ -194,17 +194,35 @@ struct lazy_outer_tag;
 
 /// Namespace for implementation details.
 namespace detail {
+#if __cplusplus < 201703L
 /**
- * @brief Checks whether a parameter pack consists of integers only.
+ * @brief Variadic logical AND.
  */
-template <class... T> struct are_integral;
+template <class... Bn> struct conjunction;
 
-template <class T> struct are_integral<T> : std::is_integral<T> {};
+template <> struct conjunction<> : std::true_type {};
 
-template <class T, class... Ts>
-struct are_integral<T, Ts...>
-    : std::integral_constant<bool, std::is_integral<T>::value &&
-                                       are_integral<Ts...>::value> {};
+template <class B1> struct conjunction<B1> : B1 {};
+
+template <class B1, class... Bn>
+struct conjunction<B1, Bn...>
+    : std::conditional<B1::value, conjunction<Bn...>, B1> {};
+
+/**
+ * @brief Variadic logical OR.
+ */
+template <class... Bn> struct disjunction;
+
+template <> struct disjunction<> : std::false_type {};
+
+template <class B1> struct disjunction<B1> : B1 {};
+
+template <class B1, class... Bn>
+    : std::conditional<B1::value, B1, disjunction<Bn...>> {}
+#else
+using std::conjunction;
+using std::disjunction;
+#endif
 
 /**
  * @brief Type traits for complex types.
@@ -300,7 +318,14 @@ using RequiresNArguments =
 /// Type constraint to request integer arguments.
 template <class... T>
 using RequiresIntegral =
-    typename std::enable_if<are_integral<T...>::value, int>::type;
+    typename std::enable_if<conjunction<std::is_integral<T>...>::value,
+                            int>::type;
+
+/// Type constraint to request at least one slice argument.
+template <class... Indices>
+using RequiresSlicing =
+    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
+                            int>::type;
 
 /// Type constraint to request input iterator.
 template <class Iterator>
@@ -309,11 +334,6 @@ using RequiresInputIterator = typename std::enable_if<
         typename std::iterator_traits<Iterator>::iterator_category,
         std::input_iterator_tag>::value,
     int>::type;
-
-/// Type constraint to request at least one slice argument.
-template <class... Indices>
-using RequiresSlicing =
-    typename std::enable_if<(slicing_rank<Indices...>::value > 0), int>::type;
 
 /// Type constraint to request callable type.
 template <class F, class... Args>
