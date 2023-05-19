@@ -233,7 +233,7 @@ inline bool operator==(const shape_t<Rank1> &shape1,
 
 /**
  * @brief Compares if two shapes are not equal. Returns true if they have
- *  different dimensions or if they have different sizes along an axis.
+ * different dimensions or if they have different sizes along an axis.
  */
 template <size_t Rank1, size_t Rank2>
 inline bool operator!=(const shape_t<Rank1> &shape1,
