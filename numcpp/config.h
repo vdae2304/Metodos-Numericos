@@ -89,7 +89,7 @@ enum layout_t {
  */
 class slice;
 
-/// Interfaces.
+/// Base class.
 
 /**
  * @brief Base class for all expressions and tensors. All subclasses inherits
@@ -157,11 +157,6 @@ public:
  * tensor_view and indirect_tensor.
  */
 template <class Container, class T, size_t Rank> class dense_tensor;
-
-/**
- * @brief Base tensor class.
- */
-template <class T, size_t Rank, class Tag> class base_tensor;
 
 /// Iterators.
 
