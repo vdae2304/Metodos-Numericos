@@ -41,8 +41,6 @@ public:
     /// Member types.
     typedef ptrdiff_t difference_type;
     typedef index_t<Rank> value_type;
-    typedef void pointer;
-    typedef index_t<Rank> reference;
     typedef std::forward_iterator_tag iterator_category;
 
     /// Constructors.
@@ -173,7 +171,7 @@ private:
  *
  * @param shape Number of elements along each axis. It can be a shape_t object
  *              or the elements of the shape passed as separate arguments.
- * @param arg A tensor-like object to iterate over its indices.
+ * @param a A tensor-like object to iterate over its indices.
  *
  * @return An index_sequence object which iterates over the indices of a tensor.
  *         At each iteration, a new index is returned. The elements are iterated
@@ -189,10 +187,10 @@ inline index_sequence<Rank> make_index_sequence(const shape_t<Rank> &shape) {
   return index_sequence<Rank>(shape);
 }
 
-template <class T, size_t Rank, class Tag>
+template <class Container, class T, size_t Rank>
 inline index_sequence<Rank>
-make_index_sequence_for(const base_tensor<T, Rank, Tag> &arg) {
-  return index_sequence<Rank>(arg.shape());
+make_index_sequence_for(const expression<Container, T, Rank> &a) {
+  return index_sequence<Rank>(a.shape());
 }
 } // namespace numcpp
 
