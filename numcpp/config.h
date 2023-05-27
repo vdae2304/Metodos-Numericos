@@ -92,23 +92,76 @@ class slice;
 /// Interfaces.
 
 /**
+ * @brief Base class for all expressions and tensors. All subclasses inherits
+ * from this class.
+ *
+ * @tparam Container Tensor subclass.
+ * @tparam T Type of the elements contained in the tensor.
+ * @tparam Rank Dimension of the tensor. It must be a positive integer.
+ */
+template <class Container, class T, size_t Rank> class expression {
+public:
+  /**
+   * @brief Return the element at the given position.
+   */
+  T operator[](const index_t<Rank> &index) const {
+    return static_cast<const Container &>(*this)[index];
+  }
+
+  /**
+   * @brief Return the dimension of the tensor.
+   */
+  static constexpr size_t ndim() { return Rank; }
+
+  /**
+   * @brief Return the shape of the tensor.
+   *
+   * @param axis It is an optional parameter that changes the return value. If
+   *             provided, returns the size along the given axis. Otherwise,
+   *             returns a shape_t object with the shape of the tensor along all
+   *             axes.
+   */
+  shape_t<Rank> shape() const {
+    return static_cast<const Container &>(*this).shape();
+  }
+
+  size_t shape(size_t axis) const {
+    return static_cast<const Container &>(*this).shape(axis);
+  }
+
+  /**
+   * @brief Return the number of elements in the tensor (i.e., the product of
+   * the sizes along all the axes).
+   */
+  size_t size() const { return static_cast<const Container &>(*this).size(); }
+
+  /**
+   * @brief Return the memory layout in which elements are stored.
+   */
+  layout_t layout() const {
+    return static_cast<const Container &>(*this).layout();
+  }
+
+  /**
+   * @brief Return the derived subclass.
+   */
+  Container &self() { return static_cast<Container &>(*this); }
+
+  const Container &self() const {
+    return static_cast<const Container &>(*this);
+  }
+};
+
+/**
+ * @brief Base class for non-expression dense tensors such as tensor,
+ * tensor_view and indirect_tensor.
+ */
+template <class Container, class T, size_t Rank> class dense_tensor;
+
+/**
  * @brief Base tensor class.
  */
 template <class T, size_t Rank, class Tag> class base_tensor;
-
-/**
- * @brief A tensor_interface is a generic interface for tensor subclasses. It
- * implements an assortment of methods which will be inherited to all the
- * subclasses.
- */
-template <class T, size_t Rank, class Tag> class tensor_interface;
-
-/**
- * @brief A complex_interface is an interface with additional methods for
- * complex-valued tensor subclasses. It can be used in conjunction with
- * tensor_interface.
- */
-template <class T, size_t Rank, class Tag> class complex_interface;
 
 /// Iterators.
 
@@ -118,79 +171,40 @@ template <class T, size_t Rank, class Tag> class complex_interface;
 template <size_t Rank> class index_sequence;
 
 /**
- * @brief A generic random access iterator for base_tensor class.
+ * @brief A generic random access iterator for tensor subclasses.
  */
-template <class T, size_t Rank, class Tag> class base_tensor_iterator;
+template <class Container, class T, size_t Rank, class Pointer, class Reference>
+class flat_iterator;
 
 /**
- * @brief A generic random access iterator for const-qualified base_tensor
- * class.
+ * @brief A random access iterator for tensor subclasses obtained by fixing
+ * some of the axes and iterating over the remaining axes.
  */
-template <class T, size_t Rank, class Tag> class base_tensor_const_iterator;
-
-/**
- * @brief A random access iterator for base_tensor class obtained by fixing some
- * axes and iterating over the remaining axes.
- */
-template <class T, size_t Rank, class Tag, size_t N>
-class base_tensor_axes_iterator;
-
-/**
- * @brief A random access iterator for const-qualified base_tensor class
- * obtained by fixing some axes and iterating over the remaining axes.
- */
-template <class T, size_t Rank, class Tag, size_t N>
-class base_tensor_const_axes_iterator;
+template <class Container, class T, size_t Rank, size_t N, class Pointer,
+          class Reference>
+class axes_iterator;
 
 /// Subclases.
-
-struct scalar_tag;
-struct tensor_tag;
-struct view_tag;
-struct indirect_tag;
 
 /**
  * @brief Tensors are contiguous multidimensional sequence containers: they hold
  * a variable number of elements arranged in multiple axis.
  */
-template <class T, size_t Rank> using tensor = base_tensor<T, Rank, tensor_tag>;
+template <class T, size_t Rank> class tensor;
 
 /**
  * @brief A tensor_view is just a view of a multidimensional array. It
  * references the elements in the original array. The view itself does not own
  * the data.
  */
-template <class T, size_t Rank>
-using tensor_view = base_tensor<T, Rank, view_tag>;
+template <class T, size_t Rank> class tensor_view;
 
 /**
  * @brief An indirect_tensor is a view of a subset of elements from a
  * multidimensional array. It references the elements in the original array
  * through an array of indices.
  */
-template <class T, size_t Rank>
-using indirect_tensor = base_tensor<T, Rank, indirect_tag>;
-
-/**
- * @brief A light-weight object which stores the result of applying an unary
- * function to each element in a tensor object.
- */
-template <class Function, class T, class Tag> struct lazy_unary_tag;
-
-/**
- * @brief A light-weight object which stores the result of applying a binary
- * function to each element in two tensor objects.
- */
-template <class Function, class T, class TagT, class U, class TagU>
-struct lazy_binary_tag;
-
-/**
- * @brief A light-weight object which stores the result of applying a binary
- * function to all pairs of elements from two tensors.
- */
-template <class Function, class T, size_t M, class TagT, class U, size_t N,
-          class TagU>
-struct lazy_outer_tag;
+template <class T, size_t Rank> class indirect_tensor;
 
 /// Namespace for implementation details.
 namespace detail {
