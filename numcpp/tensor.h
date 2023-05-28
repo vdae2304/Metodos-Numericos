@@ -29,10 +29,8 @@ standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
 compiler options.
 #else
 
-#include "numcpp/shape.h"
-#include "numcpp/slice.h"
-
-#include "numcpp/iterators/flat_iterator.h"
+#include "numcpp/tensor/shape.h"
+#include "numcpp/tensor/slice.h"
 #include "numcpp/functional/lazy_expression.h"
 #include "numcpp/tensor/dense_tensor.h"
 #include "numcpp/tensor/tensor_view.h"
@@ -62,6 +60,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank>,
 public:
   /// Member types.
   typedef T value_type;
+  static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
   typedef T *pointer;
@@ -336,11 +335,6 @@ public:
 
   template <class Container>
   tensor<T, 1> operator[](const expression<Container, bool, Rank> &mask) const;
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim();
 
   /**
    * @brief Return the shape of the tensor.

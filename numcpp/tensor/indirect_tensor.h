@@ -45,6 +45,7 @@ class indirect_tensor
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;
+  static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
   typedef T *pointer;
@@ -196,11 +197,6 @@ public:
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
             detail::RequiresIntegral<Indices...> = 0>
   size_type &iat(Indices... indices) const;
-
-  /**
-   * @brief Return the dimension of the indirect_tensor.
-   */
-  static constexpr size_type ndim();
 
   /**
    * @brief Return the shape of the indirect_tensor.

@@ -397,10 +397,6 @@ tensor<T, 1> tensor<T, Rank>::operator[](
   return subarray;
 }
 
-template <class T, size_t Rank> constexpr size_t tensor<T, Rank>::ndim() {
-  return Rank;
-}
-
 template <class T, size_t Rank>
 inline const shape_t<Rank> &tensor<T, Rank>::shape() const {
   return m_shape;

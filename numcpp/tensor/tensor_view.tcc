@@ -131,10 +131,6 @@ inline const T &tensor_view<T, Rank>::operator[](Indices... indices) const {
 }
 #endif // C++23
 
-template <class T, size_t Rank> constexpr size_t tensor_view<T, Rank>::ndim() {
-  return Rank;
-}
-
 template <class T, size_t Rank>
 inline const shape_t<Rank> &tensor_view<T, Rank>::shape() const {
   return m_shape;

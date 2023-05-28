@@ -158,11 +158,6 @@ inline size_t &indirect_tensor<T, Rank>::iat(Indices... indices) const {
 }
 
 template <class T, size_t Rank>
-constexpr size_t indirect_tensor<T, Rank>::ndim() {
-  return Rank;
-}
-
-template <class T, size_t Rank>
 inline const shape_t<Rank> &indirect_tensor<T, Rank>::shape() const {
   return m_shape;
 }

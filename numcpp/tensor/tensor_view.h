@@ -44,6 +44,7 @@ class tensor_view
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;
+  static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
   typedef T *pointer;
@@ -166,11 +167,6 @@ public:
             detail::RequiresIntegral<Indices...> = 0>
   const T &operator[](Indices... indices) const;
 #endif // C++23
-
-  /**
-   * @brief Return the dimension of the tensor_view.
-   */
-  static constexpr size_type ndim();
 
   /**
    * @brief Return the shape of the tensor_view.

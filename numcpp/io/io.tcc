@@ -610,14 +610,14 @@ operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape) {
   bool fail = true;
   if (istr >> ch) {
     if (traits::eq(ch, istr.widen('('))) {
-      for (size_t i = 0; i < shape.ndim(); ++i) {
+      for (size_t i = 0; i < Rank; ++i) {
         if (istr >> shape[i] >> ch) {
           if (traits::eq(ch, istr.widen(','))) {
-            if (i < shape.ndim() - 1) {
+            if (i < Rank - 1) {
               continue;
             }
           } else if (traits::eq(ch, istr.widen(')'))) {
-            if (i == shape.ndim() - 1) {
+            if (i == Rank - 1) {
               fail = false;
               break;
             }
@@ -678,7 +678,7 @@ operator<<(std::basic_ostream<charT, traits> &ostr,
   sstr.flags(ostr.flags());
   sstr.imbue(ostr.getloc());
   sstr << "(" << shape[0];
-  for (size_t i = 1; i < shape.ndim(); ++i) {
+  for (size_t i = 1; i < Rank; ++i) {
     sstr << ", " << shape[i];
   }
   sstr << ")";
@@ -864,7 +864,7 @@ bool input_block(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
 template <class charT, class traits, class T, size_t Rank>
 bool input_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
                   std::vector<T> &buffer, size_t axis) {
-  if (axis == shape.ndim() - 1) {
+  if (axis == Rank - 1) {
     return input_list(istr, shape[axis], buffer);
   } else {
     return input_block(istr, shape, buffer, axis);
@@ -1005,14 +1005,14 @@ void print_block(std::basic_ostream<charT, traits> &ostr,
     if (size >= threshold && size > 2 * edgeitems && edgeitems <= index[axis] &&
         index[axis] < size - edgeitems) {
       delim = "...,";
-      delim.append(arg.ndim() - axis - 1, '\n');
+      delim.append(Rank - axis - 1, '\n');
       delim.append(axis + 1, ' ');
       index[axis] = size - edgeitems;
       continue;
     }
     print_tensor(ostr, arg, index, axis + 1, width);
     delim = ",";
-    delim.append(arg.ndim() - axis - 1, '\n');
+    delim.append(Rank - axis - 1, '\n');
     delim.append(axis + 1, ' ');
     ++index[axis];
   }
@@ -1036,7 +1036,7 @@ size_t get_print_width(std::basic_ostream<charT, traits> &ostr,
       index[axis] = size - edgeitems;
       continue;
     }
-    if (axis == arg.ndim() - 1) {
+    if (axis == Rank - 1) {
       std::basic_ostringstream<charT, traits> buffer;
       buffer.flags(ostr.flags());
       buffer.imbue(ostr.getloc());
@@ -1057,7 +1057,7 @@ void print_tensor(std::basic_ostream<charT, traits> &ostr,
                   const expression<Container, T, Rank> &arg,
                   index_t<Rank> &index, size_t axis, size_t width) {
   ostr << "[";
-  if (axis == arg.ndim() - 1) {
+  if (axis == Rank - 1) {
     print_slice(ostr, arg, index, axis, width);
   } else {
     print_block(ostr, arg, index, axis, width);
