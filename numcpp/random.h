@@ -38,10 +38,11 @@ namespace numcpp {
  *                       @c std::default_random_engine and
  *                       @c std::random_device.
  *
- * See @link
- * https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator
- * @endlink and @link
- * https://en.cppreference.com/w/cpp/named_req/RandomNumberEngine @endlink
+ * @cite For more details, see
+ * [Uniform Random Bit Generator]
+ * (https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator)
+ * [Random Number Engine]
+ * (https://en.cppreference.com/w/cpp/named_req/RandomNumberEngine)
  */
 template <class bit_generator> class Generator {
 public:
@@ -149,14 +150,12 @@ public:
    *                              @a population and @a weights have different
    *                              sizes.
    */
-  template <class T, class Tag>
-  typename base_tensor<T, 1, Tag>::value_type
-  choice(const base_tensor<T, 1, Tag> &population);
+  template <class Container, class T>
+  T choice(const expression<Container, T, 1> &population);
 
-  template <class T, class Tag, class W, class TagW>
-  typename base_tensor<T, 1, Tag>::value_type
-  choice(const base_tensor<T, 1, Tag> &population,
-         const base_tensor<W, 1, TagW> &weights);
+  template <class Container1, class T, class Container2, class W>
+  T choice(const expression<Container1, T, 1> &population,
+           const expression<Container2, W, 1> &weights);
 
   /**
    * @brief Generates a random sample from a given sequence.
@@ -181,37 +180,37 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T, class Tag>
-  tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
-  choice(const base_tensor<T, 1, Tag> &population, size_t size,
-         bool replace = true, bool shuffle = true);
+  template <class Container, class T>
+  tensor<T, 1> choice(const expression<Container, T, 1> &population,
+                      size_t size, bool replace = true, bool shuffle = true);
 
-  template <class T, size_t Rank, class Tag>
-  tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
-  choice(const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-         bool replace = true, bool shuffle = true);
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> choice(const expression<Container, T, 1> &population,
+                         const shape_t<Rank> &size, bool replace = true,
+                         bool shuffle = true);
 
-  template <class T, class Tag, class W, class TagW>
-  tensor<typename base_tensor<T, 1, Tag>::value_type, 1>
-  choice(const base_tensor<T, 1, Tag> &population, size_t size,
-         const base_tensor<W, 1, TagW> &weights, bool replace = true);
+  template <class Container1, class T, class Container2, class W>
+  tensor<T, 1> choice(const expression<Container1, T, 1> &population,
+                      size_t size, const expression<Container2, W, 1> &weights,
+                      bool replace = true);
 
-  template <class T, size_t Rank, class Tag, class W, class TagW>
-  tensor<typename base_tensor<T, 1, Tag>::value_type, Rank>
-  choice(const base_tensor<T, 1, Tag> &population, const shape_t<Rank> &size,
-         const base_tensor<W, 1, TagW> &weights, bool replace = true);
+  template <class Container1, class T, size_t Rank, class Container2, class W>
+  tensor<T, Rank> choice(const expression<Container1, T, 1> &population,
+                         const shape_t<Rank> &size,
+                         const expression<Container2, W, 1> &weights,
+                         bool replace = true);
 
   /// Permutations.
 
   /**
    * @brief Modify a tensor in-place by shuffling its contents.
    *
-   * @param arg The tensor to be shuffled.
+   * @param a The tensor to be shuffled.
    * @param axis Axis along which to shuffle. Defaults to Rank - 1, which means
    *             shuffle along the last axis.
    */
-  template <class T, size_t Rank, class Tag>
-  void shuffle(base_tensor<T, Rank, Tag> &arg, size_t axis = Rank - 1);
+  template <class Container, class T, size_t Rank>
+  void shuffle(dense_tensor<Container, T, Rank> &a, size_t axis = Rank - 1);
 
   /**
    * @brief Return a permuted range.
@@ -223,12 +222,13 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> permutation(T n);
+  template <class T, detail::RequiresIntegral<T> = 0>
+  tensor<T, 1> permutation(T n);
 
   /**
    * @brief Randomly permute a tensor.
    *
-   * @param arg Make a copy of the tensor and shuffle the elements randomly.
+   * @param a Make a copy of the tensor and shuffle the elements randomly.
    * @param axis Axis along which to permute. If not provided, the flattened
    *             tensor is used.
    *
@@ -237,13 +237,12 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T, size_t Rank, class Tag>
-  tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-  permutation(const base_tensor<T, Rank, Tag> &arg);
+  template <class Container, class T, size_t Rank>
+  tensor<T, 1> permutation(const expression<Container, T, Rank> &a);
 
-  template <class T, size_t Rank, class Tag>
-  tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-  permutation(const base_tensor<T, Rank, Tag> &arg, size_t axis);
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> permutation(const expression<Container, T, Rank> &a,
+                              size_t axis);
 
   /// Distributions.
 
