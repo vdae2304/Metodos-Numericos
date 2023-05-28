@@ -20,8 +20,8 @@
 
 // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_TENSOR_ITERATOR_H_INCLUDED
-#define NUMCPP_TENSOR_ITERATOR_H_INCLUDED
+#ifndef NUMCPP_FLAT_ITERATOR_H_INCLUDED
+#define NUMCPP_FLAT_ITERATOR_H_INCLUDED
 
 #include <iterator>
 
@@ -270,4 +270,4 @@ operator>=(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
 }
 } // namespace numcpp
 
-#endif // NUMCPP_TENSOR_ITERATOR_H_INCLUDED
+#endif // NUMCPP_FLAT_ITERATOR_H_INCLUDED
