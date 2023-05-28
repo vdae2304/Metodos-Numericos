@@ -32,38 +32,38 @@ namespace numcpp {
 /// Constructors.
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor()
+tensor_view<T, Rank>::tensor_view()
     : m_data(NULL), m_shape(), m_size(0), m_offset(0), m_stride(),
       m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor_view<T, Rank>::base_tensor(T *data, Sizes... sizes)
+tensor_view<T, Rank>::tensor_view(T *data, Sizes... sizes)
     : m_data(data), m_shape(sizes...), m_size(m_shape.prod()), m_offset(0),
       m_stride(make_strides(m_shape)), m_order(default_layout) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(T *data, const shape_type &shape,
+tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(0),
       m_stride(make_strides(shape, order)), m_order(order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(T *data, const shape_type &shape,
+tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   difference_type offset,
                                   const shape_type &strides, layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(offset),
       m_stride(strides), m_order(order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(const base_tensor &other)
+tensor_view<T, Rank>::tensor_view(const tensor_view &other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_offset(other.m_offset), m_stride(other.m_stride),
       m_order(other.m_order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(base_tensor &&other)
+tensor_view<T, Rank>::tensor_view(tensor_view &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_offset(other.m_offset), m_stride(other.m_stride),
       m_order(other.m_order) {
@@ -77,7 +77,7 @@ tensor_view<T, Rank>::base_tensor(base_tensor &&other)
 
 /// Destructor.
 
-template <class T, size_t Rank> tensor_view<T, Rank>::~base_tensor() {}
+template <class T, size_t Rank> tensor_view<T, Rank>::~tensor_view() {}
 
 /// Indexing.
 
@@ -193,7 +193,7 @@ inline bool tensor_view<T, Rank>::is_contiguous() const {
 
 template <class T, size_t Rank>
 tensor_view<T, Rank> &
-tensor_view<T, Rank>::operator=(const base_tensor &other) {
+tensor_view<T, Rank>::operator=(const tensor_view &other) {
   if (this->shape() != other.shape()) {
     std::ostringstream error;
     error << "input shape " << other.shape()
@@ -205,17 +205,17 @@ tensor_view<T, Rank>::operator=(const base_tensor &other) {
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
+template <class Container, class U>
 tensor_view<T, Rank> &
-tensor_view<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
+tensor_view<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
   if (this->shape() != other.shape()) {
     std::ostringstream error;
     error << "input shape " << other.shape()
           << " doesn't match the output shape " << this->shape();
     throw std::invalid_argument(error.str());
   }
-  std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                 cast_to<U, T>());
+  std::transform(other.self().begin(m_order), other.self().end(m_order),
+                 this->begin(), cast_to<U, T>());
   return *this;
 }
 
@@ -226,7 +226,7 @@ tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(const T &val) {
 }
 
 template <class T, size_t Rank>
-tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(base_tensor &&other) {
+tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(tensor_view &&other) {
   if (this != &other) {
     m_data = other.m_data;
     m_shape = other.m_shape;

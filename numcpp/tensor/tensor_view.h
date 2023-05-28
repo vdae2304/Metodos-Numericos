@@ -36,9 +36,11 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor_view. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class base_tensor<T, Rank, view_tag>
-    : public tensor_interface<T, Rank, view_tag>,
-      public complex_interface<T, Rank, view_tag> {
+class tensor_view
+    : public dense_tensor<tensor_view<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank>,
+      public complex_expr<tensor_view<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;
@@ -57,7 +59,7 @@ public:
    * @brief Default constructor. Constructs a tensor_view that does not
    * reference any object.
    */
-  base_tensor();
+  tensor_view();
 
   /**
    * @brief View constructor. Constructs a tensor_view that references the
@@ -73,9 +75,9 @@ public:
    */
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  base_tensor(T *data, Sizes... sizes);
+  tensor_view(T *data, Sizes... sizes);
 
-  base_tensor(T *data, const shape_type &shape,
+  tensor_view(T *data, const shape_type &shape,
               layout_t order = default_layout);
 
   /**
@@ -92,7 +94,7 @@ public:
    *              the first index is varying the fastest. Defaults to row-major
    *              order.
    */
-  base_tensor(T *data, const shape_type &shape, difference_type offset,
+  tensor_view(T *data, const shape_type &shape, difference_type offset,
               const shape_type &strides, layout_t order = default_layout);
 
   /**
@@ -100,7 +102,7 @@ public:
    *
    * @param other A tensor_view of the same type and rank.
    */
-  base_tensor(const base_tensor &other);
+  tensor_view(const tensor_view &other);
 
   /**
    * @brief Move constructor. Constructs a tensor_view that acquires the
@@ -109,10 +111,10 @@ public:
    * @param other A tensor_view of the same type and rank. @a other is left in
    *              an empty state.
    */
-  base_tensor(base_tensor &&other);
+  tensor_view(tensor_view &&other);
 
   /// Destructor.
-  ~base_tensor();
+  ~tensor_view();
 
   /// Indexing.
 
@@ -245,9 +247,9 @@ public:
    *
    * @throw std::invalid_argument Thrown if the shapes are different.
    */
-  base_tensor &operator=(const base_tensor &other);
-  template <class U, class Tag>
-  base_tensor &operator=(const base_tensor<U, Rank, Tag> &other);
+  tensor_view &operator=(const tensor_view &other);
+  template <class Container, class U>
+  tensor_view &operator=(const expression<Container, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.
@@ -256,7 +258,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(const T &val);
+  tensor_view &operator=(const T &val);
 
   /**
    * @brief Move assignment. Acquires the contents of @a other, leaving @a other
@@ -267,7 +269,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(base_tensor &&other);
+  tensor_view &operator=(tensor_view &&other);
 
   /// Public methods.
 

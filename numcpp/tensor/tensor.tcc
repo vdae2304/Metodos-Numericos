@@ -32,26 +32,25 @@ namespace numcpp {
 /// Constructors.
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor()
+tensor<T, Rank>::tensor()
     : m_data(NULL), m_shape(), m_size(0), m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor<T, Rank>::base_tensor(Sizes... sizes)
+tensor<T, Rank>::tensor(Sizes... sizes)
     : m_shape(sizes...), m_size(m_shape.prod()), m_order(default_layout) {
   m_data = new T[m_size];
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const shape_type &shape, layout_t order)
+tensor<T, Rank>::tensor(const shape_type &shape, layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const shape_type &shape, const T &val,
-                             layout_t order)
+tensor<T, Rank>::tensor(const shape_type &shape, const T &val, layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
   std::fill_n(m_data, m_size, val);
@@ -62,7 +61,7 @@ template <class InputIterator, class... Sizes,
           detail::RequiresInputIterator<InputIterator>,
           detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor<T, Rank>::base_tensor(InputIterator first, Sizes... sizes)
+tensor<T, Rank>::tensor(InputIterator first, Sizes... sizes)
     : m_shape(sizes...), m_size(m_shape.prod()), m_order(default_layout) {
   m_data = new T[m_size];
   std::copy_n(first, m_size, m_data);
@@ -70,47 +69,41 @@ tensor<T, Rank>::base_tensor(InputIterator first, Sizes... sizes)
 
 template <class T, size_t Rank>
 template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
-tensor<T, Rank>::base_tensor(InputIterator first, const shape_type &shape,
-                             layout_t order)
+tensor<T, Rank>::tensor(InputIterator first, const shape_type &shape,
+                        layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
   std::copy_n(first, m_size, m_data);
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const base_tensor &other)
+tensor<T, Rank>::tensor(const tensor &other)
     : m_shape(other.m_shape), m_size(other.m_size), m_order(other.m_order) {
   m_data = new T[m_size];
   std::copy_n(other.m_data, m_size, m_data);
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const base_tensor &other, layout_t order)
-    : m_shape(other.m_shape), m_size(other.m_size), m_order(order) {
-  m_data = new T[m_size];
-  std::copy_n(other.begin(m_order), m_size, m_data);
-}
-
-template <class T, size_t Rank>
-template <class U, class Tag>
-tensor<T, Rank>::base_tensor(const base_tensor<U, Rank, Tag> &other)
+template <class Container, class U>
+tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other)
     : m_shape(other.shape()), m_size(other.size()), m_order(other.layout()) {
   m_data = new T[m_size];
-  std::transform(other.begin(), other.end(), m_data, cast_to<U, T>());
-}
-
-template <class T, size_t Rank>
-template <class U, class Tag>
-tensor<T, Rank>::base_tensor(const base_tensor<U, Rank, Tag> &other,
-                             layout_t order)
-    : m_shape(other.shape()), m_size(other.size()), m_order(order) {
-  m_data = new T[m_size];
-  std::transform(other.begin(m_order), other.end(m_order), m_data,
+  std::transform(other.self().begin(), other.self().end(), m_data,
                  cast_to<U, T>());
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(base_tensor &&other)
+template <class Container, class U>
+tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other,
+                        layout_t order)
+    : m_shape(other.shape()), m_size(other.size()), m_order(order) {
+  m_data = new T[m_size];
+  std::transform(other.self().begin(order), other.self().end(order), m_data,
+                 cast_to<U, T>());
+}
+
+template <class T, size_t Rank>
+tensor<T, Rank>::tensor(tensor &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_order(other.m_order) {
   other.m_data = NULL;
@@ -163,7 +156,7 @@ tensor<T, Rank>::__fill_from_initializer_list(
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(detail::nested_initializer_list_t<T, Rank> il)
+tensor<T, Rank>::tensor(detail::nested_initializer_list_t<T, Rank> il)
     : m_shape(), m_size(0), m_order(row_major) {
   __initializer_list_shape<Rank>(m_shape, il);
   m_size = m_shape.prod();
@@ -174,9 +167,7 @@ tensor<T, Rank>::base_tensor(detail::nested_initializer_list_t<T, Rank> il)
 
 /// Destructor.
 
-template <class T, size_t Rank> tensor<T, Rank>::~base_tensor() {
-  delete[] m_data;
-}
+template <class T, size_t Rank> tensor<T, Rank>::~tensor() { delete[] m_data; }
 
 /// Indexing.
 
@@ -313,9 +304,9 @@ tensor<T, Rank>::operator[](Indices... indices) const {
 #endif // C++23
 
 template <class T, size_t Rank>
-template <size_t N, class Tag>
-indirect_tensor<T, N>
-tensor<T, Rank>::operator[](const base_tensor<index_type, N, Tag> &indices) {
+template <class Container, size_t N>
+indirect_tensor<T, N> tensor<T, Rank>::operator[](
+    const expression<Container, index_type, N> &indices) {
   indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -325,9 +316,9 @@ tensor<T, Rank>::operator[](const base_tensor<index_type, N, Tag> &indices) {
 }
 
 template <class T, size_t Rank>
-template <size_t N, class Tag>
+template <class Container, size_t N>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const base_tensor<index_type, N, Tag> &indices) const {
+    const expression<Container, index_type, N> &indices) const {
   tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -337,12 +328,12 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class IntegralType, size_t N, class Tag,
+template <class Container, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
-indirect_tensor<T, N>
-tensor<T, Rank>::operator[](const base_tensor<IntegralType, N, Tag> &indices) {
+indirect_tensor<T, N> tensor<T, Rank>::operator[](
+    const expression<Container, IntegralType, N> &indices) {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
-  indirect_tensor<T, N> subarray(m_data, indices.shape());
+  indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_size, indices[i]);
     subarray.iat(i) = indices[i];
@@ -351,12 +342,12 @@ tensor<T, Rank>::operator[](const base_tensor<IntegralType, N, Tag> &indices) {
 }
 
 template <class T, size_t Rank>
-template <class IntegralType, size_t N, class Tag,
+template <class Container, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const base_tensor<IntegralType, N, Tag> &indices) const {
+    const expression<Container, IntegralType, N> &indices) const {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
-  tensor<T, N> subarray(indices.shape());
+  tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_size, indices[i]);
     subarray[i] = m_data[indices[i]];
@@ -365,16 +356,16 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Tag>
+template <class Container>
 indirect_tensor<T, 1>
-tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) {
+tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
   if (m_shape != mask.shape()) {
     std::ostringstream error;
     error << "boolean index did not match indexed tensor; shape is " << m_shape
           << " but corresponding boolean shape is " << mask.shape();
     throw std::invalid_argument(error.str());
   }
-  size_type size = std::count(mask.begin(), mask.end(), true);
+  size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   indirect_tensor<T, 1> subarray(m_data, size);
   size_t n = 0;
   for (index_type i : make_index_sequence_for(mask)) {
@@ -386,16 +377,16 @@ tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) {
 }
 
 template <class T, size_t Rank>
-template <class Tag>
-tensor<T, 1>
-tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) const {
+template <class Container>
+tensor<T, 1> tensor<T, Rank>::operator[](
+    const expression<Container, bool, Rank> &mask) const {
   if (m_shape != mask.shape()) {
     std::ostringstream error;
     error << "boolean index did not match indexed tensor; shape is " << m_shape
           << " but corresponding boolean shape is " << mask.shape();
     throw std::invalid_argument(error.str());
   }
-  size_type size = std::count(mask.begin(), mask.end(), true);
+  size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   tensor<T, 1> subarray(size);
   size_t n = 0;
   for (index_type i : make_index_sequence_for(mask)) {
@@ -449,18 +440,18 @@ inline bool tensor<T, Rank>::is_contiguous() const {
 /// Assignment operator.
 
 template <class T, size_t Rank>
-tensor<T, Rank> &tensor<T, Rank>::operator=(const base_tensor &other) {
+tensor<T, Rank> &tensor<T, Rank>::operator=(const tensor &other) {
   this->resize(other.m_shape);
   std::copy_n(other.begin(m_order), m_size, m_data);
   return *this;
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
+template <class Container, class U>
 tensor<T, Rank> &
-tensor<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
+tensor<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
   this->resize(other.shape());
-  std::transform(other.begin(m_order), other.end(m_order), m_data,
+  std::transform(other.self().begin(m_order), other.self().end(m_order), m_data,
                  cast_to<U, T>());
   return *this;
 }
@@ -472,7 +463,7 @@ tensor<T, Rank> &tensor<T, Rank>::operator=(const T &val) {
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank> &tensor<T, Rank>::operator=(base_tensor &&other) {
+tensor<T, Rank> &tensor<T, Rank>::operator=(tensor &&other) {
   if (this != &other) {
     delete[] m_data;
     m_data = other.m_data;

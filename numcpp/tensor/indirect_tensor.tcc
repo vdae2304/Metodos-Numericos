@@ -31,14 +31,14 @@ namespace numcpp {
 /// Constructors.
 
 template <class T, size_t Rank>
-indirect_tensor<T, Rank>::base_tensor()
+indirect_tensor<T, Rank>::indirect_tensor()
     : m_data(NULL), m_shape(), m_size(0), m_indptr(NULL),
       m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-indirect_tensor<T, Rank>::base_tensor(T *data, Sizes... sizes)
+indirect_tensor<T, Rank>::indirect_tensor(T *data, Sizes... sizes)
     : m_data(data), m_shape(sizes...), m_size(m_shape.prod()),
       m_order(default_layout) {
   m_indptr = new size_type[m_size];
@@ -46,8 +46,8 @@ indirect_tensor<T, Rank>::base_tensor(T *data, Sizes... sizes)
 }
 
 template <class T, size_t Rank>
-indirect_tensor<T, Rank>::base_tensor(T *data, const shape_type &shape,
-                                      layout_t order)
+indirect_tensor<T, Rank>::indirect_tensor(T *data, const shape_type &shape,
+                                          layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_indptr = new size_type[m_size];
   std::iota(m_indptr, m_indptr + m_size, size_type(0));
@@ -55,15 +55,15 @@ indirect_tensor<T, Rank>::base_tensor(T *data, const shape_type &shape,
 
 template <class T, size_t Rank>
 template <class IntegralType, detail::RequiresIntegral<IntegralType>>
-indirect_tensor<T, Rank>::base_tensor(T *data, const shape_type &shape,
-                                      IntegralType *indptr, layout_t order)
+indirect_tensor<T, Rank>::indirect_tensor(T *data, const shape_type &shape,
+                                          IntegralType *indptr, layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_indptr = new size_type[m_size];
   std::copy_n(indptr, m_size, m_indptr);
 }
 
 template <class T, size_t Rank>
-indirect_tensor<T, Rank>::base_tensor(const base_tensor &other)
+indirect_tensor<T, Rank>::indirect_tensor(const indirect_tensor &other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_order(other.m_order) {
   m_indptr = new size_type[m_size];
@@ -71,7 +71,7 @@ indirect_tensor<T, Rank>::base_tensor(const base_tensor &other)
 }
 
 template <class T, size_t Rank>
-indirect_tensor<T, Rank>::base_tensor(base_tensor &&other)
+indirect_tensor<T, Rank>::indirect_tensor(indirect_tensor &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_indptr(other.m_indptr), m_order(other.m_order) {
   other.m_data = NULL;
@@ -83,7 +83,7 @@ indirect_tensor<T, Rank>::base_tensor(base_tensor &&other)
 
 /// Destructor.
 
-template <class T, size_t Rank> indirect_tensor<T, Rank>::~base_tensor() {
+template <class T, size_t Rank> indirect_tensor<T, Rank>::~indirect_tensor() {
   delete[] m_indptr;
 }
 
@@ -215,7 +215,7 @@ inline bool indirect_tensor<T, Rank>::is_contiguous() const {
 
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &
-indirect_tensor<T, Rank>::operator=(const base_tensor &other) {
+indirect_tensor<T, Rank>::operator=(const indirect_tensor &other) {
   if (this->shape() != other.shape()) {
     std::ostringstream error;
     error << "input shape " << other.shape()
@@ -227,17 +227,17 @@ indirect_tensor<T, Rank>::operator=(const base_tensor &other) {
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
-indirect_tensor<T, Rank> &
-indirect_tensor<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
+template <class Container, class U>
+indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(
+    const expression<Container, U, Rank> &other) {
   if (this->shape() != other.shape()) {
     std::ostringstream error;
     error << "input shape " << other.shape()
           << " doesn't match the output shape " << this->shape();
     throw std::invalid_argument(error.str());
   }
-  std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                 cast_to<U, T>());
+  std::transform(other.self().begin(m_order), other.self().end(m_order),
+                 this->begin(), cast_to<U, T>());
   return *this;
 }
 
@@ -249,7 +249,7 @@ indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(const T &val) {
 
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &
-indirect_tensor<T, Rank>::operator=(base_tensor &&other) {
+indirect_tensor<T, Rank>::operator=(indirect_tensor &&other) {
   if (this != &other) {
     delete[] m_indptr;
     m_data = other.m_data;
