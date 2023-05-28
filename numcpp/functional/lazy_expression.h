@@ -21,8 +21,8 @@
 
 // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_LAZY_TENSOR_H_INCLUDED
-#define NUMCPP_LAZY_TENSOR_H_INCLUDED
+#ifndef NUMCPP_LAZY_EXPRESSION_H_INCLUDED
+#define NUMCPP_LAZY_EXPRESSION_H_INCLUDED
 
 namespace numcpp {
 /**
@@ -44,6 +44,7 @@ class unary_expr : public expression<unary_expr<Function, Container, T, Rank>,
 public:
   /// Member types.
   typedef detail::result_of_t<Function, T> value_type;
+  static constexpr size_t rank = Rank;
   typedef flat_iterator<const unary_expr<Function, Container, T, Rank>,
                         value_type, Rank, void, value_type>
       iterator;
@@ -132,11 +133,6 @@ public:
   }
 
   /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank; }
-
-  /**
    * @brief Return the shape of the tensor.
    *
    * @param axis It is an optional parameter that changes the return value. If
@@ -184,6 +180,7 @@ class binary_expr
 public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
+  static constexpr size_t rank = Rank;
   typedef flat_iterator<
       const binary_expr<Function, Container1, T, Container2, U, Rank>,
       value_type, Rank, void, value_type>
@@ -284,17 +281,12 @@ public:
   auto operator[](const index_type &index) const
       -> decltype(m_fun(m_arg1[index], m_arg2[index])) {
     index_type i, j;
-    for (size_t axis = 0; axis < index.ndim(); ++axis) {
+    for (size_t axis = 0; axis < Rank; ++axis) {
       i[axis] = (m_arg1.shape(axis) > 1) ? index[axis] : 0;
       j[axis] = (m_arg2.shape(axis) > 1) ? index[axis] : 0;
     }
     return m_fun(m_arg1[i], m_arg2[j]);
   }
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank; }
 
   /**
    * @brief Return the shape of the tensor.
@@ -338,6 +330,7 @@ class binary_expr<Function, Container, T, void, U, Rank>
 public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
+  static constexpr size_t rank = Rank;
   typedef flat_iterator<
       const binary_expr<Function, Container, T, void, U, Rank>, value_type,
       Rank, void, value_type>
@@ -388,8 +381,6 @@ public:
     return m_fun(m_arg[index], m_val);
   }
 
-  static constexpr size_type ndim() { return Rank; }
-
   shape_type shape() const { return m_arg.shape(); }
 
   size_type shape(size_type axis) const { return m_arg.shape(axis); }
@@ -411,6 +402,7 @@ class binary_expr<Function, void, T, Container, U, Rank>
 public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
+  static constexpr size_t rank = Rank;
   typedef flat_iterator<
       const binary_expr<Function, void, T, Container, U, Rank>, value_type,
       Rank, void, value_type>
@@ -461,8 +453,6 @@ public:
     return m_fun(m_val, m_arg[index]);
   }
 
-  static constexpr size_type ndim() { return Rank; }
-
   shape_type shape() const { return m_arg.shape(); }
 
   size_type shape(size_type axis) const { return m_arg.shape(axis); }
@@ -497,14 +487,15 @@ class outer_expr
 public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
+  static constexpr size_t rank = Rank1 + Rank2;
   typedef flat_iterator<
       const outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
-      value_type, Rank1 + Rank2, void, value_type>
+      value_type, rank, void, value_type>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank1 + Rank2> shape_type;
-  typedef index_t<Rank1 + Rank2> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Function to apply.
@@ -596,16 +587,11 @@ public:
    */
   value_type operator[](const index_type &index) const {
     index_t<Rank1> i;
-    std::copy_n(index.data(), i.ndim(), i.data());
+    std::copy_n(index.data(), Rank1, i.data());
     index_t<Rank2> j;
-    std::copy_n(index.data() + i.ndim(), j.ndim(), j.data());
+    std::copy_n(index.data() + Rank1, Rank2, j.data());
     return m_fun(m_arg1[i], m_arg2[j]);
   }
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank1 + Rank2; }
 
   /**
    * @brief Return the shape of the tensor.
@@ -638,4 +624,4 @@ public:
 };
 } // namespace numcpp
 
-#endif // NUMCPP_LAZY_TENSOR_H_INCLUDED
+#endif // NUMCPP_LAZY_EXPRESSION_H_INCLUDED
