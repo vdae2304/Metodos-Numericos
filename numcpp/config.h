@@ -30,7 +30,6 @@ standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
 compiler options.
 #else
 
-#include <complex>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
@@ -107,11 +106,6 @@ public:
   T operator[](const index_t<Rank> &index) const {
     return static_cast<const Container &>(*this)[index];
   }
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_t ndim() { return Rank; }
 
   /**
    * @brief Return the shape of the tensor.
@@ -201,9 +195,28 @@ template <class T, size_t Rank> class tensor_view;
  */
 template <class T, size_t Rank> class indirect_tensor;
 
+/**
+ * @brief A light-weight object which stores the result of applying an unary
+ * function to each element in a tensor object.
+ */
+template <class Function, class Container, class T, size_t Rank>
+class unary_expr;
+
+/**
+ * @brief A light-weight object which stores the result of applying a binary
+ * function to each element in two tensor objects.
+ */
+template <class Function, class Container1, class T, class Container2, class U,
+          size_t Rank>
+class binary_expr;
+
 /// Namespace for implementation details.
 namespace detail {
-#if __cplusplus < 201703L
+#if __cplusplus >= 201703L
+using std::conjunction;
+using std::disjunction;
+using std::void_t;
+#else
 /**
  * @brief Variadic logical AND.
  */
@@ -228,21 +241,23 @@ template <class B1> struct disjunction<B1> : B1 {};
 
 template <class B1, class... Bn>
     : std::conditional<B1::value, B1, disjunction<Bn...>> {}
-#else
-using std::conjunction;
-using std::disjunction;
+
+/**
+ * @brief Always yields void.
+ */
+template <class...> using void_t = void;
 #endif
 
 /**
- * @brief Type traits for complex types.
+ * @brief Check whether a type is a tensor or an expression.
  */
-template <class T> struct complex_traits {
-  typedef T value_type;
-};
+template <class T, typename = void, typename = void>
+struct is_expression : std::false_type {};
 
-template <class T> struct complex_traits<std::complex<T>> {
-  typedef T value_type;
-};
+template <class T>
+struct is_expression<T, void_t<typename T::value_type>,
+                     void_t<std::integral_constant<size_t, T::rank>>>
+    : std::true_type {};
 
 /**
  * @brief Rank of shape concatenation.
@@ -294,16 +309,12 @@ struct slicing_rank<IntegralType, Indices...>
 /**
  * @brief Result type of function call.
  */
-#if __cplusplus < 201703L
-template <class Function, class... Args>
-using result_of_t = typename std::result_of<Function(Args...)>::type;
-
-template <class...> using void_t = void;
-#else
+#if __cplusplus >= 201703L
 template <class Function, class... Args>
 using result_of_t = typename std::invoke_result<Function, Args...>::type;
-
-using std::void_t;
+#else
+template <class Function, class... Args>
+using result_of_t = typename std::result_of<Function(Args...)>::type;
 #endif // C++17
 
 template <class Signature, typename = void>
@@ -319,24 +330,26 @@ struct is_callable_helper<F(Args...), void_t<result_of_t<F, Args...>>>
 template <class F, class... Args>
 struct is_callable : is_callable_helper<F(Args...)> {};
 
-/// Type constraint to request N arguments.
+/// Constraints.
+
+/**
+ * @brief Type constraint to request N arguments.
+ */
 template <size_t N, class... Args>
 using RequiresNArguments =
     typename std::enable_if<sizeof...(Args) == N, int>::type;
 
-/// Type constraint to request integer arguments.
+/**
+ * @brief Type constraint to request integer arguments.
+ */
 template <class... T>
 using RequiresIntegral =
     typename std::enable_if<conjunction<std::is_integral<T>...>::value,
                             int>::type;
 
-/// Type constraint to request at least one slice argument.
-template <class... Indices>
-using RequiresSlicing =
-    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
-                            int>::type;
-
-/// Type constraint to request input iterator.
+/**
+ * @brief Type constraint to request input iterator.
+ */
 template <class Iterator>
 using RequiresInputIterator = typename std::enable_if<
     std::is_convertible<
@@ -344,7 +357,24 @@ using RequiresInputIterator = typename std::enable_if<
         std::input_iterator_tag>::value,
     int>::type;
 
-/// Type constraint to request callable type.
+/**
+ * @brief Type constraint to request a scalar (non-expression) argument.
+ */
+template <class T>
+using RequiresScalar =
+    typename std::enable_if<!is_expression<T>::value, int>::type;
+
+/**
+ * @brief Type constraint to request at least one slice argument.
+ */
+template <class... Indices>
+using RequiresSlicing =
+    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
+                            int>::type;
+
+/**
+ * @brief Type constraint to request callable type.
+ */
 template <class F, class... Args>
 using RequiresCallable =
     typename std::enable_if<is_callable<F, Args...>::value, int>::type;
