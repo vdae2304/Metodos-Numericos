@@ -32,10 +32,11 @@ compiler options.
 #include "numcpp/shape.h"
 #include "numcpp/slice.h"
 
-#include "numcpp/tensor/tensor_interface.h"
+#include "numcpp/iterators/flat_iterator.h"
+#include "numcpp/functional/lazy_expression.h"
+#include "numcpp/tensor/dense_tensor.h"
 #include "numcpp/tensor/tensor_view.h"
 #include "numcpp/tensor/indirect_tensor.h"
-#include "numcpp/functional/lazy_tensor.h"
 
 namespace numcpp {
 /**
@@ -56,9 +57,8 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class base_tensor<T, Rank, tensor_tag>
-    : public tensor_interface<T, Rank, tensor_tag>,
-      public complex_interface<T, Rank, tensor_tag> {
+class tensor : public dense_tensor<tensor<T, Rank>, T, Rank>,
+               public complex_expr<tensor<T, Rank>, T, Rank> {
 public:
   /// Member types.
   typedef T value_type;
@@ -76,7 +76,7 @@ public:
   /**
    * @brief Default constructor. Constructs an empty tensor with no elements.
    */
-  base_tensor();
+  tensor();
 
   /**
    * @brief Size constructor. Constructs a tensor with given shape, each element
@@ -94,10 +94,9 @@ public:
    */
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  explicit base_tensor(Sizes... sizes);
+  explicit tensor(Sizes... sizes);
 
-  explicit base_tensor(const shape_type &shape,
-                       layout_t order = default_layout);
+  explicit tensor(const shape_type &shape, layout_t order = default_layout);
 
   /**
    * @brief Fill constructor. Constructs a tensor with given shape, each element
@@ -113,8 +112,8 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  base_tensor(const shape_type &shape, const T &val,
-              layout_t order = default_layout);
+  tensor(const shape_type &shape, const T &val,
+         layout_t order = default_layout);
 
   /**
    * @brief Range constructor. Constructs a tensor with given shape, with each
@@ -136,12 +135,12 @@ public:
             detail::RequiresInputIterator<InputIterator> = 0,
             detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  base_tensor(InputIterator first, Sizes... sizes);
+  tensor(InputIterator first, Sizes... sizes);
 
   template <class InputIterator,
             detail::RequiresInputIterator<InputIterator> = 0>
-  base_tensor(InputIterator first, const shape_type &shape,
-              layout_t order = default_layout);
+  tensor(InputIterator first, const shape_type &shape,
+         layout_t order = default_layout);
 
   /**
    * @brief Copy constructor. Constructs a tensor with a copy of each of the
@@ -156,13 +155,13 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  base_tensor(const base_tensor &other);
-  base_tensor(const base_tensor &other, layout_t order);
+  tensor(const tensor &other);
 
-  template <class U, class Tag>
-  base_tensor(const base_tensor<U, Rank, Tag> &other);
-  template <class U, class Tag>
-  base_tensor(const base_tensor<U, Rank, Tag> &other, layout_t order);
+  template <class Container, class U>
+  tensor(const expression<Container, U, Rank> &other);
+
+  template <class Container, class U>
+  tensor(const expression<Container, U, Rank> &other, layout_t order);
 
   /**
    * @brief Move constructor. Constructs a tensor that acquires the elements of
@@ -171,7 +170,7 @@ public:
    * @param other A tensor of the same type and rank. The ownership is directly
    *              transferred from @a other. @a other is left in an empty state.
    */
-  base_tensor(base_tensor &&other);
+  tensor(tensor &&other);
 
   /**
    * @brief Initializer list constructor. Constructs a tensor with a copy of
@@ -182,10 +181,10 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  base_tensor(detail::nested_initializer_list_t<T, Rank> il);
+  tensor(detail::nested_initializer_list_t<T, Rank> il);
 
   /// Destructor.
-  ~base_tensor();
+  ~tensor();
 
   /// Indexing.
 
@@ -296,22 +295,23 @@ public:
    * @throw std::bad_alloc If the function needs to allocate storage and fails,
    *                       it may throw an exception.
    */
-  template <size_t N, class Tag>
+  template <class Container, size_t N>
   indirect_tensor<T, N>
-  operator[](const base_tensor<index_type, N, Tag> &indices);
+  operator[](const expression<Container, index_type, N> &indices);
 
-  template <size_t N, class Tag>
-  tensor<T, N> operator[](const base_tensor<index_type, N, Tag> &indices) const;
+  template <class Container, size_t N>
+  tensor<T, N>
+  operator[](const expression<Container, index_type, N> &indices) const;
 
-  template <class IntegralType, size_t N, class Tag,
+  template <class Container, class IntegralType, size_t N,
             detail::RequiresIntegral<IntegralType> = 0>
   indirect_tensor<T, N>
-  operator[](const base_tensor<IntegralType, N, Tag> &indices);
+  operator[](const expression<Container, IntegralType, N> &indices);
 
-  template <class IntegralType, size_t N, class Tag,
+  template <class Container, class IntegralType, size_t N,
             detail::RequiresIntegral<IntegralType> = 0>
   tensor<T, N>
-  operator[](const base_tensor<IntegralType, N, Tag> &indices) const;
+  operator[](const expression<Container, IntegralType, N> &indices) const;
 
   /**
    * @brief Boolean tensor indexing. Return an @c indirect_tensor that selects
@@ -330,11 +330,12 @@ public:
    * @throw std::bad_alloc If the function needs to allocate storage and fails,
    *                       it may throw an exception.
    */
-  template <class Tag>
-  indirect_tensor<T, 1> operator[](const base_tensor<bool, Rank, Tag> &mask);
+  template <class Container>
+  indirect_tensor<T, 1>
+  operator[](const expression<Container, bool, Rank> &mask);
 
-  template <class Tag>
-  tensor<T, 1> operator[](const base_tensor<bool, Rank, Tag> &mask) const;
+  template <class Container>
+  tensor<T, 1> operator[](const expression<Container, bool, Rank> &mask) const;
 
   /**
    * @brief Return the dimension of the tensor.
@@ -404,9 +405,9 @@ public:
    * and views to elements of the tensor. Otherwise, valid iterators, references
    * and views keep their validity.
    */
-  base_tensor &operator=(const base_tensor &other);
-  template <class U, class Tag>
-  base_tensor &operator=(const base_tensor<U, Rank, Tag> &other);
+  tensor &operator=(const tensor &other);
+  template <class Container, class U>
+  tensor &operator=(const expression<Container, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element. The size of the
@@ -416,7 +417,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(const T &val);
+  tensor &operator=(const T &val);
 
   /**
    * @brief Move assignment. Acquires the contents of @a other, leaving @a other
@@ -430,7 +431,7 @@ public:
    * @warning Invalidates all iterators, references and views to elements of the
    * tensor.
    */
-  base_tensor &operator=(base_tensor &&other);
+  tensor &operator=(tensor &&other);
 
   /**
    * @brief Initializer list assignment. Assigns to each element the value of
@@ -448,7 +449,7 @@ public:
    * and views to elements of the tensor. Otherwise, valid iterators, references
    * and views keep their validity.
    */
-  base_tensor &operator=(detail::nested_initializer_list_t<T, Rank> il);
+  tensor &operator=(detail::nested_initializer_list_t<T, Rank> il);
 
   /// Public methods.
 
@@ -600,8 +601,7 @@ private:
    */
   template <size_t Depth>
   typename std::enable_if<(Depth == 1)>::type
-  __fill_from_initializer_list(index_type &index,
-                               std::initializer_list<T> il);
+  __fill_from_initializer_list(index_type &index, std::initializer_list<T> il);
 
   template <size_t Depth>
   typename std::enable_if<(Depth > 1)>::type
@@ -670,483 +670,416 @@ private:
 
 /// Unary operators.
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<unary_plus, T, Tag>>
-operator+(const base_tensor<T, Rank, Tag> &arg) {
-  typedef lazy_unary_tag<unary_plus, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(unary_plus(), arg);
+template <class Container, class T, size_t Rank>
+inline unary_expr<unary_plus, Container, T, Rank>
+operator+(const expression<Container, T, Rank> &arg) {
+  return unary_expr<unary_plus, Container, T, Rank>(arg);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<negate, T, Tag>>
-operator-(const base_tensor<T, Rank, Tag> &arg) {
-  typedef lazy_unary_tag<negate, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(negate(), arg);
+template <class Container, class T, size_t Rank>
+inline unary_expr<negate, Container, T, Rank>
+operator-(const expression<Container, T, Rank> &arg) {
+  return unary_expr<negate, Container, T, Rank>(arg);
 }
 
-
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<bit_not, T, Tag>>
-operator~(const base_tensor<T, Rank, Tag> &arg) {
-  typedef lazy_unary_tag<bit_not, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_not(), arg);
+template <class Container, class T, size_t Rank>
+inline unary_expr<bit_not, Container, T, Rank>
+operator~(const expression<Container, T, Rank> &arg) {
+  return unary_expr<bit_not, Container, T, Rank>(arg);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_unary_tag<logical_not, T, Tag>>
-operator!(const base_tensor<T, Rank, Tag> &arg) {
-  typedef lazy_unary_tag<logical_not, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_not(), arg);
+template <class Container, class T, size_t Rank>
+inline unary_expr<logical_not, Container, T, Rank>
+operator!(const expression<Container, T, Rank> &arg) {
+  return unary_expr<logical_not, Container, T, Rank>(arg);
 }
 
 /// Arithmetic operators.
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<plus, T, Tag1, T, Tag2>>
-operator+(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<plus, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(plus(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<plus, Container1, T, Container2, T, Rank>
+operator+(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<plus, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<plus, T, Tag, T, scalar_tag>>
-operator+(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<plus, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(plus(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<plus, Container, T, void, T, Rank>
+operator+(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<plus, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<plus, T, scalar_tag, T, Tag>>
-operator+(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<plus, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(plus(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<plus, void, T, Container, T, Rank>
+operator+(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<plus, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<minus, T, Tag1, T, Tag2>>
-operator-(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<minus, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(minus(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<minus, Container1, T, Container2, T, Rank>
+operator-(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<minus, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<minus, T, Tag, T, scalar_tag>>
-operator-(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<minus, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(minus(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<minus, Container, T, void, T, Rank>
+operator-(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<minus, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<minus, T, scalar_tag, T, Tag>>
-operator-(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<minus, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(minus(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<minus, void, T, Container, T, Rank>
+operator-(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<minus, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<multiplies, T, Tag1, T, Tag2>>
-operator*(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<multiplies, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(multiplies(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<multiplies, Container1, T, Container2, T, Rank>
+operator*(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<multiplies, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<multiplies, T, Tag, T, scalar_tag>>
-operator*(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<multiplies, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(multiplies(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<multiplies, Container, T, void, T, Rank>
+operator*(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<multiplies, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<multiplies, T, scalar_tag, T, Tag>>
-operator*(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<multiplies, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(multiplies(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<multiplies, void, T, Container, T, Rank>
+operator*(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<multiplies, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<divides, T, Tag1, T, Tag2>>
-operator/(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<divides, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(divides(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<divides, Container1, T, Container2, T, Rank>
+operator/(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<divides, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<divides, T, Tag, T, scalar_tag>>
-operator/(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<divides, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(divides(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<divides, Container, T, void, T, Rank>
+operator/(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<divides, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<divides, T, scalar_tag, T, Tag>>
-operator/(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<divides, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(divides(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<divides, void, T, Container, T, Rank>
+operator/(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<divides, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<modulus, T, Tag1, T, Tag2>>
-operator%(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<modulus, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(modulus(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<modulus, Container1, T, Container2, T, Rank>
+operator%(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<modulus, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<modulus, T, Tag, T, scalar_tag>>
-operator%(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<modulus, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(modulus(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<modulus, Container, T, void, T, Rank>
+operator%(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<modulus, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<modulus, T, scalar_tag, T, Tag>>
-operator%(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<modulus, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(modulus(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<modulus, void, T, Container, T, Rank>
+operator%(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<modulus, void, T, Container, T, Rank>(val, rhs);
 }
 
 /// Bitwise operators.
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_and, T, Tag1, T, Tag2>>
-operator&(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<bit_and, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(bit_and(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<bit_and, Container1, T, Container2, T, Rank>
+operator&(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<bit_and, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_and, T, Tag, T, scalar_tag>>
-operator&(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<bit_and, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_and(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<bit_and, Container, T, void, T, Rank>
+operator&(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<bit_and, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_and, T, scalar_tag, T, Tag>>
-operator&(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<bit_and, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_and(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<bit_and, void, T, Container, T, Rank>
+operator&(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<bit_and, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_or, T, Tag1, T, Tag2>>
-operator|(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<bit_or, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(bit_or(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<bit_or, Container1, T, Container2, T, Rank>
+operator|(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<bit_or, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_or, T, Tag, T, scalar_tag>>
-operator|(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<bit_or, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_or(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<bit_or, Container, T, void, T, Rank>
+operator|(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<bit_or, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_or, T, scalar_tag, T, Tag>>
-operator|(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<bit_or, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_or(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<bit_or, void, T, Container, T, Rank>
+operator|(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<bit_or, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_xor, T, Tag1, T, Tag2>>
-operator^(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<bit_xor, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(bit_xor(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<bit_xor, Container1, T, Container2, T, Rank>
+operator^(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<bit_xor, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_xor, T, Tag, T, scalar_tag>>
-operator^(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<bit_xor, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_xor(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<bit_xor, Container, T, void, T, Rank>
+operator^(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<bit_xor, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<bit_xor, T, scalar_tag, T, Tag>>
-operator^(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<bit_xor, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(bit_xor(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<bit_xor, void, T, Container, T, Rank>
+operator^(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<bit_xor, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<left_shift, T, Tag1, T, Tag2>>
-operator<<(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<left_shift, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(left_shift(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<left_shift, Container1, T, Container2, T, Rank>
+operator<<(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<left_shift, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<left_shift, T, Tag, T, scalar_tag>>
-operator<<(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<left_shift, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(left_shift(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<left_shift, Container, T, void, T, Rank>
+operator<<(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<left_shift, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<left_shift, T, scalar_tag, T, Tag>>
-operator<<(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<left_shift, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(left_shift(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<left_shift, void, T, Container, T, Rank>
+operator<<(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<left_shift, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<right_shift, T, Tag1, T, Tag2>>
-operator>>(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<right_shift, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(right_shift(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<right_shift, Container1, T, Container2, T, Rank>
+operator>>(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<right_shift, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<right_shift, T, Tag, T, scalar_tag>>
-operator>>(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<right_shift, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(right_shift(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<right_shift, Container, T, void, T, Rank>
+operator>>(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<right_shift, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<right_shift, T, scalar_tag, T, Tag>>
-operator>>(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<right_shift, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(right_shift(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<right_shift, void, T, Container, T, Rank>
+operator>>(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<right_shift, void, T, Container, T, Rank>(val, rhs);
 }
 
 /// Logical operators.
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<logical_and, T, Tag1, T, Tag2>>
-operator&&(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<logical_and, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_and(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<logical_and, Container1, T, Container2, T, Rank>
+operator&&(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<logical_and, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<logical_and, T, Tag, T, scalar_tag>>
-operator&&(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<logical_and, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_and(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<logical_and, Container, T, void, T, Rank>
+operator&&(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<logical_and, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<logical_and, T, scalar_tag, T, Tag>>
-operator&&(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<logical_and, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_and(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<logical_and, void, T, Container, T, Rank>
+operator&&(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<logical_and, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<logical_or, T, Tag1, T, Tag2>>
-operator||(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<logical_or, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_or(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<logical_or, Container1, T, Container2, T, Rank>
+operator||(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<logical_or, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<logical_or, T, Tag, T, scalar_tag>>
-operator||(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<logical_or, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_or(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<logical_or, Container, T, void, T, Rank>
+operator||(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<logical_or, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<logical_or, T, scalar_tag, T, Tag>>
-operator||(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<logical_or, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(logical_or(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<logical_or, void, T, Container, T, Rank>
+operator||(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<logical_or, void, T, Container, T, Rank>(val, rhs);
 }
 
 /// Relational operators.
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<equal_to, T, Tag1, T, Tag2>>
-operator==(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<equal_to, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(equal_to(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<equal_to, Container1, T, Container2, T, Rank>
+operator==(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<equal_to, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<equal_to, T, Tag, T, scalar_tag>>
-operator==(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<equal_to, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(equal_to(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<equal_to, Container, T, void, T, Rank>
+operator==(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<equal_to, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<equal_to, T, scalar_tag, T, Tag>>
-operator==(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<equal_to, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(equal_to(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<equal_to, void, T, Container, T, Rank>
+operator==(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<equal_to, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<not_equal_to, T, Tag1, T, Tag2>>
-operator!=(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<not_equal_to, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(not_equal_to(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<not_equal_to, Container1, T, Container2, T, Rank>
+operator!=(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<not_equal_to, Container1, T, Container2, T, Rank>(lhs,
+                                                                       rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<not_equal_to, T, Tag, T, scalar_tag>>
-operator!=(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<not_equal_to, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(not_equal_to(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<not_equal_to, Container, T, void, T, Rank>
+operator!=(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<not_equal_to, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<not_equal_to, T, scalar_tag, T, Tag>>
-operator!=(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<not_equal_to, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(not_equal_to(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<not_equal_to, void, T, Container, T, Rank>
+operator!=(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<not_equal_to, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<less, T, Tag1, T, Tag2>>
-operator<(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<less, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(less(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<less, Container1, T, Container2, T, Rank>
+operator<(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<less, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<less, T, Tag, T, scalar_tag>>
-operator<(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<less, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(less(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<less, Container, T, void, T, Rank>
+operator<(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<less, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<less, T, scalar_tag, T, Tag>>
-operator<(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<less, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(less(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<less, void, T, Container, T, Rank>
+operator<(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<less, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<greater, T, Tag1, T, Tag2>>
-operator>(const base_tensor<T, Rank, Tag1> &lhs,
-          const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<greater, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(greater(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<greater, Container1, T, Container2, T, Rank>
+operator>(const expression<Container1, T, Rank> &lhs,
+          const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<greater, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<greater, T, Tag, T, scalar_tag>>
-operator>(const base_tensor<T, Rank, Tag> &lhs,
-          const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<greater, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(greater(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<greater, Container, T, void, T, Rank>
+operator>(const expression<Container, T, Rank> &lhs,
+          const typename Container::value_type &val) {
+  return binary_expr<greater, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_binary_tag<greater, T, scalar_tag, T, Tag>>
-operator>(const typename base_tensor<T, Rank, Tag>::value_type &val,
-          const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<greater, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(greater(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<greater, void, T, Container, T, Rank>
+operator>(const typename Container::value_type &val,
+          const expression<Container, T, Rank> &rhs) {
+  return binary_expr<greater, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<less_equal, T, Tag1, T, Tag2>>
-operator<=(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<less_equal, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(less_equal(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<less_equal, Container1, T, Container2, T, Rank>
+operator<=(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<less_equal, Container1, T, Container2, T, Rank>(lhs, rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<less_equal, T, Tag, T, scalar_tag>>
-operator<=(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<less_equal, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(less_equal(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<less_equal, Container, T, void, T, Rank>
+operator<=(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<less_equal, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<less_equal, T, scalar_tag, T, Tag>>
-operator<=(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<less_equal, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(less_equal(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<less_equal, void, T, Container, T, Rank>
+operator<=(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<less_equal, void, T, Container, T, Rank>(val, rhs);
 }
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<bool, Rank, lazy_binary_tag<greater_equal, T, Tag1, T, Tag2>>
-operator>=(const base_tensor<T, Rank, Tag1> &lhs,
-           const base_tensor<T, Rank, Tag2> &rhs) {
-  typedef lazy_binary_tag<greater_equal, T, Tag1, T, Tag2> Closure;
-  return base_tensor<bool, Rank, Closure>(greater_equal(), lhs, rhs);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<greater_equal, Container1, T, Container2, T, Rank>
+operator>=(const expression<Container1, T, Rank> &lhs,
+           const expression<Container2, T, Rank> &rhs) {
+  return binary_expr<greater_equal, Container1, T, Container2, T, Rank>(lhs,
+                                                                        rhs);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<greater_equal, T, Tag, T, scalar_tag>>
-operator>=(const base_tensor<T, Rank, Tag> &lhs,
-           const typename base_tensor<T, Rank, Tag>::value_type &val) {
-  typedef lazy_binary_tag<greater_equal, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<bool, Rank, Closure>(greater_equal(), lhs, val);
+template <class Container, class T, size_t Rank>
+inline binary_expr<greater_equal, Container, T, void, T, Rank>
+operator>=(const expression<Container, T, Rank> &lhs,
+           const typename Container::value_type &val) {
+  return binary_expr<greater_equal, Container, T, void, T, Rank>(lhs, val);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank,
-                   lazy_binary_tag<greater_equal, T, scalar_tag, T, Tag>>
-operator>=(const typename base_tensor<T, Rank, Tag>::value_type &val,
-           const base_tensor<T, Rank, Tag> &rhs) {
-  typedef lazy_binary_tag<greater_equal, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(greater_equal(), val, rhs);
+template <class T, class Container, size_t Rank>
+inline binary_expr<greater_equal, void, T, Container, T, Rank>
+operator>=(const typename Container::value_type &val,
+           const expression<Container, T, Rank> &rhs) {
+  return binary_expr<greater_equal, void, T, Container, T, Rank>(val, rhs);
 }
 } // namespace numcpp
 
