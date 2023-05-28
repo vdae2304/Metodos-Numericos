@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/shape.h
+/** @file include/numcpp/tensor/shape.h
  *  This header defines the shape_t and index_t classes.
  */
 
@@ -39,6 +39,7 @@ public:
 
   /// Member types.
   typedef size_t size_type;
+  static constexpr size_t rank = Rank;
 
   /// Constructors.
 
@@ -80,21 +81,16 @@ public:
   /// Public methods.
 
   /**
-   * @brief Return the dimension of the shape.
-   */
-  static constexpr size_t ndim();
-
-  /**
    * @brief Return the product of the sizes along all the axes.
    */
-  size_t prod() const;
+  size_type prod() const;
 
   /**
    * @brief Return a pointer to the block of memory containing the elements of
    * the shape.
    */
-  size_t *data();
-  const size_t *data() const;
+  size_type *data();
+  const size_type *data() const;
 
   /// Operator overloading.
 
@@ -107,8 +103,8 @@ public:
    *         the function returns a reference to const size_t. Otherwise, it
    *         returns a reference to size_t.
    */
-  size_t &operator[](size_t i);
-  const size_t &operator[](size_t i) const;
+  size_type &operator[](size_type i);
+  const size_type &operator[](size_type i) const;
 
   /**
    * @brief Integer conversion. Dimension must be one.
@@ -118,7 +114,7 @@ public:
 
 private:
   // Shape elements.
-  size_t m_shape[Rank];
+  size_type m_shape[Rank];
 };
 
 /**

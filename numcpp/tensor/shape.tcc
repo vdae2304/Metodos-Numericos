@@ -47,8 +47,6 @@ inline shape_t<Rank> &shape_t<Rank>::operator=(const shape_t &other) {
   return *this;
 }
 
-template <size_t Rank> constexpr size_t shape_t<Rank>::ndim() { return Rank; }
-
 template <size_t Rank> inline size_t shape_t<Rank>::prod() const {
   size_t size = 1;
   for (size_t i = 0; i < Rank; ++i) {
@@ -79,7 +77,7 @@ inline void assert_within_bounds(size_t size, size_t i) {
 template <size_t Rank>
 inline void assert_within_bounds(const shape_t<Rank> &shape,
                                  const index_t<Rank> &index) {
-  for (size_t i = 0; i < index.ndim(); ++i) {
+  for (size_t i = 0; i < Rank; ++i) {
     if (index[i] >= shape[i]) {
       std::ostringstream error;
       error << "index " << index << " is out of bounds with size " << shape;
@@ -132,8 +130,8 @@ template <size_t Rank>
 shape_t<Rank> make_strides(const shape_t<Rank> &shape, layout_t order) {
   shape_t<Rank> strides;
   size_t size = 1;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     strides[k] = size;
     size *= shape[k];
   }
@@ -145,8 +143,8 @@ size_t ravel_index(const index_t<Rank> &index, const shape_t<Rank> &shape,
                    layout_t order) {
   size_t flat_index = 0;
   size_t size = 1;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     flat_index += size * index[k];
     size *= shape[k];
   }
@@ -157,8 +155,8 @@ template <size_t Rank>
 index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
                             layout_t order) {
   index_t<Rank> multi_index;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     multi_index[k] = index % shape[k];
     index /= shape[k];
   }
@@ -175,7 +173,7 @@ template <size_t Rank, class... Shapes>
 void broadcast_shapes_impl(shape_t<Rank> &out_shape,
                            const shape_t<Rank> &shape1,
                            const Shapes &...shape2) {
-  for (size_t i = 0; i < shape1.ndim(); ++i) {
+  for (size_t i = 0; i < Rank; ++i) {
     if (out_shape[i] == 1) {
       out_shape[i] = shape1[i];
     } else if (shape1[i] != out_shape[i] && shape1[i] != 1) {
@@ -196,7 +194,7 @@ void shape_cat_impl(size_t *) {}
 template <size_t Rank, class... Shapes>
 void shape_cat_impl(size_t *out_shape, const shape_t<Rank> &shape1,
                     const Shapes &...shape2) {
-  out_shape = std::copy_n(shape1.data(), shape1.ndim(), out_shape);
+  out_shape = std::copy_n(shape1.data(), Rank, out_shape);
   shape_cat_impl(out_shape, shape2...);
 }
 } // namespace detail
@@ -221,9 +219,9 @@ shape_cat(const shape_t<Rank> &shape1, const Shapes &...shape2) {
 template <size_t Rank1, size_t Rank2>
 inline bool operator==(const shape_t<Rank1> &shape1,
                        const shape_t<Rank2> &shape2) {
-  const size_t *first1 = shape1.data(), *last1 = first1 + shape1.ndim();
+  const size_t *first1 = shape1.data(), *last1 = first1 + Rank1;
   const size_t *first2 = shape2.data();
-  return (shape1.ndim() == shape2.ndim() && std::equal(first1, last1, first2));
+  return (Rank1 == Rank2 && std::equal(first1, last1, first2));
 }
 
 template <size_t Rank1, size_t Rank2>
