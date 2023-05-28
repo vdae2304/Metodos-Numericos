@@ -26,6 +26,8 @@
 
 #include <algorithm>
 #include <numeric>
+#include <sstream>
+#include <stdexcept>
 
 namespace numcpp {
 /// Constructors.
