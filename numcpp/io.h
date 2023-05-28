@@ -131,8 +131,9 @@ tensor<T, Rank> load(const std::string &filename);
  *
  * @throw std::ios_base::failure Thrown if the output file cannot be written.
  */
-template <class T, size_t Rank, class Tag>
-void save(const std::string &filename, const base_tensor<T, Rank, Tag> &data);
+template <class Container, class T, size_t Rank>
+void save(const std::string &filename,
+          const expression<Container, T, Rank> &data);
 
 /// Text files.
 
@@ -177,10 +178,11 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter = ' ',
  *
  * @throw std::ios_base::failure Thrown if the output file cannot be written.
  */
-template <class T, size_t Rank, class Tag>
-void savetxt(const std::string &filename, const base_tensor<T, Rank, Tag> &data,
-             char delimiter = ' ', char newline = '\n',
-             const std::string &header = "", const std::string &footer = "");
+template <class Container, class T, size_t Rank>
+void savetxt(const std::string &filename,
+             const expression<Container, T, Rank> &data, char delimiter = ' ',
+             char newline = '\n', const std::string &header = "",
+             const std::string &footer = "");
 
 /// Input/output streams.
 
@@ -261,10 +263,10 @@ operator>>(std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arg);
  *
  * @return ostr
  */
-template <class charT, class traits, class T, size_t Rank, class Tag>
+template <class charT, class traits, class Container, class T, size_t Rank>
 std::basic_ostream<charT, traits> &
 operator<<(std::basic_ostream<charT, traits> &ostr,
-           const base_tensor<T, Rank, Tag> &arg);
+           const expression<Container, T, Rank> &arg);
 } // namespace numcpp
 
 #include "numcpp/io/io.tcc"
