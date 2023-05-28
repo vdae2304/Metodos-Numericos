@@ -403,109 +403,99 @@ void save(const std::string &filename,
 
 namespace detail {
 /**
- * @brief Parse a value from a string. If already a string, simply removes
- * leading and trailing whitespaces.
+ * @brief Fill a tensor with data from an ifstream object.
  */
-template <class T> inline void parse(const std::string &str, T &val) {
-  std::istringstream parser(str);
-  parser >> val;
-}
-
-inline void parse(const std::string &str, std::string &val) {
-  size_t start = str.find_first_not_of(" \f\n\r\t\v");
-  size_t end = str.find_last_not_of(" \f\n\r\t\v");
-  val = str.substr(start, end - start + 1);
-}
-
-/**
- * @brief Find the number of rows and columns of the data stored in the text
- * file. This function does not read any data, it only returns the shape of the
- * data stored.
- */
-shape_t<2> scan_file_data(std::ifstream &file, char delimiter, char newline,
-                          size_t max_rows) {
-  std::streampos offset = file.tellg();
+template <class T>
+void load_file_data(std::ifstream &file, tensor<T, 2> &data, char delimiter,
+                    char newline, size_t max_rows) {
   std::string line, token;
   shape_t<2> shape;
+  std::vector<T> buffer;
+  T val;
   while (shape[0] < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
     size_t ntokens = 0;
     while (std::getline(tokenizer, token, delimiter)) {
+      std::istringstream parser(token);
+      parser >> val;
+      buffer.push_back(val);
       ++ntokens;
     }
+    if (shape[0] == 0) {
+      shape[1] = ntokens;
+    } else if (ntokens != shape[1]) {
+      throw std::ifstream::failure(
+          "Number of columns is not the same for all the rows");
+    }
     ++shape[0];
-    shape[1] = std::max(shape[1], ntokens);
   }
-  file.clear();
-  file.seekg(offset, std::ios::beg);
-  return shape;
-}
-
-/**
- * @brief Fill a tensor with data from an ifstream object.
- */
-template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 2> &out,
-                    const shape_t<2> &shape, char delimiter, char newline) {
-  std::string line, token;
-  out.resize(shape);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
-    std::istringstream tokenizer(line);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, out[{i, j}]);
-    }
-  }
+  data = std::move(tensor<T, 2>(buffer.begin(), shape, row_major));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 2> &out,
-                    const shape_t<2> &shape, char delimiter, char newline,
+void load_file_data(std::ifstream &file, tensor<T, 2> &data, char delimiter,
+                    char newline, size_t max_rows,
                     std::initializer_list<std::size_t> usecols) {
   std::string line, token;
-  out.resize(shape[0], usecols.size());
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
+  shape_t<2> shape(0, usecols.size());
+  std::vector<T> buffer;
+  T val;
+  while (shape[0] < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
-    std::vector<T> buffer(shape[1]);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, buffer[j]);
+    size_t ntokens = 0;
+    std::vector<T> row_values;
+    while (std::getline(tokenizer, token, delimiter)) {
+      std::istringstream parser(token);
+      parser >> val;
+      row_values.push_back(val);
+      ++ntokens;
     }
-    for (size_t j = 0; j < usecols.size(); ++j) {
-      out(i, j) = buffer[*(usecols.begin() + j)];
+    for (size_t i : usecols) {
+      buffer.push_back(row_values[i]);
     }
+    ++shape[0];
   }
+  data = std::move(tensor<T, 2>(buffer.begin(), shape, row_major));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 1> &out,
-                    const shape_t<2> &shape, char, char newline) {
+void load_file_data(std::ifstream &file, tensor<T, 1> &data, char, char newline,
+                    size_t max_rows) {
   std::string line;
-  out.resize(shape[0]);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
-    parse(line, out[i]);
+  size_t size = 0;
+  std::vector<T> buffer;
+  T val;
+  while (size < max_rows && std::getline(file, line, newline)) {
+    std::istringstream parser(line);
+    parser >> val;
+    buffer.push_back(val);
+    ++size;
   }
+  data = std::move(tensor<T, 1>(buffer.begin(), size));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 1> &out,
-                    const shape_t<2> &shape, char delimiter, char newline,
+void load_file_data(std::ifstream &file, tensor<T, 1> &data, char delimiter,
+                    char newline, size_t max_rows,
                     std::initializer_list<std::size_t> usecols) {
   std::string line, token;
-  out.resize(shape[0]);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
+  size_t size = 0;
+  std::vector<T> buffer;
+  T val;
+  while (size < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
-    std::vector<T> buffer(shape[1]);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, buffer[j]);
+    size_t ntokens = 0;
+    while (std::getline(tokenizer, token, delimiter)) {
+      if (ntokens == *usecols.begin()) {
+        std::istringstream parser(token);
+        parser >> val;
+        buffer.push_back(val);
+      }
+      ++ntokens;
     }
-    out[i] = buffer[*usecols.begin()];
+    ++size;
   }
+  data = std::move(tensor<T, 1>(buffer.begin(), size));
 }
 } // namespace detail
 
@@ -515,7 +505,7 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter,
                         std::initializer_list<size_t> usecols) {
   static_assert(Rank == 1 || Rank == 2,
                 "Output tensor must be 1-dimensional or 2-dimensional");
-  std::ifstream file(filename, std::ifstream::binary);
+  std::ifstream file(filename);
   if (!file) {
     std::ostringstream error;
     error << "Input file " << filename << " does not exist or cannot be read";
@@ -524,14 +514,13 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter,
   for (size_t i = 0; i < skiprows; ++i) {
     file.ignore(std::numeric_limits<std::streamsize>::max(), newline);
   }
-  shape_t<2> shape = detail::scan_file_data(file, delimiter, newline, max_rows);
-  tensor<T, Rank> out;
+  tensor<T, Rank> data;
   if (usecols.size() == 0) {
-    detail::load_file_data(file, out, shape, delimiter, newline);
+    detail::load_file_data(file, data, delimiter, newline, max_rows);
   } else {
-    detail::load_file_data(file, out, shape, delimiter, newline, usecols);
+    detail::load_file_data(file, data, delimiter, newline, max_rows, usecols);
   }
-  return out;
+  return data;
 }
 
 namespace detail {
