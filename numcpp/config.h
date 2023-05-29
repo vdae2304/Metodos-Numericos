@@ -256,7 +256,7 @@ struct is_expression : std::false_type {};
 
 template <class T>
 struct is_expression<T, void_t<typename T::value_type>,
-                     void_t<std::integral_constant<size_t, T::rank>>>
+                     void_t<decltype(T::rank)>>
     : std::is_base_of<expression<T, typename T::value_type, T::rank>, T> {};
 
 /**
