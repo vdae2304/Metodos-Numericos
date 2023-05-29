@@ -24,6 +24,9 @@
 #ifndef NUMCPP_LAZY_EXPRESSION_H_INCLUDED
 #define NUMCPP_LAZY_EXPRESSION_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/iterators/flat_iterator.h"
+
 namespace numcpp {
 /**
  * @brief A light-weight object which stores the result of applying an unary

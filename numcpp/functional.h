@@ -24,8 +24,8 @@
 #define NUMCPP_FUNCTIONAL_H_INCLUDED
 
 #include "numcpp/config.h"
-#include "numcpp/functional/operators.h"
 #include "numcpp/functional/lazy_expression.h"
+#include "numcpp/functional/operators.h"
 
 namespace numcpp {
 /// Functional programming.
@@ -323,5 +323,6 @@ void outer(dense_tensor<OutContainer, R, Rank1 + Rank2> &out, Function &&f,
 } // namespace numcpp
 
 #include "numcpp/functional/functional.tcc"
+#include "numcpp/functional/vectorize.h"
 
 #endif // NUMCPP_FUNCTIONAL_H_INCLUDED

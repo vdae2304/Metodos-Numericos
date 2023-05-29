@@ -24,9 +24,10 @@
 #define NUMCPP_MATH_H_INCLUDED
 
 #include "numcpp/config.h"
+#include "numcpp/functional/lazy_expression.h"
+#include "numcpp/math/complexfwd.h"
 #include "numcpp/math/constants.h"
 #include "numcpp/math/mathfwd.h"
-#include "numcpp/math/complexfwd.h"
 
 namespace numcpp {
 /// Basic functions.

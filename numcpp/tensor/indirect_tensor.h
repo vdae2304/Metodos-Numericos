@@ -23,6 +23,9 @@
 #ifndef NUMCPP_INDIRECT_TENSOR_H_INCLUDED
 #define NUMCPP_INDIRECT_TENSOR_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/tensor/dense_tensor.h"
+
 namespace numcpp {
 /**
  * @brief An indirect_tensor is a view of a subset of elements from a

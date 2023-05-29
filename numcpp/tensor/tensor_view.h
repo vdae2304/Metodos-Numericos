@@ -23,6 +23,9 @@
 #ifndef NUMCPP_TENSOR_VIEW_H_INCLUDED
 #define NUMCPP_TENSOR_VIEW_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/tensor/dense_tensor.h"
+
 namespace numcpp {
 /**
  * @brief A tensor_view is just a view of a multidimensional array. It

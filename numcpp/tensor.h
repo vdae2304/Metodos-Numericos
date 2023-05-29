@@ -29,7 +29,7 @@ standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
 compiler options.
 #else
 
-#include "numcpp/tensor/shape.h"
+#include "numcpp/shape.h"
 #include "numcpp/tensor/slice.h"
 #include "numcpp/functional/lazy_expression.h"
 #include "numcpp/tensor/dense_tensor.h"

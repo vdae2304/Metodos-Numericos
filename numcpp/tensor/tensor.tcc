@@ -355,29 +355,18 @@ tensor<T, N> tensor<T, Rank>::operator[](
   return subarray;
 }
 
-/// Namespace for implementation details.
-namespace detail {
-/**
- * @brief Throws a std::invalid_argument exception if the shape of the boolean
- * mask does not match the shape of the indexed tensor.
- */
-template <size_t Rank>
-void assert_mask_shape(const shape_t<Rank> &shape,
-                       const shape_t<Rank> &mask_shape) {
-  if (shape != mask_shape) {
-    std::ostringstream error;
-    error << "boolean index did not match indexed tensor; shape is " << shape
-          << " but corresponding boolean shape is " << mask_shape;
-    throw std::invalid_argument(error.str());
-  }
-}
-} // namespace detail
+
 
 template <class T, size_t Rank>
 template <class Container>
 indirect_tensor<T, 1>
 tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
-  detail::assert_mask_shape(m_shape, mask.shape());
+  if (m_shape != mask.shape()) {
+    std::ostringstream error;
+    error << "boolean index did not match indexed tensor; shape is " << m_shape
+          << " but corresponding boolean shape is " << mask.shape();
+    throw std::invalid_argument(error.str());
+  }
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   indirect_tensor<T, 1> subarray(m_data, size);
   size_t n = 0;
@@ -393,7 +382,12 @@ template <class T, size_t Rank>
 template <class Container>
 tensor<T, 1> tensor<T, Rank>::operator[](
     const expression<Container, bool, Rank> &mask) const {
-  detail::assert_mask_shape(m_shape, mask.shape());
+  if (m_shape != mask.shape()) {
+    std::ostringstream error;
+    error << "boolean index did not match indexed tensor; shape is " << m_shape
+          << " but corresponding boolean shape is " << mask.shape();
+    throw std::invalid_argument(error.str());
+  }
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   tensor<T, 1> subarray(size);
   size_t n = 0;

@@ -23,9 +23,9 @@
 #ifndef NUMCPP_IO_H_INCLUDED
 #define NUMCPP_IO_H_INCLUDED
 
-#include "numcpp/config.h"
 #include <cstdint>
 #include <iosfwd>
+#include "numcpp/config.h"
 
 namespace numcpp {
 /// Context manager for setting print options.

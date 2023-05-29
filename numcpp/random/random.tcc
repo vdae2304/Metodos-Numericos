@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include "numcpp/iterators/axes_iterator.h"
 
 namespace numcpp {
 /// Constructors.

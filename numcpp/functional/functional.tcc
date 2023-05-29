@@ -24,10 +24,43 @@
 #ifndef NUMCPP_FUNCTIONAL_TCC_INCLUDED
 #define NUMCPP_FUNCTIONAL_TCC_INCLUDED
 
+#include "numcpp/iterators/index_sequence.h"
 #include "numcpp/iterators/nested_index_sequence.h"
 
 namespace numcpp {
 /// Functional programming.
+
+/// Namespace for implementation details.
+namespace detail {
+/**
+ * @brief Assert the output shape matches the input shape.
+ */
+template <size_t Rank>
+void assert_output_shape(const shape_t<Rank> &output,
+                         const shape_t<Rank> &input) {
+  if (output != input) {
+    std::ostringstream error;
+    error << "non-broadcastable output operand with shape " << output
+          << " doesn't match the broadcast shape " << input;
+    throw std::invalid_argument(error.str());
+  }
+}
+
+/**
+ * @brief Throws a std::invalid_argument exception if the shape of the boolean
+ * mask does not match the shape of the indexed tensor.
+ */
+template <size_t Rank>
+void assert_mask_shape(const shape_t<Rank> &shape,
+                       const shape_t<Rank> &mask_shape) {
+  if (shape != mask_shape) {
+    std::ostringstream error;
+    error << "boolean index did not match indexed tensor; shape is " << shape
+          << " but corresponding boolean shape is " << mask_shape;
+    throw std::invalid_argument(error.str());
+  }
+}
+} // namespace detail
 
 template <class OutContainer, class R, class Function, class Container, class T,
           size_t Rank>
@@ -234,6 +267,7 @@ tensor<T, Rank> reduce(Function &&f, const expression<Container1, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
                        typename Container1::value_type init,
                        const expression<Container2, bool, Rank> &where) {
+  detail::assert_mask_shape(a.shape(), where.shape());
   tensor<T, Rank> out(detail::fill_axes(a.shape(), axes, 1));
   for (index_t<Rank> index : make_index_sequence_for(out)) {
     T val = init;
@@ -288,6 +322,7 @@ tensor<T, Rank - N>
 reduce(Function &&f, const expression<Container1, T, Rank> &a,
        const shape_t<N> &axes, dropdims_t, typename Container1::value_type init,
        const expression<Container2, bool, Rank> &where) {
+  detail::assert_mask_shape(a.shape(), where.shape());
   tensor<T, Rank - N> out(detail::remove_axes(a.shape(), axes));
   for (index_t<Rank> index :
        make_index_sequence(detail::fill_axes(a.shape(), axes, 1))) {

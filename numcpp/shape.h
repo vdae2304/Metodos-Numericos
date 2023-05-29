@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/tensor/shape.h
+/** @file include/numcpp/shape.h
  *  This header defines the shape_t and index_t classes.
  */
 
