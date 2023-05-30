@@ -24,6 +24,7 @@
 #define NUMCPP_MATHFWD_H_INCLUDED
 
 #include <cmath>
+#include <complex>
 #include <type_traits>
 #include <utility>
 
@@ -558,6 +559,48 @@ struct lcm {
   template <class T, class U>
   auto operator()(T m, U n) const -> decltype(numcpp::lcm(m, n)) {
     return numcpp::lcm(m, n);
+  }
+};
+
+/// Complex numbers.
+
+/**
+ * @brief Function object implementing @c std::real.
+ */
+struct real {
+  template <class T>
+  auto operator()(T &&z) const -> decltype(std::real(std::forward<T>(z))) {
+    return std::real(std::forward<T>(z));
+  }
+};
+
+/**
+ * @brief Function object implementing @c std::imag.
+ */
+struct imag {
+  template <class T>
+  auto operator()(T &&z) const -> decltype(std::imag(std::forward<T>(z))) {
+    return std::imag(std::forward<T>(z));
+  }
+};
+
+/**
+ * @brief Function object implementing @c std::conj.
+ */
+struct conj {
+  template <class T>
+  auto operator()(T &&z) const -> decltype(std::conj(std::forward<T>(z))) {
+    return std::conj(std::forward<T>(z));
+  }
+};
+
+/**
+ * @brief Function object implementing @c std::arg.
+ */
+struct arg {
+  template <class T>
+  auto operator()(T &&z) const -> decltype(std::arg(std::forward<T>(z))) {
+    return std::arg(std::forward<T>(z));
   }
 };
 
