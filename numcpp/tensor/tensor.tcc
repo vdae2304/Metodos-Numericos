@@ -25,8 +25,7 @@
 #define NUMCPP_TENSOR_TCC_INCLUDED
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 /// Constructors.
@@ -361,12 +360,7 @@ template <class T, size_t Rank>
 template <class Container>
 indirect_tensor<T, 1>
 tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
-  if (m_shape != mask.shape()) {
-    std::ostringstream error;
-    error << "boolean index did not match indexed tensor; shape is " << m_shape
-          << " but corresponding boolean shape is " << mask.shape();
-    throw std::invalid_argument(error.str());
-  }
+  detail::assert_mask_shape(m_shape, mask.shape());
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   indirect_tensor<T, 1> subarray(m_data, size);
   size_t n = 0;
@@ -382,12 +376,7 @@ template <class T, size_t Rank>
 template <class Container>
 tensor<T, 1> tensor<T, Rank>::operator[](
     const expression<Container, bool, Rank> &mask) const {
-  if (m_shape != mask.shape()) {
-    std::ostringstream error;
-    error << "boolean index did not match indexed tensor; shape is " << m_shape
-          << " but corresponding boolean shape is " << mask.shape();
-    throw std::invalid_argument(error.str());
-  }
+  detail::assert_mask_shape(m_shape, mask.shape());
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   tensor<T, 1> subarray(size);
   size_t n = 0;

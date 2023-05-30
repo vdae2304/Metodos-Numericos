@@ -26,8 +26,7 @@
 
 #include <algorithm>
 #include <numeric>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 /// Constructors.
@@ -213,12 +212,7 @@ inline bool indirect_tensor<T, Rank>::is_contiguous() const {
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &
 indirect_tensor<T, Rank>::operator=(const indirect_tensor &other) {
-  if (this->shape() != other.shape()) {
-    std::ostringstream error;
-    error << "input shape " << other.shape()
-          << " doesn't match the output shape " << this->shape();
-    throw std::invalid_argument(error.str());
-  }
+  detail::assert_output_shape(m_shape, other.shape());
   std::copy(other.begin(m_order), other.end(m_order), this->begin());
   return *this;
 }
@@ -227,12 +221,7 @@ template <class T, size_t Rank>
 template <class Container, class U>
 indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(
     const expression<Container, U, Rank> &other) {
-  if (this->shape() != other.shape()) {
-    std::ostringstream error;
-    error << "input shape " << other.shape()
-          << " doesn't match the output shape " << this->shape();
-    throw std::invalid_argument(error.str());
-  }
+  detail::assert_output_shape(m_shape, other.shape());
   std::transform(other.self().begin(m_order), other.self().end(m_order),
                  this->begin(), cast_to<U, T>());
   return *this;

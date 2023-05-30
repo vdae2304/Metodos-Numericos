@@ -25,8 +25,7 @@
 #define NUMCPP_SHAPE_TCC_INCLUDED
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 template <size_t Rank> shape_t<Rank>::shape_t() : m_shape{0} {}
@@ -60,43 +59,6 @@ template <size_t Rank> inline size_t *shape_t<Rank>::data() { return m_shape; }
 template <size_t Rank> inline const size_t *shape_t<Rank>::data() const {
   return m_shape;
 }
-
-namespace detail {
-/**
- * @brief Asserts whether an index is within the bounds of a tensor. Throws a
- * std::out_of_range exception if assertion fails.
- */
-inline void assert_within_bounds(size_t size, size_t i) {
-  if (i >= size) {
-    std::ostringstream error;
-    error << "index " << i << " is out of bounds with size " << size;
-    throw std::out_of_range(error.str());
-  }
-}
-
-template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape,
-                                 const index_t<Rank> &index) {
-  for (size_t i = 0; i < Rank; ++i) {
-    if (index[i] >= shape[i]) {
-      std::ostringstream error;
-      error << "index " << index << " is out of bounds with size " << shape;
-      throw std::out_of_range(error.str());
-    }
-  }
-}
-
-template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape, size_t index,
-                                 size_t axis) {
-  if (index >= shape[axis]) {
-    std::ostringstream error;
-    error << "index " << index << " is out of bounds for axis " << axis
-          << " with size " << shape[axis];
-    throw std::out_of_range(error.str());
-  }
-}
-} // namespace detail
 
 template <size_t Rank> inline size_t &shape_t<Rank>::operator[](size_t i) {
   detail::assert_within_bounds(Rank, i);
