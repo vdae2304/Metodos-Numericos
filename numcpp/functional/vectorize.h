@@ -293,7 +293,7 @@ public:
     if constexpr (has_identity()) {
       return numcpp::reduce(m_fun, a, axes, dropdims, m_identity);
     } else {
-      return numcpp::reduce(m_fun, a, axes, keepdims);
+      return numcpp::reduce(m_fun, a, axes, dropdims);
     }
   }
 
