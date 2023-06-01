@@ -24,6 +24,7 @@
 #ifndef NUMCPP_LAZY_EXPRESSION_H_INCLUDED
 #define NUMCPP_LAZY_EXPRESSION_H_INCLUDED
 
+#include <tuple>
 #include "numcpp/shape.h"
 #include "numcpp/iterators/flat_iterator.h"
 
@@ -625,6 +626,187 @@ public:
     }
   }
 };
+
+#if __cplusplus >= 201402L
+/**
+ * @brief A light-weight object which stores the result of applying a function
+ * element-wise. Unlike unary_expr and binary_expr, element_wise_expr accepts
+ * any number of arguments. However, arguments must be tensors rather than
+ * scalar values. This class represents an expression rather than a container.
+ * Such expressions relies on lazy evaluation, meaning that multiple expressions
+ * can be nested and the result of the whole expression will be computed only at
+ * the end, when the whole expression is evaluated or assigned to a tensor
+ * object.
+ *
+ * @tparam Function Type of the applied function.
+ * @tparam Container1 Type of the first tensor where the function is applied.
+ * @tparam Containers... Type of the remaining tensors where the function is
+ *                       applied.
+ */
+template <class Function, class Container1, class... Containers>
+class element_wise_expr
+    : public expression<
+          element_wise_expr<Function, Container1, Containers...>,
+          detail::result_of_t<Function, typename Container1::value_type,
+                              typename Containers::value_type...>,
+          Container1::rank> {
+public:
+  /// Member types.
+  typedef detail::result_of_t<Function, typename Container1::value_type,
+                              typename Containers::value_type...>
+      value_type;
+  static constexpr size_t rank = Container1::rank;
+  typedef flat_iterator<
+      const element_wise_expr<Function, Container1, Containers...>, value_type,
+      rank, void, value_type>
+      iterator;
+  typedef size_t size_type;
+  typedef ptrdiff_t difference_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
+
+private:
+  // Function to apply.
+  Function m_fun;
+
+  // Tensor arguments.
+  std::tuple<const Container1 &, const Containers &...> m_args;
+
+  // Common shape.
+  shape_type m_shape;
+
+  // Common size.
+  size_type m_size;
+
+public:
+  /// Constructors.
+
+  /**
+   * @brief Constructs an expression which stores the result of applying a
+   * function element-wise.
+   *
+   * @param f The function to apply.
+   * @param a, b... Tensor-like arguments.
+   */
+  element_wise_expr(
+      Function f,
+      const expression<Container1, typename Container1::value_type,
+                       Container1::rank> &a,
+      const expression<Containers, typename Containers::value_type,
+                       Containers::rank> &...b)
+      : m_fun(f), m_args(a.self(), b.self()...),
+        m_shape(broadcast_shapes(a.shape(), b.shape()...)),
+        m_size(m_shape.prod()) {}
+
+  element_wise_expr(
+      const expression<Container1, typename Container1::value_type,
+                       Container1::rank> &a,
+      const expression<Containers, typename Containers::value_type,
+                       Containers::rank> &...b)
+      : element_wise_expr(Function(), a, b...) {}
+
+  /// Destructor.
+  ~element_wise_expr() = default;
+
+  /// Iterators.
+
+  /**
+   * @brief Return an iterator pointing to the first element in the tensor.
+   *
+   * @param order It is an optional parameter that changes the order in which
+   *              elements are iterated. In row-major order, the last index is
+   *              varying the fastest. In column-major order, the first index is
+   *              varying the fastest. The default is to use the same layout as
+   *              stored in memory.
+   *
+   * @return A random access iterator to the beginning of the tensor.
+   */
+  iterator begin() const { return begin(this->layout()); }
+
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
+
+  /**
+   * @brief Return an iterator pointing to the past-the-end element in the
+   * tensor. It does not point to any element, and thus shall not be
+   * dereferenced.
+   *
+   * @param order It is an optional parameter that changes the order in which
+   *              elements are iterated. In row-major order, the last index is
+   *              varying the fastest. In column-major order, the first index is
+   *              varying the fastest. The default is to use the same layout as
+   *              stored in memory.
+   *
+   * @return A random access iterator to the element past the end of the tensor.
+   */
+  iterator end() const { return end(this->layout()); }
+
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
+  }
+
+  /// Indexing.
+
+  /**
+   * @brief Subscript operator. Returns the result of applying the function to
+   * an element in the tensor.
+   *
+   * @param index An @c index_t object with the position of an element in the
+   *              tensor.
+   *
+   * @return The result of the function evaluation at the specified position in
+   *         the tensor.
+   */
+  auto operator[](const index_type &index) const {
+    return __at(index, std::make_index_sequence<1 + sizeof...(Containers)>());
+  }
+
+  /**
+   * @brief Return the shape of the tensor.
+   *
+   * @param axis It is an optional parameter that changes the return value. If
+   *             provided, returns the size along the given axis. Otherwise,
+   *             returns a shape_t object with the shape of the tensor along all
+   *             axes.
+   */
+  const shape_type &shape() const { return m_shape; }
+
+  size_type shape(size_type axis) const { return m_shape[axis]; }
+
+  /**
+   * @brief Return the number of elements in the tensor (i.e., the product of
+   * the sizes along all the axes).
+   */
+  size_type size() const { return m_size; }
+
+  /**
+   * @brief Return the memory layout in which elements are stored.
+   */
+  layout_t layout() const { return std::get<0>(m_args).layout(); }
+
+private:
+  /**
+   * @brief Broadcasts an index and returns the element at the specified
+   * position.
+   */
+  template <class C, class T>
+  T __broadcast(const expression<C, T, rank> &a, index_type index) const {
+    for (size_t axis = 0; axis < rank; ++axis) {
+      if (a.shape(axis) == 1) {
+        index[axis] = 0;
+      }
+    }
+    return a[index];
+  }
+
+  /**
+   * @brief Implementation of subscript operator.
+  */
+  template <size_t... Is>
+  auto __at(const index_type &index, std::index_sequence<Is...>) const {
+    return m_fun(__broadcast(std::get<Is>(m_args), index)...);
+  }
+};
+#endif // C++14
 } // namespace numcpp
 
 #endif // NUMCPP_LAZY_EXPRESSION_H_INCLUDED
