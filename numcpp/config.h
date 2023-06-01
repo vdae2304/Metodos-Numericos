@@ -228,7 +228,7 @@ template <class B1> struct conjunction<B1> : B1 {};
 
 template <class B1, class... Bn>
 struct conjunction<B1, Bn...>
-    : std::conditional<B1::value, conjunction<Bn...>, B1> {};
+    : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
 
 /**
  * @brief Variadic logical OR.
@@ -240,7 +240,8 @@ template <> struct disjunction<> : std::false_type {};
 template <class B1> struct disjunction<B1> : B1 {};
 
 template <class B1, class... Bn>
-    : std::conditional<B1::value, B1, disjunction<Bn...>> {}
+struct disjunction<B1, Bn...>
+    : std::conditional<bool(B1::value), B1, disjunction<Bn...>>::type {};
 
 /**
  * @brief Always yields void.
@@ -311,10 +312,11 @@ struct slicing_rank<IntegralType, Indices...>
  */
 #if __cplusplus >= 201703L
 template <class Function, class... Args>
-using result_of_t = typename std::invoke_result<Function, Args...>::type;
+using result_of_t = std::decay_t<std::invoke_result_t<Function, Args...>>;
 #else
 template <class Function, class... Args>
-using result_of_t = typename std::result_of<Function(Args...)>::type;
+using result_of_t =
+    typename std::decay<typename std::result_of<Function(Args...)>::type>::type;
 #endif // C++17
 
 template <class Signature, typename = void>
