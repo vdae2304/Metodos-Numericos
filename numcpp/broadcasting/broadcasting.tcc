@@ -298,8 +298,7 @@ tensor<T, 1> flatten(const expression<Container, T, Rank> &a, layout_t order) {
 
 namespace detail {
 /**
- * @brief Computes the shape of the concatenation along the given axis.
- Throws a
+ * @brief Computes the shape of the concatenation along the given axis. Throws a
  * std::invalid_argument exception if the shapes do not match along the
  * remaining axes.
  */
