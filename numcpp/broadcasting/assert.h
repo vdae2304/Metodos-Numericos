@@ -80,6 +80,15 @@ void assert_output_shape(const shape_t<Rank> &output,
   }
 }
 
+void assert_output_shape(size_t output, size_t input) {
+  if (output != input) {
+    std::ostringstream error;
+    error << "non-broadcastable output operand with shape " << output
+          << " doesn't match the broadcast shape " << input;
+    throw std::invalid_argument(error.str());
+  }
+}
+
 /**
  * @brief Asserts whether the shape of the boolean mask matches the shape of the
  * indexed tensor. Throws a std::invalid_argument exception if assertion fails.
@@ -92,6 +101,36 @@ void assert_mask_shape(const shape_t<Rank> &shape,
     error << "boolean index did not match indexed tensor; shape is " << shape
           << " but corresponding boolean shape is " << mask_shape;
     throw std::invalid_argument(error.str());
+  }
+}
+
+void assert_mask_shape(size_t size, size_t mask_size, size_t axis) {
+  if (size != mask_size) {
+    std::ostringstream error;
+    error << "boolean index did not match indexed tensor along dimension "
+          << axis << "; dimension is " << size
+          << " but corresponding boolean dimension is " << mask_size;
+    throw std::invalid_argument(error.str());
+  }
+}
+
+/**
+ * @brief Asserts whether the shape of the tensor of indices matches the shape
+ * of the indexed tensor for all dimensions other than axis. Throws a
+ * std::invalid_argument exception if assertion fails.
+ */
+template <size_t Rank>
+void assert_index_along_axis_shape(const shape_t<Rank> &shape,
+                                   const shape_t<Rank> &indices_shape,
+                                   size_t axis) {
+  for (size_t i = 0; i < Rank; ++i) {
+    if (indices_shape[i] != shape[i] && i != axis) {
+      std::ostringstream error;
+      error << "index did not match indexed tensor along dimension " << i
+            << "; dimension is " << shape[i]
+            << " but corresponding index dimension is " << indices_shape[i];
+      throw std::invalid_argument(error.str());
+    }
   }
 }
 } // namespace detail
