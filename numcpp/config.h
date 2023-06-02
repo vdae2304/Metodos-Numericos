@@ -147,8 +147,8 @@ public:
 };
 
 /**
- * @brief Base class for non-expression dense tensors such as tensor,
- * tensor_view and indirect_tensor.
+ * @brief Base class for dense tensors such as tensor, tensor_view and
+ * indirect_tensor.
  */
 template <class Container, class T, size_t Rank> class dense_tensor;
 
