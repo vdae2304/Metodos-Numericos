@@ -116,66 +116,6 @@ T reduce(Function &&f, const expression<Container1, T, Rank> &a,
   return init;
 }
 
-/// Namespace for implementation details.
-namespace detail {
-/**
- * @brief Fill specified axes from a shape with a value.
- */
-template <size_t Rank, size_t N>
-shape_t<Rank> fill_axes(const shape_t<Rank> &shape, const shape_t<N> &axes,
-                        size_t val = 0) {
-  static_assert(N <= Rank, "Too many arguments");
-  shape_t<Rank> out_shape = shape;
-  for (size_t i = 0; i < N; ++i) {
-    out_shape[axes[i]] = val;
-  }
-  return out_shape;
-}
-
-template <size_t Rank>
-shape_t<Rank> fill_axes(const shape_t<Rank> &shape, size_t axis,
-                        size_t val = 0) {
-  shape_t<Rank> out_shape = shape;
-  out_shape[axis] = val;
-  return out_shape;
-}
-
-/**
- * @brief Removes specified axes from a shape.
- */
-template <size_t Rank, size_t N>
-shape_t<Rank - N> remove_axes(const shape_t<Rank> &shape,
-                              const shape_t<N> &axes) {
-  static_assert(N < Rank, "The number of dimensions to remove cannot be larger"
-                          " than the tensor dimension");
-  bool drop[Rank] = {};
-  for (size_t i = 0; i < N; ++i) {
-    drop[axes[i]] = true;
-  }
-  shape_t<Rank - N> out_shape;
-  for (size_t i = 0, offset = 0; i < Rank; ++i) {
-    if (!drop[i]) {
-      out_shape[offset++] = shape[i];
-    }
-  }
-  return out_shape;
-}
-
-template <size_t Rank>
-shape_t<Rank - 1> remove_axes(const shape_t<Rank> &shape, size_t axis) {
-  static_assert(Rank > 1, "The number of dimensions to remove cannot be larger"
-                          " than the tensor dimension");
-  shape_t<Rank - 1> out_shape;
-  for (size_t i = 0; i < axis; ++i) {
-    out_shape[i] = shape[i];
-  }
-  for (size_t i = axis + 1; i < Rank; ++i) {
-    out_shape[i - 1] = shape[i];
-  }
-  return out_shape;
-}
-} // namespace detail
-
 template <class Function, class Container, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
                            const expression<Container, T, Rank> &a,
@@ -202,8 +142,12 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
 template <class Function, class Container, class T, size_t Rank, size_t N>
 tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t) {
-  tensor<T, Rank> out(detail::fill_axes(a.shape(), axes, 1));
-  for (index_t<Rank> index : make_index_sequence_for(out)) {
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
+  tensor<T, Rank> out(shape);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val;
     bool is_null = true;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
@@ -219,8 +163,12 @@ template <class Function, class Container, class T, size_t Rank, size_t N>
 tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
                        typename Container::value_type init) {
-  tensor<T, Rank> out(detail::fill_axes(a.shape(), axes, 1));
-  for (index_t<Rank> index : make_index_sequence_for(out)) {
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
+  tensor<T, Rank> out(shape);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val = init;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
       val = std::forward<Function>(f)(std::move(val), a[i]);
@@ -237,8 +185,12 @@ tensor<T, Rank> reduce(Function &&f, const expression<Container1, T, Rank> &a,
                        typename Container1::value_type init,
                        const expression<Container2, bool, Rank> &where) {
   detail::assert_mask_shape(a.shape(), where.shape());
-  tensor<T, Rank> out(detail::fill_axes(a.shape(), axes, 1));
-  for (index_t<Rank> index : make_index_sequence_for(out)) {
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
+  tensor<T, Rank> out(shape);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val = init;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
       if (where[i]) {
@@ -254,9 +206,12 @@ template <class Function, class Container, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
                            const expression<Container, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t) {
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
   tensor<T, Rank - N> out(detail::remove_axes(a.shape(), axes));
-  for (index_t<Rank> index :
-       make_index_sequence(detail::fill_axes(a.shape(), axes, 1))) {
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val;
     bool is_null = true;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
@@ -273,9 +228,12 @@ tensor<T, Rank - N> reduce(Function &&f,
                            const expression<Container, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t,
                            typename Container::value_type init) {
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
   tensor<T, Rank - N> out(detail::remove_axes(a.shape(), axes));
-  for (index_t<Rank> index :
-       make_index_sequence(detail::fill_axes(a.shape(), axes, 1))) {
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val = init;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
       val = std::forward<Function>(f)(std::move(val), a[i]);
@@ -292,9 +250,12 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
        const shape_t<N> &axes, dropdims_t, typename Container1::value_type init,
        const expression<Container2, bool, Rank> &where) {
   detail::assert_mask_shape(a.shape(), where.shape());
+  shape_t<Rank> shape = a.shape();
+  for (size_t i = 0; i < N; ++i) {
+    shape[axes[i]] = 1;
+  }
   tensor<T, Rank - N> out(detail::remove_axes(a.shape(), axes));
-  for (index_t<Rank> index :
-       make_index_sequence(detail::fill_axes(a.shape(), axes, 1))) {
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val = init;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axes)) {
       if (where[i]) {
@@ -309,9 +270,10 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
 template <class Function, class Container, class T, size_t Rank>
 tensor<T, Rank>
 accumulate(Function &&f, const expression<Container, T, Rank> &a, size_t axis) {
-  tensor<T, Rank> out(a.shape());
-  for (index_t<Rank> index :
-       make_index_sequence(detail::fill_axes(a.shape(), axis, 1))) {
+  shape_t<Rank> shape = a.shape();
+  tensor<T, Rank> out(shape);
+  shape[axis] = 1;
+  for (index_t<Rank> index : make_index_sequence(shape)) {
     T val;
     bool is_null = true;
     for (index_t<Rank> i : make_nested_index_sequence_for(a, index, axis)) {

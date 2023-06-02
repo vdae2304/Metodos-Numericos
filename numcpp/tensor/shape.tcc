@@ -125,7 +125,74 @@ index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
   return multi_index;
 }
 
+/// Namespace for implementation details.
 namespace detail {
+/**
+ * @brief Expand the dimension of the shape by inserting new axes.
+ */
+template <size_t Rank, size_t N>
+shape_t<Rank + N> insert_axes(const shape_t<Rank> &shape,
+                              const shape_t<N> &axes, size_t val = 0) {
+  shape_t<Rank + N> out_shape;
+  bool new_axis[Rank + N] = {};
+  for (size_t i = 0; i < N; ++i) {
+    new_axis[axes[i]] = true;
+  }
+  for (size_t i = 0, offset = 0; i < Rank + N; ++i) {
+    out_shape[i] = new_axis[i] ? val : shape[offset++];
+  }
+  return out_shape;
+}
+
+template <size_t Rank>
+shape_t<Rank + 1> insert_axes(const shape_t<Rank> &shape, size_t axis,
+                              size_t val = 0) {
+  shape_t<Rank + 1> out_shape;
+  for (size_t i = 0; i < axis; ++i) {
+    out_shape[i] = shape[i];
+  }
+  out_shape[axis] = val;
+  for (size_t i = axis; i < Rank; ++i) {
+    out_shape[i + 1] = shape[i];
+  }
+  return out_shape;
+}
+
+/**
+ * @brief Removes specified axes from a shape.
+ */
+template <size_t Rank, size_t N>
+shape_t<Rank - N> remove_axes(const shape_t<Rank> &shape,
+                              const shape_t<N> &axes) {
+  static_assert(N < Rank, "The number of dimensions to remove cannot be larger"
+                          " than the tensor dimension");
+  bool drop_axis[Rank] = {};
+  for (size_t i = 0; i < N; ++i) {
+    drop_axis[axes[i]] = true;
+  }
+  shape_t<Rank - N> out_shape;
+  for (size_t i = 0, offset = 0; i < Rank; ++i) {
+    if (!drop_axis[i]) {
+      out_shape[offset++] = shape[i];
+    }
+  }
+  return out_shape;
+}
+
+template <size_t Rank>
+shape_t<Rank - 1> remove_axes(const shape_t<Rank> &shape, size_t axis) {
+  static_assert(Rank > 1, "The number of dimensions to remove cannot be larger"
+                          " than the tensor dimension");
+  shape_t<Rank - 1> out_shape;
+  for (size_t i = 0; i < axis; ++i) {
+    out_shape[i] = shape[i];
+  }
+  for (size_t i = axis + 1; i < Rank; ++i) {
+    out_shape[i - 1] = shape[i];
+  }
+  return out_shape;
+}
+
 /**
  * @brief Broadcast input shapes into a common shape.
  */
