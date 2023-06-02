@@ -266,25 +266,6 @@ void copyto(dense_tensor<Container1, T, Rank> &dest,
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2, class U,
-          class Container3>
-void copyto(dense_tensor<Container1, T, Rank> &dest,
-            const expression<Container2, U, Rank> &src,
-            const expression<Container3, bool, Rank> &where) {
-  detail::assert_output_shape(dest.shape(),
-                              broadcast_shapes(dest.shape(), src.shape()));
-  detail::assert_mask_shape(dest.shape(), where.shape());
-  for (index_t<Rank> index : make_index_sequence_for(dest)) {
-    if (where[index]) {
-      index_t<Rank> i;
-      for (size_t axis = 0; axis < Rank; ++axis) {
-        i[axis] = (src.shape(axis) > 1) ? index[axis] : 0;
-      }
-      dest[index] = src[i];
-    }
-  }
-}
-
 template <class Container, class T, size_t Rank>
 inline tensor<T, Rank> copy(const expression<Container, T, Rank> &a) {
   return copy(a, a.layout());
@@ -725,7 +706,18 @@ template <class Container1, class T, size_t Rank, class Container2,
 void putmask(dense_tensor<Container1, T, Rank> &a,
              const expression<Container2, bool, Rank> &condition,
              const expression<Container3, T, Rank> &values) {
-  copyto(a, values, condition);
+  detail::assert_output_shape(a.shape(),
+                              broadcast_shapes(a.shape(), values.shape()));
+  detail::assert_mask_shape(a.shape(), condition.shape());
+  for (index_t<Rank> index : make_index_sequence_for(condition)) {
+    if (condition[index]) {
+      index_t<Rank> i;
+      for (size_t axis = 0; axis < Rank; ++axis) {
+        i[axis] = (values.shape(axis) > 1) ? index[axis] : 0;
+      }
+      a[index] = values[i];
+    }
+  }
 }
 } // namespace numcpp
 

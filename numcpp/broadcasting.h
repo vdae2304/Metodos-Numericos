@@ -24,7 +24,7 @@
 #define NUMCPP_BROADCASTING_H_INCLUDED
 
 #include "numcpp/config.h"
-#include "numcpp/broadcasting/utilities.h"
+#include "numcpp/broadcasting/padding.h"
 #include "numcpp/functional/lazy_expression.h"
 #include "numcpp/functional/operators.h"
 
@@ -262,8 +262,6 @@ astype(const expression<Container, T, Rank> &a) {
  *
  * @param dest The tensor into which values are copied.
  * @param src The tensor from which values are copied.
- * @param where A boolean tensor which indicates the elements to copy from
- *              @a src to @a dest.
  *
  * @throw std::invalid_argument Thrown if the shape of @a src is not compatible
  *                              with the shape of @a dest according to
@@ -272,12 +270,6 @@ astype(const expression<Container, T, Rank> &a) {
 template <class Container1, class T, size_t Rank, class Container2, class U>
 void copyto(dense_tensor<Container1, T, Rank> &dest,
             const expression<Container2, U, Rank> &src);
-
-template <class Container1, class T, size_t Rank, class Container2, class U,
-          class Container3>
-void copyto(dense_tensor<Container1, T, Rank> &dest,
-            const expression<Container2, U, Rank> &src,
-            const expression<Container3, bool, Rank> &where);
 
 /**
  * @brief Return a copy of the tensor.

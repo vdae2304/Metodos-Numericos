@@ -14,15 +14,15 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/broadcasting/utilities.h
+/** @file include/numcpp/broadcasting/padding.h
  *  This is an internal header file, included by other library headers.
  *  Do not attempt to use it directly. @headername{numcpp/broadcasting.h}
  */
 
 // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_UTILITIES_H_INCLUDED
-#define NUMCPP_UTILITIES_H_INCLUDED
+#ifndef NUMCPP_PADDING_H_INCLUDED
+#define NUMCPP_PADDING_H_INCLUDED
 
 #include <tuple>
 #include <utility>
@@ -334,4 +334,4 @@ struct wrap {
 } // namespace pad_mode
 } // namespace numcpp
 
-#endif // NUMCPP_UTILITIES_H_INCLUDED
+#endif // NUMCPP_PADDING_H_INCLUDED
