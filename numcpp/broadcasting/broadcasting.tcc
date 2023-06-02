@@ -25,6 +25,7 @@
 #define NUMCPP_BROADCASTING_TCC_INCLUDED
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include "numcpp/broadcasting/assert.h"
 #include "numcpp/iterators/index_sequence.h"
