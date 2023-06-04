@@ -187,50 +187,6 @@ void savetxt(const std::string &filename,
 /// Input/output streams.
 
 /**
- * @brief Overloads input stream for shape_t objects.
- *
- * @details For 1-dimensional shapes, the supported formats are
- *     - (size,)
- *     - size
- * For @a n -dimensional shapes, @a n > 1, the supported formats are
- *     - (size_1, size_2, ..., size_n)
- * If an error occurs, calls istr.setstate(std::ios_base::failbit).
- *
- * @param istr Input stream object.
- * @param shape Shape to be extracted from the input stream.
- *
- * @return istr
- */
-template <class charT, class traits, size_t Rank>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape);
-
-template <class charT, class traits>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<1> &shape);
-
-/**
- * @brief Overloads output stream for shape_t objects.
- *
- * @details For 1-dimensional shapes, the format used is
- *     - (size,)
- * For @a n -dimensional shapes, @a n > 1, the format used is
- *     - (size_1, size_2, ..., size_n)
- *
- * @param ostr Output stream object.
- * @param shape Shape to be inserted into the output stream.
- *
- * @return ostr
- */
-template <class charT, class traits, size_t Rank>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<Rank> &shape);
-
-template <class charT, class traits>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape);
-
-/**
  * @brief Extracts a tensor from an input stream.
  *
  * @details The format for input extraction is a list of values separated by

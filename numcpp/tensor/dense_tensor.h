@@ -42,8 +42,7 @@ namespace numcpp {
 template <class Container, class T, size_t Rank>
 class dense_tensor : public expression<Container, T, Rank> {
 public:
-  static_assert(Rank > 0, "Rank must be positive");
-  static_assert(Rank <= 10, "Maximum supported Rank is 10");
+  static_assert(0 < Rank  && Rank <= 10, "Rank must be between 1 and 10");
 
   /// Member types.
   typedef flat_iterator<Container, T, Rank> iterator;
