@@ -54,13 +54,11 @@ inline void assert_within_bounds(const shape_t<Rank> &shape,
   }
 }
 
-template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape, size_t index,
-                                 size_t axis) {
-  if (index >= shape[axis]) {
+inline void assert_within_bounds(size_t size, size_t index, size_t axis) {
+  if (index >= size) {
     std::ostringstream error;
     error << "index " << index << " is out of bounds for axis " << axis
-          << " with size " << shape[axis];
+          << " with size " << size;
     throw std::out_of_range(error.str());
   }
 }

@@ -154,7 +154,7 @@ inline size_t &indirect_tensor<T, Rank>::iat(Indices... indices) {
 template <class T, size_t Rank>
 template <class... Indices, detail::RequiresNArguments<Rank, Indices...>,
           detail::RequiresIntegral<Indices...>>
-inline size_t &indirect_tensor<T, Rank>::iat(Indices... indices) const {
+inline const size_t &indirect_tensor<T, Rank>::iat(Indices... indices) const {
   return this->iat(index_type(indices...));
 }
 
@@ -212,8 +212,8 @@ inline bool indirect_tensor<T, Rank>::is_contiguous() const {
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &
 indirect_tensor<T, Rank>::operator=(const indirect_tensor &other) {
-  detail::assert_output_shape(m_shape, other.shape());
-  std::copy(other.begin(m_order), other.end(m_order), this->begin());
+  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(other);
   return *this;
 }
 
@@ -221,15 +221,15 @@ template <class T, size_t Rank>
 template <class Container, class U>
 indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(
     const expression<Container, U, Rank> &other) {
-  detail::assert_output_shape(m_shape, other.shape());
-  std::transform(other.self().begin(m_order), other.self().end(m_order),
-                 this->begin(), cast_to<U, T>());
+  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(const T &val) {
-  std::fill_n(this->begin(), this->size(), val);
+  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(val);
   return *this;
 }
 

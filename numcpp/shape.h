@@ -117,6 +117,11 @@ private:
   size_type m_shape[Rank];
 };
 
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class... Sizes> shape_t(Sizes... sizes) -> shape_t<sizeof...(Sizes)>;
+#endif // C++17
+
 /**
  * @brief Create a shape_t object deducing its dimension from the number of
  * arguments.

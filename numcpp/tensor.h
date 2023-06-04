@@ -448,7 +448,9 @@ public:
   /// Public methods.
 
   /**
-   * @brief Return a view of the diagonal.
+   * @brief Return a view of the diagonal. If the tensor has more than two
+   * dimensions, then the last two axes are used to determine the 2-dimensional
+   * sub-tensor whose diagonal is returned.
    *
    * @param k Offset of the diagonal from the main diagonal. A positive value
    *          refers to an upper diagonal and a negative value refers to a lower
@@ -459,8 +461,8 @@ public:
    *         Otherwise, the function returns a tensor_view to T, which has
    *         reference semantics to the original tensor.
    */
-  tensor_view<T, 1> diagonal(difference_type k = 0);
-  tensor_view<const T, 1> diagonal(difference_type k = 0) const;
+  tensor_view<T, Rank - 1> diagonal(difference_type k = 0);
+  tensor_view<const T, Rank - 1> diagonal(difference_type k = 0) const;
 
   /**
    * @brief Return a view of the tensor collapsed into one dimension.
@@ -529,32 +531,6 @@ public:
   void resize(const shape_type &shape);
 
   /**
-   * @brief Removes axes of length one.
-   *
-   * @param axes Selects a subset of the entries of length one in the shape. It
-   *             can be a shape_t object or the elements of the shape passed as
-   *             separate arguments.
-   *
-   * @return If the tensor is const-qualified, the function returns a
-   *         tensor_view to const T, which is convertible to a tensor object.
-   *         Otherwise, the function returns a tensor_view to T, which has
-   *         reference semantics to the original tensor.
-   *
-   * @throw std::invalid_argument Thrown if an axis with shape entry greater
-   *                              than one is selected.
-   */
-  template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
-  tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
-
-  template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
-  tensor_view<const T, Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
-
-  template <size_t N> tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-
-  template <size_t N>
-  tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-
-  /**
    * @brief Return a view of the tensor with its axes in reversed order.
    *
    * @return If the tensor is const-qualified, the function returns a
@@ -582,12 +558,12 @@ private:
    */
   template <size_t Depth>
   typename std::enable_if<(Depth == 1)>::type
-  __initializer_list_shape(shape_type &shape, std::initializer_list<T> il);
+  __initializer_list_shape(std::initializer_list<T> il, shape_type &shape);
 
   template <size_t Depth>
   typename std::enable_if<(Depth > 1)>::type
-  __initializer_list_shape(shape_type &shape,
-                           detail::nested_initializer_list_t<T, Depth> il);
+  __initializer_list_shape(detail::nested_initializer_list_t<T, Depth> il,
+                           shape_type &shape);
 
   /**
    * @brief Fill the tensor with elements from a nested initializer_list
@@ -595,12 +571,12 @@ private:
    */
   template <size_t Depth>
   typename std::enable_if<(Depth == 1)>::type
-  __fill_from_initializer_list(index_type &index, std::initializer_list<T> il);
+  __fill_from_initializer_list(std::initializer_list<T> il, index_type &index);
 
   template <size_t Depth>
   typename std::enable_if<(Depth > 1)>::type
-  __fill_from_initializer_list(index_type &index,
-                               detail::nested_initializer_list_t<T, Depth> il);
+  __fill_from_initializer_list(detail::nested_initializer_list_t<T, Depth> il,
+                               index_type &index);
 
   /**
    * @brief Constructs the shape, offset and strides of the slice indexing.
@@ -633,6 +609,19 @@ private:
   // Memory layout.
   layout_t m_order;
 };
+
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class InputIterator, class... Sizes>
+tensor(InputIterator first, Sizes... sizes)
+    -> tensor<typename std::iterator_traits<InputIterator>::value_type,
+              sizeof...(Sizes)>;
+
+template <class InputIterator, size_t Rank>
+tensor(InputIterator first, const shape_t<Rank> &shape,
+       layout_t order = default_layout)
+    -> tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>;
+#endif // C++17
 
 /**
  * @brief Each of this functions performs their respective operation on all the

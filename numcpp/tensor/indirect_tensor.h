@@ -199,7 +199,7 @@ public:
 
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
             detail::RequiresIntegral<Indices...> = 0>
-  size_type &iat(Indices... indices) const;
+  const size_type &iat(Indices... indices) const;
 
   /**
    * @brief Return the shape of the indirect_tensor.
@@ -271,7 +271,9 @@ public:
    *
    * @return *this
    *
-   * @throw std::invalid_argument Thrown if the shapes are different.
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
    */
   indirect_tensor &operator=(const indirect_tensor &other);
   template <class Container, class U>
@@ -314,6 +316,17 @@ private:
   // Memory layout.
   layout_t m_order;
 };
+
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class T, class... Sizes>
+indirect_tensor(T *data, Sizes... sizes)
+    -> indirect_tensor<T, sizeof...(sizes)>;
+
+template <class T, size_t Rank>
+indirect_tensor(T *data, const shape_t<Rank> &shape,
+                layout_t order = default_layout) -> indirect_tensor<T, Rank>;
+#endif // C++17
 } // namespace numcpp
 
 #include "numcpp/tensor/indirect_tensor.tcc"

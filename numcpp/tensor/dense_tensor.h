@@ -474,7 +474,9 @@ public:
    * @param x A tensor-like object with the values to set the real part to.
    * @param val Value to set the real part to.
    *
-   * @throw std::invalid_argument Thrown if the shapes are different.
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
    */
   template <class ContainerOp>
   void real(const expression<ContainerOp, T, Rank> &x);
@@ -497,7 +499,9 @@ public:
    *            to.
    * @param val Value to set the imaginary part to.
    *
-   * @throw std::invalid_argument Thrown if the shapes are different.
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
    */
   template <class ContainerOp>
   void imag(const expression<ContainerOp, T, Rank> &y);
