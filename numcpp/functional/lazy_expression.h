@@ -589,7 +589,8 @@ public:
    * @return The result of the function evaluation at the specified position in
    *         the tensor.
    */
-  value_type operator[](const index_type &index) const {
+  auto operator[](const index_type &index) const
+      -> decltype(m_fun(m_arg1[index_t<Rank1>()], m_arg2[index_t<Rank2>()])) {
     index_t<Rank1> i;
     std::copy_n(index.data(), Rank1, i.data());
     index_t<Rank2> j;
@@ -788,8 +789,9 @@ private:
    * @brief Broadcasts an index and returns the element at the specified
    * position.
    */
-  template <class C, class T>
-  T __broadcast(const expression<C, T, rank> &a, index_type index) const {
+  template <class Container, class T>
+  T __broadcast(const expression<Container, T, rank> &a,
+                index_type index) const {
     for (size_t axis = 0; axis < rank; ++axis) {
       if (a.shape(axis) == 1) {
         index[axis] = 0;
@@ -800,7 +802,7 @@ private:
 
   /**
    * @brief Implementation of subscript operator.
-  */
+   */
   template <size_t... Is>
   auto __at(const index_type &index, std::index_sequence<Is...>) const {
     return m_fun(__broadcast(std::get<Is>(m_args), index)...);
