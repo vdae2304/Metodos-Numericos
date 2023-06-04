@@ -26,8 +26,9 @@
 
 #include <algorithm>
 #include "numcpp/broadcasting/assert.h"
-#include "numcpp/routines/ranges.h"
+#include "numcpp/iterators/axes_iterator.h"
 #include "numcpp/iterators/index_sequence.h"
+#include "numcpp/routines/ranges.h"
 
 namespace numcpp {
 /// Indexing.
@@ -349,7 +350,7 @@ template <class Container, class T, size_t Rank>
 template <class U>
 inline unary_expr<cast_to<T, U>, Container, T, Rank>
 dense_tensor<Container, T, Rank>::astype() const {
-  return unary_expr<cast_to<T, U>, Container, T, Rank>(cast_to<T, U>(), *this);
+  return unary_expr<cast_to<T, U>, Container, T, Rank>(this->self());
 }
 
 template <class Container, class T, size_t Rank>
@@ -368,39 +369,39 @@ template <class Container, class T, size_t Rank>
 template <class Compare, detail::RequiresCallable<Compare, T, T>>
 void dense_tensor<Container, T, Rank>::partition(size_t kth, size_t axis,
                                                  Compare comp) {
-  Container &self = static_cast<Container &>(*this);
-  shape_type shape = self.shape();
-  size_type size = shape[axis];
+  Container &self = this->self();
+  shape_t<Rank> shape = self.shape();
+  size_t size = shape[axis];
   shape[axis] = 1;
-  for (index_type index : make_index_sequence(shape)) {
-    auto first = make_axes_iterator(&self, index, axis, 0);
-    auto last = make_axes_iterator(&self, index, axis, size);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
+    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
     std::nth_element(first, first + kth, last, comp);
   }
 }
 
 template <class Container, class T, size_t Rank>
 void dense_tensor<Container, T, Rank>::reverse(size_t axis) {
-  Container &self = static_cast<Container &>(*this);
-  shape_type shape = self.shape();
-  size_type size = shape[axis];
+  Container &self = this->self();
+  shape_t<Rank> shape = self.shape();
+  size_t size = shape[axis];
   shape[axis] = 1;
-  for (index_type index : make_index_sequence(shape)) {
-    auto first = make_axes_iterator(&self, index, axis, 0);
-    auto last = make_axes_iterator(&self, index, axis, size);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
+    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
     std::reverse(first, last);
   }
 }
 
 template <class Container, class T, size_t Rank>
 void dense_tensor<Container, T, Rank>::rotate(size_t shift, size_t axis) {
-  Container &self = static_cast<Container &>(*this);
-  shape_type shape = self.shape();
-  size_type size = shape[axis];
+  Container &self = this->self();
+  shape_t<Rank> shape = self.shape();
+  size_t size = shape[axis];
   shape[axis] = 1;
-  for (index_type index : make_index_sequence(shape)) {
-    auto first = make_axes_iterator(&self, index, axis, 0);
-    auto last = make_axes_iterator(&self, index, axis, size);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
+    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
     std::rotate(first, first + shift, last);
   }
 }
@@ -414,13 +415,13 @@ template <class Container, class T, size_t Rank>
 template <class Compare, detail::RequiresCallable<Compare, T, T>>
 void dense_tensor<Container, T, Rank>::sort(size_t axis, Compare comp,
                                             bool stable) {
-  Container &self = static_cast<Container &>(*this);
-  shape_type shape = self.shape();
-  size_type size = shape[axis];
+  Container &self = this->self();
+  shape_t<Rank> shape = self.shape();
+  size_t size = shape[axis];
   shape[axis] = 1;
-  for (index_type index : make_index_sequence(shape)) {
-    auto first = make_axes_iterator(&self, index, axis, 0);
-    auto last = make_axes_iterator(&self, index, axis, size);
+  for (index_t<Rank> index : make_index_sequence(shape)) {
+    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
     if (stable) {
       std::stable_sort(first, last, comp);
     } else {
@@ -501,6 +502,74 @@ inline T dense_tensor<Container, T, Rank>::var(bool bias) const {
 
 /// Complex numbers.
 
+template <class Container, class T, size_t Rank>
+unary_expr<math::real, Container, std::complex<T>, Rank>
+complex_expr<Container, std::complex<T>, Rank>::real() const {
+  const Container &self = static_cast<const Container &>(*this);
+  return unary_expr<math::real, Container, std::complex<T>, Rank>(self);
+}
+
+template <class Container, class T, size_t Rank>
+template <class ContainerOp>
+void complex_expr<Container, std::complex<T>, Rank>::real(
+    const expression<ContainerOp, T, Rank> &x) {
+  Container &self = static_cast<Container &>(*this);
+  detail::assert_output_shape(self.shape(),
+                              broadcast_shapes(self.shape(), x.shape()));
+  for (index_t<Rank> index : make_index_sequence_for(self)) {
+    index_t<Rank> i;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (x.shape(axis) > 1) ? index[axis] : 0;
+    }
+    self[index].real(x[i]);
+  }
+}
+
+template <class Container, class T, size_t Rank>
+void complex_expr<Container, std::complex<T>, Rank>::real(const T &val) {
+  Container &self = static_cast<Container &>(*this);
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i].real(val);
+  }
+}
+
+template <class Container, class T, size_t Rank>
+unary_expr<math::imag, Container, std::complex<T>, Rank>
+complex_expr<Container, std::complex<T>, Rank>::imag() const {
+  const Container &self = static_cast<const Container &>(*this);
+  return unary_expr<math::imag, Container, std::complex<T>, Rank>(self);
+}
+
+template <class Container, class T, size_t Rank>
+template <class ContainerOp>
+void complex_expr<Container, std::complex<T>, Rank>::imag(
+    const expression<ContainerOp, T, Rank> &y) {
+  Container &self = static_cast<Container &>(*this);
+  detail::assert_output_shape(self.shape(),
+                              broadcast_shapes(self.shape(), y.shape()));
+  for (index_t<Rank> index : make_index_sequence_for(self)) {
+    index_t<Rank> i;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (y.shape(axis) > 1) ? index[axis] : 0;
+    }
+    self[index].imag(y[i]);
+  }
+}
+
+template <class Container, class T, size_t Rank>
+void complex_expr<Container, std::complex<T>, Rank>::imag(const T &val) {
+  Container &self = static_cast<Container &>(*this);
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i].imag(val);
+  }
+}
+
+template <class Container, class T, size_t Rank>
+unary_expr<math::conj, Container, std::complex<T>, Rank>
+complex_expr<Container, std::complex<T>, Rank>::conj() const {
+  const Container &self = static_cast<const Container &>(*this);
+  return unary_expr<math::conj, Container, std::complex<T>, Rank>(self);
+}
 } // namespace numcpp
 
 #endif // NUMCPP_DENSE_TENSOR_TCC_INCLUDED

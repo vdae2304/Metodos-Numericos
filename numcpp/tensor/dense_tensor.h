@@ -43,7 +43,7 @@ template <class Container, class T, size_t Rank>
 class dense_tensor : public expression<Container, T, Rank> {
 public:
   static_assert(Rank > 0, "Rank must be positive");
-  static_assert(Rank <= 32, "Maximum supported Rank is 32");
+  static_assert(Rank <= 10, "Maximum supported Rank is 10");
 
   /// Member types.
   typedef flat_iterator<Container, T, Rank> iterator;
@@ -434,11 +434,6 @@ public:
   T var(bool bias) const;
 
 private:
-  /// Private member types.
-  typedef size_t size_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
-
   /**
    * @brief Apply a binary function in-place with another tensor or with a
    * value.
@@ -471,21 +466,18 @@ public:
    *         tensor. This function does not create a new tensor, instead, it
    *         returns a readonly view with the real part of each element.
    */
-  unary_expr<math::real, Container, std::complex<T>, Rank> real() const {
-    const Container &self = static_cast<const Container &>(*this);
-    return unary_expr<math::real, Container, std::complex<T>, Rank>(self);
-  }
+  unary_expr<math::real, Container, std::complex<T>, Rank> real() const;
 
   /**
    * @brief Set the real part, element-wise.
    *
-   * @param arg A tensor-like object with the values to set the real part to.
+   * @param x A tensor-like object with the values to set the real part to.
    * @param val Value to set the real part to.
    *
    * @throw std::invalid_argument Thrown if the shapes are different.
    */
   template <class ContainerOp>
-  void real(const expression<ContainerOp, T, Rank> &arg);
+  void real(const expression<ContainerOp, T, Rank> &x);
 
   void real(const T &val);
 
@@ -496,22 +488,19 @@ public:
    *         the tensor. This function does not create a new tensor, instead, it
    *         returns a readonly view with the imaginary part of each element.
    */
-  unary_expr<math::imag, Container, std::complex<T>, Rank> imag() const {
-    const Container &self = static_cast<const Container &>(*this);
-    return unary_expr<math::imag, Container, std::complex<T>, Rank>(self);
-  }
+  unary_expr<math::imag, Container, std::complex<T>, Rank> imag() const;
 
   /**
    * @brief Set the imaginary part, element-wise.
    *
-   * @param arg A tensor-like object with the values to set the imaginary part
+   * @param y A tensor-like object with the values to set the imaginary part
    *            to.
    * @param val Value to set the imaginary part to.
    *
    * @throw std::invalid_argument Thrown if the shapes are different.
    */
   template <class ContainerOp>
-  void imag(const expression<ContainerOp, T, Rank> &arg);
+  void imag(const expression<ContainerOp, T, Rank> &y);
 
   void imag(const T &val);
 
@@ -523,15 +512,7 @@ public:
    *         returns an expression object with the complex conjugate of each
    *         element.
    */
-  unary_expr<math::conj, Container, std::complex<T>, Rank> conj() const {
-    const Container &self = static_cast<const Container &>(*this);
-    return unary_expr<math::conj, Container, std::complex<T>, Rank>(self);
-  }
-
-private:
-  /// Private member types.
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  unary_expr<math::conj, Container, std::complex<T>, Rank> conj() const;
 };
 } // namespace numcpp
 

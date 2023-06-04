@@ -35,7 +35,7 @@ namespace numcpp {
 template <size_t Rank> class shape_t {
 public:
   static_assert(Rank > 0, "Rank must be positive");
-  static_assert(Rank <= 32, "Maximum supported Rank is 32");
+  static_assert(Rank <= 10, "Maximum supported Rank is 10");
 
   /// Member types.
   typedef size_t size_type;
