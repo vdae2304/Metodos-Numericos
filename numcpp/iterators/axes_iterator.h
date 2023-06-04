@@ -41,7 +41,8 @@ template <class Container, class T, size_t Rank, size_t N, class Pointer = T *,
           class Reference = T &>
 class axes_iterator {
 public:
-  static_assert(N <= Rank, "Cannot fix more axes than the tensor dimension");
+  static_assert(N <= Rank, "The number of dimensions to iterate over cannot be"
+                           " larger than the tensor dimension");
 
   /// Member types.
   typedef typename std::remove_cv<Container>::type container_type;
@@ -56,26 +57,26 @@ public:
   /**
    * @brief Default constructor.
    */
-  axes_iterator() : m_ptr(NULL), m_indices(), m_axes(), m_flat(0){};
+  axes_iterator() : m_ptr(NULL), m_index(), m_axes(), m_offset(0) {}
 
   /**
    * @brief Flat index constructor.
    *
    * @param ptr Pointer to the tensor to iterate over.
-   * @param indices An index_t object with the indices to fix.
+   * @param index An index_t object with the indices to fix.
    * @param axes A shape_t object with the axes to iterate over.
-   * @param flat Flat index over the iterated axes. Defaults to 0.
+   * @param offset Flat index over the iterated axes. Defaults to 0.
    */
-  axes_iterator(Container *ptr, const index_t<Rank> &indices,
-                const shape_t<N> &axes, size_t flat = 0)
-      : m_ptr(ptr), m_indices(indices), m_axes(axes), m_flat(flat) {}
+  axes_iterator(Container *ptr, const index_t<Rank> &index,
+                const shape_t<N> &axes, size_t offset = 0)
+      : m_ptr(ptr), m_index(index), m_axes(axes), m_offset(offset) {}
 
   /**
    * @brief Copy constructor.
    */
   axes_iterator(const axes_iterator &other)
-      : m_ptr(other.m_ptr), m_indices(other.m_indices), m_axes(other.m_axes),
-        m_flat(other.m_flat) {}
+      : m_ptr(other.m_ptr), m_index(other.m_index), m_axes(other.m_axes),
+        m_offset(other.m_offset) {}
 
   /// Assignment operator.
 
@@ -84,9 +85,9 @@ public:
    */
   axes_iterator &operator=(const axes_iterator &other) {
     m_ptr = other.m_ptr;
-    m_indices = other.m_indices;
+    m_index = other.m_index;
     m_axes = other.m_axes;
-    m_flat = other.m_flat;
+    m_offset = other.m_offset;
     return *this;
   }
 
@@ -96,7 +97,7 @@ public:
    * @brief Pre-increments the iterator by one.
    */
   axes_iterator &operator++() {
-    ++m_flat;
+    ++m_offset;
     return *this;
   }
 
@@ -104,7 +105,7 @@ public:
    * @brief Pre-decrements the iterator by one.
    */
   axes_iterator &operator--() {
-    --m_flat;
+    --m_offset;
     return *this;
   }
 
@@ -113,7 +114,7 @@ public:
    */
   axes_iterator operator++(int) {
     axes_iterator it = *this;
-    ++m_flat;
+    ++m_offset;
     return it;
   }
 
@@ -122,7 +123,7 @@ public:
    */
   axes_iterator operator--(int) {
     axes_iterator it = *this;
-    --m_flat;
+    --m_offset;
     return it;
   }
 
@@ -130,7 +131,7 @@ public:
    * @brief Advances the iterator by @a n.
    */
   axes_iterator &operator+=(difference_type n) {
-    m_flat += n;
+    m_offset += n;
     return *this;
   }
 
@@ -138,7 +139,7 @@ public:
    * @brief Advances the iterator by @a -n.
    */
   axes_iterator &operator-=(difference_type n) {
-    m_flat -= n;
+    m_offset -= n;
     return *this;
   }
 
@@ -172,20 +173,20 @@ public:
   /**
    * @brief Returns the current flat index over the iterated axes.
    */
-  size_t index() const { return m_flat; }
+  size_t index() const { return m_offset; }
 
   /**
    * @brief Returns an index_t object with the current coordinates.
    */
   index_t<Rank> coords() const {
-    index_t<Rank> out_index = m_indices;
+    index_t<Rank> out_index = m_index;
     shape_t<N> shape;
     for (size_t i = 0; i < N; ++i) {
       shape[i] = m_ptr->shape(m_axes[i]);
     }
-    index_t<N> index = unravel_index(m_flat, shape);
+    index_t<N> compressed_index = unravel_index(m_offset, shape);
     for (size_t i = 0; i < N; ++i) {
-      out_index[m_axes[i]] = index[i];
+      out_index[m_axes[i]] = compressed_index[i];
     }
     return out_index;
   }
@@ -200,13 +201,13 @@ private:
   Container *m_ptr;
 
   // Indices to fix.
-  index_t<Rank> m_indices;
+  index_t<Rank> m_index;
 
   // Axes to iterate over.
   shape_t<N> m_axes;
 
   // Flat index over the iterated axes.
-  size_t m_flat;
+  size_t m_offset;
 };
 
 /// Arithmetic operators for axes_iterator.
