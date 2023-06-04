@@ -180,13 +180,11 @@ public:
    */
   index_t<Rank> coords() const {
     index_t<Rank> out_index = m_index;
-    shape_t<N> shape;
+    size_t flat_index = m_offset;
     for (size_t i = 0; i < N; ++i) {
-      shape[i] = m_ptr->shape(m_axes[i]);
-    }
-    index_t<N> compressed_index = unravel_index(m_offset, shape);
-    for (size_t i = 0; i < N; ++i) {
-      out_index[m_axes[i]] = compressed_index[i];
+      size_t axis = m_axes[N - 1 - i];
+      out_index[axis] = flat_index % m_ptr->shape(axis);
+      flat_index /= m_ptr->shape(axis);
     }
     return out_index;
   }

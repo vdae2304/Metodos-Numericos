@@ -111,9 +111,11 @@ public:
      */
     index_t<Rank> operator*() const {
       index_t<Rank> out_index = m_index;
-      index_t<N> compressed_index = unravel_index(m_offset, m_shape);
+      size_t flat_index = m_offset;
       for (size_t i = 0; i < N; ++i) {
-        out_index[m_axes[i]] = compressed_index[i];
+        size_t axis = m_axes[N - 1 - i];
+        out_index[axis] = flat_index % m_shape[N - 1 - i];
+        flat_index /= m_shape[N - 1 -i];
       }
       return out_index;
     }
