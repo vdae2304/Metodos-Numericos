@@ -173,11 +173,6 @@ T reduce(Function &&f, const expression<Container1, T, Rank> &a,
          typename Container1::value_type init,
          const expression<Container2, bool, Rank> &where);
 
-struct keepdims_t {
-} keepdims;
-struct dropdims_t {
-} dropdims;
-
 /**
  * @brief Reduce the tensor's dimension by cumulatively applying a function over
  * multiple axes.

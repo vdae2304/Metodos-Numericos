@@ -165,14 +165,6 @@ template <size_t Rank> class index_sequence;
 template <class Container, class T, size_t Rank, class Pointer, class Reference>
 class flat_iterator;
 
-/**
- * @brief A random access iterator for tensor subclasses obtained by fixing
- * some of the axes and iterating over the remaining axes.
- */
-template <class Container, class T, size_t Rank, size_t N, class Pointer,
-          class Reference>
-class axes_iterator;
-
 /// Subclases.
 
 /**
@@ -209,6 +201,14 @@ class unary_expr;
 template <class Function, class Container1, class T, class Container2, class U,
           size_t Rank>
 class binary_expr;
+
+/**
+ * @brief Placeholder for reduction operations.
+ */
+struct keepdims_t {
+} keepdims;
+struct dropdims_t {
+} dropdims;
 
 /// Namespace for implementation details.
 namespace detail {
