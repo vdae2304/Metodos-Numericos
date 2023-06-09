@@ -400,11 +400,11 @@ public:
    * variables.
    *
    * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
-   *             normalization is by @a n - 1.
+   *             normalization is by @a n - 1. Default is true.
    *
    * @return The standard deviation of the tensor elements.
    */
-  T stddev(bool bias) const;
+  T stddev(bool bias = true) const;
 
   /**
    * @brief Return the sum of the tensor elements.
@@ -426,11 +426,11 @@ public:
    * variables.
    *
    * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
-   *             normalization is by @a n - 1.
+   *             normalization is by @a n - 1. Default is true.
    *
    * @return The variance of the tensor elements.
    */
-  T var(bool bias) const;
+  T var(bool bias = true) const;
 
 private:
   /**
