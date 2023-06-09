@@ -30,6 +30,7 @@ standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
 compiler options.
 #else
 
+#include <complex>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
@@ -259,6 +260,41 @@ template <class T>
 struct is_expression<T, void_t<typename T::value_type>,
                      void_t<decltype(T::rank)>>
     : std::is_base_of<expression<T, typename T::value_type, T::rank>, T> {};
+
+/**
+ * @brief Promotes integral types to floating-point.
+ */
+template <class T, bool = std::is_integral<T>::value> struct promote_helper {
+  typedef double type;
+};
+
+template <class T> struct promote_helper<T, false> {};
+
+template <> struct promote_helper<float> {
+  typedef float type;
+};
+
+template <> struct promote_helper<double> {
+  typedef double type;
+};
+
+template <> struct promote_helper<long double> {
+  typedef long double type;
+};
+
+template <class... T>
+using promote = std::common_type<typename promote_helper<T>::type...>;
+
+/**
+ * @brief Type traits for complex types.
+ */
+template <class T> struct complex_traits {
+  typedef T value_type;
+};
+
+template <class T> struct complex_traits<std::complex<T>> {
+  typedef T value_type;
+};
 
 /**
  * @brief Rank of shape concatenation.
