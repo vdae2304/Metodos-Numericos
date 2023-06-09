@@ -400,7 +400,7 @@ public:
    * variables.
    *
    * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
-   *             normalization is by @a n - 1. Default is true.
+   *             normalization is by @a n - 1. Defaults to true.
    *
    * @return The standard deviation of the tensor elements.
    */
@@ -426,7 +426,7 @@ public:
    * variables.
    *
    * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
-   *             normalization is by @a n - 1. Default is true.
+   *             normalization is by @a n - 1. Defaults to true.
    *
    * @return The variance of the tensor elements.
    */

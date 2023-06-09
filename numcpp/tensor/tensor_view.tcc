@@ -198,7 +198,6 @@ template <class T, size_t Rank>
 template <class Container, class U>
 tensor_view<T, Rank> &
 tensor_view<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
-  detail::assert_output_shape(m_shape, other.shape());
   dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
                Rank>::operator=(other);
   return *this;
