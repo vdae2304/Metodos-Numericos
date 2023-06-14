@@ -129,7 +129,8 @@ T Generator<bit_generator>::choice(
     throw std::invalid_argument(
         "population and weights must have the same size");
   }
-  discrete_distribution<size_t> rvs(weights.begin(), weights.end());
+  discrete_distribution<size_t> rvs(weights.self().begin(),
+                                    weights.self().end());
   return population[rvs(m_rng)];
 }
 
@@ -286,8 +287,8 @@ void Generator<bit_generator>::shuffle(dense_tensor<Container, T, Rank> &a,
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
     typedef axes_iterator<Container, T, Rank, 1> iterator;
-    iterator first(static_cast<Container *>(&a), index, axis, 0);
-    iterator last(static_cast<Container *>(&a), index, axis, size);
+    iterator first(&a.self(), index, axis, 0);
+    iterator last(&a.self(), index, axis, size);
     std::shuffle(first, last, m_rng);
   }
 }
@@ -297,8 +298,8 @@ template <class T, detail::RequiresIntegral<T>>
 inline tensor<T, 1> Generator<bit_generator>::permutation(T n) {
   size_t size = (n > 0) ? n : 0;
   tensor<T, 1> out(size);
-  std::iota(out.begin(), out.end(), T(0));
-  std::shuffle(out.begin(), out.end(), m_rng);
+  std::iota(out.data(), out.data() + out.size(), T(0));
+  std::shuffle(out.data(), out.data() + out.size(), m_rng);
   return out;
 }
 
@@ -307,7 +308,7 @@ template <class Container, class T, size_t Rank>
 inline tensor<T, 1>
 Generator<bit_generator>::permutation(const expression<Container, T, Rank> &a) {
   tensor<T, 1> out(a.self().begin(), a.size());
-  std::shuffle(out.begin(), out.end(), m_rng);
+  std::shuffle(out.data(), out.data() + out.size(), m_rng);
   return out;
 }
 
