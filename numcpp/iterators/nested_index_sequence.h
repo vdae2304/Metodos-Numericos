@@ -46,6 +46,8 @@ public:
     /// Member types.
     typedef ptrdiff_t difference_type;
     typedef index_t<Rank> value_type;
+    typedef void pointer;
+    typedef index_t<Rank> reference;
     typedef std::forward_iterator_tag iterator_category;
 
     /// Constructors.

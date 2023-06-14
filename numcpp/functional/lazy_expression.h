@@ -52,6 +52,8 @@ public:
   typedef flat_iterator<const unary_expr<Function, Container, T, Rank>,
                         value_type, Rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -189,6 +191,8 @@ public:
       const binary_expr<Function, Container1, T, Container2, U, Rank>,
       value_type, Rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -339,6 +343,8 @@ public:
       const binary_expr<Function, Container, T, void, U, Rank>, value_type,
       Rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -411,6 +417,8 @@ public:
       const binary_expr<Function, void, T, Container, U, Rank>, value_type,
       Rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -496,6 +504,8 @@ public:
       const outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
       value_type, rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -661,6 +671,8 @@ public:
       const element_wise_expr<Function, Container1, Containers...>, value_type,
       rank, void, value_type>
       iterator;
+  typedef void pointer;
+  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
