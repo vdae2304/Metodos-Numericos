@@ -25,38 +25,35 @@
 #define NUMCPP_LAZY_WHERE_H_INCLUDED
 
 namespace numcpp {
-/// Forward declarations.
-template <class TagCond, class TagTrue, class TagFalse> struct lazy_where_tag;
-
 /**
- * @brief A light-weight object which selects elements from two tensor objects
+ * @brief A light-weight object which selects elements from two tensors
  * depending on condition. This class represents an expression rather than a
  * container. Such expressions relies on short-circuit evaluation, meaning that
- * only one of the two tensors is evaluated at each position.
+ * exactly one of the two tensors is evaluated at each position.
  *
+ * @tparam Container Type of the tensor representing the condition.
+ * @tparam Container1 Type of the tensor from which to choose where condition is
+ *                    true.
+ * @tparam Container2 Type of the tensor from which to choose where condition is
+ *                    false.
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
- * @tparam TagCond Type of the base_tensor container representing the condition.
- * @tparam TagTrue Type of the base_tensor container from which to choose where
- *                 condition is true.
- * @tparam TagFalse Type of the base_tensor container from which to choose where
- *                  condition is false.
  */
-template <class T, size_t Rank, class TagCond, class TagTrue, class TagFalse>
-class base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse>> {
+template <class Container, class Container1, class Container2, class T,
+          size_t Rank>
+class where_expr
+    : public expression<where_expr<Container, Container1, Container2, T, Rank>,
+                        T, Rank> {
 public:
   /// Member types.
-  typedef typename std::remove_cv<T>::type value_type;
+  typedef T value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
   typedef T reference;
-  typedef T const_reference;
-  typedef nullptr_t pointer;
-  typedef nullptr_t const_pointer;
-  typedef base_tensor_const_iterator<T, Rank,
-                                     lazy_where_tag<TagCond, TagTrue, TagFalse>>
+  typedef flat_iterator<
+      const where_expr<Container, Container1, Container2, T, Rank>, T, Rank,
+      void, T>
       iterator;
-  typedef base_tensor_const_iterator<T, Rank,
-                                     lazy_where_tag<TagCond, TagTrue, TagFalse>>
-      const_iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -64,13 +61,13 @@ public:
 
 private:
   // Condition tensor argument.
-  const base_tensor<bool, Rank, TagCond> &m_cond;
+  const Container &m_cond;
 
-  // First tensor argument.
-  const base_tensor<T, Rank, TagTrue> &m_true;
+  // True tensor argument.
+  const Container1 &m_true;
 
-  // Second tensor argument.
-  const base_tensor<T, Rank, TagFalse> &m_false;
+  // False tensor argument.
+  const Container2 &m_false;
 
   // Common shape.
   shape_type m_shape;
@@ -89,15 +86,15 @@ public:
    * @param x Values from which to choose where condition is true.
    * @param y Values from which to choose where condition is false.
    */
-  base_tensor(const base_tensor<bool, Rank, TagCond> &condition,
-              const base_tensor<T, Rank, TagTrue> &x,
-              const base_tensor<T, Rank, TagFalse> &y)
-      : m_cond(condition), m_true(x), m_false(y),
+  where_expr(const expression<Container, bool, Rank> &condition,
+             const expression<Container1, T, Rank> &x,
+             const expression<Container2, T, Rank> &y)
+      : m_cond(condition.self()), m_true(x.self()), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), x.shape(), y.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~where_expr() = default;
 
   /// Iterators.
 
@@ -112,13 +109,9 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
   /**
    * @brief Return an iterator pointing to the past-the-end element in the
@@ -133,28 +126,13 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
-
-  /**
-   * @brief Call operator. Returns the element at the given position.
-   *
-   * @param indices... Position of an element along each axis.
-   *
-   * @return The element at the specified position.
-   */
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  value_type operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
-  }
 
   /**
    * @brief Subscript operator. Returns the element at the given position.
@@ -164,16 +142,15 @@ public:
    *
    * @return The element at the specified position.
    */
-  value_type operator[](const index_type &index) const {
-    return m_cond[detail::broadcast_index(index, m_cond.shape())]
-               ? m_true[detail::broadcast_index(index, m_true.shape())]
-               : m_false[detail::broadcast_index(index, m_false.shape())];
+  T operator[](const index_type &index) const {
+    index_type i, j, k;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
+      j[axis] = (m_true.shape(axis) > 1) ? index[axis] : 0;
+      k[axis] = (m_false.shape(axis) > 1) ? index[axis] : 0;
+    }
+    return m_cond[i] ? m_true[j] : m_false[k];
   }
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank; }
 
   /**
    * @brief Return the shape of the tensor.
@@ -197,36 +174,25 @@ public:
    * @brief Return the memory layout in which elements are stored.
    */
   layout_t layout() const { return m_cond.layout(); }
-
-  /// Public methods.
-
-  /**
-   * @brief Return a copy of the tensor.
-   */
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 
 /**
  * @brief Partial specialization when the true argument is a tensor and the
  * false argument is a value. Values are broadcasted to an appropriate shape.
  */
-template <class T, size_t Rank, class TagCond, class TagTrue>
-class base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag>> {
+template <class Container, class Container1, class T, size_t Rank>
+class where_expr<Container, Container1, void, T, Rank>
+    : public expression<where_expr<Container, Container1, void, T, Rank>, T,
+                        Rank> {
 public:
   /// Member types.
-  typedef typename std::remove_cv<T>::type value_type;
+  typedef T value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
   typedef T reference;
-  typedef T const_reference;
-  typedef nullptr_t pointer;
-  typedef nullptr_t const_pointer;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag>>
+  typedef flat_iterator<const where_expr<Container, Container1, void, T, Rank>,
+                        T, Rank, void, T>
       iterator;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag>>
-      const_iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -234,12 +200,12 @@ public:
 
 private:
   // Condition tensor argument.
-  const base_tensor<bool, Rank, TagCond> &m_cond;
+  const Container &m_cond;
 
-  // First tensor argument.
-  const base_tensor<T, Rank, TagTrue> &m_true;
+  // True tensor argument.
+  const Container1 &m_true;
 
-  // Second argument.
+  // False argument.
   T m_false;
 
   // Common shape.
@@ -251,48 +217,37 @@ private:
 public:
   /// Constructors.
 
-  base_tensor(const base_tensor<bool, Rank, TagCond> &condition,
-              const base_tensor<T, Rank, TagTrue> &x, const T &y)
-      : m_cond(condition), m_true(x), m_false(y),
+  where_expr(const expression<Container, bool, Rank> &condition,
+             const expression<Container1, T, Rank> &x, const T &y)
+      : m_cond(condition.self()), m_true(x.self()), m_false(y),
         m_shape(broadcast_shapes(condition.shape(), x.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~where_expr() = default;
 
   /// Iterators.
 
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
 
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  value_type operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
+  T operator[](const index_type &index) const {
+    index_type i, j;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
+      j[axis] = (m_true.shape(axis) > 1) ? index[axis] : 0;
+    }
+    return m_cond[i] ? m_true[j] : m_false;
   }
-
-  value_type operator[](const index_type &index) const {
-    return m_cond[detail::broadcast_index(index, m_cond.shape())]
-               ? m_true[detail::broadcast_index(index, m_true.shape())]
-               : m_false;
-  }
-
-  static constexpr size_type ndim() { return Rank; }
 
   const shape_type &shape() const { return m_shape; }
 
@@ -301,33 +256,25 @@ public:
   size_type size() const { return m_size; }
 
   layout_t layout() const { return m_cond.layout(); }
-
-  /// Public methods.
-
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 
 /**
  * @brief Partial specialization when the true argument is a value and the
  * false argument is a tensor. Values are broadcasted to an appropriate shape.
  */
-template <class T, size_t Rank, class TagCond, class TagFalse>
-class base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse>> {
+template <class Container, class Container1, class T, size_t Rank>
+class where_expr<Container, void, Container1, T, Rank>
+    : public expression<where_expr<Container, void, Container1, T, Rank>, T,
+                        Rank> {
 public:
   /// Member types.
-  typedef typename std::remove_cv<T>::type value_type;
+  typedef T value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
   typedef T reference;
-  typedef T const_reference;
-  typedef nullptr_t pointer;
-  typedef nullptr_t const_pointer;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse>>
+  typedef flat_iterator<const where_expr<Container, void, Container1, T, Rank>,
+                        T, Rank, void, T>
       iterator;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse>>
-      const_iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -335,13 +282,13 @@ public:
 
 private:
   // Condition tensor argument.
-  const base_tensor<bool, Rank, TagCond> &m_cond;
+  const Container &m_cond;
 
-  // First tensor argument.
+  // True argument.
   T m_true;
 
-  // Second argument.
-  const base_tensor<T, Rank, TagFalse> &m_false;
+  // False tensor argument.
+  const Container1 &m_false;
 
   // Common shape.
   shape_type m_shape;
@@ -352,48 +299,37 @@ private:
 public:
   /// Constructors.
 
-  base_tensor(const base_tensor<bool, Rank, TagCond> &condition, const T &x,
-              const base_tensor<T, Rank, TagFalse> &y)
-      : m_cond(condition), m_true(x), m_false(y),
+  where_expr(const expression<Container, bool, Rank> &condition, const T &x,
+             const expression<Container1, T, Rank> &y)
+      : m_cond(condition.self()), m_true(x), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), y.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~where_expr() = default;
 
   /// Iterators.
 
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
 
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  value_type operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
+  T operator[](const index_type &index) const {
+    index_type i, j;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
+      j[axis] = (m_false.shape(axis) > 1) ? index[axis] : 0;
+    }
+    return m_cond[i] ? m_true : m_false[j];
   }
-
-  value_type operator[](const index_type &index) const {
-    return m_cond[detail::broadcast_index(index, m_cond.shape())]
-               ? m_true
-               : m_false[detail::broadcast_index(index, m_false.shape())];
-  }
-
-  static constexpr size_type ndim() { return Rank; }
 
   const shape_type &shape() const { return m_shape; }
 
@@ -402,33 +338,24 @@ public:
   size_type size() const { return m_size; }
 
   layout_t layout() const { return m_cond.layout(); }
-
-  /// Public methods.
-
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 
 /**
  * @brief Partial specialization when both true and false arguments are values.
  * Values are broadcasted to an appropriate shape.
  */
-template <class T, size_t Rank, class TagCond>
-class base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>> {
+template <class Container, class T, size_t Rank>
+class where_expr<Container, void, void, T, Rank>
+    : public expression<where_expr<Container, void, void, T, Rank>, T, Rank> {
 public:
   /// Member types.
-  typedef typename std::remove_cv<T>::type value_type;
+  typedef T value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
   typedef T reference;
-  typedef T const_reference;
-  typedef nullptr_t pointer;
-  typedef nullptr_t const_pointer;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>>
+  typedef flat_iterator<const where_expr<Container, void, void, T, Rank>, T,
+                        Rank, void, T>
       iterator;
-  typedef base_tensor_const_iterator<
-      T, Rank, lazy_where_tag<TagCond, scalar_tag, scalar_tag>>
-      const_iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -436,69 +363,49 @@ public:
 
 private:
   // Condition tensor argument.
-  const base_tensor<bool, Rank, TagCond> &m_cond;
+  const Container &m_cond;
 
-  // First tensor argument.
+  // True argument.
   T m_true;
 
-  // Second argument.
+  // False argument.
   T m_false;
 
 public:
   /// Constructors.
 
-  base_tensor(const base_tensor<bool, Rank, TagCond> &condition, const T &x,
-              const T &y)
-      : m_cond(condition), m_true(x), m_false(y) {}
+  where_expr(const expression<Container, bool, Rank> &condition, const T &x,
+             const T &y)
+      : m_cond(condition.self()), m_true(x), m_false(y) {}
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~where_expr() = default;
 
   /// Iterators.
 
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
 
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  value_type operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
-  }
-
-  value_type operator[](const index_type &index) const {
+  T operator[](const index_type &index) const {
     return m_cond[index] ? m_true : m_false;
   }
 
-  static constexpr size_type ndim() { return Rank; }
-
-  auto shape() const -> decltype(m_cond.shape()) { return m_cond.shape(); }
+  shape_type shape() const { return m_cond.shape(); }
 
   size_type shape(size_type axis) const { return m_cond.shape(axis); }
 
   size_type size() const { return m_cond.size(); }
 
   layout_t layout() const { return m_cond.layout(); }
-
-  /// Public methods.
-
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 } // namespace numcpp
 

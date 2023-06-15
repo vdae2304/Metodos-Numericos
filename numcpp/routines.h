@@ -25,10 +25,9 @@
 
 #include "numcpp/config.h"
 #include "numcpp/routines/ranges.h"
-#include "numcpp/routines/sequence_array.h"
-#include "numcpp/routines/diagonal_view.h"
+#include "numcpp/routines/new.h"
 #include "numcpp/routines/lazy_where.h"
-#include "numcpp/routines/reverse_view.h"
+#include "numcpp/routines/rearrange.h"
 
 namespace numcpp {
 /// Tensor creation routines.
@@ -47,7 +46,9 @@ namespace numcpp {
  *                       an exception.
  */
 template <class T, size_t Rank>
-tensor<T, Rank> empty(const shape_t<Rank> &shape);
+tensor<T, Rank> empty(const shape_t<Rank> &shape) {
+  return tensor<T, Rank>(shape);
+}
 
 /**
  * @brief Return a new tensor with the same shape and type as a given tensor.
@@ -60,102 +61,106 @@ tensor<T, Rank> empty(const shape_t<Rank> &shape);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank> empty_like(const base_tensor<T, Rank, Tag> &like);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> empty_like(const expression<Container, T, Rank> &like) {
+  return tensor<T, Rank>(like.shape());
+}
 
 /**
- * @brief Return a new tensor of given shape filled with zeros.
+ * @brief Return a tensor of given shape filled with zeros.
  *
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor.
  *
- * @param shape Shape of the new tensor.
+ * @param shape Shape of the tensor.
  *
- * @return A tensor of zeros with the given shape.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of zeros with the given shape. This function does not create
+ *         a new tensor, instead, an expression object is returned.
  */
 template <class T, size_t Rank>
-tensor<T, Rank> zeros(const shape_t<Rank> &shape);
+const_expr<T, Rank> zeros(const shape_t<Rank> &shape) {
+  return const_expr<T, Rank>(shape, T());
+}
 
 /**
- * @brief Return a new tensor of zeros with the same shape and type as a given
+ * @brief Return a tensor of zeros with the same shape and type as a given
  * tensor.
  *
  * @param like Tensor-like object defining the shape and data type.
  *
- * @return A tensor of zeros with the same shape and type as @a like.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of zeros with the same shape and type as @a like. This
+ *         function does not create a new tensor, instead, an expression object
+ *         is returned.
  */
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank> zeros_like(const base_tensor<T, Rank, Tag> &like);
+template <class Container, class T, size_t Rank>
+const_expr<T, Rank> zeros_like(const expression<Container, T, Rank> &like) {
+  return const_expr<T, Rank>(like.shape(), T());
+}
 
 /**
- * @brief Return a new tensor of given shape filled with ones.
+ * @brief Return a tensor of given shape filled with ones.
  *
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor.
  *
- * @param shape Shape of the new tensor.
+ * @param shape Shape of the tensor.
  *
- * @return A tensor of ones with the given shape.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of ones with the given shape. This function does not create
+ *         a new tensor, instead, an expression object is returned.
  */
 template <class T, size_t Rank>
-tensor<T, Rank> ones(const shape_t<Rank> &shape);
+const_expr<T, Rank> ones(const shape_t<Rank> &shape) {
+  return const_expr<T, Rank>(shape, T(1));
+}
 
 /**
- * @brief Return a new tensor of ones with the same shape and type as a given
+ * @brief Return a tensor of ones with the same shape and type as a given
  * tensor.
  *
  * @param like Tensor-like object defining the shape and data type.
  *
- * @return A tensor of ones with the same shape and type as @a like.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of ones with the same shape and type as @a like. This
+ *         function does not create a new tensor, instead, an expression object
+ *         is returned.
  */
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank> ones_like(const base_tensor<T, Rank, Tag> &like);
+template <class Container, class T, size_t Rank>
+const_expr<T, Rank> ones_like(const expression<Container, T, Rank> &like) {
+  return const_expr<T, Rank>(like.shape(), T(1));
+}
 
 /**
- * @brief Return a new tensor of given shape filled with @a val.
+ * @brief Return a tensor of given shape filled with @a val.
  *
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor.
  *
- * @param shape Shape of the new tensor.
+ * @param shape Shape of the tensor.
  * @param val Fill value.
  *
- * @return A tensor of @a val with the given shape.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of @a val with the given shape. This function does not
+ *         create a new tensor, instead, an expression object is returned.
  */
 template <class T, size_t Rank>
-tensor<T, Rank> full(const shape_t<Rank> &shape, const T &val);
+const_expr<T, Rank> full(const shape_t<Rank> &shape, const T &val) {
+  return const_expr<T, Rank>(shape, val);
+}
 
 /**
- * @brief Return a new tensor filled with @a val with the same shape and type as
- * a given tensor.
+ * @brief Return a tensor filled with @a val with the same shape and type as a
+ * given tensor.
  *
  * @param like Tensor-like object defining the shape and data type.
  * @param val Fill value.
  *
- * @return A tensor of @a val with the same shape and type as @a like.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
+ * @return A tensor of @a val with the same shape and type as @a like. This
+ *         function does not create a new tensor, instead, an expression object
+ *         is returned.
  */
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank>
-full_like(const base_tensor<T, Rank, Tag> &like,
-          const typename base_tensor<T, Rank, Tag>::value_type &val);
+template <class Container, class T, size_t Rank>
+const_expr<T, Rank> full_like(const expression<Container, T, Rank> &like,
+                              const typename Container::value_type &val) {
+  return const_expr<T, Rank>(like.shape(), val);
+}
 
 /// Numerical ranges.
 
@@ -172,17 +177,17 @@ full_like(const base_tensor<T, Rank, Tag> &like,
  *             values. Defaults to 1 if not provided.
  *
  * @return A light-weight object with evenly spaced values. This function does
- *         not create a new tensor, instead, it returns an expression object
+ *         not create a new tensor, instead, an expression object is returned
  *         with evenly spaced values within a given interval.
  */
-template <class T> base_tensor<T, 1, sequence_tag> arange(const T &stop);
+template <class T> sequence_expr<T> arange(const T &stop);
 
 template <class T, class U>
-base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
-arange(const T &start, const U &stop);
+sequence_expr<typename std::common_type<T, U>::type> arange(const T &start,
+                                                            const U &stop);
 
 template <class T, class U, class V>
-base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
+sequence_expr<typename std::common_type<T, U, V>::type>
 arange(const T &start, const U &stop, const V &step);
 
 /**
@@ -198,11 +203,11 @@ arange(const T &start, const U &stop, const V &step);
  *                 included. Default is true.
  *
  * @return A light-weight object with equally spaced samples. This function does
- *         not create a new tensor, instead, it returns an expression object
+ *         not create a new tensor, instead, an expression object is returned
  *         with equally spaced samples over an interval.
  */
 template <class T, class U>
-base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+sequence_expr<typename std::common_type<T, U>::type>
 linspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
 
 /**
@@ -219,15 +224,15 @@ linspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
  * @param base The base of the log space. Default is 10.
  *
  * @return A light-weight object with equally spaced samples on a log scale.
- *         This function does not create a new tensor, instead, it returns an
- *         expression object with equally spaced samples on a log scale.
+ *         This function does not create a new tensor, instead, an expression
+ *         object is returned with equally spaced samples on a log scale.
  */
 template <class T, class U>
-base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+sequence_expr<typename std::common_type<T, U>::type>
 logspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
 
 template <class T, class U, class V>
-base_tensor<typename std::common_type<T, U, V>::type, 1, sequence_tag>
+sequence_expr<typename std::common_type<T, U, V>::type>
 logspace(const T &start, const U &stop, size_t num, bool endpoint,
          const V &base);
 
@@ -244,11 +249,11 @@ logspace(const T &start, const U &stop, size_t num, bool endpoint,
  *                 included. Default is true.
  *
  * @return A light-weight object with equally spaced samples on a log scale.
- *         This function does not create a new tensor, instead, it returns an
- *         expression object with equally spaced samples on a log scale.
+ *         This function does not create a new tensor, instead, an expression
+ *         object is returned with equally spaced samples on a log scale.
  */
 template <class T, class U>
-base_tensor<typename std::common_type<T, U>::type, 1, sequence_tag>
+sequence_expr<typename std::common_type<T, U>::type>
 geomspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
 
 /// Building matrices.
@@ -265,43 +270,46 @@ geomspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
  *          diagonal. Defaults to main diagonal (0).
  *
  * @return A light-weight object with ones on the diagonal and zeros elsewhere.
- *         This function, does not create a new tensor, instead, it returns an
- *         expression object with ones on the diagonal and zeros elsewhere.
+ *         This function, does not create a new tensor, instead, an expression
+ *         object is returned with ones on the diagonal and zeros elsewhere.
  */
-template <class T> base_tensor<T, 2, eye_tag> eye(size_t n);
+template <class T> identity_expr<T> eye(size_t n) { return eye<T>(n, n); }
 
-template <class T>
-base_tensor<T, 2, eye_tag> eye(size_t m, size_t n, ptrdiff_t k = 0);
+template <class T> identity_expr<T> eye(size_t m, size_t n, ptrdiff_t k = 0) {
+  return identity_expr<T>({m, n}, k);
+}
 
 /**
  * @brief Extract a diagonal or construct a diagonal matrix.
  *
- * @details If @a a is a 2-dimensional tensor, returns the diagonal of @a a with
+ * @details If @a a is a 1-dimensional tensor, returns a matrix with @a a on the
+ * @a k -th diagonal and zeros elsewhere.
+ * If @a a is a 2-dimensional tensor, returns the diagonal of @a a with
  * the given offset, i.e., an array with the elements of the form @a a(i,i+k).
- * If @a a is a 1-dimensional tensor, returns a matrix with @a a on the @a k -th
- * diagonal.
+ * If @a a has more than two dimensions, then the last two axes are used to
+ * determine the 2-dimensional sub-tensor whose diagonal is returned.
  *
- * @param a Matrix from which the diagonal is taken or array with the elements
- *          that will be on the diagonal.
+ *
+ * @param a An n-dimensional tensor from which the diagonals are taken or an
+ *          1-dimensional tensor with the elements that will be on the diagonal.
  * @param k Offset of the diagonal from the main diagonal. A positive value
  *          refers to an upper diagonal and a negative value refers to a lower
  *          diagonal. Defaults to main diagonal (0).
  *
  * @return The extracted diagonal or the constructed diagonal matrix. This
- *         function does not create a new tensor, instead, it returns a readonly
- *         view with the extracted diagonal (when @a a is 2-dimensional) or with
- *         the constructed diagonal matrix (when @a a is 1-dimensional).
+ *         function does not create a new tensor, instead, an expression object
+ *         is returned.
  */
-template <class T, class Tag>
-base_tensor<T, 1, diagonal_tag<Tag>> diag(const base_tensor<T, 2, Tag> &a,
-                                          ptrdiff_t k = 0);
-
-template <class T, class Tag>
-base_tensor<T, 2, diagonal_tag<Tag>> diag(const base_tensor<T, 1, Tag> &a,
-                                          ptrdiff_t k = 0);
+template <class Container, class T, size_t Rank>
+diagonal_expr<Container, T, Rank> diag(const expression<Container, T, Rank> &a,
+                                       ptrdiff_t k = 0) {
+  return diagonal_expr<Container, T, Rank>(a, k);
+}
 
 /**
- * @brief Return the lower triangle of a matrix.
+ * @brief Return the lower triangle of a matrix. If the tensor has more than two
+ * dimensions, then the last two axes are used to determine the 2-dimensional
+ * sub-tensor whose lower triangle is returned.
  *
  * @param a Matrix from which the lower triangle is taken.
  * @param k Diagonal above which to zero elements. A positive value refers to an
@@ -309,15 +317,19 @@ base_tensor<T, 2, diagonal_tag<Tag>> diag(const base_tensor<T, 1, Tag> &a,
  *          Defaults to main diagonal (0).
  *
  * @return Lower triangle of @a a. This function does not create a new tensor,
- *         instead, it returns a readonly view with the elements above the
+ *         instead, an expression object is returned with the elements above the
  *         @a k -th diagonal zeroed.
  */
-template <class T, class Tag>
-base_tensor<T, 2, triangular_tag<Tag>> tril(const base_tensor<T, 2, Tag> &a,
-                                            ptrdiff_t k = 0);
+template <class Container, class T, size_t Rank>
+triangular_expr<Container, T, Rank>
+tril(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
+  return triangular_expr<Container, T, Rank>(a, true, k);
+}
 
 /**
- * @brief Return the upper triangle of a matrix.
+ * @brief Return the upper triangle of a matrix. If the tensor has more than two
+ * dimensions, then the last two axes are used to determine the 2-dimensional
+ * sub-tensor whose upper triangle is returned.
  *
  * @param a Matrix from which the upper triangle is taken.
  * @param k Diagonal below which to zero elements. A positive value refers to an
@@ -325,12 +337,14 @@ base_tensor<T, 2, triangular_tag<Tag>> tril(const base_tensor<T, 2, Tag> &a,
  *          Defaults to main diagonal (0).
  *
  * @return Upper triangle of @a a. This function does not create a new tensor,
- *         instead, it returns a readonly view with the elements below the
+ *         instead, an expression object is returned with the elements below the
  *         @a k -th diagonal zeroed.
  */
-template <class T, class Tag>
-base_tensor<T, 2, triangular_tag<Tag>> triu(const base_tensor<T, 2, Tag> &a,
-                                            ptrdiff_t k = 0);
+template <class Container, class T, size_t Rank>
+triangular_expr<Container, T, Rank>
+triu(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
+  return triangular_expr<Container, T, Rank>(a, false, k);
+}
 
 /**
  * @brief Generate a Vandermonde matrix.
@@ -350,11 +364,11 @@ base_tensor<T, 2, triangular_tag<Tag>> triu(const base_tensor<T, 2, Tag> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag>
-tensor<T, 2> vander(const base_tensor<T, 1, Tag> &x);
+template <class Container, class T>
+tensor<T, 2> vander(const expression<Container, T, 1> &x);
 
-template <class T, class Tag>
-tensor<T, 2> vander(const base_tensor<T, 1, Tag> &x, size_t N,
+template <class Container, class T>
+tensor<T, 2> vander(const expression<Container, T, 1> &x, size_t N,
                     bool increasing = false);
 
 /// Maximums and minimums.
@@ -368,8 +382,8 @@ tensor<T, 2> vander(const base_tensor<T, 1, Tag> &x, size_t N,
  *         occurrences of the maximum value, return the index corresponding to
  *         the first occurrence.
  */
-template <class T, size_t Rank, class Tag>
-index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+index_t<Rank> argmax(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the indices of the maximum value in the tensor along the given
@@ -377,16 +391,27 @@ index_t<Rank> argmax(const base_tensor<T, Rank, Tag> &a);
  *
  * @param a A tensor-like object.
  * @param axis Axis along which the maximum value is selected.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
  * @return A new tensor with the indices of the maximum value along the given
- *         axis. The output tensor has the same dimension as @a a, but the axis
- *         which is reduced is left as a dimension of size one.
+ *         axis.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<size_t, Rank> argmax(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+                                const shape_t<1> &axis);
+
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank> argmax(const expression<Container, T, Rank> &a,
+                            const shape_t<1> &axis, keepdims_t);
+
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+                                const shape_t<1> &axis, dropdims_t);
 
 /**
  * @brief Return the index of the minimum value in the tensor.
@@ -397,8 +422,8 @@ tensor<size_t, Rank> argmax(const base_tensor<T, Rank, Tag> &a, size_t axis);
  *         occurrences of the minimum value, return the index corresponding to
  *         the first occurrence.
  */
-template <class T, size_t Rank, class Tag>
-index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+index_t<Rank> argmin(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the indices of the minimum value in the tensor along the given
@@ -406,16 +431,27 @@ index_t<Rank> argmin(const base_tensor<T, Rank, Tag> &a);
  *
  * @param a A tensor-like object.
  * @param axis Axis along which the minimum value is selected.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
  * @return A new tensor with the indices of the minimum value along the given
- *         axis. The output tensor has the same dimension as @a a, but the axis
- *         which is reduced is left as a dimension of size one.
+ *         axis.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<size_t, Rank> argmin(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+                                const shape_t<1> &axis);
+
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank> argmin(const expression<Container, T, Rank> &a,
+                            const shape_t<1> &axis, keepdims_t);
+
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+                                const shape_t<1> &axis, dropdims_t);
 
 /**
  * @brief Return the maximum value contained in the tensor.
@@ -424,9 +460,8 @@ tensor<size_t, Rank> argmin(const base_tensor<T, Rank, Tag> &a, size_t axis);
  *
  * @return The maximum value in the tensor.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-amax(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T amax(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the maximum value contained in the tensor over the given axes.
@@ -434,21 +469,26 @@ amax(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the maximum value
  *             is selected.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the maximum value over the given axes. The output
- *         tensor has the same dimension as @a a, but the axes which are reduced
- *         are left as dimensions of size one.
+ * @return A new tensor with the maximum value over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-amax(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-amax(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> amax(const expression<Container, T, Rank> &a,
+                     const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the minimum value contained in the tensor.
@@ -457,9 +497,8 @@ amax(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  *
  * @return The minimum value in the tensor.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-amin(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T amin(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the minimum value contained in the tensor over the given axes.
@@ -467,83 +506,100 @@ amin(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the minimum value
  *             is selected.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the minimum value over the given axes. The output
- *         tensor has the same dimension as @a a, but the axes which are reduced
- *         are left as dimensions of size one.
+ * @return A new tensor with the minimum value over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-amin(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-amin(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> amin(const expression<Container, T, Rank> &a,
+                     const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the element-wise maximum of two tensors.
  *
- * @param a First tensor-like object to compare.
- * @param b Second tensor-like object to compare.
+ * @param a A tensor-like object with the values to pass as first argument.
+ * @param b A tensor-like object with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  *
  * @return A light-weight object with the element-wise maximum of two tensors.
- *         This function does not create a new tensor, instead, it returns an
- *         expression object with the element-wise maximum of the arguments.
+ *         This function does not create a new tensor, instead, an expression
+ *         object is returned with the element-wise maximum of the arguments.
  *
  * @throw std::invalid_argument Thrown if the shapes are not compatible and
  *                              cannot be broadcasted according to broadcasting
  *                              rules.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-base_tensor<T, Rank, lazy_binary_tag<ranges::maximum, T, Tag1, T, Tag2>>
-maximum(const base_tensor<T, Rank, Tag1> &a,
-        const base_tensor<T, Rank, Tag2> &b);
+template <class Container1, class T, class Container2, size_t Rank>
+binary_expr<ranges::maximum, Container1, T, Container2, T, Rank>
+maximum(const expression<Container1, T, Rank> &a,
+        const expression<Container2, T, Rank> &b) {
+  return binary_expr<ranges::maximum, Container1, T, Container2, T, Rank>(a, b);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, lazy_binary_tag<ranges::maximum, T, Tag, T, scalar_tag>>
-maximum(const base_tensor<T, Rank, Tag> &a,
-        const typename base_tensor<T, Rank, Tag>::value_type &val);
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::maximum, Container, T, void, T, Rank>
+maximum(const expression<Container, T, Rank> &a,
+        const typename Container::value_type &val) {
+  binary_expr<ranges::maximum, Container, T, void, T, Rank>(a, val);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, lazy_binary_tag<ranges::maximum, T, scalar_tag, T, Tag>>
-maximum(const typename base_tensor<T, Rank, Tag>::value_type &val,
-        const base_tensor<T, Rank, Tag> &b);
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::maximum, void, T, Container, T, Rank>
+maximum(const typename Container::value_type &val,
+        const expression<Container, T, Rank> &b) {
+  return binary_expr<ranges::maximum, void, T, Container, T, Rank>(val, b);
+}
 
 /**
  * @brief Return the element-wise minimum of two tensors.
  *
- * @param a First tensor-like object to compare.
- * @param b Second tensor-like object to compare.
+ * @param a A tensor-like object with the values to pass as first argument.
+ * @param b A tensor-like object with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  *
  * @return A light-weight object with the element-wise minimum of two tensors.
- *         This function does not create a new tensor, instead, it returns an
- *         expression object with the element-wise minimum of the arguments.
+ *         This function does not create a new tensor, instead, an expression
+ *         object is returned with the element-wise minimum of the arguments.
  *
  * @throw std::invalid_argument Thrown if the shapes are not compatible and
  *                              cannot be broadcasted according to broadcasting
  *                              rules.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-base_tensor<T, Rank, lazy_binary_tag<ranges::minimum, T, Tag1, T, Tag2>>
-minimum(const base_tensor<T, Rank, Tag1> &a,
-        const base_tensor<T, Rank, Tag2> &b);
+template <class Container1, class T, class Container2, size_t Rank>
+binary_expr<ranges::minimum, Container1, T, Container2, T, Rank>
+minimum(const expression<Container1, T, Rank> &a,
+        const expression<Container2, T, Rank> &b) {
+  return binary_expr<ranges::minimum, Container1, T, Container2, T, Rank>(a, b);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, lazy_binary_tag<ranges::minimum, T, Tag, T, scalar_tag>>
-minimum(const base_tensor<T, Rank, Tag> &a,
-        const typename base_tensor<T, Rank, Tag>::value_type &val);
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::minimum, Container, T, void, T, Rank>
+minimum(const expression<Container, T, Rank> &a,
+        const typename Container::value_type &val) {
+  binary_expr<ranges::minimum, Container, T, void, T, Rank>(a, val);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, lazy_binary_tag<ranges::minimum, T, scalar_tag, T, Tag>>
-minimum(const typename base_tensor<T, Rank, Tag>::value_type &val,
-        const base_tensor<T, Rank, Tag> &b);
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::minimum, void, T, Container, T, Rank>
+minimum(const typename Container::value_type &val,
+        const expression<Container, T, Rank> &b) {
+  return binary_expr<ranges::minimum, void, T, Container, T, Rank>(val, b);
+}
 
 /**
  * @brief Clamp the values in the tensor. Given an interval @a [a_min,a_max],
@@ -557,16 +613,19 @@ minimum(const typename base_tensor<T, Rank, Tag>::value_type &val,
  *
  * @return A light-weight object with the elements in the tensor clamped within
  *         the given interval. This function does not create a new tensor,
- *         instead, it returns an expression object with the clamped values in
+ *         instead, an expression object is returned with the clamped values in
  *         the tensor.
  *
  * @note The behavior is undefined if @a a_min is greater than @a a_max.
  */
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, lazy_unary_tag<ranges::clamp<T>, T, Tag>>
-clamp(const base_tensor<T, Rank, Tag> &a,
-      const typename base_tensor<T, Rank, Tag>::value_type &a_min,
-      const typename base_tensor<T, Rank, Tag>::value_type &a_max);
+template <class Container, class T, size_t Rank>
+unary_expr<ranges::clamp<T>, Container, T, Rank>
+clamp(const expression<Container, T, Rank> &a,
+      const typename Container::value_type &a_min,
+      const typename Container::value_type &a_max) {
+  return unary_expr<ranges::clamp<T>, Container, T, Rank>(
+      ranges::clamp<T>(a_min, a_max), a);
+}
 
 /// Sums and products.
 
@@ -577,9 +636,8 @@ clamp(const base_tensor<T, Rank, Tag> &a,
  *
  * @return The sum of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-sum(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T sum(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the sum of the tensor elements over the given axes.
@@ -587,21 +645,26 @@ sum(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the sum is
  *             performed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the sum over the given axes. The output tensor has
- *         the same dimension as @a a, but the axes which are reduced are left
- *         as dimensions of size one.
+ * @return A new tensor with the sum over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-sum(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+                        const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-sum(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> sum(const expression<Container, T, Rank> &a,
+                    const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+                        const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the product of the tensor elements.
@@ -610,9 +673,8 @@ sum(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  *
  * @return The product of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-prod(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T prod(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the product of the tensor elements over the given axes.
@@ -620,21 +682,26 @@ prod(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the product is
  *             performed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the product over the given axes. The output tensor
- *         has the same dimension as @a a, but the axes which are reduced are
- *         left as dimensions of size one.
+ * @return A new tensor with the product over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-prod(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-prod(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> prod(const expression<Container, T, Rank> &a,
+                     const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the cumulative sum of the tensor elements along a given axis.
@@ -648,9 +715,9 @@ prod(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-cumsum(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> cumsum(const expression<Container, T, Rank> &a,
+                       size_t axis = 0);
 
 /**
  * @brief Return the cumulative product of the tensor elements along a given
@@ -666,9 +733,9 @@ cumsum(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-cumprod(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> cumprod(const expression<Container, T, Rank> &a,
+                        size_t axis = 0);
 
 /// Logic functions.
 
@@ -679,8 +746,8 @@ cumprod(const base_tensor<T, Rank, Tag> &a, size_t axis = 0);
  *
  * @return true if all the elements evaluate to true and false otherwise.
  */
-template <size_t Rank, class Tag>
-bool all(const base_tensor<bool, Rank, Tag> &a);
+template <class Container, size_t Rank>
+bool all(const expression<Container, bool, Rank> &a);
 
 /**
  * @brief Test whether all tensor elements over the given axes evaluate to true.
@@ -688,20 +755,26 @@ bool all(const base_tensor<bool, Rank, Tag> &a);
  * @param a A tensor-like object of @c bool.
  * @param axes A @c shape_t object with the axes along which the logical AND
  *             reduction is performed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the results of the test over the given axes. The
- *         output tensor has the same dimension as @a a, but the axes which are
- *         reduced are left as dimensions of size one.
+ * @return A new tensor with the results of the test over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <size_t Rank, class Tag>
-tensor<bool, Rank> all(const base_tensor<bool, Rank, Tag> &a, size_t axis);
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank - N> all(const expression<Container, bool, Rank> &a,
+                           const shape_t<N> &axes);
 
-template <size_t Rank, class Tag, size_t N>
-tensor<bool, Rank> all(const base_tensor<bool, Rank, Tag> &a,
-                       const shape_t<N> &axes);
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank> all(const expression<Container, bool, Rank> &a,
+                       const shape_t<N> &axes, keepdims_t);
+
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank - N> all(const expression<Container, bool, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Test whether any tensor element evaluate to true.
@@ -710,8 +783,8 @@ tensor<bool, Rank> all(const base_tensor<bool, Rank, Tag> &a,
  *
  * @return true if any element evaluate to true and false otherwise.
  */
-template <size_t Rank, class Tag>
-bool any(const base_tensor<bool, Rank, Tag> &a);
+template <class Container, size_t Rank>
+bool any(const expression<Container, bool, Rank> &a);
 
 /**
  * @brief Test whether any tensor element over the given axes evaluate to true.
@@ -719,20 +792,26 @@ bool any(const base_tensor<bool, Rank, Tag> &a);
  * @param a A tensor-like object of @c bool.
  * @param axes A @c shape_t object with the axes along which the logical OR
  *             reduction is performed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the results of the test over the given axes. The
- *         output tensor has the same dimension as @a a, but the axes which are
- *         reduced are left as dimensions of size one.
+ * @return A new tensor with the results of the test over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <size_t Rank, class Tag>
-tensor<bool, Rank> any(const base_tensor<bool, Rank, Tag> &a, size_t axis);
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank - N> any(const expression<Container, bool, Rank> &a,
+                           const shape_t<N> &axes);
 
-template <size_t Rank, class Tag, size_t N>
-tensor<bool, Rank> any(const base_tensor<bool, Rank, Tag> &a,
-                       const shape_t<N> &axes);
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank> any(const expression<Container, bool, Rank> &a,
+                       const shape_t<N> &axes, keepdims_t);
+
+template <class Container, size_t Rank, size_t N>
+tensor<bool, Rank - N> any(const expression<Container, bool, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Count the number of non-zero elements in the tensor.
@@ -741,29 +820,35 @@ tensor<bool, Rank> any(const base_tensor<bool, Rank, Tag> &a,
  *
  * @return The number of non-zero elements.
  */
-template <class T, size_t Rank, class Tag>
-size_t count_nonzero(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+size_t count_nonzero(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Count the number of non-zero elements over the given axes.
  *
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which to count non-zeros.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
  * @return A new tensor with the number of non-zero elements over the given
- *         axes. The output tensor has the same dimension as @a a, but the axes
- *         which are reduced are left as dimensions of size one.
+ *         axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<size_t, Rank> count_nonzero(const base_tensor<T, Rank, Tag> &a,
-                                   size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+                                       const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<size_t, Rank> count_nonzero(const base_tensor<T, Rank, Tag> &a,
-                                   const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<size_t, Rank> count_nonzero(const expression<Container, T, Rank> &a,
+                                   const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+                                       const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return whether two numbers are equal within a tolerance.
@@ -777,67 +862,48 @@ tensor<size_t, Rank> count_nonzero(const base_tensor<T, Rank, Tag> &a,
  * NaN is not considered equal to any other value, including NaN. inf and -inf
  * are only considered equal to themselves.
  *
- * @param a An integer, floating-point or complex value.
- * @param b An integer, floating-point or complex value.
+ * @note If one of the arguments has integral type, it is cast to double.
+ * If one of the arguments is long double, the other argument is promoted to
+ * long double.
+ * If one of the arguments is double and the other argument is float, the float
+ * argument is promoted to double.
+ *
+ * @param a An integer or floating-point value.
+ * @param b An integer or floating-point value.
  * @param rtol The relative tolerance.
  * @param atol The absolute tolerance.
  *
  * @return true if the values are considered equal and false otherwise.
  */
-bool isclose(float a, float b, float rtol = 1e-4f, float atol = 0.f);
-
-bool isclose(double a, double b, double rtol = 1e-8, double atol = 0.);
-
-bool isclose(long double a, long double b, long double rtol = 1e-10L,
-             long double atol = 0.L);
-
-/**
- * @brief Additional overloads for arithmetic types.
- *
- * @details If any argument has integral type, it is cast to double.
- * If any argument is long double, the other argument is promoted to long
- * double.
- * If arguments are float and double (in any order), the float argument is
- * promoted to double.
- */
 template <class T, class U>
-typename std::enable_if<
-    std::is_arithmetic<T>::value && std::is_arithmetic<U>::value, bool>::type
-isclose(T a, U b, typename std::common_type<T, U, double>::type rtol = 1e-8,
-        typename std::common_type<T, U, double>::type atol = 0.);
+bool isclose(T a, U b, typename detail::promote<T, U>::type rtol = 1e-8,
+             typename detail::promote<T, U>::type atol = 0.);
 
 /**
  * @brief Additional overloads for complex types. For complex types, the
  * equality is tested on both real and imaginary parts.
  */
-template <class T>
-bool isclose(const std::complex<T> &a, const std::complex<T> &b,
-             typename std::complex<T>::value_type rtol = T(1e-8),
-             typename std::complex<T>::value_type atol = T(0));
-
-template <class T>
-bool isclose(const std::complex<T> &a,
-             const typename std::complex<T>::value_type &b,
-             typename std::complex<T>::value_type rtol = T(1e-8),
-             typename std::complex<T>::value_type atol = T(0));
-
-template <class T>
-bool isclose(const typename std::complex<T>::value_type &a,
-             const std::complex<T> &b,
-             typename std::complex<T>::value_type rtol = T(1e-8),
-             typename std::complex<T>::value_type atol = T(0));
-
 template <class T, class U>
 bool isclose(const std::complex<T> &a, const std::complex<U> &b,
-             typename std::common_type<T, U>::type rtol = 1e-8,
-             typename std::common_type<T, U>::type atol = 0);
+             typename detail::promote<T, U>::type rtol = 1e-8,
+             typename detail::promote<T, U>::type atol = 0);
+
+template <class T, class U>
+bool isclose(const std::complex<T> &a, const U &b,
+             typename detail::promote<T, U>::type rtol = 1e-8,
+             typename detail::promote<T, U>::type atol = 0);
+
+template <class T, class U>
+bool isclose(const T &a, const std::complex<U> &b,
+             typename detail::promote<T, U>::type rtol = 1e-8,
+             typename detail::promote<T, U>::type atol = 0);
 
 /**
  * @brief Return whether two tensors are equal, element-wise, within a
  * tolerance.
  *
- * @param a First tensor-like object to compare.
- * @param b Second tensor-like object to compare.
+ * @param a A tensor-like object with the values to pass as first argument.
+ * @param b A tensor-like object with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  * @param rtol The relative tolerance.
@@ -845,41 +911,51 @@ bool isclose(const std::complex<T> &a, const std::complex<U> &b,
  *
  * @return A light-weight object of bool with each element set to true where
  *         @a a and @a b are equal within the given tolerance, and false
- *         otherwise. This function does not create a new tensor, instead, it
- *         returns an expression object with the element-wise comparison.
+ *         otherwise. This function does not create a new tensor, instead, an
+ *         expression object is returned with the element-wise comparison.
  *
  * @throw std::invalid_argument Thrown if the shapes are not compatible and
  *                              cannot be broadcasted according to broadcasting
  *                              rules.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-base_tensor<bool, Rank, lazy_binary_tag<ranges::isclose<T>, T, Tag1, T, Tag2>>
-isclose(const base_tensor<T, Rank, Tag1> &a,
-        const base_tensor<T, Rank, Tag2> &b,
+template <class Container1, class T, class Container2, size_t Rank>
+binary_expr<ranges::isclose<T>, Container1, T, Container2, T, Rank>
+isclose(const expression<Container1, T, Rank> &a,
+        const expression<Container2, T, Rank> &b,
         const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-        const typename detail::complex_traits<T>::value_type &atol = 0);
+        const typename detail::complex_traits<T>::value_type &atol = 0) {
+  typedef ranges::isclose<T> Closure;
+  Closure f(rtol, atol);
+  return binary_expr<Closure, Container1, T, Container2, T, Rank>(f, a, b);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<bool, Rank,
-            lazy_binary_tag<ranges::isclose<T>, T, Tag, T, scalar_tag>>
-isclose(const base_tensor<T, Rank, Tag> &a,
-        const typename base_tensor<T, Rank, Tag>::value_type &val,
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::isclose<T>, Container, T, void, T, Rank>
+isclose(const expression<Container, T, Rank> &a,
+        const typename Container::value_type &val,
         const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-        const typename detail::complex_traits<T>::value_type &atol = 0);
+        const typename detail::complex_traits<T>::value_type &atol = 0) {
+  typedef ranges::isclose<T> Closure;
+  Closure f(rtol, atol);
+  return binary_expr<Closure, Container, T, void, T, Rank>(f, a, val);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<bool, Rank,
-            lazy_binary_tag<ranges::isclose<T>, T, scalar_tag, T, Tag>>
-isclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
-        const base_tensor<T, Rank, Tag> &b,
+template <class Container, class T, size_t Rank>
+binary_expr<ranges::isclose<T>, void, T, Container, T, Rank>
+isclose(const typename Container::value_type &val,
+        const expression<Container, T, Rank> &b,
         const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-        const typename detail::complex_traits<T>::value_type &atol = 0);
+        const typename detail::complex_traits<T>::value_type &atol = 0) {
+  typedef ranges::isclose<T> Closure;
+  Closure f(rtol, atol);
+  return binary_expr<Closure, void, T, Container, T, Rank>(f, val, b);
+}
 
 /**
  * @brief Test whether two tensors are element-wise equal within a tolerance.
  *
- * @param a First tensor-like object to compare.
- * @param b Second tensor-like object to compare.
+ * @param a A tensor-like object with the values to pass as first argument.
+ * @param b A tensor-like object with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  * @param rtol The relative tolerance.
@@ -891,23 +967,29 @@ isclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
  *                              cannot be broadcasted according to broadcasting
  *                              rules.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-bool allclose(const base_tensor<T, Rank, Tag1> &a,
-              const base_tensor<T, Rank, Tag2> &b,
+template <class Container1, class T, class Container2, size_t Rank>
+bool allclose(const expression<Container1, T, Rank> &a,
+              const expression<Container2, T, Rank> &b,
               const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-              const typename detail::complex_traits<T>::value_type &atol = 0);
+              const typename detail::complex_traits<T>::value_type &atol = 0) {
+  return all(isclose(a, b, rtol, atol));
+}
 
-template <class T, size_t Rank, class Tag>
-bool allclose(const base_tensor<T, Rank, Tag> &a,
-              const typename base_tensor<T, Rank, Tag>::value_type &val,
+template <class Container, class T, size_t Rank>
+bool allclose(const expression<Container, T, Rank> &a,
+              const typename Container::value_type &val,
               const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-              const typename detail::complex_traits<T>::value_type &atol = 0);
+              const typename detail::complex_traits<T>::value_type &atol = 0) {
+  return all(isclose(a, val, rtol, atol));
+}
 
-template <class T, size_t Rank, class Tag>
-bool allclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
-              const base_tensor<T, Rank, Tag> &b,
+template <class Container, class T, size_t Rank>
+bool allclose(const typename Container::value_type &val,
+              const expression<Container, T, Rank> &b,
               const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
-              const typename detail::complex_traits<T>::value_type &atol = 0);
+              const typename detail::complex_traits<T>::value_type &atol = 0) {
+  return all(isclose(val, b, atol, rtol));
+}
 
 /// Sorting and searching.
 
@@ -924,18 +1006,18 @@ bool allclose(const typename base_tensor<T, Rank, Tag>::value_type &val,
  *               guaranteed to keep their original relative order.
  *
  * @return A 1-dimensional tensor of indices that sort the tensor. If @a indices
- *         is the returned tensor of indices for tensor @a a, then @c a[indices]
- *         yields a sorted @a a.
+ *         is the returned tensor of indices for @a a, then @c a[indices] yields
+ *         a sorted @a a.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<index_t<Rank>, 1> argsort(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<index_t<Rank>, 1> argsort(const base_tensor<T, Rank, Tag> &a,
+tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a,
                                  Compare comp, bool stable = false);
 
 /**
@@ -953,19 +1035,20 @@ tensor<index_t<Rank>, 1> argsort(const base_tensor<T, Rank, Tag> &a,
  *
  * @return A tensor of indices of the same shape as @a a that sort the tensor
  *         along the given axis. If @a indices is the returned tensor of indices
- *         for tensor @a a, then @c take_along_axis(a,indices,axis) yields a
- *         sorted @a a along the given axis.
+ *         for @a a, then @c take_along_axis(a,indices,axis) yields a sorted
+ *         @a a along the given axis.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<size_t, Rank> argsort(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+                             size_t axis);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<size_t, Rank> argsort(const base_tensor<T, Rank, Tag> &a, size_t axis,
-                             Compare comp, bool stable = false);
+tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+                             size_t axis, Compare comp, bool stable = false);
 
 /**
  * @brief Return a sorted copy of the flattened tensor.
@@ -984,14 +1067,13 @@ tensor<size_t, Rank> argsort(const base_tensor<T, Rank, Tag> &a, size_t axis,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-sort(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<T, 1> sort(const expression<Container, T, Rank> &a);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false);
+tensor<T, 1> sort(const expression<Container, T, Rank> &a, Compare comp,
+                  bool stable = false);
 
 /**
  * @brief Return a sorted copy of the tensor along the given axis.
@@ -1011,15 +1093,13 @@ sort(const base_tensor<T, Rank, Tag> &a, Compare comp, bool stable = false);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-sort(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-sort(const base_tensor<T, Rank, Tag> &a, size_t axis, Compare comp,
-     bool stable = false);
+tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis,
+                     Compare comp, bool stable = false);
 
 /**
  * @brief Return the indices that would partition the tensor.
@@ -1036,19 +1116,19 @@ sort(const base_tensor<T, Rank, Tag> &a, size_t axis, Compare comp,
  *             argument is considered to go before the second.
  *
  * @return A 1-dimensional tensor of indices that partition the tensor. If
- *         @a indices is the returned tensor of indices for tensor @a a, then
+ *         @a indices is the returned tensor of indices for @a a, then
  *         @c a[indices] yields a partitioned @a a.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<index_t<Rank>, 1> argpartition(const base_tensor<T, Rank, Tag> &a,
+template <class Container, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
                                       size_t kth);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<index_t<Rank>, 1> argpartition(const base_tensor<T, Rank, Tag> &a,
+tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
                                       size_t kth, Compare comp);
 
 /**
@@ -1069,19 +1149,19 @@ tensor<index_t<Rank>, 1> argpartition(const base_tensor<T, Rank, Tag> &a,
  *
  * @return A tensor of indices of the same shape as @a a that partition the
  *         tensor along the given axis. If @a indices is the returned tensor of
- *         indices for tensor @a a, then @c take_along_axis(a,indices,axis)
+ *         indices for @a a, then @c take_along_axis(a,indices,axis)
  *         yields a partitioned @a a along the given axis.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<size_t, Rank> argpartition(const base_tensor<T, Rank, Tag> &a,
+template <class Container, class T, size_t Rank>
+tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
                                   size_t kth, size_t axis);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<size_t, Rank> argpartition(const base_tensor<T, Rank, Tag> &a,
+tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
                                   size_t kth, size_t axis, Compare comp);
 
 /**
@@ -1103,14 +1183,13 @@ tensor<size_t, Rank> argpartition(const base_tensor<T, Rank, Tag> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-partition(const base_tensor<T, Rank, Tag> &a, size_t kth);
+template <class Container, class T, size_t Rank>
+tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-partition(const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp);
+tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth,
+                       Compare comp);
 
 /**
  * @brief Return a partitioned copy of the tensor along the given axis.
@@ -1132,15 +1211,14 @@ partition(const base_tensor<T, Rank, Tag> &a, size_t kth, Compare comp);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+                          size_t axis);
 
-template <class T, size_t Rank, class Tag, class Compare,
+template <class Container, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
-          Compare comp);
+tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+                          size_t axis, Compare comp);
 
 /**
  * @brief Return the indices of the elements that are non-zero.
@@ -1153,8 +1231,8 @@ partition(const base_tensor<T, Rank, Tag> &a, size_t kth, size_t axis,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<index_t<Rank>, 1> nonzero(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<index_t<Rank>, 1> nonzero(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return elements chosen from two tensors depending on @a condition.
@@ -1177,26 +1255,42 @@ tensor<index_t<Rank>, 1> nonzero(const base_tensor<T, Rank, Tag> &a);
  *                              not compatible and cannot be broadcasted
  *                              according to broadcasting rules.
  */
-template <size_t Rank, class Tag>
-tensor<index_t<Rank>, 1> where(const base_tensor<bool, Rank, Tag> &condition);
+template <class Container, size_t Rank>
+tensor<index_t<Rank>, 1>
+where(const expression<Container, bool, Rank> &condition);
 
-template <class T, size_t Rank, class TagCond, class TagTrue, class TagFalse>
-base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, TagFalse>>
-where(const base_tensor<bool, Rank, TagCond> &condition,
-      const base_tensor<T, Rank, TagTrue> &x,
-      const base_tensor<T, Rank, TagFalse> &y);
+template <class Container, class Container1, class Container2, class T,
+          size_t Rank>
+where_expr<Container, Container1, Container2, T, Rank>
+where(const expression<Container, bool, Rank> &condition,
+      const expression<Container1, T, Rank> &x,
+      const expression<Container2, T, Rank> &y) {
+  return where_expr<Container, Container1, Container2, T, Rank>(condition, x,
+                                                                y);
+}
 
-template <class T, size_t Rank, class TagCond, class TagTrue>
-base_tensor<T, Rank, lazy_where_tag<TagCond, TagTrue, scalar_tag>>
-where(const base_tensor<bool, Rank, TagCond> &condition,
-      const base_tensor<T, Rank, TagTrue> &x,
-      const typename base_tensor<T, Rank, TagTrue>::value_type &y);
+template <class Container, class Container1, class T, size_t Rank>
+where_expr<Container, Container1, void, T, Rank>
+where(const expression<Container, bool, Rank> &condition,
+      const expression<Container1, T, Rank> &x,
+      const typename Container1::value_type &y) {
+  return where_expr<Container, Container1, void, T, Rank>(condition, x, y);
+}
 
-template <class T, size_t Rank, class TagCond, class TagFalse>
-base_tensor<T, Rank, lazy_where_tag<TagCond, scalar_tag, TagFalse>>
-where(const base_tensor<bool, Rank, TagCond> &condition,
-      const typename base_tensor<T, Rank, TagFalse>::value_type &x,
-      const base_tensor<T, Rank, TagFalse> &y);
+template <class Container, class Container1, class T, size_t Rank>
+where_expr<Container, void, Container1, T, Rank>
+where(const expression<Container, bool, Rank> &condition,
+      const typename Container1::value_type &x,
+      const expression<Container1, T, Rank> &y) {
+  return where_expr<Container, void, Container1, T, Rank>(condition, x, y);
+}
+
+template <class Container, class T, size_t Rank, detail::RequiresScalar<T> = 0>
+where_expr<Container, void, void, T, Rank>
+where(const expression<Container, bool, Rank> &condition, const T &x,
+      const T &y) {
+  return where_expr<Container, void, void, T, Rank>(condition, x, y);
+}
 
 /// Rearranging elements.
 
@@ -1208,17 +1302,21 @@ where(const base_tensor<bool, Rank, TagCond> &condition,
  *             Rank - 1, which reverses along the last axis.
  *
  * @return A light-weight object with the elements in the tensor in reversed
- *         order. This function does not create a new tensor, instead, it
- *         returns a readonly view of the tensor with its elements in reversed
- *         order.
+ *         order. This function does not create a new tensor, instead, an
+ *         expression object is returned with the elements of the tensor in
+ *         reversed order.
  */
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, flip_tag<Tag, 1>>
-reverse(const base_tensor<T, Rank, Tag> &a, size_t axis = Rank - 1);
+template <class Container, class T, size_t Rank>
+reverse_expr<Container, T, Rank, 1>
+reverse(const expression<Container, T, Rank> &a, size_t axis = Rank - 1) {
+  return reverse_expr<Container, T, Rank, 1>(a, axis);
+}
 
-template <class T, size_t Rank, class Tag, size_t N>
-base_tensor<T, Rank, flip_tag<Tag, N>>
-reverse(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+reverse_expr<Container, T, Rank, N>
+reverse(const expression<Container, T, Rank> &a, const shape_t<N> &axes) {
+  return reverse_expr<Container, T, Rank, N>(a, axes);
+}
 
 /**
  * @brief Rotate the elements in a tensor along the given axes. The elements are
@@ -1232,19 +1330,23 @@ reverse(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  *             Rank - 1, which rotates along the last axis.
  *
  * @return A light-weight object with the elements in the tensor shifted
- *         circularly. This function does not create a new tensor, instead, it
- *         returns a readonly view of the tensor with its elements shifted
+ *         circularly. This function does not create a new tensor, instead, an
+ *         expression object is returned with the elements of the tensor shifted
  *         circularly.
  */
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, roll_tag<Tag, 1>>
-rotate(const base_tensor<T, Rank, Tag> &a, size_t shift,
-       size_t axis = Rank - 1);
+template <class Container, class T, size_t Rank>
+rotate_expr<Container, T, Rank, 1>
+rotate(const expression<Container, T, Rank> &a, size_t shift,
+       size_t axis = Rank - 1) {
+  return rotate_expr<Container, T, Rank, 1>(a, shift, axis);
+}
 
-template <class T, size_t Rank, class Tag, size_t N>
-base_tensor<T, Rank, roll_tag<Tag, N>>
-rotate(const base_tensor<T, Rank, Tag> &a, const index_t<N> &shift,
-       const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+rotate_expr<Container, T, Rank, N>
+rotate(const expression<Container, T, Rank> &a, const index_t<N> &shift,
+       const shape_t<N> &axes) {
+  return rotate_expr<Container, T, Rank, N>(a, shift, axes);
+}
 
 /// Set routines.
 
@@ -1262,9 +1364,8 @@ rotate(const base_tensor<T, Rank, Tag> &a, const index_t<N> &shift,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-unique(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<T, 1> unique(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Test whether a value is present in a tensor.
@@ -1275,9 +1376,9 @@ unique(const base_tensor<T, Rank, Tag> &a);
  *
  * @return true if @a val is present in @a a and false otherwise.
  */
-template <class T, class Tag>
-bool includes(const base_tensor<T, 1, Tag> &a,
-              const typename base_tensor<T, 1, Tag>::value_type &val);
+template <class Container, class T>
+bool includes(const expression<Container, T, 1> &a,
+              const typename Container::value_type &val);
 
 /**
  * @brief Test whether all the elements in a tensor are also present in another
@@ -1291,13 +1392,13 @@ bool includes(const base_tensor<T, 1, Tag> &a,
  *
  * @return true if @a b is a subset of @a a and false otherwise.
  */
-template <class T, class Tag1, class Tag2>
-bool includes(const base_tensor<T, 1, Tag1> &a,
-              const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class T, class Container2>
+bool includes(const expression<Container1, T, 1> &a,
+              const expression<Container2, T, 1> &b);
 
 /**
- * @brief Find the set union of two sorted tensors. Return the unique sorted
- * elements that are present in either one of two tensors, or in both.
+ * @brief Find the set union of two tensors. Return the unique sorted elements
+ * that are present in either one of two tensors, or in both.
  *
  * @param a A 1-dimensional tensor-like object. The elements in @a a must be
  *          sorted.
@@ -1309,13 +1410,13 @@ bool includes(const base_tensor<T, 1, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &a,
-                       const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class T, class Container2>
+tensor<T, 1> set_union(const expression<Container1, T, 1> &a,
+                       const expression<Container2, T, 1> &b);
 
 /**
- * @brief Find the set intersection of two sorted tensors. Return the unique
- * sorted elements that are present in both tensors.
+ * @brief Find the set intersection of two tensors. Return the unique sorted
+ * elements that are present in both tensors.
  *
  * @param a A 1-dimensional tensor-like object. The elements in @a a must be
  *          sorted.
@@ -1327,13 +1428,13 @@ tensor<T, 1> set_union(const base_tensor<T, 1, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &a,
-                              const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class T, class Container2>
+tensor<T, 1> set_intersection(const expression<Container1, T, 1> &a,
+                              const expression<Container2, T, 1> &b);
 
 /**
- * @brief Find the set difference of two sorted tensors. Return the unique
- * sorted elements that are present in the first tensor, but not in the second.
+ * @brief Find the set difference of two tensors. Return the unique sorted
+ * elements that are present in the first tensor, but not in the second.
  *
  * @param a A 1-dimensional tensor-like object. The elements in @a a must be
  *          sorted.
@@ -1345,14 +1446,13 @@ tensor<T, 1> set_intersection(const base_tensor<T, 1, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &a,
-                            const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class T, class Container2>
+tensor<T, 1> set_difference(const expression<Container1, T, 1> &a,
+                            const expression<Container2, T, 1> &b);
 
 /**
- * @brief Find the set symmetric difference of two sorted tensors. Return the
- * unique sorted elements that are present in one of the tensors, but not in the
- * other.
+ * @brief Find the set symmetric difference of two tensors. Return the unique
+ * sorted elements that are present in one of the tensors, but not in the other.
  *
  * @param a A 1-dimensional tensor-like object. The elements in @a a must be
  *          sorted.
@@ -1364,9 +1464,9 @@ tensor<T, 1> set_difference(const base_tensor<T, 1, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &a,
-                                      const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class T, class Container2>
+tensor<T, 1> set_symmetric_difference(const expression<Container1, T, 1> &a,
+                                      const expression<Container2, T, 1> &b);
 
 /// Basic statistics.
 
@@ -1377,9 +1477,8 @@ tensor<T, 1> set_symmetric_difference(const base_tensor<T, 1, Tag1> &a,
  *
  * @return The average of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-mean(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T mean(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the average of the tensor elements over the given axes.
@@ -1387,21 +1486,26 @@ mean(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the average is
  *             computed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the average over the given axes. The output tensor
- *         has the same dimension as @a a, but the axes which are reduced are
- *         left as dimensions of size one.
+ * @return A new tensor with the average over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-mean(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-mean(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> mean(const expression<Container, T, Rank> &a,
+                     const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+                         const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the median of the tensor elements.
@@ -1414,9 +1518,8 @@ mean(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  *
  * @return The median of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-median(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+T median(const expression<Container, T, Rank> &a);
 
 /**
  * @brief Return the median of the tensor elements over the given axes.
@@ -1424,21 +1527,26 @@ median(const base_tensor<T, Rank, Tag> &a);
  * @param a A tensor-like object.
  * @param axes A @c shape_t object with the axes along which the median is
  *             computed.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the median over the given axes. The output tensor
- *         has the same dimension as @a a, but the axes which are reduced are
- *         left as dimensions of size one.
+ * @return A new tensor with the median over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-median(const base_tensor<T, Rank, Tag> &a, size_t axis);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+                           const shape_t<N> &axes);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-median(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> median(const expression<Container, T, Rank> &a,
+                       const shape_t<N> &axes, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t);
 
 /**
  * @brief Return the variance of the tensor elements.
@@ -1454,13 +1562,12 @@ median(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes);
  *
  * @param a A tensor-like object.
  * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
- *             normalization is by @a n - 1.
+ *             normalization is by @a n - 1. Defaults to true.
  *
  * @return The variance of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-var(const base_tensor<T, Rank, Tag> &a, bool bias);
+template <class Container, class T, size_t Rank>
+T var(const expression<Container, T, Rank> &a, bool bias = true);
 
 /**
  * @brief Return the variance of the tensor elements over the given axes.
@@ -1469,22 +1576,27 @@ var(const base_tensor<T, Rank, Tag> &a, bool bias);
  * @param axes A @c shape_t object with the axes along which the variance is
  *             computed.
  * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
- *             normalization is by @a n - 1.
+ *             normalization is by @a n - 1. Defaults to true.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the variance over the given axes. The output tensor
- *         has the same dimension as @a a, but the axes which are reduced are
- *         left as dimensions of size one.
+ * @return A new tensor with the variance over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-var(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+                        const shape_t<N> &axes, bool bias = true);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-var(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> var(const expression<Container, T, Rank> &a,
+                    const shape_t<N> &axes, bool bias, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+                        const shape_t<N> &axes, bool bias, dropdims_t);
 
 /**
  * @brief Return the standard deviation of the tensor elements.
@@ -1500,13 +1612,12 @@ var(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias);
  *
  * @param a A tensor-like object.
  * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
- *             normalization is by @a n - 1.
+ *             normalization is by @a n - 1. Defaults to true.
  *
  * @return The standard deviation of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-stddev(const base_tensor<T, Rank, Tag> &a, bool bias);
+template <class Container, class T, size_t Rank>
+T stddev(const expression<Container, T, Rank> &a, bool bias = true);
 
 /**
  * @brief Return the standard deviation of the tensor elements over the given
@@ -1516,7 +1627,10 @@ stddev(const base_tensor<T, Rank, Tag> &a, bool bias);
  * @param axes A @c shape_t object with the axes along which the standard
  *             deviation is computed.
  * @param bias If @a bias is true, then normalization is by @a n. Otherwise,
- *             normalization is by @a n - 1.
+ *             normalization is by @a n - 1. Defaults to true.
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
  * @return A new tensor with the standard deviation over the given axes. The
  *         output tensor has the same dimension as @a a, but the axes which are
@@ -1525,13 +1639,17 @@ stddev(const base_tensor<T, Rank, Tag> &a, bool bias);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-stddev(const base_tensor<T, Rank, Tag> &a, size_t axis, bool bias);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+                           const shape_t<N> &axes, bool bias = true);
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-stddev(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias);
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> stddev(const expression<Container, T, Rank> &a,
+                       const shape_t<N> &axes, bool bias, keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+                           const shape_t<N> &axes, bool bias, dropdims_t);
 
 /**
  * @brief Return the q-th quantile of the tensor elements.
@@ -1554,10 +1672,9 @@ stddev(const base_tensor<T, Rank, Tag> &a, const shape_t<N> &axes, bool bias);
  *
  * @return The q-th quantile of the tensor elements.
  */
-template <class T, size_t Rank, class Tag>
-typename base_tensor<T, Rank, Tag>::value_type
-quantile(const base_tensor<T, Rank, Tag> &a, double q,
-         const std::string &method = "linear");
+template <class Container, class T, size_t Rank>
+T quantile(const expression<Container, T, Rank> &a, double q,
+           const std::string &method = "linear");
 
 /**
  * @brief Return the q-th quantile of the tensor elements over the given axes.
@@ -1569,23 +1686,29 @@ quantile(const base_tensor<T, Rank, Tag> &a, double q,
  * @param method This parameter specifies the method to use for estimating the
  *               quantile. Must be one of "lower", "higher", "nearest",
  *               "midpoint" or "linear".
+ * @param keepdims If set to @a keepdims, the axes which are reduced are left as
+ *                 dimensions with size one. If set to @a dropdims, the axes
+ *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the quantile over the given axes. The output tensor
- *         has the same dimension as @a a, but the axes which are reduced are
- *         left as dimensions of size one.
+ * @return A new tensor with the quantile over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-quantile(const base_tensor<T, Rank, Tag> &a, double q, size_t axis,
-         const std::string &method = "linear");
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+                             const shape_t<N> &axes,
+                             const std::string &method = "linear");
 
-template <class T, size_t Rank, class Tag, size_t N>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-quantile(const base_tensor<T, Rank, Tag> &a, double q, const shape_t<N> &axes,
-         const std::string &method = "linear");
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank> quantile(const expression<Container, T, Rank> &a, double q,
+                         const shape_t<N> &axes, const std::string &method,
+                         keepdims_t);
+
+template <class Container, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+                             const shape_t<N> &axes, const std::string &method,
+                             dropdims_t);
 
 /**
  * @brief Return the covariance of two 1-dimensional tensors.
@@ -1608,9 +1731,13 @@ quantile(const base_tensor<T, Rank, Tag> &a, double q, const shape_t<N> &axes,
  * @throw std::invalid_argument Thrown if the tensor arguments have different
  *                              sizes.
  */
-template <class T, class Tag1, class Tag2>
-T cov(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
-      bool bias = false);
+template <class Container1, class T, class Container2>
+T cov(const expression<Container1, T, 1> &x,
+      const expression<Container2, T, 1> &y, bool bias = false);
+
+template <class Container1, class T, class Container2>
+T cov(const expression<Container1, std::complex<T>, 1> &x,
+      const expression<Container2, std::complex<T>, 1> &y, bool bias = false);
 
 /**
  * @brief Return the covariance matrix of given data.
@@ -1630,9 +1757,14 @@ T cov(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag>
-tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar = true,
+template <class Container, class T>
+tensor<T, 2> cov(const expression<Container, T, 2> &a, bool rowvar = true,
                  bool bias = false);
+
+template <class Container, class T>
+tensor<std::complex<T>, 2>
+cov(const expression<Container, std::complex<T>, 2> &a, bool rowvar = true,
+    bool bias = false);
 
 /**
  * @brief Return the Pearson's correlation coefficient of two 1-dimensional
@@ -1650,8 +1782,9 @@ tensor<T, 2> cov(const base_tensor<T, 2, Tag> &a, bool rowvar = true,
  * @throw std::invalid_argument Thrown if the tensor arguments have different
  *                              sizes.
  */
-template <class T, class Tag1, class Tag2>
-T corrcoef(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y);
+template <class Container1, class T, class Container2>
+T corrcoef(const expression<Container1, T, 1> &x,
+           const expression<Container2, T, 1> &y);
 
 /**
  * @brief Return the correlation matrix of given data.
@@ -1669,8 +1802,8 @@ T corrcoef(const base_tensor<T, 1, Tag1> &x, const base_tensor<T, 1, Tag2> &y);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag>
-tensor<T, 2> corrcoef(const base_tensor<T, 2, Tag> &a, bool rowvar = true);
+template <class Container, class T>
+tensor<T, 2> corrcoef(const expression<Container, T, 2> &a, bool rowvar = true);
 } // namespace numcpp
 
 #include "numcpp/routines/routines.tcc"
