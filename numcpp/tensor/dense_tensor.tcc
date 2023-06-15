@@ -80,13 +80,13 @@ inline const Container &dense_tensor<Container, T, Rank>::self() const {
 template <class Container, class T, size_t Rank>
 inline typename dense_tensor<Container, T, Rank>::iterator
 dense_tensor<Container, T, Rank>::begin() {
-  return begin(this->layout());
+  return this->begin(this->layout());
 }
 
 template <class Container, class T, size_t Rank>
 inline typename dense_tensor<Container, T, Rank>::const_iterator
 dense_tensor<Container, T, Rank>::begin() const {
-  return begin(this->layout());
+  return this->begin(this->layout());
 }
 
 template <class Container, class T, size_t Rank>

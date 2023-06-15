@@ -98,7 +98,7 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
@@ -115,7 +115,7 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
@@ -251,7 +251,7 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
@@ -268,7 +268,7 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
@@ -374,11 +374,11 @@ public:
 
   /// Iterators.
 
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
@@ -448,11 +448,11 @@ public:
 
   /// Iterators.
 
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
@@ -564,7 +564,7 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
@@ -581,7 +581,7 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
@@ -734,7 +734,7 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  iterator begin() const { return begin(this->layout()); }
+  iterator begin() const { return this->begin(this->layout()); }
 
   iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
@@ -751,7 +751,7 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  iterator end() const { return end(this->layout()); }
+  iterator end() const { return this->end(this->layout()); }
 
   iterator end(layout_t order) const {
     return iterator(this, this->size(), order);
