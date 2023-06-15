@@ -49,11 +49,11 @@ public:
   /// Member types.
   typedef detail::result_of_t<Function, T> value_type;
   static constexpr size_t rank = Rank;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<const unary_expr<Function, Container, T, Rank>,
                         value_type, Rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -187,12 +187,12 @@ public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
   static constexpr size_t rank = Rank;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, Container1, T, Container2, U, Rank>,
       value_type, Rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -339,12 +339,12 @@ public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
   static constexpr size_t rank = Rank;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, Container, T, void, U, Rank>, value_type,
       Rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -413,12 +413,12 @@ public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
   static constexpr size_t rank = Rank;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, void, T, Container, U, Rank>, value_type,
       Rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
@@ -500,12 +500,12 @@ public:
   /// Member types.
   typedef detail::result_of_t<Function, T, U> value_type;
   static constexpr size_t rank = Rank1 + Rank2;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<
       const outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
       value_type, rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -667,12 +667,12 @@ public:
                               typename Containers::value_type...>
       value_type;
   static constexpr size_t rank = Container1::rank;
+  typedef void pointer;
+  typedef value_type reference;
   typedef flat_iterator<
       const element_wise_expr<Function, Container1, Containers...>, value_type,
       rank, void, value_type>
       iterator;
-  typedef void pointer;
-  typedef value_type reference;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
