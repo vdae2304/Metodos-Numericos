@@ -304,22 +304,22 @@ namespace detail {
  */
 template <size_t Rank> void concatenation_shape(shape_t<Rank> &, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 void concatenation_shape(shape_t<Rank> &out_shape, size_t axis,
-                         const expression<Container1, T, Rank> &arg1,
-                         const Containers &...arg2) {
+                         const expression<Container1, T, Rank> &a,
+                         const Container2 &...b) {
   for (size_t i = 0; i < Rank; ++i) {
-    if (arg1.shape(i) != out_shape[i] && i != axis) {
+    if (a.shape(i) != out_shape[i] && i != axis) {
       std::ostringstream error;
       error << "all the tensor dimensions for the concatenation axis must "
                "match exactly, but along dimension "
             << i << ", tensors have sizes " << out_shape[i] << " and "
-            << arg1.shape(i);
+            << a.shape(i);
       throw std::invalid_argument(error.str());
     }
   }
-  out_shape[axis] += arg1.shape(axis);
-  concatenation_shape(out_shape, axis, arg2...);
+  out_shape[axis] += a.shape(axis);
+  concatenation_shape(out_shape, axis, b...);
 }
 
 /**
@@ -328,17 +328,17 @@ void concatenation_shape(shape_t<Rank> &out_shape, size_t axis,
 template <class T, size_t Rank>
 void concatenate_impl(tensor<T, Rank> &, size_t, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 void concatenate_impl(tensor<T, Rank> &out, size_t axis, size_t offset,
-                      const expression<Container1, T, Rank> &arg1,
-                      const Containers &...arg2) {
-  for (index_t<Rank> i : make_index_sequence_for(arg1)) {
+                      const expression<Container1, T, Rank> &a,
+                      const Container2 &...b) {
+  for (index_t<Rank> i : make_index_sequence_for(a)) {
     index_t<Rank> out_index = i;
     out_index[axis] += offset;
-    out[out_index] = arg1[i];
+    out[out_index] = a[i];
   }
-  offset += arg1.shape(axis);
-  concatenate_impl(out, axis, offset, arg2...);
+  offset += a.shape(axis);
+  concatenate_impl(out, axis, offset, b...);
 }
 
 /**
@@ -347,32 +347,32 @@ void concatenate_impl(tensor<T, Rank> &out, size_t axis, size_t offset,
 template <class T, size_t Rank>
 void stack_impl(tensor<T, Rank> &, size_t, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 void stack_impl(tensor<T, Rank + 1> &out, size_t axis, size_t offset,
-                const expression<Container1, T, Rank> &arg1,
-                const Containers &...arg2) {
+                const expression<Container1, T, Rank> &a,
+                const Container2 &...b) {
   shape_t<Rank> shape = detail::remove_axes(out.shape(), axis);
-  if (shape != arg1.shape()) {
+  if (shape != a.shape()) {
     throw std::invalid_argument("all the tensors must have the same shape");
   }
-  for (index_t<Rank> i : make_index_sequence_for(arg1)) {
+  for (index_t<Rank> i : make_index_sequence_for(a)) {
     index_t<Rank + 1> out_index = detail::insert_axes(i, axis, offset);
-    out[out_index] = arg1[i];
+    out[out_index] = a[i];
   }
-  stack_impl(out, axis, offset + 1, arg2...);
+  stack_impl(out, axis, offset + 1, b...);
 }
 } // namespace detail
 
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 inline tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                                   const Containers &...b) {
+                                   const Container2 &...b) {
   return concatenate<0>(a, b...);
 }
 
 template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Containers>
+          class... Container2>
 tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const Containers &...b) {
+                            const Container2 &...b) {
   shape_t<Rank> shape = a.shape();
   detail::concatenation_shape(shape, Axis, b...);
   tensor<T, Rank> out(shape);
@@ -380,16 +380,16 @@ tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Containers &...b) {
+                          const Container2 &...b) {
   return stack<0>(a, b...);
 }
 
 template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Containers>
+          class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Containers &...b) {
+                          const Container2 &...b) {
   shape_t<Rank + 1> shape = detail::insert_axes(a.shape(), Axis, 1);
   shape[Axis] += sizeof...(b);
   tensor<T, Rank + 1> out(shape);

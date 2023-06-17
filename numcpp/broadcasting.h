@@ -330,10 +330,10 @@ zip(const expression<Container1, T, Rank> &a,
 }
 
 #if __cplusplus >= 201402L
-template <class Container1, class... Containers>
-element_wise_expr<detail::zip, Container1, Containers...>
-zip(const Container1 &a, const Containers &...b) {
-  return element_wise_expr<detail::zip, Container1, Containers...>(a, b...);
+template <class Container1, class... Container2>
+element_wise_expr<detail::zip, Container1, Container2...>
+zip(const Container1 &a, const Container2 &...b) {
+  return element_wise_expr<detail::zip, Container1, Container2...>(a, b...);
 }
 #endif // C++14
 
@@ -384,14 +384,14 @@ unzip(const expression<Container, Tuple, Rank> &a) {
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const Containers &...b);
+                            const Container2 &...b);
 
 template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Containers>
+          class... Container2>
 tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const Containers &...b);
+                            const Container2 &...b);
 
 /**
  * @brief Concatenate one or more tensors along a new axis.
@@ -408,14 +408,14 @@ tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container1, class T, size_t Rank, class... Containers>
+template <class Container1, class T, size_t Rank, class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Containers &...b);
+                          const Container2 &...b);
 
 template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Containers>
+          class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Containers &...b);
+                          const Container2 &...b);
 
 /// Tiling.
 
