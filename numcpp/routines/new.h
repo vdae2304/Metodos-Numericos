@@ -42,8 +42,8 @@ public:
   static constexpr size_t rank = Rank;
   typedef const T *pointer;
   typedef const T &reference;
-  typedef flat_iterator<const const_expr<T, Rank>, T, Rank, const T *,
-                        const T &>
+  typedef flat_iterator<const const_expr<T, Rank>, value_type, rank, pointer,
+                        reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -157,7 +157,9 @@ public:
   static constexpr size_t rank = 1;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const sequence_expr<T>, T, 1, void, T> iterator;
+  typedef flat_iterator<const sequence_expr<T>, value_type, rank, pointer,
+                        reference>
+      iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<1> shape_type;
@@ -287,7 +289,9 @@ public:
   static constexpr size_t rank = 2;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const identity_expr<T>, T, 2, void, T> iterator;
+  typedef flat_iterator<const identity_expr<T>, value_type, rank, pointer,
+                        reference>
+      iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<2> shape_type;
@@ -411,8 +415,8 @@ public:
   static constexpr size_t rank = Rank - 1;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const diagonal_expr<Container, T, Rank>, T, Rank - 1,
-                        void, T>
+  typedef flat_iterator<const diagonal_expr<Container, T, Rank>, value_type,
+                        rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -562,7 +566,8 @@ public:
   static constexpr size_t rank = 2;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const diagonal_expr<Container, T, 1>, T, 2, void, T>
+  typedef flat_iterator<const diagonal_expr<Container, T, 1>, value_type, rank,
+                        pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -698,8 +703,8 @@ public:
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const triangular_expr<Container, T, Rank>, T, Rank,
-                        void, T>
+  typedef flat_iterator<const triangular_expr<Container, T, Rank>, value_type,
+                        rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;

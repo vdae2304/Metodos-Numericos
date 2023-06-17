@@ -51,8 +51,8 @@ public:
   typedef void pointer;
   typedef T reference;
   typedef flat_iterator<
-      const where_expr<Container, Container1, Container2, T, Rank>, T, Rank,
-      void, T>
+      const where_expr<Container, Container1, Container2, T, Rank>, value_type,
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -191,7 +191,7 @@ public:
   typedef void pointer;
   typedef T reference;
   typedef flat_iterator<const where_expr<Container, Container1, void, T, Rank>,
-                        T, Rank, void, T>
+                        value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -273,7 +273,7 @@ public:
   typedef void pointer;
   typedef T reference;
   typedef flat_iterator<const where_expr<Container, void, Container1, T, Rank>,
-                        T, Rank, void, T>
+                        value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -353,8 +353,8 @@ public:
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const where_expr<Container, void, void, T, Rank>, T,
-                        Rank, void, T>
+  typedef flat_iterator<const where_expr<Container, void, void, T, Rank>,
+                        value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;

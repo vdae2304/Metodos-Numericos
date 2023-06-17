@@ -47,8 +47,8 @@ public:
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const reverse_expr<Container, T, Rank, N>, T, Rank,
-                        void, T>
+  typedef flat_iterator<const reverse_expr<Container, T, Rank, N>, value_type,
+                        rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -175,8 +175,8 @@ public:
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const rotate_expr<Container, T, Rank, N>, T, Rank, void,
-                        T>
+  typedef flat_iterator<const rotate_expr<Container, T, Rank, N>, value_type,
+                        rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;

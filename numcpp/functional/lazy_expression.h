@@ -52,7 +52,7 @@ public:
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<const unary_expr<Function, Container, T, Rank>,
-                        value_type, Rank, void, value_type>
+                        value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -191,7 +191,7 @@ public:
   typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, Container1, T, Container2, U, Rank>,
-      value_type, Rank, void, value_type>
+      value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -343,7 +343,7 @@ public:
   typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, Container, T, void, U, Rank>, value_type,
-      Rank, void, value_type>
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -417,7 +417,7 @@ public:
   typedef value_type reference;
   typedef flat_iterator<
       const binary_expr<Function, void, T, Container, U, Rank>, value_type,
-      Rank, void, value_type>
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -504,7 +504,7 @@ public:
   typedef value_type reference;
   typedef flat_iterator<
       const outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
-      value_type, rank, void, value_type>
+      value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -651,27 +651,27 @@ public:
  *
  * @tparam Function Type of the applied function.
  * @tparam Container1 Type of the first tensor where the function is applied.
- * @tparam Containers... Type of the remaining tensors where the function is
+ * @tparam Container2... Type of the remaining tensors where the function is
  *                       applied.
  */
-template <class Function, class Container1, class... Containers>
+template <class Function, class Container1, class... Container2>
 class element_wise_expr
     : public expression<
-          element_wise_expr<Function, Container1, Containers...>,
+          element_wise_expr<Function, Container1, Container2...>,
           detail::result_of_t<Function, typename Container1::value_type,
-                              typename Containers::value_type...>,
+                              typename Container2::value_type...>,
           Container1::rank> {
 public:
   /// Member types.
   typedef detail::result_of_t<Function, typename Container1::value_type,
-                              typename Containers::value_type...>
+                              typename Container2::value_type...>
       value_type;
   static constexpr size_t rank = Container1::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const element_wise_expr<Function, Container1, Containers...>, value_type,
-      rank, void, value_type>
+      const element_wise_expr<Function, Container1, Container2...>, value_type,
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -683,7 +683,7 @@ private:
   Function m_fun;
 
   // Tensor arguments.
-  std::tuple<const Container1 &, const Containers &...> m_args;
+  std::tuple<const Container1 &, const Container2 &...> m_args;
 
   // Common shape.
   shape_type m_shape;
@@ -705,8 +705,8 @@ public:
       Function f,
       const expression<Container1, typename Container1::value_type,
                        Container1::rank> &a,
-      const expression<Containers, typename Containers::value_type,
-                       Containers::rank> &...b)
+      const expression<Container2, typename Container2::value_type,
+                       Container2::rank> &...b)
       : m_fun(f), m_args(a.self(), b.self()...),
         m_shape(broadcast_shapes(a.shape(), b.shape()...)),
         m_size(m_shape.prod()) {}
@@ -714,8 +714,8 @@ public:
   element_wise_expr(
       const expression<Container1, typename Container1::value_type,
                        Container1::rank> &a,
-      const expression<Containers, typename Containers::value_type,
-                       Containers::rank> &...b)
+      const expression<Container2, typename Container2::value_type,
+                       Container2::rank> &...b)
       : element_wise_expr(Function(), a, b...) {}
 
   /// Destructor.
@@ -770,7 +770,7 @@ public:
    *         the tensor.
    */
   auto operator[](const index_type &index) const {
-    return __at(index, std::make_index_sequence<1 + sizeof...(Containers)>());
+    return __at(index, std::make_index_sequence<1 + sizeof...(Container2)>());
   }
 
   /**
