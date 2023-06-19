@@ -25,45 +25,44 @@
 #define NUMCPP_TENSOR_VIEW_TCC_INCLUDED
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 /// Constructors.
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor()
+tensor_view<T, Rank>::tensor_view()
     : m_data(NULL), m_shape(), m_size(0), m_offset(0), m_stride(),
       m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor_view<T, Rank>::base_tensor(T *data, Sizes... sizes)
+tensor_view<T, Rank>::tensor_view(T *data, Sizes... sizes)
     : m_data(data), m_shape(sizes...), m_size(m_shape.prod()), m_offset(0),
       m_stride(make_strides(m_shape)), m_order(default_layout) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(T *data, const shape_type &shape,
+tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(0),
       m_stride(make_strides(shape, order)), m_order(order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(T *data, const shape_type &shape,
+tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   difference_type offset,
                                   const shape_type &strides, layout_t order)
     : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(offset),
       m_stride(strides), m_order(order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(const base_tensor &other)
+tensor_view<T, Rank>::tensor_view(const tensor_view &other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_offset(other.m_offset), m_stride(other.m_stride),
       m_order(other.m_order) {}
 
 template <class T, size_t Rank>
-tensor_view<T, Rank>::base_tensor(base_tensor &&other)
+tensor_view<T, Rank>::tensor_view(tensor_view &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_offset(other.m_offset), m_stride(other.m_stride),
       m_order(other.m_order) {
@@ -77,7 +76,7 @@ tensor_view<T, Rank>::base_tensor(base_tensor &&other)
 
 /// Destructor.
 
-template <class T, size_t Rank> tensor_view<T, Rank>::~base_tensor() {}
+template <class T, size_t Rank> tensor_view<T, Rank>::~tensor_view() {}
 
 /// Indexing.
 
@@ -130,10 +129,6 @@ inline const T &tensor_view<T, Rank>::operator[](Indices... indices) const {
   return this->operator[](index_type(indices...));
 }
 #endif // C++23
-
-template <class T, size_t Rank> constexpr size_t tensor_view<T, Rank>::ndim() {
-  return Rank;
-}
 
 template <class T, size_t Rank>
 inline const shape_t<Rank> &tensor_view<T, Rank>::shape() const {
@@ -193,40 +188,30 @@ inline bool tensor_view<T, Rank>::is_contiguous() const {
 
 template <class T, size_t Rank>
 tensor_view<T, Rank> &
-tensor_view<T, Rank>::operator=(const base_tensor &other) {
-  if (this->shape() != other.shape()) {
-    std::ostringstream error;
-    error << "input shape " << other.shape()
-          << " doesn't match the output shape " << this->shape();
-    throw std::invalid_argument(error.str());
-  }
-  std::copy(other.begin(m_order), other.end(m_order), this->begin());
+tensor_view<T, Rank>::operator=(const tensor_view &other) {
+  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
+template <class Container, class U>
 tensor_view<T, Rank> &
-tensor_view<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
-  if (this->shape() != other.shape()) {
-    std::ostringstream error;
-    error << "input shape " << other.shape()
-          << " doesn't match the output shape " << this->shape();
-    throw std::invalid_argument(error.str());
-  }
-  std::transform(other.begin(m_order), other.end(m_order), this->begin(),
-                 cast_to<U, T>());
+tensor_view<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
+  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
 tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(const T &val) {
-  std::fill_n(this->begin(), this->size(), val);
+  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
+               Rank>::operator=(val);
   return *this;
 }
 
 template <class T, size_t Rank>
-tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(base_tensor &&other) {
+tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(tensor_view &&other) {
   if (this != &other) {
     m_data = other.m_data;
     m_shape = other.m_shape;
@@ -247,32 +232,49 @@ tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(base_tensor &&other) {
 /// Public methods.
 
 template <class T, size_t Rank>
-tensor_view<T, 1> tensor_view<T, Rank>::diagonal(difference_type k) {
-  static_assert(Rank == 2, "Input tensor must be 2-dimensional");
-  size_type size = 0, stride = 0;
-  difference_type offset = 0;
-  index_type index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
-  if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
-    size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-    offset = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
-    stride = m_stride[0] + m_stride[1];
+tensor_view<T, Rank - 1> tensor_view<T, Rank>::diagonal(difference_type k) {
+  size_type axis1 = Rank - 2, axis2 = Rank - 1;
+  shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
+  shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
+  difference_type offset = m_offset;
+  shape[axis1] = 0;
+  strides[axis1] += m_stride[axis2];
+  if (k >= 0) {
+    if (size_type(k) < m_shape[axis2]) {
+      shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
+      offset += k * m_stride[axis2];
+    }
+  } else {
+    if (size_type(-k) < m_shape[axis1]) {
+      shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
+      offset += -k * m_stride[axis1];
+    }
   }
-  return tensor_view<T, 1>(m_data, size, offset, stride);
+  return tensor_view<T, Rank - 1>(m_data, shape, offset, strides, m_order);
 }
 
 template <class T, size_t Rank>
-tensor_view<const T, 1>
+tensor_view<const T, Rank - 1>
 tensor_view<T, Rank>::diagonal(difference_type k) const {
-  static_assert(Rank == 2, "Input tensor must be 2-dimensional");
-  size_type size = 0, stride = 0;
-  difference_type offset = 0;
-  index_type index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
-  if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
-    size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-    offset = m_offset + index[0] * m_stride[0] + index[1] * m_stride[1];
-    stride = m_stride[0] + m_stride[1];
+  size_type axis1 = Rank - 2, axis2 = Rank - 1;
+  shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
+  shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
+  difference_type offset = m_offset;
+  shape[axis1] = 0;
+  strides[axis1] += m_stride[axis2];
+  if (k >= 0) {
+    if (size_type(k) < m_shape[axis2]) {
+      shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
+      offset += k * m_stride[axis2];
+    }
+  } else {
+    if (size_type(-k) < m_shape[axis1]) {
+      shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
+      offset += -k * m_stride[axis1];
+    }
   }
-  return tensor_view<const T, 1>(m_data, size, offset, stride);
+  return tensor_view<const T, Rank - 1>(m_data, shape, offset, strides,
+                                        m_order);
 }
 
 template <class T, size_t Rank>
@@ -323,10 +325,10 @@ template <class T, size_t Rank>
 template <size_t N>
 tensor_view<T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
                                                 layout_t order) {
-  if (this->size() != shape.prod()) {
+  if (m_size != shape.prod()) {
     std::ostringstream error;
-    error << "cannot reshape tensor of shape " << this->shape()
-          << " into shape " << shape;
+    error << "cannot reshape tensor of shape " << m_shape << " into shape "
+          << shape;
     throw std::invalid_argument(error.str());
   }
   if (!this->is_contiguous()) {
@@ -340,10 +342,10 @@ template <class T, size_t Rank>
 template <size_t N>
 tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
                                                       layout_t order) const {
-  if (this->size() != shape.prod()) {
+  if (m_size != shape.prod()) {
     std::ostringstream error;
-    error << "cannot reshape tensor of shape " << this->shape()
-          << " into shape " << shape;
+    error << "cannot reshape tensor of shape " << m_shape << " into shape "
+          << shape;
     throw std::invalid_argument(error.str());
   }
   if (!this->is_contiguous()) {
@@ -351,72 +353,6 @@ tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
   }
   shape_t<N> strides = make_strides(shape, order);
   return tensor_view<const T, N>(m_data, shape, m_offset, strides, order);
-}
-
-template <class T, size_t Rank>
-template <class... Axes, detail::RequiresIntegral<Axes...>>
-inline tensor_view<T, Rank - sizeof...(Axes)>
-tensor_view<T, Rank>::squeeze(Axes... axes) {
-  return this->squeeze(make_shape(axes...));
-}
-
-template <class T, size_t Rank>
-template <class... Axes, detail::RequiresIntegral<Axes...>>
-inline tensor_view<const T, Rank - sizeof...(Axes)>
-tensor_view<T, Rank>::squeeze(Axes... axes) const {
-  return this->squeeze(make_shape(axes...));
-}
-
-template <class T, size_t Rank>
-template <size_t N>
-tensor_view<T, Rank - N> tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) {
-  static_assert(N < Rank, "squeeze cannot take more arguments than the tensor "
-                          "dimension");
-  shape_t<Rank - N> shape, strides;
-  bool keep_axis[Rank];
-  std::fill_n(keep_axis, Rank, true);
-  for (size_t i = 0; i < N; ++i) {
-    keep_axis[axes[i]] = false;
-  }
-  size_t n = 0;
-  for (size_t i = 0; i < Rank; ++i) {
-    if (keep_axis[i]) {
-      shape[n] = m_shape[i];
-      strides[n++] = m_stride[i];
-    } else if (m_shape[i] != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
-    }
-  }
-  return tensor_view<T, Rank - N>(m_data, shape, m_offset, strides, m_order);
-}
-
-template <class T, size_t Rank>
-template <size_t N>
-tensor_view<const T, Rank - N>
-tensor_view<T, Rank>::squeeze(const shape_t<N> &axes) const {
-  static_assert(N < Rank, "squeeze cannot take more arguments than the tensor "
-                          "dimension");
-  shape_t<Rank - N> shape, strides;
-  bool keep_axis[Rank];
-  std::fill_n(keep_axis, Rank, true);
-  for (size_t i = 0; i < N; ++i) {
-    keep_axis[axes[i]] = false;
-  }
-  size_t n = 0;
-  for (size_t i = 0; i < Rank; ++i) {
-    if (keep_axis[i]) {
-      shape[n] = m_shape[i];
-      strides[n++] = m_stride[i];
-    } else if (m_shape[i] != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
-    }
-  }
-  return tensor_view<const T, Rank - N>(m_data, shape, m_offset, strides,
-                                        m_order);
 }
 
 template <class T, size_t Rank>

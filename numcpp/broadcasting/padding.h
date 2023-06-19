@@ -14,41 +14,58 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/broadcasting/utilities.h
+/** @file include/numcpp/broadcasting/padding.h
  *  This is an internal header file, included by other library headers.
  *  Do not attempt to use it directly. @headername{numcpp/broadcasting.h}
  */
 
 // Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
-#ifndef NUMCPP_UTILITIES_H_INCLUDED
-#define NUMCPP_UTILITIES_H_INCLUDED
+#ifndef NUMCPP_PADDING_H_INCLUDED
+#define NUMCPP_PADDING_H_INCLUDED
 
+#include <tuple>
 #include <utility>
 
 namespace numcpp {
-/// Namespace for implementation details.
 namespace detail {
 /**
- * @brief Function object implementing zip.
+ * @brief Function object implementing @c std::make_pair and @c std::make_tuple.
  */
 struct zip {
   template <class T, class U>
-  std::pair<T, U> operator()(const T &arg1, const U &arg2) const {
-    return std::pair<T, U>(arg1, arg2);
+  auto operator()(T &&a, U &&b) const
+      -> decltype(std::make_pair(std::forward<T>(a), std::forward<U>(b))) {
+    return std::make_pair(std::forward<T>(a), std::forward<U>(b));
+  }
+
+  template <class... T>
+  auto operator()(T &&...args) const
+      -> decltype(std::make_tuple(std::forward<T>(args)...)) {
+    return std::make_tuple(std::forward<T>(args)...);
   }
 };
 
 /**
- * @brief Function object implementing unzip.
+ * @brief Function object implementing @c std::get.
  */
-template <size_t I> struct unzip {
+template <size_t I> struct unzip_by_index {
   template <class Tuple>
-  const typename std::tuple_element<I, Tuple>::type &
-  operator()(const Tuple &arg) const {
-    return std::get<I>(arg);
+  auto operator()(Tuple &&arg) const
+      -> decltype(std::get<I>(std::forward<Tuple>(arg))) {
+    return std::get<I>(std::forward<Tuple>(arg));
   }
 };
+
+#if __cplusplus >= 201402L
+template <class T> struct unzip_by_type {
+  template <class Tuple>
+  auto operator()(Tuple &&arg) const
+      -> decltype(std::get<T>(std::forward<Tuple>(arg))) {
+    return std::get<T>(std::forward<Tuple>(arg));
+  }
+};
+#endif // C++14
 
 /**
  * @brief Function object implementing @c np::ravel_index.
@@ -119,7 +136,7 @@ namespace pad_mode {
 struct constant {
   /**
    * @param args... If no arguments are passed, all the axes are padded with
-   * zeros.
+   *                zeros.
    */
   template <class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
@@ -129,7 +146,7 @@ struct constant {
 
   /**
    * @param args... If a single value is passed, the same constant is used for
-   * all the axes.
+   *                all the axes.
    */
   template <class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
@@ -140,7 +157,7 @@ struct constant {
 
   /**
    * @param args... If two values are passed, the same before and after
-   * constants are used for each axis.
+   *                constants are used for each axis.
    */
   template <class T>
   void
@@ -157,12 +174,13 @@ struct constant {
 
   /**
    * @param args... If a matrix of values is passed, unique pad constants are
-   * used for each axis, where @a values(i,0) and @a values(i,1) are the before
-   * and after constants for axis @a i.
+   *                used for each axis, where @a values(i,0) and @a values(i,1)
+   *                are the before and after constants for axis @a i.
    */
-  template <class T, class Tag>
+  template <class Container, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
-                  size_t axis, const base_tensor<T, 2, Tag> &values) const {
+                  size_t axis,
+                  const expression<Container, T, 2> &values) const {
     this->operator()(view, before, after, axis, values(axis, 0),
                      values(axis, 1));
   }
@@ -190,7 +208,7 @@ struct edge : constant {
 struct linear_ramp {
   /**
    * @param args... If no arguments are passed, all the end values are set to
-   * zero.
+   *                zero.
    */
   template <class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
@@ -200,7 +218,7 @@ struct linear_ramp {
 
   /**
    * @param args... If a single value is passed, the same value is used for all
-   * the axes.
+   *                the axes.
    */
   template <class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
@@ -211,7 +229,7 @@ struct linear_ramp {
 
   /**
    * @param args... If two values are passed, the same before and after end
-   * values are used for each axis.
+   *                values are used for each axis.
    */
   template <class T>
   void
@@ -232,12 +250,13 @@ struct linear_ramp {
 
   /**
    * @param args... If a matrix of values is passed, unique end values are used
-   * for each axis, where @a values(i,0) and @a values(i,1) are the before and
-   * after end values for axis @a i.
+   *                for each axis, where @a values(i,0) and @a values(i,1) are
+   *                the before and after end values for axis @a i.
    */
-  template <class T, class Tag>
+  template <class Container, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
-                  size_t axis, const base_tensor<T, 2, Tag> &end_values) const {
+                  size_t axis,
+                  const expression<Container, T, 2> &end_values) const {
     this->operator()(view, before, after, axis, end_values(axis, 0),
                      end_values(axis, 1));
   }
@@ -314,4 +333,4 @@ struct wrap {
 } // namespace pad_mode
 } // namespace numcpp
 
-#endif // NUMCPP_UTILITIES_H_INCLUDED
+#endif // NUMCPP_PADDING_H_INCLUDED

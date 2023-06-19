@@ -23,6 +23,7 @@
 #ifndef NUMCPP_SHAPE_H_INCLUDED
 #define NUMCPP_SHAPE_H_INCLUDED
 
+#include <iosfwd>
 #include "numcpp/config.h"
 
 namespace numcpp {
@@ -34,11 +35,11 @@ namespace numcpp {
  */
 template <size_t Rank> class shape_t {
 public:
-  static_assert(Rank > 0, "Rank must be positive");
-  static_assert(Rank <= 32, "Maximum supported Rank is 32");
+  static_assert(0 < Rank  && Rank <= 10, "Rank must be between 1 and 10");
 
   /// Member types.
   typedef size_t size_type;
+  static constexpr size_t rank = Rank;
 
   /// Constructors.
 
@@ -80,21 +81,16 @@ public:
   /// Public methods.
 
   /**
-   * @brief Return the dimension of the shape.
-   */
-  static constexpr size_t ndim();
-
-  /**
    * @brief Return the product of the sizes along all the axes.
    */
-  size_t prod() const;
+  size_type prod() const;
 
   /**
    * @brief Return a pointer to the block of memory containing the elements of
    * the shape.
    */
-  size_t *data();
-  const size_t *data() const;
+  size_type *data();
+  const size_type *data() const;
 
   /// Operator overloading.
 
@@ -107,8 +103,8 @@ public:
    *         the function returns a reference to const size_t. Otherwise, it
    *         returns a reference to size_t.
    */
-  size_t &operator[](size_t i);
-  const size_t &operator[](size_t i) const;
+  size_type &operator[](size_type i);
+  const size_type &operator[](size_type i) const;
 
   /**
    * @brief Integer conversion. Dimension must be one.
@@ -118,8 +114,13 @@ public:
 
 private:
   // Shape elements.
-  size_t m_shape[Rank];
+  size_type m_shape[Rank];
 };
+
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class... Sizes> shape_t(Sizes... sizes) -> shape_t<sizeof...(Sizes)>;
+#endif // C++17
 
 /**
  * @brief Create a shape_t object deducing its dimension from the number of
@@ -238,6 +239,50 @@ inline bool operator==(const shape_t<Rank1> &shape1,
 template <size_t Rank1, size_t Rank2>
 inline bool operator!=(const shape_t<Rank1> &shape1,
                        const shape_t<Rank2> &shape2);
+
+/**
+ * @brief Overloads input stream for shape_t objects.
+ *
+ * @details For 1-dimensional shapes, the supported formats are
+ *     - (size,)
+ *     - size
+ * For @a n -dimensional shapes, @a n > 1, the supported formats are
+ *     - (size_1, size_2, ..., size_n)
+ * If an error occurs, calls istr.setstate(std::ios_base::failbit).
+ *
+ * @param istr Input stream object.
+ * @param shape Shape to be extracted from the input stream.
+ *
+ * @return istr
+ */
+template <class charT, class traits, size_t Rank>
+std::basic_istream<charT, traits> &
+operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape);
+
+template <class charT, class traits>
+std::basic_istream<charT, traits> &
+operator>>(std::basic_istream<charT, traits> &istr, shape_t<1> &shape);
+
+/**
+ * @brief Overloads output stream for shape_t objects.
+ *
+ * @details For 1-dimensional shapes, the format used is
+ *     - (size,)
+ * For @a n -dimensional shapes, @a n > 1, the format used is
+ *     - (size_1, size_2, ..., size_n)
+ *
+ * @param ostr Output stream object.
+ * @param shape Shape to be inserted into the output stream.
+ *
+ * @return ostr
+ */
+template <class charT, class traits, size_t Rank>
+std::basic_ostream<charT, traits> &
+operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<Rank> &shape);
+
+template <class charT, class traits>
+std::basic_ostream<charT, traits> &
+operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape);
 } // namespace numcpp
 
 #include "numcpp/tensor/shape.tcc"

@@ -25,33 +25,31 @@
 #define NUMCPP_TENSOR_TCC_INCLUDED
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 /// Constructors.
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor()
+tensor<T, Rank>::tensor()
     : m_data(NULL), m_shape(), m_size(0), m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor<T, Rank>::base_tensor(Sizes... sizes)
+tensor<T, Rank>::tensor(Sizes... sizes)
     : m_shape(sizes...), m_size(m_shape.prod()), m_order(default_layout) {
   m_data = new T[m_size];
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const shape_type &shape, layout_t order)
+tensor<T, Rank>::tensor(const shape_type &shape, layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const shape_type &shape, const T &val,
-                             layout_t order)
+tensor<T, Rank>::tensor(const shape_type &shape, const T &val, layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
   std::fill_n(m_data, m_size, val);
@@ -62,7 +60,7 @@ template <class InputIterator, class... Sizes,
           detail::RequiresInputIterator<InputIterator>,
           detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
-tensor<T, Rank>::base_tensor(InputIterator first, Sizes... sizes)
+tensor<T, Rank>::tensor(InputIterator first, Sizes... sizes)
     : m_shape(sizes...), m_size(m_shape.prod()), m_order(default_layout) {
   m_data = new T[m_size];
   std::copy_n(first, m_size, m_data);
@@ -70,47 +68,39 @@ tensor<T, Rank>::base_tensor(InputIterator first, Sizes... sizes)
 
 template <class T, size_t Rank>
 template <class InputIterator, detail::RequiresInputIterator<InputIterator>>
-tensor<T, Rank>::base_tensor(InputIterator first, const shape_type &shape,
-                             layout_t order)
+tensor<T, Rank>::tensor(InputIterator first, const shape_type &shape,
+                        layout_t order)
     : m_shape(shape), m_size(shape.prod()), m_order(order) {
   m_data = new T[m_size];
   std::copy_n(first, m_size, m_data);
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const base_tensor &other)
+tensor<T, Rank>::tensor(const tensor &other)
     : m_shape(other.m_shape), m_size(other.m_size), m_order(other.m_order) {
   m_data = new T[m_size];
   std::copy_n(other.m_data, m_size, m_data);
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(const base_tensor &other, layout_t order)
-    : m_shape(other.m_shape), m_size(other.m_size), m_order(order) {
-  m_data = new T[m_size];
-  std::copy_n(other.begin(m_order), m_size, m_data);
-}
-
-template <class T, size_t Rank>
-template <class U, class Tag>
-tensor<T, Rank>::base_tensor(const base_tensor<U, Rank, Tag> &other)
+template <class Container, class U>
+tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other)
     : m_shape(other.shape()), m_size(other.size()), m_order(other.layout()) {
   m_data = new T[m_size];
-  std::transform(other.begin(), other.end(), m_data, cast_to<U, T>());
+  dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
-tensor<T, Rank>::base_tensor(const base_tensor<U, Rank, Tag> &other,
-                             layout_t order)
+template <class Container, class U>
+tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other,
+                        layout_t order)
     : m_shape(other.shape()), m_size(other.size()), m_order(order) {
   m_data = new T[m_size];
-  std::transform(other.begin(m_order), other.end(m_order), m_data,
-                 cast_to<U, T>());
+  dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(base_tensor &&other)
+tensor<T, Rank>::tensor(tensor &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
       m_order(other.m_order) {
   other.m_data = NULL;
@@ -122,8 +112,8 @@ tensor<T, Rank>::base_tensor(base_tensor &&other)
 template <class T, size_t Rank>
 template <size_t Depth>
 typename std::enable_if<(Depth == 1)>::type
-tensor<T, Rank>::__initializer_list_shape(shape_type &shape,
-                                          std::initializer_list<T> il) {
+tensor<T, Rank>::__initializer_list_shape(std::initializer_list<T> il,
+                                          shape_type &shape) {
   shape[Rank - 1] = std::max(shape[Rank - 1], il.size());
 }
 
@@ -131,21 +121,21 @@ template <class T, size_t Rank>
 template <size_t Depth>
 typename std::enable_if<(Depth > 1)>::type
 tensor<T, Rank>::__initializer_list_shape(
-    shape_type &shape, detail::nested_initializer_list_t<T, Depth> il) {
+    detail::nested_initializer_list_t<T, Depth> il, shape_type &shape) {
   shape[Rank - Depth] = std::max(shape[Rank - Depth], il.size());
-  for (auto it = il.begin(); it != il.end(); ++it) {
-    __initializer_list_shape<Depth - 1>(shape, *it);
+  for (detail::nested_initializer_list_t<T, Depth - 1> inner_il : il) {
+    __initializer_list_shape<Depth - 1>(inner_il, shape);
   }
 }
 
 template <class T, size_t Rank>
 template <size_t Depth>
 typename std::enable_if<(Depth == 1)>::type
-tensor<T, Rank>::__fill_from_initializer_list(index_type &index,
-                                              std::initializer_list<T> il) {
+tensor<T, Rank>::__fill_from_initializer_list(std::initializer_list<T> il,
+                                              index_type &index) {
   index[Rank - 1] = 0;
-  for (const T *it = il.begin(); it != il.end(); ++it) {
-    this->operator[](index) = *it;
+  for (T val : il) {
+    this->operator[](index) = val;
     ++index[Rank - 1];
   }
 }
@@ -154,29 +144,27 @@ template <class T, size_t Rank>
 template <size_t Depth>
 typename std::enable_if<(Depth > 1)>::type
 tensor<T, Rank>::__fill_from_initializer_list(
-    index_type &index, detail::nested_initializer_list_t<T, Depth> il) {
+    detail::nested_initializer_list_t<T, Depth> il, index_type &index) {
   index[Rank - Depth] = 0;
-  for (auto it = il.begin(); it != il.end(); ++it) {
-    __fill_from_initializer_list<Depth - 1>(index, *it);
+  for (detail::nested_initializer_list_t<T, Depth - 1> inner_il : il) {
+    __fill_from_initializer_list<Depth - 1>(inner_il, index);
     ++index[Rank - Depth];
   }
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank>::base_tensor(detail::nested_initializer_list_t<T, Rank> il)
+tensor<T, Rank>::tensor(detail::nested_initializer_list_t<T, Rank> il)
     : m_shape(), m_size(0), m_order(row_major) {
-  __initializer_list_shape<Rank>(m_shape, il);
+  __initializer_list_shape<Rank>(il, m_shape);
   m_size = m_shape.prod();
   m_data = new T[m_size]();
   index_type index;
-  __fill_from_initializer_list<Rank>(index, il);
+  __fill_from_initializer_list<Rank>(il, index);
 }
 
 /// Destructor.
 
-template <class T, size_t Rank> tensor<T, Rank>::~base_tensor() {
-  delete[] m_data;
-}
+template <class T, size_t Rank> tensor<T, Rank>::~tensor() { delete[] m_data; }
 
 /// Indexing.
 
@@ -233,7 +221,7 @@ void tensor<T, Rank>::__unpack_slices(size_t &size, shape_t<N> &shape,
                                       ptrdiff_t &offset, shape_t<N> &strides,
                                       size_t i, Indices... indices) const {
   size_t axis = Rank - 1 - sizeof...(Indices);
-  detail::assert_within_bounds(m_shape, i, axis);
+  detail::assert_within_bounds(m_shape[axis], i, axis);
   if (m_order == row_major) {
     __unpack_slices(size, shape, offset, strides, indices...);
   }
@@ -313,9 +301,9 @@ tensor<T, Rank>::operator[](Indices... indices) const {
 #endif // C++23
 
 template <class T, size_t Rank>
-template <size_t N, class Tag>
-indirect_tensor<T, N>
-tensor<T, Rank>::operator[](const base_tensor<index_type, N, Tag> &indices) {
+template <class Container, size_t N>
+indirect_tensor<T, N> tensor<T, Rank>::operator[](
+    const expression<Container, index_type, N> &indices) {
   indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -325,9 +313,9 @@ tensor<T, Rank>::operator[](const base_tensor<index_type, N, Tag> &indices) {
 }
 
 template <class T, size_t Rank>
-template <size_t N, class Tag>
+template <class Container, size_t N>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const base_tensor<index_type, N, Tag> &indices) const {
+    const expression<Container, index_type, N> &indices) const {
   tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -337,12 +325,12 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class IntegralType, size_t N, class Tag,
+template <class Container, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
-indirect_tensor<T, N>
-tensor<T, Rank>::operator[](const base_tensor<IntegralType, N, Tag> &indices) {
+indirect_tensor<T, N> tensor<T, Rank>::operator[](
+    const expression<Container, IntegralType, N> &indices) {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
-  indirect_tensor<T, N> subarray(m_data, indices.shape());
+  indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_size, indices[i]);
     subarray.iat(i) = indices[i];
@@ -351,12 +339,12 @@ tensor<T, Rank>::operator[](const base_tensor<IntegralType, N, Tag> &indices) {
 }
 
 template <class T, size_t Rank>
-template <class IntegralType, size_t N, class Tag,
+template <class Container, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const base_tensor<IntegralType, N, Tag> &indices) const {
+    const expression<Container, IntegralType, N> &indices) const {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
-  tensor<T, N> subarray(indices.shape());
+  tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_size, indices[i]);
     subarray[i] = m_data[indices[i]];
@@ -365,16 +353,11 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Tag>
+template <class Container>
 indirect_tensor<T, 1>
-tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) {
-  if (m_shape != mask.shape()) {
-    std::ostringstream error;
-    error << "boolean index did not match indexed tensor; shape is " << m_shape
-          << " but corresponding boolean shape is " << mask.shape();
-    throw std::invalid_argument(error.str());
-  }
-  size_type size = std::count(mask.begin(), mask.end(), true);
+tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
+  detail::assert_mask_shape(m_shape, mask.shape());
+  size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   indirect_tensor<T, 1> subarray(m_data, size);
   size_t n = 0;
   for (index_type i : make_index_sequence_for(mask)) {
@@ -386,16 +369,11 @@ tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) {
 }
 
 template <class T, size_t Rank>
-template <class Tag>
-tensor<T, 1>
-tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) const {
-  if (m_shape != mask.shape()) {
-    std::ostringstream error;
-    error << "boolean index did not match indexed tensor; shape is " << m_shape
-          << " but corresponding boolean shape is " << mask.shape();
-    throw std::invalid_argument(error.str());
-  }
-  size_type size = std::count(mask.begin(), mask.end(), true);
+template <class Container>
+tensor<T, 1> tensor<T, Rank>::operator[](
+    const expression<Container, bool, Rank> &mask) const {
+  detail::assert_mask_shape(m_shape, mask.shape());
+  size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   tensor<T, 1> subarray(size);
   size_t n = 0;
   for (index_type i : make_index_sequence_for(mask)) {
@@ -404,10 +382,6 @@ tensor<T, Rank>::operator[](const base_tensor<bool, Rank, Tag> &mask) const {
     }
   }
   return subarray;
-}
-
-template <class T, size_t Rank> constexpr size_t tensor<T, Rank>::ndim() {
-  return Rank;
 }
 
 template <class T, size_t Rank>
@@ -449,19 +423,18 @@ inline bool tensor<T, Rank>::is_contiguous() const {
 /// Assignment operator.
 
 template <class T, size_t Rank>
-tensor<T, Rank> &tensor<T, Rank>::operator=(const base_tensor &other) {
+tensor<T, Rank> &tensor<T, Rank>::operator=(const tensor &other) {
   this->resize(other.m_shape);
-  std::copy_n(other.begin(m_order), m_size, m_data);
+  dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
-template <class U, class Tag>
+template <class Container, class U>
 tensor<T, Rank> &
-tensor<T, Rank>::operator=(const base_tensor<U, Rank, Tag> &other) {
+tensor<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
   this->resize(other.shape());
-  std::transform(other.begin(m_order), other.end(m_order), m_data,
-                 cast_to<U, T>());
+  dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
   return *this;
 }
 
@@ -472,7 +445,7 @@ tensor<T, Rank> &tensor<T, Rank>::operator=(const T &val) {
 }
 
 template <class T, size_t Rank>
-tensor<T, Rank> &tensor<T, Rank>::operator=(base_tensor &&other) {
+tensor<T, Rank> &tensor<T, Rank>::operator=(tensor &&other) {
   if (this != &other) {
     delete[] m_data;
     m_data = other.m_data;
@@ -491,43 +464,61 @@ template <class T, size_t Rank>
 tensor<T, Rank> &
 tensor<T, Rank>::operator=(detail::nested_initializer_list_t<T, Rank> il) {
   shape_type shape;
-  __initializer_list_shape<Rank>(shape, il);
+  __initializer_list_shape<Rank>(il, shape);
   this->resize(shape);
   index_type index;
-  __fill_from_initializer_list<Rank>(index, il);
+  __fill_from_initializer_list<Rank>(il, index);
   return *this;
 }
 
 /// Public methods.
 
 template <class T, size_t Rank>
-tensor_view<T, 1> tensor<T, Rank>::diagonal(difference_type k) {
-  static_assert(Rank == 2, "Input tensor must be 2-dimensional");
-  size_type size = 0, stride = 0;
-  difference_type offset = 0;
-  index_type index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
+tensor_view<T, Rank - 1> tensor<T, Rank>::diagonal(difference_type k) {
+  size_type axis1 = Rank - 2, axis2 = Rank - 1;
   shape_type m_stride = make_strides(m_shape, m_order);
-  if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
-    size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-    offset = index[0] * m_stride[0] + index[1] * m_stride[1];
-    stride = m_stride[0] + m_stride[1];
+  shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
+  shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
+  difference_type offset = 0;
+  shape[axis1] = 0;
+  strides[axis1] += m_stride[axis2];
+  if (k >= 0) {
+    if (size_type(k) < m_shape[axis2]) {
+      shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
+      offset = k * m_stride[axis2];
+    }
+  } else {
+    if (size_type(-k) < m_shape[axis1]) {
+      shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
+      offset = -k * m_stride[axis1];
+    }
   }
-  return tensor_view<T, 1>(m_data, size, offset, stride);
+  return tensor_view<T, Rank - 1>(m_data, shape, offset, strides, m_order);
 }
 
 template <class T, size_t Rank>
-tensor_view<const T, 1> tensor<T, Rank>::diagonal(difference_type k) const {
-  static_assert(Rank == 2, "Input tensor must be 2-dimensional");
-  size_type size = 0, stride = 0;
-  difference_type offset = 0;
-  index_type index = (k >= 0) ? make_index(0, k) : make_index(-k, 0);
+tensor_view<const T, Rank - 1>
+tensor<T, Rank>::diagonal(difference_type k) const {
+  size_type axis1 = Rank - 2, axis2 = Rank - 1;
   shape_type m_stride = make_strides(m_shape, m_order);
-  if (index[0] < m_shape[0] && index[1] < m_shape[1]) {
-    size = std::min(m_shape[0] - index[0], m_shape[1] - index[1]);
-    offset = index[0] * m_stride[0] + index[1] * m_stride[1];
-    stride = m_stride[0] + m_stride[1];
+  shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
+  shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
+  difference_type offset = 0;
+  shape[axis1] = 0;
+  strides[axis1] += m_stride[axis2];
+  if (k >= 0) {
+    if (size_type(k) < m_shape[axis2]) {
+      shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
+      offset = k * m_stride[axis2];
+    }
+  } else {
+    if (size_type(-k) < m_shape[axis1]) {
+      shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
+      offset = -k * m_stride[axis1];
+    }
   }
-  return tensor_view<const T, 1>(m_data, size, offset, stride);
+  return tensor_view<const T, Rank - 1>(m_data, shape, offset, strides,
+                                        m_order);
 }
 
 template <class T, size_t Rank>
@@ -597,7 +588,7 @@ template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
 inline void tensor<T, Rank>::resize(Sizes... sizes) {
-  this->resize(make_shape(sizes...));
+  this->resize(shape_type(sizes...));
 }
 
 template <class T, size_t Rank>
@@ -608,69 +599,6 @@ inline void tensor<T, Rank>::resize(const shape_type &shape) {
     m_data = new T[m_size];
   }
   m_shape = shape;
-}
-
-template <class T, size_t Rank>
-template <class... Axes, detail::RequiresIntegral<Axes...>>
-inline tensor_view<T, Rank - sizeof...(Axes)>
-tensor<T, Rank>::squeeze(Axes... axes) {
-  return this->squeeze(make_shape(axes...));
-}
-
-template <class T, size_t Rank>
-template <class... Axes, detail::RequiresIntegral<Axes...>>
-inline tensor_view<const T, Rank - sizeof...(Axes)>
-tensor<T, Rank>::squeeze(Axes... axes) const {
-  return this->squeeze(make_shape(axes...));
-}
-
-template <class T, size_t Rank>
-template <size_t N>
-tensor_view<T, Rank - N> tensor<T, Rank>::squeeze(const shape_t<N> &axes) {
-  static_assert(N < Rank, "squeeze cannot take more arguments than the tensor "
-                          "dimension");
-  shape_t<Rank - N> shape;
-  bool keep_axis[Rank];
-  std::fill_n(keep_axis, Rank, true);
-  for (size_t i = 0; i < N; ++i) {
-    keep_axis[axes[i]] = false;
-  }
-  size_t n = 0;
-  for (size_t i = 0; i < Rank; ++i) {
-    if (keep_axis[i]) {
-      shape[n++] = m_shape[i];
-    } else if (m_shape[i] != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
-    }
-  }
-  return tensor_view<T, Rank - N>(m_data, shape, m_order);
-}
-
-template <class T, size_t Rank>
-template <size_t N>
-tensor_view<const T, Rank - N>
-tensor<T, Rank>::squeeze(const shape_t<N> &axes) const {
-  static_assert(N < Rank, "squeeze cannot take more arguments than the tensor "
-                          "dimension");
-  shape_t<Rank - N> shape;
-  bool keep_axis[Rank];
-  std::fill_n(keep_axis, Rank, true);
-  for (size_t i = 0; i < N; ++i) {
-    keep_axis[axes[i]] = false;
-  }
-  size_t n = 0;
-  for (size_t i = 0; i < Rank; ++i) {
-    if (keep_axis[i]) {
-      shape[n++] = m_shape[i];
-    } else if (m_shape[i] != 1) {
-      char error[] = "cannot select an axis to squeeze out which has size not "
-                     "equal to one";
-      throw std::invalid_argument(error);
-    }
-  }
-  return tensor_view<const T, Rank - N>(m_data, shape, m_order);
 }
 
 template <class T, size_t Rank>

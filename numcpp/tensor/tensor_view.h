@@ -23,6 +23,9 @@
 #ifndef NUMCPP_TENSOR_VIEW_H_INCLUDED
 #define NUMCPP_TENSOR_VIEW_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/tensor/dense_tensor.h"
+
 namespace numcpp {
 /**
  * @brief A tensor_view is just a view of a multidimensional array. It
@@ -36,12 +39,15 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor_view. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class base_tensor<T, Rank, view_tag>
-    : public tensor_interface<T, Rank, view_tag>,
-      public complex_interface<T, Rank, view_tag> {
+class tensor_view
+    : public dense_tensor<tensor_view<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank>,
+      public complex_expr<tensor_view<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;
+  static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
   typedef T *pointer;
@@ -57,7 +63,7 @@ public:
    * @brief Default constructor. Constructs a tensor_view that does not
    * reference any object.
    */
-  base_tensor();
+  tensor_view();
 
   /**
    * @brief View constructor. Constructs a tensor_view that references the
@@ -73,14 +79,14 @@ public:
    */
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  base_tensor(T *data, Sizes... sizes);
+  tensor_view(T *data, Sizes... sizes);
 
-  base_tensor(T *data, const shape_type &shape,
+  tensor_view(T *data, const shape_type &shape,
               layout_t order = default_layout);
 
   /**
-   * @brief Slice constructor. Constructs a tensor_view that references a subset
-   * of elements from a multidimensional array.
+   * @brief Stride constructor. Constructs a tensor_view that references a
+   * subset of elements from a multidimensional array.
    *
    * @param data Pointer to the memory array used by the tensor_view.
    * @param shape Number of elements along each axis.
@@ -92,7 +98,7 @@ public:
    *              the first index is varying the fastest. Defaults to row-major
    *              order.
    */
-  base_tensor(T *data, const shape_type &shape, difference_type offset,
+  tensor_view(T *data, const shape_type &shape, difference_type offset,
               const shape_type &strides, layout_t order = default_layout);
 
   /**
@@ -100,7 +106,7 @@ public:
    *
    * @param other A tensor_view of the same type and rank.
    */
-  base_tensor(const base_tensor &other);
+  tensor_view(const tensor_view &other);
 
   /**
    * @brief Move constructor. Constructs a tensor_view that acquires the
@@ -109,10 +115,10 @@ public:
    * @param other A tensor_view of the same type and rank. @a other is left in
    *              an empty state.
    */
-  base_tensor(base_tensor &&other);
+  tensor_view(tensor_view &&other);
 
   /// Destructor.
-  ~base_tensor();
+  ~tensor_view();
 
   /// Indexing.
 
@@ -164,11 +170,6 @@ public:
             detail::RequiresIntegral<Indices...> = 0>
   const T &operator[](Indices... indices) const;
 #endif // C++23
-
-  /**
-   * @brief Return the dimension of the tensor_view.
-   */
-  static constexpr size_type ndim();
 
   /**
    * @brief Return the shape of the tensor_view.
@@ -243,11 +244,13 @@ public:
    *
    * @return *this
    *
-   * @throw std::invalid_argument Thrown if the shapes are different.
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
    */
-  base_tensor &operator=(const base_tensor &other);
-  template <class U, class Tag>
-  base_tensor &operator=(const base_tensor<U, Rank, Tag> &other);
+  tensor_view &operator=(const tensor_view &other);
+  template <class Container, class U>
+  tensor_view &operator=(const expression<Container, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.
@@ -256,7 +259,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(const T &val);
+  tensor_view &operator=(const T &val);
 
   /**
    * @brief Move assignment. Acquires the contents of @a other, leaving @a other
@@ -267,12 +270,14 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(base_tensor &&other);
+  tensor_view &operator=(tensor_view &&other);
 
   /// Public methods.
 
   /**
-   * @brief Return a view of the diagonal.
+   * @brief Return a view of the diagonal. If the tensor has more than two
+   * dimensions, then the last two axes are used to determine the 2-dimensional
+   * sub-tensor whose diagonal is returned.
    *
    * @param k Offset of the diagonal from the main diagonal. A positive value
    *          refers to an upper diagonal and a negative value refers to a lower
@@ -283,8 +288,8 @@ public:
    *         Otherwise, the function returns a tensor_view to T, which has
    *         reference semantics to the original tensor.
    */
-  tensor_view<T, 1> diagonal(difference_type k = 0);
-  tensor_view<const T, 1> diagonal(difference_type k = 0) const;
+  tensor_view<T, Rank - 1> diagonal(difference_type k = 0);
+  tensor_view<const T, Rank - 1> diagonal(difference_type k = 0) const;
 
   /**
    * @brief Return a view of the tensor collapsed into one dimension.
@@ -339,32 +344,6 @@ public:
                                   layout_t order) const;
 
   /**
-   * @brief Removes axes of length one.
-   *
-   * @param axes Selects a subset of the entries of length one in the shape. It
-   *             can be a shape_t object or the elements of the shape passed as
-   *             separate arguments.
-   *
-   * @return If the tensor_view is const-qualified, the function returns a
-   *         tensor_view to const T, which is convertible to a tensor object.
-   *         Otherwise, the function returns a tensor_view to T, which has
-   *         reference semantics to the original tensor.
-   *
-   * @throw std::invalid_argument Thrown if an axis with shape entry greater
-   *                              than one is selected.
-   */
-  template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
-  tensor_view<T, Rank - sizeof...(Axes)> squeeze(Axes... axes);
-
-  template <class... Axes, detail::RequiresIntegral<Axes...> = 0>
-  tensor_view<const T, Rank - sizeof...(Axes)> squeeze(Axes... axes) const;
-
-  template <size_t N> tensor_view<T, Rank - N> squeeze(const shape_t<N> &axes);
-
-  template <size_t N>
-  tensor_view<const T, Rank - N> squeeze(const shape_t<N> &axes) const;
-
-  /**
    * @brief Interchanges two axes of a tensor_view in-place. The internal layout
    * order is preserved.
    *
@@ -403,6 +382,16 @@ private:
   // Memory layout.
   layout_t m_order;
 };
+
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class T, class... Sizes>
+tensor_view(T *data, Sizes... sizes) -> tensor_view<T, sizeof...(Sizes)>;
+
+template <class T, size_t Rank>
+tensor_view(T *data, const shape_t<Rank> &shape,
+            layout_t order = default_layout) -> tensor_view<T, Rank>;
+#endif // C++17
 } // namespace numcpp
 
 #include "numcpp/tensor/tensor_view.tcc"

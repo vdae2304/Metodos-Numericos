@@ -297,11 +297,12 @@ bool parse_pydict_value(std::istringstream &parser, std::string &value) {
       }
       break;
     default:
-      value = delim;
+      value = "";
+      parser.putback(delim);
       while (parser.get(delim)) {
-        if (std::isspace(delim) || delim == ',' || delim == '}') {
+        if (!std::isalnum(delim) && delim != '_') {
           parser.putback(delim);
-          return true;
+          return !value.empty();
         }
         value.push_back(delim);
       }
@@ -318,7 +319,7 @@ template <class T> void read_array(std::ifstream &file, T *data, size_t n) {
   file.seekg(0, std::ios::end);
   size_t bytesize = file.tellg() - offset;
   file.seekg(offset, std::ios::beg);
-  if (bytesize != n * sizeof(T)) {
+  if (bytesize < n * sizeof(T)) {
     throw std::ifstream::failure("File is corrupted or malformed");
   }
   file.read(reinterpret_cast<char *>(data), bytesize);
@@ -383,8 +384,9 @@ void write_array(std::ofstream &file, InputIterator first, InputIterator last) {
 }
 } // namespace detail
 
-template <class T, size_t Rank, class Tag>
-void save(const std::string &filename, const base_tensor<T, Rank, Tag> &data) {
+template <class Container, class T, size_t Rank>
+void save(const std::string &filename,
+          const expression<Container, T, Rank> &data) {
   std::ofstream file(filename, std::ofstream::binary);
   if (!file) {
     std::ostringstream error;
@@ -393,7 +395,7 @@ void save(const std::string &filename, const base_tensor<T, Rank, Tag> &data) {
   }
   detail::write_magic(file, 1, 0);
   detail::write_array_header<T>(file, data.shape(), data.layout());
-  detail::write_array<T>(file, data.begin(), data.end());
+  detail::write_array<T>(file, data.self().begin(), data.self().end());
   file.close();
 }
 
@@ -401,109 +403,99 @@ void save(const std::string &filename, const base_tensor<T, Rank, Tag> &data) {
 
 namespace detail {
 /**
- * @brief Parse a value from a string. If already an string, simply removes
- * leading and trailing whitespaces.
+ * @brief Fill a tensor with data from an ifstream object.
  */
-template <class T> inline void parse(const std::string &str, T &val) {
-  std::istringstream parser(str);
-  parser >> val;
-}
-
-inline void parse(const std::string &str, std::string &val) {
-  size_t start = str.find_first_not_of(" \f\n\r\t\v");
-  size_t end = str.find_last_not_of(" \f\n\r\t\v");
-  val = str.substr(start, end - start + 1);
-}
-
-/**
- * @brief Find the number of rows and columns of the data stored in the text
- * file. This function does not read any data, it only returns the shape of the
- * data stored.
- */
-shape_t<2> scan_file_data(std::ifstream &file, char delimiter, char newline,
-                          size_t max_rows) {
-  std::streampos offset = file.tellg();
+template <class T>
+void load_file_data(std::ifstream &file, tensor<T, 2> &data, char delimiter,
+                    char newline, size_t max_rows) {
   std::string line, token;
   shape_t<2> shape;
+  std::vector<T> buffer;
+  T val;
   while (shape[0] < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
     size_t ntokens = 0;
     while (std::getline(tokenizer, token, delimiter)) {
+      std::istringstream parser(token);
+      parser >> val;
+      buffer.push_back(val);
       ++ntokens;
     }
+    if (shape[0] == 0) {
+      shape[1] = ntokens;
+    } else if (ntokens != shape[1]) {
+      throw std::ifstream::failure(
+          "Number of columns is not the same for all the rows");
+    }
     ++shape[0];
-    shape[1] = std::max(shape[1], ntokens);
   }
-  file.clear();
-  file.seekg(offset, std::ios::beg);
-  return shape;
-}
-
-/**
- * @brief Fill a tensor with data from an ifstream object.
- */
-template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 2> &out,
-                    const shape_t<2> &shape, char delimiter, char newline) {
-  std::string line, token;
-  out.resize(shape);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
-    std::istringstream tokenizer(line);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, out(i, j));
-    }
-  }
+  data = std::move(tensor<T, 2>(buffer.begin(), shape, row_major));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 2> &out,
-                    const shape_t<2> &shape, char delimiter, char newline,
+void load_file_data(std::ifstream &file, tensor<T, 2> &data, char delimiter,
+                    char newline, size_t max_rows,
                     std::initializer_list<std::size_t> usecols) {
   std::string line, token;
-  out.resize(shape[0], usecols.size());
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
+  shape_t<2> shape(0, usecols.size());
+  std::vector<T> buffer;
+  T val;
+  while (shape[0] < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
-    std::vector<T> buffer(shape[1]);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, buffer[j]);
+    size_t ntokens = 0;
+    std::vector<T> row_values;
+    while (std::getline(tokenizer, token, delimiter)) {
+      std::istringstream parser(token);
+      parser >> val;
+      row_values.push_back(val);
+      ++ntokens;
     }
-    for (size_t j = 0; j < usecols.size(); ++j) {
-      out(i, j) = buffer[*(usecols.begin() + j)];
+    for (size_t i : usecols) {
+      buffer.push_back(row_values[i]);
     }
+    ++shape[0];
   }
+  data = std::move(tensor<T, 2>(buffer.begin(), shape, row_major));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 1> &out,
-                    const shape_t<2> &shape, char, char newline) {
+void load_file_data(std::ifstream &file, tensor<T, 1> &data, char, char newline,
+                    size_t max_rows) {
   std::string line;
-  out.resize(shape[0]);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
-    parse(line, out[i]);
+  size_t size = 0;
+  std::vector<T> buffer;
+  T val;
+  while (size < max_rows && std::getline(file, line, newline)) {
+    std::istringstream parser(line);
+    parser >> val;
+    buffer.push_back(val);
+    ++size;
   }
+  data = std::move(tensor<T, 1>(buffer.begin(), size));
 }
 
 template <class T>
-void load_file_data(std::ifstream &file, tensor<T, 1> &out,
-                    const shape_t<2> &shape, char delimiter, char newline,
+void load_file_data(std::ifstream &file, tensor<T, 1> &data, char delimiter,
+                    char newline, size_t max_rows,
                     std::initializer_list<std::size_t> usecols) {
   std::string line, token;
-  out.resize(shape[0]);
-  for (size_t i = 0; i < shape[0]; ++i) {
-    std::getline(file, line, newline);
+  size_t size = 0;
+  std::vector<T> buffer;
+  T val;
+  while (size < max_rows && std::getline(file, line, newline)) {
     std::istringstream tokenizer(line);
-    std::vector<T> buffer(shape[1]);
-    for (size_t j = 0; j < shape[1]; ++j) {
-      std::getline(tokenizer, token, delimiter);
-      parse(token, buffer[j]);
+    size_t ntokens = 0;
+    while (std::getline(tokenizer, token, delimiter)) {
+      if (ntokens == *usecols.begin()) {
+        std::istringstream parser(token);
+        parser >> val;
+        buffer.push_back(val);
+      }
+      ++ntokens;
     }
-    out[i] = buffer[*usecols.begin()];
+    ++size;
   }
+  data = std::move(tensor<T, 1>(buffer.begin(), size));
 }
 } // namespace detail
 
@@ -513,7 +505,7 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter,
                         std::initializer_list<size_t> usecols) {
   static_assert(Rank == 1 || Rank == 2,
                 "Output tensor must be 1-dimensional or 2-dimensional");
-  std::ifstream file(filename, std::ifstream::binary);
+  std::ifstream file(filename);
   if (!file) {
     std::ostringstream error;
     error << "Input file " << filename << " does not exist or cannot be read";
@@ -522,14 +514,13 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter,
   for (size_t i = 0; i < skiprows; ++i) {
     file.ignore(std::numeric_limits<std::streamsize>::max(), newline);
   }
-  shape_t<2> shape = detail::scan_file_data(file, delimiter, newline, max_rows);
-  tensor<T, Rank> out;
+  tensor<T, Rank> data;
   if (usecols.size() == 0) {
-    detail::load_file_data(file, out, shape, delimiter, newline);
+    detail::load_file_data(file, data, delimiter, newline, max_rows);
   } else {
-    detail::load_file_data(file, out, shape, delimiter, newline, usecols);
+    detail::load_file_data(file, data, delimiter, newline, max_rows, usecols);
   }
-  return out;
+  return data;
 }
 
 namespace detail {
@@ -560,24 +551,26 @@ void set_printoptions_flags(std::basic_ostream<charT, traits> &ostr) {
 /**
  * @brief Save the tensor's contents to a text file.
  */
-template <class T, class Tag>
-void save_file_data(std::ofstream &file, const base_tensor<T, 2, Tag> &data,
-                    char delimiter, char newline) {
+template <class Container, class T>
+void save_file_data(std::ofstream &file,
+                    const expression<Container, T, 2> &data, char delimiter,
+                    char newline) {
   size_t rows = data.shape(0), cols = data.shape(1);
   if (cols > 0) {
     for (size_t i = 0; i < rows; ++i) {
-      file << data(i, 0);
+      file << data[{i, 0}];
       for (size_t j = 1; j < cols; ++j) {
-        file << delimiter << data(i, j);
+        file << delimiter << data[{i, j}];
       }
       file << newline;
     }
   }
 }
 
-template <class T, class Tag>
-void save_file_data(std::ofstream &file, const base_tensor<T, 1, Tag> &data,
-                    char, char newline) {
+template <class Container, class T>
+void save_file_data(std::ofstream &file,
+                    const expression<Container, T, 1> &data, char,
+                    char newline) {
   size_t size = data.size();
   for (size_t i = 0; i < size; ++i) {
     file << data[i] << newline;
@@ -585,9 +578,10 @@ void save_file_data(std::ofstream &file, const base_tensor<T, 1, Tag> &data,
 }
 } // namespace detail
 
-template <class T, size_t Rank, class Tag>
-void savetxt(const std::string &filename, const base_tensor<T, Rank, Tag> &data,
-             char delimiter, char newline, const std::string &header,
+template <class Container, class T, size_t Rank>
+void savetxt(const std::string &filename,
+             const expression<Container, T, Rank> &data, char delimiter,
+             char newline, const std::string &header,
              const std::string &footer) {
   static_assert(Rank == 1 || Rank == 2,
                 "Input tensor must be 1-dimensional or 2-dimensional");
@@ -609,105 +603,13 @@ void savetxt(const std::string &filename, const base_tensor<T, Rank, Tag> &data,
 
 /// Input/output streams.
 
-template <class charT, class traits, size_t Rank>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape) {
-  charT ch;
-  bool fail = true;
-  if (istr >> ch) {
-    if (traits::eq(ch, istr.widen('('))) {
-      for (size_t i = 0; i < shape.ndim(); ++i) {
-        if (istr >> shape[i] >> ch) {
-          if (traits::eq(ch, istr.widen(','))) {
-            if (i < shape.ndim() - 1) {
-              continue;
-            }
-          } else if (traits::eq(ch, istr.widen(')'))) {
-            if (i == shape.ndim() - 1) {
-              fail = false;
-              break;
-            }
-          } else {
-            istr.putback(ch);
-          }
-        }
-        break;
-      }
-    } else {
-      istr.putback(ch);
-    }
-  }
-  if (fail) {
-    istr.setstate(std::ios_base::failbit);
-  }
-  return istr;
-}
-
-template <class charT, class traits>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<1> &shape) {
-  charT ch;
-  bool fail = true;
-  if (istr >> ch) {
-    if (traits::eq(ch, istr.widen('('))) {
-      if (istr >> shape[0] >> ch) {
-        if (traits::eq(ch, istr.widen(','))) {
-          if (istr >> ch) {
-            if (traits::eq(ch, istr.widen(')'))) {
-              fail = false;
-            } else {
-              istr.putback(ch);
-            }
-          }
-        } else {
-          istr.putback(ch);
-        }
-      }
-    } else {
-      istr.putback(ch);
-      if (istr >> shape[0]) {
-        fail = false;
-      }
-    }
-  }
-  if (fail) {
-    istr.setstate(std::ios_base::failbit);
-  }
-  return istr;
-}
-
-template <class charT, class traits, size_t Rank>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr,
-           const shape_t<Rank> &shape) {
-  std::basic_stringstream<charT, traits> sstr;
-  sstr.flags(ostr.flags());
-  sstr.imbue(ostr.getloc());
-  sstr << "(" << shape[0];
-  for (size_t i = 1; i < shape.ndim(); ++i) {
-    sstr << ", " << shape[i];
-  }
-  sstr << ")";
-  return ostr << sstr.str();
-}
-
-template <class charT, class traits>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape) {
-  std::basic_stringstream<charT, traits> sstr;
-  sstr.flags(ostr.flags());
-  sstr.imbue(ostr.getloc());
-  sstr << "(" << shape[0] << ",)";
-  return ostr << sstr.str();
-}
-
 namespace detail {
 /**
  * @brief Calls to operator>> on the input stream object.
  */
 template <class charT, class traits, class T>
 inline std::basic_istream<charT, traits> &
-read(std::basic_istream<charT, traits> &istr, T &val) {
+input(std::basic_istream<charT, traits> &istr, T &val) {
   return istr >> val;
 }
 
@@ -716,8 +618,9 @@ read(std::basic_istream<charT, traits> &istr, T &val) {
  * delimited by quotation marks when reading arrays of strings.
  */
 template <class charT, class traits>
-std::basic_istream<charT, traits> &read(std::basic_istream<charT, traits> &istr,
-                                        std::basic_string<charT, traits> &str) {
+std::basic_istream<charT, traits> &
+input(std::basic_istream<charT, traits> &istr,
+      std::basic_string<charT, traits> &str) {
   charT ch;
   bool fail = true;
   if (istr >> ch) {
@@ -741,7 +644,7 @@ std::basic_istream<charT, traits> &read(std::basic_istream<charT, traits> &istr,
  */
 template <class charT, class traits, class T>
 std::basic_istream<charT, traits> &
-read_complex(std::basic_istream<charT, traits> &istr, std::complex<T> &z) {
+input_complex(std::basic_istream<charT, traits> &istr, std::complex<T> &z) {
   T x, y;
   charT ch;
   bool fail = true;
@@ -778,14 +681,14 @@ read_complex(std::basic_istream<charT, traits> &istr, std::complex<T> &z) {
 }
 
 template <class charT, class traits, class T>
-std::basic_istream<charT, traits> &read(std::basic_istream<charT, traits> &istr,
-                                        std::complex<T> &z) {
+std::basic_istream<charT, traits> &
+input(std::basic_istream<charT, traits> &istr, std::complex<T> &z) {
   using namespace printoptions;
   switch (complexmode) {
   case defaultcomplex:
     return istr >> z;
   case arithmetic:
-    return read_complex(istr, z);
+    return input_complex(istr, z);
   }
   return istr;
 }
@@ -795,8 +698,8 @@ std::basic_istream<charT, traits> &read(std::basic_istream<charT, traits> &istr,
  * last axis. Returns whether the operation was successfull.
  */
 template <class charT, class traits, class T, size_t Rank>
-bool read_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
-                 std::vector<T> &buffer, size_t axis = 0);
+bool input_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
+                  std::vector<T> &buffer, size_t axis = 0);
 
 /**
  * @brief Read a list of values and append them at the end of a std::vector.
@@ -804,14 +707,14 @@ bool read_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
  * sucessfull.
  */
 template <class charT, class traits, class T>
-bool read_tensor_slice(std::basic_istream<charT, traits> &istr, size_t &size,
-                       std::vector<T> &buffer) {
+bool input_list(std::basic_istream<charT, traits> &istr, size_t &size,
+                std::vector<T> &buffer) {
   charT ch;
   T val;
   size = 0;
   if (istr >> ch) {
     if (traits::eq(ch, istr.widen('['))) {
-      while (read(istr, val) && istr >> ch) {
+      while (input(istr, val) && istr >> ch) {
         ++size;
         buffer.push_back(val);
         if (traits::eq(ch, istr.widen(','))) {
@@ -836,15 +739,14 @@ bool read_tensor_slice(std::basic_istream<charT, traits> &istr, size_t &size,
  * sucessfull.
  */
 template <class charT, class traits, class T, size_t Rank>
-bool read_tensor_block(std::basic_istream<charT, traits> &istr,
-                       shape_t<Rank> &shape, std::vector<T> &buffer,
-                       size_t axis) {
+bool input_block(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
+                 std::vector<T> &buffer, size_t axis) {
   charT ch;
   shape[axis] = 0;
   if (istr >> ch) {
     if (traits::eq(ch, istr.widen('['))) {
       size_t n = 0;
-      while (read_tensor(istr, shape, buffer, axis + 1) && istr >> ch) {
+      while (input_tensor(istr, shape, buffer, axis + 1) && istr >> ch) {
         if (shape[axis] == 0) {
           n = shape[axis + 1];
         } else if (n != shape[axis + 1]) {
@@ -868,12 +770,12 @@ bool read_tensor_block(std::basic_istream<charT, traits> &istr,
 }
 
 template <class charT, class traits, class T, size_t Rank>
-bool read_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
-                 std::vector<T> &buffer, size_t axis) {
-  if (axis == shape.ndim() - 1) {
-    return read_tensor_slice(istr, shape[axis], buffer);
+bool input_tensor(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape,
+                  std::vector<T> &buffer, size_t axis) {
+  if (axis == Rank - 1) {
+    return input_list(istr, shape[axis], buffer);
   } else {
-    return read_tensor_block(istr, shape, buffer, axis);
+    return input_block(istr, shape, buffer, axis);
   }
 }
 } // namespace detail
@@ -883,7 +785,7 @@ std::basic_istream<charT, traits> &
 operator>>(std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arg) {
   shape_t<Rank> shape;
   std::vector<T> buffer;
-  if (detail::read_tensor(istr, shape, buffer)) {
+  if (detail::input_tensor(istr, shape, buffer)) {
     arg = std::move(tensor<T, Rank>(buffer.begin(), shape, row_major));
   } else {
     arg = std::move(tensor<T, Rank>());
@@ -947,19 +849,19 @@ print(std::basic_ostream<charT, traits> &ostr, const std::complex<T> &z) {
  * @brief Print the elements of a tensor recursively from the first axis to the
  * last axis.
  */
-template <class charT, class traits, class T, size_t Rank, class Tag>
+template <class charT, class traits, class Container, class T, size_t Rank>
 void print_tensor(std::basic_ostream<charT, traits> &ostr,
-                  const base_tensor<T, Rank, Tag> &arg, index_t<Rank> &index,
-                  size_t axis, size_t width);
+                  const expression<Container, T, Rank> &arg,
+                  index_t<Rank> &index, size_t axis, size_t width);
 
 /**
  * @brief Print the elements of a tensor along a given axis. The remaining axes
  * are fixed with a given index.
  */
-template <class charT, class traits, class T, size_t Rank, class Tag>
-void print_tensor_slice(std::basic_ostream<charT, traits> &ostr,
-                        const base_tensor<T, Rank, Tag> &arg,
-                        index_t<Rank> &index, size_t axis, size_t width) {
+template <class charT, class traits, class Container, class T, size_t Rank>
+void print_slice(std::basic_ostream<charT, traits> &ostr,
+                 const expression<Container, T, Rank> &arg,
+                 index_t<Rank> &index, size_t axis, size_t width) {
   using namespace printoptions;
   size_t size = arg.shape(axis);
   size_t linesize = axis + 1;
@@ -998,10 +900,10 @@ void print_tensor_slice(std::basic_ostream<charT, traits> &ostr,
  * @brief Print a block of tensor elements. The first axes are fixed with a
  * given index while the later axes are printed recursively.
  */
-template <class charT, class traits, class T, size_t Rank, class Tag>
-void print_tensor_block(std::basic_ostream<charT, traits> &ostr,
-                        const base_tensor<T, Rank, Tag> &arg,
-                        index_t<Rank> &index, size_t axis, size_t width) {
+template <class charT, class traits, class Container, class T, size_t Rank>
+void print_block(std::basic_ostream<charT, traits> &ostr,
+                 const expression<Container, T, Rank> &arg,
+                 index_t<Rank> &index, size_t axis, size_t width) {
   using namespace printoptions;
   size_t size = arg.shape(axis);
   std::string delim = "";
@@ -1011,27 +913,27 @@ void print_tensor_block(std::basic_ostream<charT, traits> &ostr,
     if (size >= threshold && size > 2 * edgeitems && edgeitems <= index[axis] &&
         index[axis] < size - edgeitems) {
       delim = "...,";
-      delim.append(arg.ndim() - axis - 1, '\n');
+      delim.append(Rank - axis - 1, '\n');
       delim.append(axis + 1, ' ');
       index[axis] = size - edgeitems;
       continue;
     }
     print_tensor(ostr, arg, index, axis + 1, width);
     delim = ",";
-    delim.append(arg.ndim() - axis - 1, '\n');
+    delim.append(Rank - axis - 1, '\n');
     delim.append(axis + 1, ' ');
     ++index[axis];
   }
 }
 
 /**
- * @brief Get the number of characters required to print each value in the
+ * @brief Return the number of characters required to print each value in the
  * tensor.
  */
-template <class charT, class traits, class T, size_t Rank, class Tag>
-size_t print_tensor_width(std::basic_ostream<charT, traits> &ostr,
-                          const base_tensor<T, Rank, Tag> &arg,
-                          index_t<Rank> &index, size_t axis = 0) {
+template <class charT, class traits, class Container, class T, size_t Rank>
+size_t get_print_width(std::basic_ostream<charT, traits> &ostr,
+                       const expression<Container, T, Rank> &arg,
+                       index_t<Rank> &index, size_t axis = 0) {
   using namespace printoptions;
   size_t size = arg.shape(axis);
   size_t max_width = 0;
@@ -1042,7 +944,7 @@ size_t print_tensor_width(std::basic_ostream<charT, traits> &ostr,
       index[axis] = size - edgeitems;
       continue;
     }
-    if (axis == arg.ndim() - 1) {
+    if (axis == Rank - 1) {
       std::basic_ostringstream<charT, traits> buffer;
       buffer.flags(ostr.flags());
       buffer.imbue(ostr.getloc());
@@ -1051,36 +953,36 @@ size_t print_tensor_width(std::basic_ostream<charT, traits> &ostr,
       max_width = std::max(max_width, buffer.str().size());
     } else {
       max_width =
-          std::max(max_width, print_tensor_width(ostr, arg, index, axis + 1));
+          std::max(max_width, get_print_width(ostr, arg, index, axis + 1));
     }
     ++index[axis];
   }
   return max_width;
 }
 
-template <class charT, class traits, class T, size_t Rank, class Tag>
+template <class charT, class traits, class Container, class T, size_t Rank>
 void print_tensor(std::basic_ostream<charT, traits> &ostr,
-                  const base_tensor<T, Rank, Tag> &arg, index_t<Rank> &index,
-                  size_t axis, size_t width) {
+                  const expression<Container, T, Rank> &arg,
+                  index_t<Rank> &index, size_t axis, size_t width) {
   ostr << "[";
-  if (axis == arg.ndim() - 1) {
-    print_tensor_slice(ostr, arg, index, axis, width);
+  if (axis == Rank - 1) {
+    print_slice(ostr, arg, index, axis, width);
   } else {
-    print_tensor_block(ostr, arg, index, axis, width);
+    print_block(ostr, arg, index, axis, width);
   }
   ostr << "]";
 }
 } // namespace detail
 
-template <class charT, class traits, class T, size_t Rank, class Tag>
+template <class charT, class traits, class Container, class T, size_t Rank>
 std::basic_ostream<charT, traits> &
 operator<<(std::basic_ostream<charT, traits> &ostr,
-           const base_tensor<T, Rank, Tag> &arg) {
+           const expression<Container, T, Rank> &arg) {
   std::ios_base::fmtflags default_flags = ostr.flags();
   size_t default_precision = ostr.precision();
   detail::set_printoptions_flags<T>(ostr);
   index_t<Rank> index;
-  size_t width = detail::print_tensor_width(ostr, arg, index);
+  size_t width = detail::get_print_width(ostr, arg, index);
   detail::print_tensor(ostr, arg, index, 0, width);
   ostr.flags(default_flags);
   ostr.precision(default_precision);

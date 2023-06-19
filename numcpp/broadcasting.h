@@ -24,7 +24,9 @@
 #define NUMCPP_BROADCASTING_H_INCLUDED
 
 #include "numcpp/config.h"
-#include "numcpp/broadcasting/utilities.h"
+#include "numcpp/broadcasting/padding.h"
+#include "numcpp/functional/lazy_expression.h"
+#include "numcpp/functional/operators.h"
 
 namespace numcpp {
 /// Tensor creation routines from existing data.
@@ -156,74 +158,62 @@ asarray_chkfinite(InputIterator first, const shape_t<Rank> &shape,
 /// Broadcasting.
 
 /**
- * @brief Broadcast a value to a new shape.
- *
- * @details Return a @c tensor_view of given shape filled with @a val. This
- * function does not create a new tensor, instead, it broadcasts the given value
- * as a tensor of given shape. All the elements in the broadcasted tensor refer
- * to the same memory location, and thus shall not be modified.
- *
- * @param val Reference to the fill value.
- * @param shape The shape of the desired tensor.
- *
- * @return A view of the original value with the given shape.
- */
-template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(T &val, const shape_t<Rank> &shape);
-
-/**
  * @brief Broadcast a tensor to a new shape.
  *
- * @details Return a @c tensor_view of given shape constructed by repeating
- * elements along each axis of size one. This function does not create a new
- * tensor, instead, it broadcasts the given tensor to a new shape. Some elements
- * in the broadcasted tensor may refer to the same memory location, and thus
- * shall not be modified.
+ * @details Return a readonly @c tensor_view of given shape constructed by
+ * repeating elements along each axis of size one. This function does not
+ * create a new tensor, instead, it broadcasts the given tensor to a new shape.
+ * Thus, some of the elements in the broadcasted tensor may refer to the same
+ * memory location.
  *
- * @param arg Reference to the tensor or tensor_view to broadcast.
+ * @param a Reference to the tensor or tensor_view to broadcast.
  * @param shape The shape of the desired tensor.
  *
- * @return A view of the original tensor with the given shape.
+ * @return A readonly view of the original tensor with the given shape.
  *
  * @throw std::invalid_argument Thrown if the tensor is not compatible with the
  *                              new shape according to broadcasting rules.
  */
 template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(tensor<T, Rank> &arg,
-                                  const shape_t<Rank> &shape);
+tensor_view<const T, Rank> broadcast_to(tensor<T, Rank> &a,
+                                        const shape_t<Rank> &shape);
 
 template <class T, size_t Rank>
-tensor_view<T, Rank> broadcast_to(tensor_view<T, Rank> arg,
-                                  const shape_t<Rank> &shape);
+tensor_view<const T, Rank> broadcast_to(tensor_view<T, Rank> &a,
+                                        const shape_t<Rank> &shape);
 
 /**
  * @brief Expand the shape of a tensor by inserting new axes.
  *
- * @param arg Input tensor.
+ * @param a Input tensor.
  * @param axes Position in the expanded axes where the new axis (or axes) is
  *             placed.
  *
  * @return A view of the original tensor with the number of dimensions
  *         increased.
  */
-template <class T, size_t Rank>
-tensor_view<T, Rank + 1> expand_dims(tensor<T, Rank> &arg, size_t axis);
+template <class T, size_t Rank, class... Axes,
+          detail::RequiresIntegral<Axes...> = 0>
+tensor_view<T, Rank + sizeof...(Axes)> expand_dims(tensor<T, Rank> &a,
+                                                   Axes... axes);
 
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank + N> expand_dims(tensor<T, Rank> &arg,
+template <class T, size_t Rank, class... Axes,
+          detail::RequiresIntegral<Axes...> = 0>
+tensor_view<T, Rank + sizeof...(Axes)> expand_dims(tensor_view<T, Rank> &a,
+                                                   Axes... axes);
+
+template <class T, size_t Rank, size_t N>
+tensor_view<T, Rank + N> expand_dims(tensor<T, Rank> &a,
                                      const shape_t<N> &axes);
 
-template <class T, size_t Rank>
-tensor_view<T, Rank + 1> expand_dims(tensor_view<T, Rank> arg, size_t axis);
-
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> arg,
+template <class T, size_t Rank, size_t N>
+tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> &a,
                                      const shape_t<N> &axes);
 
 /**
  * @brief Removes axes of length one.
  *
- * @param arg Input tensor.
+ * @param a Input tensor.
  * @param axes Selects a subset of the entries of length one in the shape.
  *
  * @return A view of the original tensor with the axes removed.
@@ -231,17 +221,21 @@ tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> arg,
  * @throw std::invalid_argument Thrown if an axis with shape entry greater than
  *                              one is selected.
  */
-template <class T, size_t Rank>
-tensor_view<T, Rank - 1> squeeze(tensor<T, Rank> &arg, size_t axis);
+template <class T, size_t Rank, class... Axes,
+          detail::RequiresIntegral<Axes...> = 0>
+tensor_view<T, Rank - sizeof...(Axes)> squeeze(tensor<T, Rank> &a,
+                                               Axes... axes);
 
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &arg, const shape_t<N> &axes);
+template <class T, size_t Rank, class... Axes,
+          detail::RequiresIntegral<Axes...> = 0>
+tensor_view<T, Rank - sizeof...(Axes)> squeeze(tensor_view<T, Rank> &a,
+                                               Axes... axes);
 
-template <class T, size_t Rank>
-tensor_view<T, Rank - 1> squeeze(tensor_view<T, Rank> arg, size_t axis);
+template <class T, size_t Rank, size_t N>
+tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &a, const shape_t<N> &axes);
 
-template <size_t N, class T, size_t Rank>
-tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> arg,
+template <class T, size_t Rank, size_t N>
+tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> &a,
                                  const shape_t<N> &axes);
 
 /// Basic manipulation routines.
@@ -254,26 +248,48 @@ tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> arg,
  *
  * @return A light-weight object with the elements in the tensor casted to the
  *         specified type. This function does not create a new tensor, instead,
- *         it returns a readonly view of the tensor with its elements casted to
- *         the specified type.
+ *         an expression object is returned with its elements casted to the
+ *         specified type.
  */
-template <class U, class T, size_t Rank, class Tag>
-base_tensor<U, Rank, lazy_unary_tag<cast_to<T, U>, T, Tag>>
-astype(const base_tensor<T, Rank, Tag> &a);
+template <class U, class Container, class T, size_t Rank>
+unary_expr<cast_to<T, U>, Container, T, Rank>
+astype(const expression<Container, T, Rank> &a) {
+  return unary_expr<cast_to<T, U>, Container, T, Rank>(a);
+}
+
+/**
+ * @brief Copies values from one tensor to another, broadcasting as necessary.
+ *
+ * @param dest The tensor into which values are copied.
+ * @param src The tensor from which values are copied.
+ *
+ * @throw std::invalid_argument Thrown if the shape of @a src is not compatible
+ *                              with the shape of @a dest according to
+ *                              broadcasting rules.
+ */
+template <class Container1, class T, size_t Rank, class Container2, class U>
+void copyto(dense_tensor<Container1, T, Rank> &dest,
+            const expression<Container2, U, Rank> &src);
 
 /**
  * @brief Return a copy of the tensor.
  *
  * @param a Tensor-like object to copy.
+ * @param order Memory layout in which elements are stored. In row-major order,
+ *              the last dimension is contiguous. In column-major order, the
+ *              first dimension is contiguous. The default is to use the same
+ *              layout as @a a.
  *
  * @return A new tensor with a copy of each of the elements in the tensor.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-copy(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> copy(const expression<Container, T, Rank> &a);
+
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> copy(const expression<Container, T, Rank> &a, layout_t order);
 
 /**
  * @brief Return a copy of the tensor flattened into one dimension.
@@ -288,58 +304,78 @@ copy(const base_tensor<T, Rank, Tag> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-flatten(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+tensor<T, 1> flatten(const expression<Container, T, Rank> &a);
 
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-flatten(const base_tensor<T, Rank, Tag> &a, layout_t order);
+template <class Container, class T, size_t Rank>
+tensor<T, 1> flatten(const expression<Container, T, Rank> &a, layout_t order);
 
 /**
- * @brief Return a tensor of pairs with each pair constructed from the
- * corresponding elements in two tensors.
+ * @brief Return a tensor of tuples with each element constructed from taking
+ * the corresponding element from all tensors.
  *
- * @param a First tensor-like argument.
- * @param b Second tensor-like argument.
+ * @param a, b... Tensor-like objects to zip. Since C++14, this function accepts
+ *                any number of arguments.
  *
- * @return A light-weight object with the pairs constructed from the elements of
- *         two tensors. This function does not create a new tensor, instead, it
- *         returns a readonly view with the pairs constructed from both tensors.
+ * @return A light-weight object with the tuples constructed from the elements
+ *         of each tensor. This function does not create a new tensor, instead,
+ *         an expression object is returned with a tuple of the elements of each
+ *         tensor.
  */
-template <class T, class U, size_t Rank, class TagT, class TagU>
-base_tensor<std::pair<T, U>, Rank,
-            lazy_binary_tag<detail::zip, T, TagT, U, TagU>>
-zip(const base_tensor<T, Rank, TagT> &a, const base_tensor<U, Rank, TagU> &b);
+template <class Container1, class T, class Container2, class U, size_t Rank>
+binary_expr<detail::zip, Container1, T, Container2, U, Rank>
+zip(const expression<Container1, T, Rank> &a,
+    const expression<Container2, U, Rank> &b) {
+  return binary_expr<detail::zip, Container1, T, Container2, U, Rank>(a, b);
+}
+
+#if __cplusplus >= 201402L
+template <class Container1, class... Container2>
+element_wise_expr<detail::zip, Container1, Container2...>
+zip(const Container1 &a, const Container2 &...b) {
+  return element_wise_expr<detail::zip, Container1, Container2...>(a, b...);
+}
+#endif // C++14
 
 /**
  * @brief Return a tensor with each element constructed from taking the I-th
  * element of the corresponding tuple in a tensor.
  *
  * @tparam I Element index.
+ * @tparam T (Since C++14) Element type. Fails to compile unless the tuple has
+ *           exactly one element of that type.
  * @param a A tensor-like object of tuple-like values. Any class overloading
- *          @c std::tuple_element and @c std::get, such as @c std::pair,
- *          @c std::tuple and @c std::array, is considered a tuple.
+ *          @c std::get such as @c std::pair, @c std::tuple and @c std::array,
+ *          is considered a tuple.
  *
- * @return A light-weight object with the I-th element of each tuple-like in the
- *         tensor. This function does not create a new tensor, instead, it
- *         returns a readonly view with the I-th element of each tuple.
+ * @return A light-weight object with the I-th element of each tuple in the
+ *         tensor. This function does not create a new tensor, instead, an
+ *         expression object is returned with the I-th element of each tuple.
  */
-template <size_t I, class Tuple, size_t Rank, class Tag>
-base_tensor<typename std::tuple_element<I, Tuple>::type, Rank,
-            lazy_unary_tag<detail::unzip<I>, Tuple, Tag>>
-unzip(const base_tensor<Tuple, Rank, Tag> &a);
+template <size_t I, class Container, class Tuple, size_t Rank>
+unary_expr<detail::unzip_by_index<I>, Container, Tuple, Rank>
+unzip(const expression<Container, Tuple, Rank> &a) {
+  return unary_expr<detail::unzip_by_index<I>, Container, Tuple, Rank>(a);
+}
+
+#if __cplusplus >= 201402L
+template <class T, class Container, class Tuple, size_t Rank>
+unary_expr<detail::unzip_by_type<T>, Container, Tuple, Rank>
+unzip(const expression<Container, Tuple, Rank> &a) {
+  return unary_expr<detail::unzip_by_type<T>, Container, Tuple, Rank>(a);
+}
+#endif // C++14
 
 /// Concatenation.
 
 /**
  * @brief Concatenate one or more tensors.
  *
- * @param axis The axis along which the tensors will be concatenated. Default is
- *             0.
- * @param arg1, arg2... Tensor-like objects to concatenate. The tensors must
- *                      have the same data type and the same shape, except in
- *                      the dimension corresponding to @a axis.
+ * @tparam Axis The axis along which the tensors will be concatenated. Default
+ *              is 0.
+ * @param a, b... Tensor-like objects to concatenate. The tensors must have the
+ *                same value type and the same shape, except in the dimension
+ *                corresponding to @a axis.
  *
  * @return The concatenated tensors.
  *
@@ -348,21 +384,22 @@ unzip(const base_tensor<Tuple, Rank, Tag> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class... Tensors>
-tensor<T, Rank> concatenate(const base_tensor<T, Rank, Tag> &arg1,
-                            const Tensors &...arg2);
+template <class Container1, class T, size_t Rank, class... Container2>
+tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
+                            const Container2 &...b);
 
-template <class T, size_t Rank, class Tag, class... Tensors>
-tensor<T, Rank> concatenate(size_t axis, const base_tensor<T, Rank, Tag> &arg1,
-                            const Tensors &...arg2);
+template <size_t Axis, class Container1, class T, size_t Rank,
+          class... Container2>
+tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
+                            const Container2 &...b);
 
 /**
  * @brief Concatenate one or more tensors along a new axis.
  *
- * @param axis The axis in the result tensor along which the tensors will be
- *             stacked. Default is 0.
- * @param arg1, arg2... Tensor-like objects to stack. The tensors must have the
- *                      same data type and the same shape.
+ * @tparam axis The axis in the result tensor along which the tensors will be
+ *              stacked. Default is 0.
+ * @param a, b... Tensor-like objects to stack. The tensors must have the same
+ *                value type and the same shape.
  *
  * @return The stacked tensors.
  *
@@ -371,13 +408,14 @@ tensor<T, Rank> concatenate(size_t axis, const base_tensor<T, Rank, Tag> &arg1,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class... Tensors>
-tensor<T, Rank + 1> stack(const base_tensor<T, Rank, Tag> &arg1,
-                          const Tensors &...arg2);
+template <class Container1, class T, size_t Rank, class... Container2>
+tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
+                          const Container2 &...b);
 
-template <class T, size_t Rank, class Tag, class... Tensors>
-tensor<T, Rank + 1> stack(size_t axis, const base_tensor<T, Rank, Tag> &arg1,
-                          const Tensors &...arg2);
+template <size_t Axis, class Container1, class T, size_t Rank,
+          class... Container2>
+tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
+                          const Container2 &...b);
 
 /// Tiling.
 
@@ -393,9 +431,9 @@ tensor<T, Rank + 1> stack(size_t axis, const base_tensor<T, Rank, Tag> &arg1,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-tile(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> tile(const expression<Container, T, Rank> &a,
+                     const shape_t<Rank> &reps);
 
 /**
  * @brief Repeat elements of a tensor.
@@ -412,22 +450,22 @@ tile(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &reps);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-repeat(const base_tensor<T, Rank, Tag> &a, size_t reps, size_t axis = 0);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> repeat(const expression<Container, T, Rank> &a, size_t reps,
+                       size_t axis = 0);
 
-template <class T, size_t Rank, class Tag, class IntegralType, class TagReps,
-          detail::RequiresIntegral<IntegralType> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-repeat(const base_tensor<T, Rank, Tag> &a,
-       const base_tensor<IntegralType, 1, TagReps> &reps, size_t axis = 0);
+template <class Container1, class T, size_t Rank, class Container2,
+          class IntegralType, detail::RequiresIntegral<IntegralType> = 0>
+tensor<T, Rank> repeat(const expression<Container1, T, Rank> &a,
+                       const expression<Container2, IntegralType, 1> &reps,
+                       size_t axis = 0);
 
 /// Padding.
 
 /**
  * @brief Pad a tensor.
  *
- * @param arg The tensor to pad.
+ * @param a The tensor to pad.
  * @param before Number of elements to pad at the beginning of each axis.
  * @param after Number of elements to pad at the end of each axis.
  *
@@ -436,20 +474,21 @@ repeat(const base_tensor<T, Rank, Tag> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-pad(const base_tensor<T, Rank, Tag> &arg, const shape_t<Rank> &before,
-    const shape_t<Rank> &after);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
+                    const shape_t<Rank> &before, const shape_t<Rank> &after);
 
 /**
  * @brief Pad a tensor.
  *
- * @param arg The tensor to pad.
+ * @param a The tensor to pad.
  * @param before Number of elements to pad at the beginning of each axis.
  * @param after Number of elements to pad at the end of each axis.
  * @param func Padding function. For tensors with rank greater than 1, the
- * padding of later axes depends on the padding of previous axes. The signature
- * of the padding function should be equivalent to the following:
+ *             padding of later axes depends on the padding of previous axes.
+ *             The signature of the padding function should be equivalent to the
+ *             following:
+ *
  *   void func(tensor_view<T, 1> &view, size_t before, size_t after,
  *             size_t axis, Args&&... args);
  *   where
@@ -457,6 +496,7 @@ pad(const base_tensor<T, Rank, Tag> &arg, const shape_t<Rank> &before,
  *   - @a before Number of elements padded at the beginning of @a view.
  *   - @a after Number of elements padded at the end of @a view.
  *   - @a axis The axis currently being calculated.
+ *
  * @param args... Additional arguments to pass to @a func.
  *
  * @return The padded tensor.
@@ -464,10 +504,10 @@ pad(const base_tensor<T, Rank, Tag> &arg, const shape_t<Rank> &before,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class Function, class... Args>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-pad(const base_tensor<T, Rank, Tag> &arg, const shape_t<Rank> &before,
-    const shape_t<Rank> &after, Function func, Args &&...args);
+template <class Container, class T, size_t Rank, class Function, class... Args>
+tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
+                    const shape_t<Rank> &before, const shape_t<Rank> &after,
+                    Function func, Args &&...args);
 
 /// Indexing routines.
 
@@ -482,11 +522,13 @@ pad(const base_tensor<T, Rank, Tag> &arg, const shape_t<Rank> &before,
  * @return A light-weight object with the flattened indices. This function does
  *         not create a new tensor, instead, an expression object is returned.
  */
-template <size_t Rank, size_t N, class Tag>
-base_tensor<size_t, N,
-            lazy_unary_tag<detail::ravel_index<Rank>, index_t<Rank>, Tag>>
-ravel_index(const base_tensor<index_t<Rank>, N, Tag> &index,
-            const shape_t<Rank> &shape, layout_t order = default_layout);
+template <class Container, size_t Rank, size_t N>
+unary_expr<detail::ravel_index<Rank>, Container, index_t<Rank>, N>
+ravel_index(const expression<Container, index_t<Rank>, N> &index,
+            const shape_t<Rank> &shape, layout_t order = default_layout) {
+  return unary_expr<detail::ravel_index<Rank>, Container, index_t<Rank>, N>(
+      detail::ravel_index<Rank>(shape, order), index);
+}
 
 /**
  * @brief Converts a flat index into a tuple of indices, element-wise.
@@ -499,12 +541,14 @@ ravel_index(const base_tensor<index_t<Rank>, N, Tag> &index,
  * @return A light-weight object with the unraveled indices. This function does
  *         not create a new tensor, instead, an expression object is returned.
  */
-template <class IntegralType, size_t Rank, size_t N, class Tag,
+template <class Container, class IntegralType, size_t Rank, size_t N,
           detail::RequiresIntegral<IntegralType> = 0>
-base_tensor<index_t<Rank>, N,
-            lazy_unary_tag<detail::unravel_index<Rank>, IntegralType, Tag>>
-unravel_index(const base_tensor<IntegralType, N, Tag> &index,
-              const shape_t<Rank> &shape, layout_t order = default_layout);
+unary_expr<detail::unravel_index<Rank>, Container, IntegralType, N>
+unravel_index(const expression<Container, IntegralType, N> &index,
+              const shape_t<Rank> &shape, layout_t order = default_layout) {
+  return unary_expr<detail::unravel_index<Rank>, Container, IntegralType, N>(
+      detail::unravel_index<Rank>(shape, order), index);
+}
 
 /**
  * @brief Take elements from a tensor. For @c tensor class, a call such as
@@ -521,16 +565,14 @@ unravel_index(const base_tensor<IntegralType, N, Tag> &index,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, size_t N, class TagIndex>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, N>
-take(const base_tensor<T, Rank, Tag> &a,
-     const base_tensor<index_t<Rank>, N, TagIndex> &indices);
+template <class Container1, class T, size_t Rank, class Container2, size_t N>
+tensor<T, N> take(const expression<Container1, T, Rank> &a,
+                  const expression<Container2, index_t<Rank>, N> &indices);
 
-template <class T, class Tag, class IntegralType, size_t N, class TagIndex,
-          detail::RequiresIntegral<IntegralType> = 0>
-tensor<typename base_tensor<T, 1, Tag>::value_type, N>
-take(const base_tensor<T, 1, Tag> &a,
-     const base_tensor<IntegralType, N, TagIndex> &indices);
+template <class Container1, class T, class Container2, class IntegralType,
+          size_t N, detail::RequiresIntegral<IntegralType> = 0>
+tensor<T, N> take(const expression<Container1, T, 1> &a,
+                  const expression<Container2, IntegralType, N> &indices);
 
 /**
  * @brief Take elements from a tensor along an axis.
@@ -548,15 +590,15 @@ take(const base_tensor<T, 1, Tag> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class IntegralType, class TagIndex,
-          detail::RequiresIntegral<IntegralType> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-take(const base_tensor<T, Rank, Tag> &a,
-     const base_tensor<IntegralType, 1, TagIndex> &indices, size_t axis);
+template <class Container1, class T, size_t Rank, class Container2,
+          class IntegralType, detail::RequiresIntegral<IntegralType> = 0>
+tensor<T, Rank> take(const expression<Container1, T, Rank> &a,
+                     const expression<Container2, IntegralType, 1> &indices,
+                     size_t axis);
 
-template <class T, size_t Rank, class Tag>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank - 1>
-take(const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis);
+template <class Container, class T, size_t Rank>
+tensor<T, Rank - 1> take(const expression<Container, T, Rank> &a, size_t index,
+                         size_t axis);
 
 /**
  * @brief Take values from the input tensor by matching 1d index and data
@@ -576,11 +618,11 @@ take(const base_tensor<T, Rank, Tag> &a, size_t index, size_t axis);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class IntegralType, class TagIndex,
-          detail::RequiresIntegral<IntegralType> = 0>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-take_along_axis(const base_tensor<T, Rank, Tag> &a,
-                const base_tensor<IntegralType, Rank, TagIndex> &indices,
+template <class Container1, class T, size_t Rank, class Container2,
+          class IntegralType, detail::RequiresIntegral<IntegralType> = 0>
+tensor<T, Rank>
+take_along_axis(const expression<Container1, T, Rank> &a,
+                const expression<Container2, IntegralType, Rank> &indices,
                 size_t axis);
 
 /**
@@ -593,32 +635,36 @@ take_along_axis(const base_tensor<T, Rank, Tag> &a,
  *                the source tensor is 1-dimensional, a tensor-like object of
  *                integers can be used instead.
  * @param values A single value or a tensor-like object with the values to put
- *               into @a a at target indices.
+ *               into @a a at target indices. Its shape is broadcast to match
+ *               the shape of @a indices.
  *
- * @throw std::invalid_argument Thrown if @a indices and @a values have
- *                              different shapes.
+ * @throw std::invalid_argument Thrown if the shape of @a values is not
+ *                              compatible with the shape of @a indices
+ *                              according to broadcasting rules.
  */
-template <class T, size_t Rank, class Tag, class TagIndex, class TagValue>
-void put(base_tensor<T, Rank, Tag> &a,
-         const base_tensor<index_t<Rank>, 1, TagIndex> &indices,
-         const base_tensor<T, 1, TagValue> &values);
+template <class Container1, class T, size_t Rank, class Container2, size_t N,
+          class Container3>
+void put(dense_tensor<Container1, T, Rank> &a,
+         const expression<Container2, index_t<Rank>, N> &indices,
+         const expression<Container3, T, N> &values);
 
-template <class T, size_t Rank, class Tag, class TagIndex>
-void put(base_tensor<T, Rank, Tag> &a,
-         const base_tensor<index_t<Rank>, 1, TagIndex> &indices,
-         const typename base_tensor<T, Rank, Tag>::value_type &value);
+template <class Container1, class T, size_t Rank, class Container2, size_t N>
+void put(dense_tensor<Container1, T, Rank> &a,
+         const expression<Container2, index_t<Rank>, N> &indices,
+         const typename dense_tensor<Container1, T, Rank>::value_type &value);
 
-template <class T, class Tag, class IntegralType, class TagIndex,
-          class TagValue, detail::RequiresIntegral<IntegralType> = 0>
-void put(base_tensor<T, 1, Tag> &a,
-         const base_tensor<IntegralType, 1, TagIndex> &indices,
-         const base_tensor<T, 1, TagValue> &values);
-
-template <class T, class Tag, class IntegralType, class TagIndex,
+template <class Container1, class T, class Container2, class IntegralType,
+          size_t N, class Container3,
           detail::RequiresIntegral<IntegralType> = 0>
-void put(base_tensor<T, 1, Tag> &a,
-         const base_tensor<IntegralType, 1, TagIndex> &indices,
-         const typename base_tensor<T, 1, Tag>::value_type &value);
+void put(dense_tensor<Container1, T, 1> &a,
+         const expression<Container2, IntegralType, N> &indices,
+         const expression<Container3, T, N> &values);
+
+template <class Container1, class T, class Container2, class IntegralType,
+          size_t N, detail::RequiresIntegral<IntegralType> = 0>
+void put(dense_tensor<Container1, T, 1> &a,
+         const expression<Container2, IntegralType, N> &indices,
+         const typename dense_tensor<Container1, T, 1>::value_type &value);
 
 /**
  * @brief Put values into the destination tensor by matching 1d index and data
@@ -630,17 +676,20 @@ void put(base_tensor<T, 1, Tag> &a,
  *                slice of @a a. This must match the shape of @a a for all
  *                dimensions other than @a axis.
  * @param values A tensor-like object with the values to insert at those
- *               indices. This must match the shape of @a indices.
+ *               indices. Its shape is broadcast to match the shape of
+ *               @a indices.
  * @param axis The axis to take 1d slices along.
  *
- * @throw std::invalid_argument Thrown if the shapes of @a indices and @a values
- *                              are not compatible with the shape of @a a.
+ * @throw std::invalid_argument Thrown if the shape of @a values is not
+ *                              compatible with the shape of @a indices
+ *                              according to broadcasting rules.
  */
-template <class T, size_t Rank, class Tag, class IntegralType, class TagIndex,
-          class TagValue, detail::RequiresIntegral<IntegralType> = 0>
-void put_along_axis(base_tensor<T, Rank, Tag> &a,
-                    const base_tensor<IntegralType, Rank, TagIndex> &indices,
-                    const base_tensor<T, Rank, TagValue> &values, size_t axis);
+template <class Container1, class T, size_t Rank, class Container2,
+          class IntegralType, class Container3,
+          detail::RequiresIntegral<IntegralType> = 0>
+void put_along_axis(dense_tensor<Container1, T, Rank> &a,
+                    const expression<Container2, IntegralType, Rank> &indices,
+                    const expression<Container3, T, Rank> &values, size_t axis);
 
 /**
  * @brief Return the elements of a tensor that satisfy some condition. For
@@ -653,15 +702,14 @@ void put_along_axis(base_tensor<T, Rank, Tag> &a,
  *
  * @return A new tensor with the elements from @a a where @a condition is true.
  *
- * @throw std::invalid_argument Thrown if @a a and @a condition have different
- *                              shapes.
+ * @throw std::invalid_argument Thrown if the shape of @a condition does not
+ *                              match the shape of @a a.
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class TagCond>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, 1>
-compress(const base_tensor<T, Rank, Tag> &a,
-         const base_tensor<bool, Rank, TagCond> &condition);
+template <class Container1, class T, size_t Rank, class Container2>
+tensor<T, 1> compress(const expression<Container1, T, Rank> &a,
+                      const expression<Container2, bool, Rank> &condition);
 
 /**
  * @brief Return the elements of a tensor that satisfy some condition along
@@ -678,14 +726,14 @@ compress(const base_tensor<T, Rank, Tag> &a,
  *         selected.
  *
  * @throw std::invalid_argument Thrown if the size of @a condition does not
- *                              match the size of @a a along the given axis.
+ *                              match the shape of @a a along the given axis.
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag, class TagCond>
-tensor<typename base_tensor<T, Rank, Tag>::value_type, Rank>
-compress(const base_tensor<T, Rank, Tag> &a,
-         const base_tensor<bool, 1, TagCond> &condition, size_t axis);
+template <class Container1, class T, size_t Rank, class Container2>
+tensor<T, Rank> compress(const expression<Container1, T, Rank> &a,
+                         const expression<Container2, bool, 1> &condition,
+                         size_t axis);
 
 /**
  * @brief Change elements of a tensor based on conditional and input values.
@@ -696,18 +744,19 @@ compress(const base_tensor<T, Rank, Tag> &a,
  *               in @a a. Only the first @a N elements are used, where @a N is
  *               the number of true values in @a condition.
  *
- * @throw std::invalid_argument Thrown if @a a and @a condition have different
- *                              shapes.
+ * @throw std::invalid_argument Thrown if the shape of @a condition does not
+ *                              match the shape of @a a.
  */
-template <class T, size_t Rank, class Tag, class TagCond, class TagValue>
-void place(base_tensor<T, Rank, Tag> &a,
-           const base_tensor<bool, Rank, TagCond> &condition,
-           const base_tensor<T, 1, TagValue> &values);
+template <class Container1, class T, size_t Rank, class Container2,
+          class Container3>
+void place(dense_tensor<Container1, T, Rank> &a,
+           const expression<Container2, bool, Rank> &condition,
+           const expression<Container3, T, 1> &values);
 
-template <class T, size_t Rank, class Tag, class TagCond>
-void place(base_tensor<T, Rank, Tag> &a,
-           const base_tensor<bool, Rank, TagCond> &condition,
-           const typename base_tensor<T, Rank, Tag>::value_type &value);
+template <class Container1, class T, size_t Rank, class Container2>
+void place(dense_tensor<Container1, T, Rank> &a,
+           const expression<Container2, bool, Rank> &condition,
+           const typename dense_tensor<Container1, T, Rank>::value_type &value);
 
 /**
  * @brief Change elements of a tensor based on conditional and input values.
@@ -718,15 +767,17 @@ void place(base_tensor<T, Rank, Tag> &a,
  * @param a Tensor to put data into.
  * @param condition Boolean mask tensor.
  * @param values A tensor-like object with the values to put into @a a where
- *               @a condition is true.
+ *               @a condition is true. Its shape is broadcast to match the shape
+ *               of @a a.
  *
- * @throw std::invalid_argument Thrown if @a a, @a condition or @a values have
- *                              different shapes.
+ * @throw std::invalid_argument Thrown if the shape of @a condition does not
+ *                              match the shape of @a a.
  */
-template <class T, size_t Rank, class Tag, class TagCond, class TagValue>
-void putmask(base_tensor<T, Rank, Tag> &a,
-             const base_tensor<bool, Rank, TagCond> &condition,
-             const base_tensor<T, Rank, TagValue> &values);
+template <class Container1, class T, size_t Rank, class Container2,
+          class Container3>
+void putmask(dense_tensor<Container1, T, Rank> &a,
+             const expression<Container2, bool, Rank> &condition,
+             const expression<Container3, T, Rank> &values);
 } // namespace numcpp
 
 #include "numcpp/broadcasting/broadcasting.tcc"

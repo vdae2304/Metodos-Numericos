@@ -24,9 +24,9 @@
 #define NUMCPP_MATH_H_INCLUDED
 
 #include "numcpp/config.h"
+#include "numcpp/functional/lazy_expression.h"
 #include "numcpp/math/constants.h"
 #include "numcpp/math/mathfwd.h"
-#include "numcpp/math/complexfwd.h"
 
 namespace numcpp {
 /// Basic functions.
@@ -104,11 +104,10 @@ using std::signbit;
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::abs, T, Tag>>
-abs(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::abs, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::abs(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::abs, Container, T, Rank>
+abs(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::abs, Container, T, Rank>(x);
 }
 
 /**
@@ -123,27 +122,25 @@ abs(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmod, T, Tag1, T, Tag2>>
-fmod(const base_tensor<T, Rank, Tag1> &x, const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::fmod, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::fmod, Container1, T, Container2, T, Rank>
+fmod(const expression<Container1, T, Rank> &x,
+     const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::fmod, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmod, T, Tag, T, scalar_tag>>
-fmod(const base_tensor<T, Rank, Tag> &x,
-     const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::fmod, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::fmod, Container, T, void, T, Rank>
+fmod(const expression<Container, T, Rank> &x,
+     const typename Container::value_type &y) {
+  return binary_expr<math::fmod, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmod, T, scalar_tag, T, Tag>>
-fmod(const typename base_tensor<T, Rank, Tag>::value_type &x,
-     const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::fmod, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmod(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::fmod, void, T, Container, T, Rank>
+fmod(const typename Container::value_type &x,
+     const expression<Container, T, Rank> &y) {
+  return binary_expr<math::fmod, void, T, Container, T, Rank>(x, y);
 }
 
 /**
@@ -155,12 +152,10 @@ fmod(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         element in the tensor. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<std::pair<T, T>, Rank, lazy_unary_tag<math::modf, T, Tag>>
-modf(const base_tensor<T, Rank, Tag> &x) {
-  typedef std::pair<T, T> Rt;
-  typedef lazy_unary_tag<math::modf, T, Tag> Closure;
-  return base_tensor<Rt, Rank, Closure>(math::modf(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::modf, Container, T, Rank>
+modf(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::modf, Container, T, Rank>(x);
 }
 
 /**
@@ -174,27 +169,25 @@ modf(const base_tensor<T, Rank, Tag> &x) {
  *         does not create a new tensor, instead, an expression object is
  *         returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmax, T, Tag1, T, Tag2>>
-fmax(const base_tensor<T, Rank, Tag1> &x, const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::fmax, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::fmax, Container1, T, Container2, T, Rank>
+fmax(const expression<Container1, T, Rank> &x,
+     const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::fmax, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmax, T, Tag, T, scalar_tag>>
-fmax(const base_tensor<T, Rank, Tag> &x,
-     const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::fmax, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::fmax, Container, T, void, T, Rank>
+fmax(const expression<Container, T, Rank> &x,
+     const typename Container::value_type &y) {
+  return binary_expr<math::fmax, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmax, T, scalar_tag, T, Tag>>
-fmax(const typename base_tensor<T, Rank, Tag>::value_type &x,
-     const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::fmax, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmax(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::fmax, void, T, Container, T, Rank>
+fmax(const typename Container::value_type &x,
+     const expression<Container, T, Rank> &y) {
+  return binary_expr<math::fmax, void, T, Container, T, Rank>(x, y);
 }
 
 /**
@@ -208,27 +201,25 @@ fmax(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         does not create a new tensor, instead, an expression object is
  *         returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmin, T, Tag1, T, Tag2>>
-fmin(const base_tensor<T, Rank, Tag1> &x, const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::fmin, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::fmin, Container1, T, Container2, T, Rank>
+fmin(const expression<Container1, T, Rank> &x,
+     const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::fmin, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmin, T, Tag, T, scalar_tag>>
-fmin(const base_tensor<T, Rank, Tag> &x,
-     const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::fmin, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::fmin, Container, T, void, T, Rank>
+fmin(const expression<Container, T, Rank> &x,
+     const typename Container::value_type &y) {
+  return binary_expr<math::fmin, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::fmin, T, scalar_tag, T, Tag>>
-fmin(const typename base_tensor<T, Rank, Tag>::value_type &x,
-     const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::fmin, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::fmin(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::fmin, void, T, Container, T, Rank>
+fmin(const typename Container::value_type &x,
+     const expression<Container, T, Rank> &y) {
+  return binary_expr<math::fmin, void, T, Container, T, Rank>(x, y);
 }
 
 /// Trigonometric functions.
@@ -242,11 +233,10 @@ fmin(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::cos, T, Tag>>
-cos(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::cos, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::cos(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::cos, Container, T, Rank>
+cos(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::cos, Container, T, Rank>(x);
 }
 
 /**
@@ -258,11 +248,10 @@ cos(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::sin, T, Tag>>
-sin(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::sin, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::sin(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::sin, Container, T, Rank>
+sin(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::sin, Container, T, Rank>(x);
 }
 
 /**
@@ -274,11 +263,10 @@ sin(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::tan, T, Tag>>
-tan(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::tan, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::tan(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::tan, Container, T, Rank>
+tan(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::tan, Container, T, Rank>(x);
 }
 
 /**
@@ -294,28 +282,25 @@ tan(const base_tensor<T, Rank, Tag> &x) {
  *         function does not create a new tensor, instead, an expression object
  *         is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::hypot, T, Tag1, T, Tag2>>
-hypot(const base_tensor<T, Rank, Tag1> &x,
-      const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::hypot, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::hypot, Container1, T, Container2, T, Rank>
+hypot(const expression<Container1, T, Rank> &x,
+      const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::hypot, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::hypot, T, Tag, T, scalar_tag>>
-hypot(const base_tensor<T, Rank, Tag> &x,
-      const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::hypot, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::hypot, Container, T, void, T, Rank>
+hypot(const expression<Container, T, Rank> &x,
+      const typename Container::value_type &y) {
+  return binary_expr<math::hypot, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::hypot, T, scalar_tag, T, Tag>>
-hypot(const typename base_tensor<T, Rank, Tag>::value_type &x,
-      const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::hypot, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::hypot(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::hypot, void, T, Container, T, Rank>
+hypot(const typename Container::value_type &x,
+      const expression<Container, T, Rank> &y) {
+  return binary_expr<math::hypot, void, T, Container, T, Rank>(x, y);
 }
 
 /**
@@ -327,11 +312,10 @@ hypot(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         in the tensor. This function does not create a new tensor, instead,
  *         an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::acos, T, Tag>>
-acos(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::acos, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::acos(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::acos, Container, T, Rank>
+acos(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::acos, Container, T, Rank>(x);
 }
 
 /**
@@ -343,11 +327,10 @@ acos(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::asin, T, Tag>>
-asin(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::asin, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::asin(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::asin, Container, T, Rank>
+asin(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::asin, Container, T, Rank>(x);
 }
 
 /**
@@ -359,11 +342,10 @@ asin(const base_tensor<T, Rank, Tag> &x) {
  *         in the tensor. This function does not create a new tensor, instead,
  *         an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::atan, T, Tag>>
-atan(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::atan, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::atan(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::atan, Container, T, Rank>
+atan(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::atan, Container, T, Rank>(x);
 }
 
 /**
@@ -378,28 +360,25 @@ atan(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::atan2, T, Tag1, T, Tag2>>
-atan2(const base_tensor<T, Rank, Tag1> &y,
-      const base_tensor<T, Rank, Tag2> &x) {
-  typedef lazy_binary_tag<math::atan2, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::atan2, Container1, T, Container2, T, Rank>
+atan2(const expression<Container1, T, Rank> &y,
+      const expression<Container2, T, Rank> &x) {
+  return binary_expr<math::atan2, Container1, T, Container2, T, Rank>(y, x);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::atan2, T, Tag, T, scalar_tag>>
-atan2(const base_tensor<T, Rank, Tag> &y,
-      const typename base_tensor<T, Rank, Tag>::value_type &x) {
-  typedef lazy_binary_tag<math::atan2, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::atan2, Container, T, void, T, Rank>
+atan2(const expression<Container, T, Rank> &y,
+      const typename Container::value_type &x) {
+  return binary_expr<math::atan2, Container, T, void, T, Rank>(y, x);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::atan2, T, scalar_tag, T, Tag>>
-atan2(const typename base_tensor<T, Rank, Tag>::value_type &y,
-      const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_binary_tag<math::atan2, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::atan2(), y, x);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::atan2, void, T, Container, T, Rank>
+atan2(const typename Container::value_type &y,
+      const expression<Container, T, Rank> &x) {
+  return binary_expr<math::atan2, void, T, Container, T, Rank>(y, x);
 }
 
 /**
@@ -411,11 +390,10 @@ atan2(const typename base_tensor<T, Rank, Tag>::value_type &y,
  *         function does not create a new tensor, instead, an expression object
  *         is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::degrees, T, Tag>>
-degrees(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::degrees, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::degrees(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::degrees, Container, T, Rank>
+degrees(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::degrees, Container, T, Rank>(x);
 }
 
 /**
@@ -427,11 +405,10 @@ degrees(const base_tensor<T, Rank, Tag> &x) {
  *         function does not create a new tensor, instead, an expression object
  *         is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::radians, T, Tag>>
-radians(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::radians, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::radians(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::radians, Container, T, Rank>
+radians(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::radians, Container, T, Rank>(x);
 }
 
 /// Hyperbolic functions.
@@ -445,11 +422,10 @@ radians(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::cosh, T, Tag>>
-cosh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::cosh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::cosh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::cosh, Container, T, Rank>
+cosh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::cosh, Container, T, Rank>(x);
 }
 
 /**
@@ -461,11 +437,10 @@ cosh(const base_tensor<T, Rank, Tag> &x) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::sinh, T, Tag>>
-sinh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::sinh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::sinh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::sinh, Container, T, Rank>
+sinh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::sinh, Container, T, Rank>(x);
 }
 
 /**
@@ -477,11 +452,10 @@ sinh(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::tanh, T, Tag>>
-tanh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::tanh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::tanh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::tanh, Container, T, Rank>
+tanh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::tanh, Container, T, Rank>(x);
 }
 
 /**
@@ -494,11 +468,10 @@ tanh(const base_tensor<T, Rank, Tag> &x) {
  *         element in the tensor. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::acosh, T, Tag>>
-acosh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::acosh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::acosh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::acosh, Container, T, Rank>
+acosh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::acosh, Container, T, Rank>(x);
 }
 
 /**
@@ -511,11 +484,10 @@ acosh(const base_tensor<T, Rank, Tag> &x) {
  *         element in the tensor. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::asinh, T, Tag>>
-asinh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::asinh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::asinh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::asinh, Container, T, Rank>
+asinh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::asinh, Container, T, Rank>(x);
 }
 
 /**
@@ -528,11 +500,10 @@ asinh(const base_tensor<T, Rank, Tag> &x) {
  *         element in the tensor. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::atanh, T, Tag>>
-atanh(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::atanh, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::atanh(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::atanh, Container, T, Rank>
+atanh(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::atanh, Container, T, Rank>(x);
 }
 
 /// Exponential and logarithmic functions.
@@ -547,11 +518,10 @@ atanh(const base_tensor<T, Rank, Tag> &x) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::exp, T, Tag>>
-exp(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::exp, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::exp(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::exp, Container, T, Rank>
+exp(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::exp, Container, T, Rank>(x);
 }
 
 /**
@@ -564,11 +534,10 @@ exp(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::log, T, Tag>>
-log(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::log, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::log(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::log, Container, T, Rank>
+log(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::log, Container, T, Rank>(x);
 }
 
 /**
@@ -580,11 +549,10 @@ log(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::log10, T, Tag>>
-log10(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::log10, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::log10(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::log10, Container, T, Rank>
+log10(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::log10, Container, T, Rank>(x);
 }
 
 /**
@@ -597,11 +565,10 @@ log10(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::exp2, T, Tag>>
-exp2(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::exp2, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::exp2(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::exp2, Container, T, Rank>
+exp2(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::exp2, Container, T, Rank>(x);
 }
 
 /**
@@ -613,11 +580,10 @@ exp2(const base_tensor<T, Rank, Tag> &x) {
  *         the tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::log2, T, Tag>>
-log2(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::log2, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::log2(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::log2, Container, T, Rank>
+log2(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::log2, Container, T, Rank>(x);
 }
 
 /**
@@ -631,11 +597,10 @@ log2(const base_tensor<T, Rank, Tag> &x) {
  *         in the tensor. This function does not create a new tensor, instead,
  *         an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::expm1, T, Tag>>
-expm1(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::expm1, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::expm1(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::expm1, Container, T, Rank>
+expm1(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::expm1, Container, T, Rank>(x);
 }
 
 /**
@@ -648,11 +613,10 @@ expm1(const base_tensor<T, Rank, Tag> &x) {
  *         element in the tensor. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::log1p, T, Tag>>
-log1p(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::log1p, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::log1p(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::log1p, Container, T, Rank>
+log1p(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::log1p, Container, T, Rank>(x);
 }
 
 /// Power functions.
@@ -667,27 +631,25 @@ log1p(const base_tensor<T, Rank, Tag> &x) {
  *         @a y, element-wise. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::pow, T, Tag1, T, Tag2>>
-pow(const base_tensor<T, Rank, Tag1> &x, const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::pow, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::pow(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::pow, Container1, T, Container2, T, Rank>
+pow(const expression<Container1, T, Rank> &x,
+    const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::pow, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::pow, T, Tag, T, scalar_tag>>
-pow(const base_tensor<T, Rank, Tag> &x,
-    const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::pow, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::pow(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::pow, Container, T, void, T, Rank>
+pow(const expression<Container, T, Rank> &x,
+    const typename Container::value_type &y) {
+  return binary_expr<math::pow, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::pow, T, scalar_tag, T, Tag>>
-pow(const typename base_tensor<T, Rank, Tag>::value_type &x,
-    const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::pow, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::pow(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::pow, void, T, Container, T, Rank>
+pow(const typename Container::value_type &x,
+    const expression<Container, T, Rank> &y) {
+  return binary_expr<math::pow, void, T, Container, T, Rank>(x, y);
 }
 
 /**
@@ -699,11 +661,10 @@ pow(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::sqrt, T, Tag>>
-sqrt(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::sqrt, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::sqrt(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::sqrt, Container, T, Rank>
+sqrt(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::sqrt, Container, T, Rank>(x);
 }
 
 /**
@@ -715,11 +676,10 @@ sqrt(const base_tensor<T, Rank, Tag> &x) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::cbrt, T, Tag>>
-cbrt(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::cbrt, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::cbrt(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::cbrt, Container, T, Rank>
+cbrt(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::cbrt, Container, T, Rank>(x);
 }
 
 /// Rounding.
@@ -734,11 +694,10 @@ cbrt(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::ceil, T, Tag>>
-ceil(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::ceil, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::ceil(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::ceil, Container, T, Rank>
+ceil(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::ceil, Container, T, Rank>(x);
 }
 
 /**
@@ -751,11 +710,10 @@ ceil(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::floor, T, Tag>>
-floor(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::floor, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::floor(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::floor, Container, T, Rank>
+floor(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::floor, Container, T, Rank>(x);
 }
 
 /**
@@ -768,11 +726,10 @@ floor(const base_tensor<T, Rank, Tag> &x) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::trunc, T, Tag>>
-trunc(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::trunc, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::trunc(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::trunc, Container, T, Rank>
+trunc(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::trunc, Container, T, Rank>(x);
 }
 
 /**
@@ -785,11 +742,10 @@ trunc(const base_tensor<T, Rank, Tag> &x) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::round, T, Tag>>
-round(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::round, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::round(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::round, Container, T, Rank>
+round(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::round, Container, T, Rank>(x);
 }
 
 /// Floating-point manipulation functions.
@@ -805,12 +761,10 @@ round(const base_tensor<T, Rank, Tag> &x) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<std::pair<T, int>, Rank, lazy_unary_tag<math::frexp, T, Tag>>
-frexp(const base_tensor<T, Rank, Tag> &x) {
-  typedef std::pair<T, int> Rt;
-  typedef lazy_unary_tag<math::frexp, T, Tag> Closure;
-  return base_tensor<Rt, Rank, Closure>(math::frexp(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::frexp, Container, T, Rank>
+frexp(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::frexp, Container, T, Rank>(x);
 }
 
 /**
@@ -824,28 +778,23 @@ frexp(const base_tensor<T, Rank, Tag> &x) {
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::ldexp, T, Tag1, int, Tag2>>
-ldexp(const base_tensor<T, Rank, Tag1> &x,
-      const base_tensor<int, Rank, Tag2> &exp) {
-  typedef lazy_binary_tag<math::ldexp, T, Tag1, int, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::ldexp, Container1, T, Container2, int, Rank>
+ldexp(const expression<Container1, T, Rank> &x,
+      const expression<Container2, int, Rank> &exp) {
+  return binary_expr<math::ldexp, Container1, T, Container2, int, Rank>(x, exp);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::ldexp, T, Tag, int, scalar_tag>>
-ldexp(const base_tensor<T, Rank, Tag> &x, int exp) {
-  typedef lazy_binary_tag<math::ldexp, T, Tag, int, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::ldexp, Container, T, void, int, Rank>
+ldexp(const expression<Container, T, Rank> &x, int exp) {
+  return binary_expr<math::ldexp, Container, T, void, int, Rank>(x, exp);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::ldexp, T, scalar_tag, int, Tag>>
-ldexp(const T &x, const base_tensor<int, Rank, Tag> &exp) {
-  typedef lazy_binary_tag<math::ldexp, T, scalar_tag, int, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::ldexp(), x, exp);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::ldexp, void, T, Container, int, Rank>
+ldexp(const T &x, const expression<Container, int, Rank> &exp) {
+  return binary_expr<math::ldexp, void, T, Container, int, Rank>(x, exp);
 }
 
 /**
@@ -860,30 +809,25 @@ ldexp(const T &x, const base_tensor<int, Rank, Tag> &exp) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::copysign, T, Tag1, T, Tag2>>
-copysign(const base_tensor<T, Rank, Tag1> &x,
-         const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::copysign, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::copysign, Container1, T, Container2, T, Rank>
+copysign(const expression<Container1, T, Rank> &x,
+         const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::copysign, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag>>
-copysign(const base_tensor<T, Rank, Tag> &x,
-         const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::copysign, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::copysign, Container, T, void, T, Rank>
+copysign(const expression<Container, T, Rank> &x,
+         const typename Container::value_type &y) {
+  return binary_expr<math::copysign, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag>>
-copysign(const typename base_tensor<T, Rank, Tag>::value_type &x,
-         const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::copysign, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::copysign(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::copysign, void, T, Container, T, Rank>
+copysign(const typename Container::value_type &x,
+         const expression<Container, T, Rank> &y) {
+  return binary_expr<math::copysign, void, T, Container, T, Rank>(x, y);
 }
 
 /**
@@ -899,30 +843,25 @@ copysign(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::nextafter, T, Tag1, T, Tag2>>
-nextafter(const base_tensor<T, Rank, Tag1> &x,
-          const base_tensor<T, Rank, Tag2> &y) {
-  typedef lazy_binary_tag<math::nextafter, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::nextafter, Container1, T, Container2, T, Rank>
+nextafter(const expression<Container1, T, Rank> &x,
+          const expression<Container2, T, Rank> &y) {
+  return binary_expr<math::nextafter, Container1, T, Container2, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag>>
-nextafter(const base_tensor<T, Rank, Tag> &x,
-          const typename base_tensor<T, Rank, Tag>::value_type &y) {
-  typedef lazy_binary_tag<math::nextafter, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::nextafter, Container, T, void, T, Rank>
+nextafter(const expression<Container, T, Rank> &x,
+          const typename Container::value_type &y) {
+  return binary_expr<math::nextafter, Container, T, void, T, Rank>(x, y);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank,
-                   lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag>>
-nextafter(const typename base_tensor<T, Rank, Tag>::value_type &x,
-          const base_tensor<T, Rank, Tag> &y) {
-  typedef lazy_binary_tag<math::nextafter, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::nextafter(), x, y);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::nextafter, void, T, Container, T, Rank>
+nextafter(const typename Container::value_type &x,
+          const expression<Container, T, Rank> &y) {
+  return binary_expr<math::nextafter, void, T, Container, T, Rank>(x, y);
 }
 
 /// Integer-valued functions.
@@ -938,27 +877,25 @@ nextafter(const typename base_tensor<T, Rank, Tag>::value_type &x,
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::gcd, T, Tag1, T, Tag2>>
-gcd(const base_tensor<T, Rank, Tag1> &m, const base_tensor<T, Rank, Tag2> &n) {
-  typedef lazy_binary_tag<math::gcd, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::gcd, Container1, T, Container2, T, Rank>
+gcd(const expression<Container1, T, Rank> &m,
+    const expression<Container2, T, Rank> &n) {
+  return binary_expr<math::gcd, Container1, T, Container2, T, Rank>(m, n);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::gcd, T, Tag, T, scalar_tag>>
-gcd(const base_tensor<T, Rank, Tag> &m,
-    const typename base_tensor<T, Rank, Tag>::value_type &n) {
-  typedef lazy_binary_tag<math::gcd, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::gcd, Container, T, void, T, Rank>
+gcd(const expression<Container, T, Rank> &m,
+    const typename Container::value_type &n) {
+  return binary_expr<math::gcd, Container, T, void, T, Rank>(m, n);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::gcd, T, scalar_tag, T, Tag>>
-gcd(const typename base_tensor<T, Rank, Tag>::value_type &m,
-    const base_tensor<T, Rank, Tag> &n) {
-  typedef lazy_binary_tag<math::gcd, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::gcd(), m, n);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::gcd, void, T, Container, T, Rank>
+gcd(const typename Container::value_type &m,
+    const expression<Container, T, Rank> &n) {
+  return binary_expr<math::gcd, void, T, Container, T, Rank>(m, n);
 }
 
 /**
@@ -972,27 +909,25 @@ gcd(const typename base_tensor<T, Rank, Tag>::value_type &m,
  *         This function does not create a new tensor, instead, an expression
  *         object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-inline base_tensor<T, Rank, lazy_binary_tag<math::lcm, T, Tag1, T, Tag2>>
-lcm(const base_tensor<T, Rank, Tag1> &m, const base_tensor<T, Rank, Tag2> &n) {
-  typedef lazy_binary_tag<math::lcm, T, Tag1, T, Tag2> Closure;
-  return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
+template <class Container1, class T, class Container2, size_t Rank>
+inline binary_expr<math::lcm, Container1, T, Container2, T, Rank>
+lcm(const expression<Container1, T, Rank> &m,
+    const expression<Container2, T, Rank> &n) {
+  return binary_expr<math::lcm, Container1, T, Container2, T, Rank>(m, n);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::lcm, T, Tag, T, scalar_tag>>
-lcm(const base_tensor<T, Rank, Tag> &m,
-    const typename base_tensor<T, Rank, Tag>::value_type &n) {
-  typedef lazy_binary_tag<math::lcm, T, Tag, T, scalar_tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
+template <class Container, class T, size_t Rank>
+inline binary_expr<math::lcm, Container, T, void, T, Rank>
+lcm(const expression<Container, T, Rank> &m,
+    const typename Container::value_type &n) {
+  return binary_expr<math::lcm, Container, T, void, T, Rank>(m, n);
 }
 
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_binary_tag<math::lcm, T, scalar_tag, T, Tag>>
-lcm(const typename base_tensor<T, Rank, Tag>::value_type &m,
-    const base_tensor<T, Rank, Tag> &n) {
-  typedef lazy_binary_tag<math::lcm, T, scalar_tag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::lcm(), m, n);
+template <class T, class Container, size_t Rank>
+inline binary_expr<math::lcm, void, T, Container, T, Rank>
+lcm(const typename Container::value_type &m,
+    const expression<Container, T, Rank> &n) {
+  return binary_expr<math::lcm, void, T, Container, T, Rank>(m, n);
 }
 
 /// Complex numbers.
@@ -1007,18 +942,10 @@ lcm(const typename base_tensor<T, Rank, Tag>::value_type &m,
  *         imaginary part component. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::real, std::complex<T>, Tag>>
-real(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::real, std::complex<T>, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::real(), z);
-}
-
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::real, T, Tag>>
-real(const base_tensor<T, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::real, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::real(), z);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::real, Container, T, Rank>
+real(const expression<Container, T, Rank> &z) {
+  return unary_expr<math::real, Container, T, Rank>(z);
 }
 
 /**
@@ -1031,18 +958,10 @@ real(const base_tensor<T, Rank, Tag> &z) {
  *         imaginary part component. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::imag, std::complex<T>, Tag>>
-imag(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::imag, std::complex<T>, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::imag(), z);
-}
-
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::imag, T, Tag>>
-imag(const base_tensor<T, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::imag, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::imag(), z);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::imag, Container, T, Rank>
+imag(const expression<Container, T, Rank> &z) {
+  return unary_expr<math::imag, Container, T, Rank>(z);
 }
 
 /**
@@ -1058,20 +977,10 @@ imag(const base_tensor<T, Rank, Tag> &z) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<std::complex<T>, Rank,
-                   lazy_unary_tag<math::conj, std::complex<T>, Tag>>
-conj(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-  typedef std::complex<T> Rt;
-  typedef lazy_unary_tag<math::conj, std::complex<T>, Tag> Closure;
-  return base_tensor<Rt, Rank, Closure>(math::conj(), z);
-}
-
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::conj, T, Tag>>
-conj(const base_tensor<T, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::conj, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::conj(), z);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::conj, Container, T, Rank>
+conj(const expression<Container, T, Rank> &z) {
+  return unary_expr<math::conj, Container, T, Rank>(z);
 }
 
 /**
@@ -1084,12 +993,6 @@ conj(const base_tensor<T, Rank, Tag> &z) {
  *         tensor. This function does not create a new tensor, instead, an
  *         expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::abs, std::complex<T>, Tag>>
-abs(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::abs, std::complex<T>, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::abs(), z);
-}
 
 /**
  * @brief Return the phase angle (in radians) of a complex number, element-wise.
@@ -1101,18 +1004,10 @@ abs(const base_tensor<std::complex<T>, Rank, Tag> &z) {
  *         imaginary part component. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::arg, std::complex<T>, Tag>>
-arg(const base_tensor<std::complex<T>, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::arg, std::complex<T>, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::arg(), z);
-}
-
-template <class T, size_t Rank, class Tag>
-inline base_tensor<T, Rank, lazy_unary_tag<math::arg, T, Tag>>
-arg(const base_tensor<T, Rank, Tag> &z) {
-  typedef lazy_unary_tag<math::arg, T, Tag> Closure;
-  return base_tensor<T, Rank, Closure>(math::arg(), z);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::arg, Container, T, Rank>
+arg(const expression<Container, T, Rank> &z) {
+  return unary_expr<math::arg, Container, T, Rank>(z);
 }
 
 /// Clasification functions.
@@ -1128,11 +1023,10 @@ arg(const base_tensor<T, Rank, Tag> &z) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_unary_tag<math::isfinite, T, Tag>>
-isfinite(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::isfinite, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(math::isfinite(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::isfinite, Container, T, Rank>
+isfinite(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::isfinite, Container, T, Rank>(x);
 }
 
 /**
@@ -1146,11 +1040,10 @@ isfinite(const base_tensor<T, Rank, Tag> &x) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_unary_tag<math::isinf, T, Tag>>
-isinf(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::isinf, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(math::isinf(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::isinf, Container, T, Rank>
+isinf(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::isinf, Container, T, Rank>(x);
 }
 
 /**
@@ -1165,11 +1058,10 @@ isinf(const base_tensor<T, Rank, Tag> &x) {
  *         and false otherwise. This function does not create a new tensor,
  *         instead, an expression object is returned (see lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_unary_tag<math::isnan, T, Tag>>
-isnan(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::isnan, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(math::isnan(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::isnan, Container, T, Rank>
+isnan(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::isnan, Container, T, Rank>(x);
 }
 
 /**
@@ -1182,11 +1074,10 @@ isnan(const base_tensor<T, Rank, Tag> &x) {
  *         tensor, instead, an expression object is returned (see
  *         lazy-evaluation).
  */
-template <class T, size_t Rank, class Tag>
-inline base_tensor<bool, Rank, lazy_unary_tag<math::signbit, T, Tag>>
-signbit(const base_tensor<T, Rank, Tag> &x) {
-  typedef lazy_unary_tag<math::signbit, T, Tag> Closure;
-  return base_tensor<bool, Rank, Closure>(math::signbit(), x);
+template <class Container, class T, size_t Rank>
+inline unary_expr<math::signbit, Container, T, Rank>
+signbit(const expression<Container, T, Rank> &x) {
+  return unary_expr<math::signbit, Container, T, Rank>(x);
 }
 } // namespace numcpp
 

@@ -50,22 +50,25 @@ public:
     /**
      * @brief Default constructor.
      */
-    iterator() : m_shape(), m_index(0) {}
+    iterator() : m_shape(), m_index(0), m_order(default_layout) {}
 
     /**
      * @brief Flat index constructor.
      *
      * @param shape Number of elements along each axis.
      * @param index Flat index into the tensor.
+     * @param order Order in which elements are iterated.
      */
-    iterator(const shape_t<Rank> &shape, size_t index = 0)
-        : m_shape(shape), m_index(index) {}
+    iterator(const shape_t<Rank> &shape, size_t index = 0,
+             layout_t order = default_layout)
+        : m_shape(shape), m_index(index), m_order(order) {}
 
     /**
      * @brief Copy constructor.
      */
     iterator(const iterator &other)
-        : m_shape(other.m_shape), m_index(other.m_index) {}
+        : m_shape(other.m_shape), m_index(other.m_index),
+          m_order(other.m_order) {}
 
     /// Assignment operator.
 
@@ -75,6 +78,7 @@ public:
     iterator &operator=(const iterator &other) {
       m_shape = other.m_shape;
       m_index = other.m_index;
+      m_order = other.m_order;
       return *this;
     }
 
@@ -100,7 +104,9 @@ public:
     /**
      * @brief Return a reference to the current index.
      */
-    index_t<Rank> operator*() const { return unravel_index(m_index, m_shape); }
+    index_t<Rank> operator*() const {
+      return unravel_index(m_index, m_shape, m_order);
+    }
 
     /// Relational operators.
 
@@ -118,6 +124,9 @@ public:
 
     // Flat index into the tensor.
     size_t m_index;
+
+    // Order in which elements are iterated.
+    layout_t m_order;
   };
 
   /**
@@ -125,23 +134,26 @@ public:
    *
    * @param shape Number of elements along each axis. It can be a shape_t object
    *              or the elements of the shape passed as separate arguments.
+   * @param order Order in which elements are iterated. Defaults to row-major
+   *              order.
    */
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  index_sequence(Sizes... sizes) : m_shape(sizes...), m_size(m_shape.prod()) {}
+  index_sequence(Sizes... sizes)
+      : m_shape(sizes...), m_size(m_shape.prod()), m_order(default_layout) {}
 
-  index_sequence(const shape_t<Rank> &shape)
-      : m_shape(shape), m_size(shape.prod()) {}
+  index_sequence(const shape_t<Rank> &shape, layout_t order = default_layout)
+      : m_shape(shape), m_size(shape.prod()), m_order(order) {}
 
   /**
    * @brief Return a forward iterator to the first index.
    */
-  iterator begin() const { return iterator(m_shape, 0); }
+  iterator begin() const { return iterator(m_shape, 0, m_order); }
 
   /**
    * @brief Return a forward iterator to the past the end index.
    */
-  iterator end() const { return iterator(m_shape, m_size); }
+  iterator end() const { return iterator(m_shape, m_size, m_order); }
 
   /**
    * @brief Return the number of elements along each axis.
@@ -159,25 +171,32 @@ public:
    */
   size_t size() const { return m_size; }
 
+  /**
+   * @brief Return the memory layout in which indices are computed.
+   */
+  layout_t layout() const { return m_order; }
+
 private:
   // Number of elements along each axis.
   shape_t<Rank> m_shape;
 
   // Number of elements.
   size_t m_size;
+
+  // Order in which elements are iterated.
+  layout_t m_order;
 };
 
 /**
- * @brief Create an index_sequence object deducing its dimension from the number
- * of arguments.
+ * @brief Create an index_sequence.
  *
  * @param shape Number of elements along each axis. It can be a shape_t object
  *              or the elements of the shape passed as separate arguments.
- * @param arg A tensor-like object to iterate over its indices.
+ * @param order Order in which elements are iterated. Defaults to row-major
+ *              order.
  *
  * @return An index_sequence object which iterates over the indices of a tensor.
- *         At each iteration, a new index is returned. The elements are iterated
- *         in row-major order, i.e., with the last index varying the fastest.
+ *         At each iteration, a new index is returned.
  */
 template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
 inline index_sequence<sizeof...(Sizes)> make_index_sequence(Sizes... sizes) {
@@ -185,14 +204,34 @@ inline index_sequence<sizeof...(Sizes)> make_index_sequence(Sizes... sizes) {
 }
 
 template <size_t Rank>
-inline index_sequence<Rank> make_index_sequence(const shape_t<Rank> &shape) {
-  return index_sequence<Rank>(shape);
+inline index_sequence<Rank>
+make_index_sequence(const shape_t<Rank> &shape,
+                    layout_t order = default_layout) {
+  return index_sequence<Rank>(shape, order);
 }
 
-template <class T, size_t Rank, class Tag>
+/**
+ * @brief Create an index_sequence.
+ *
+ * @param a A tensor-like object to iterate over.
+ * @param order Order in which elements are iterated. Defaults to the same
+ *              layout as of @a a.
+ *
+ *
+ * @return An index_sequence object which iterates over the indices of a tensor.
+ *         At each iteration, a new index is returned.
+ */
+template <class Container, class T, size_t Rank>
 inline index_sequence<Rank>
-make_index_sequence_for(const base_tensor<T, Rank, Tag> &arg) {
-  return index_sequence<Rank>(arg.shape());
+make_index_sequence_for(const expression<Container, T, Rank> &a) {
+  return index_sequence<Rank>(a.shape(), a.layout());
+}
+
+template <class Container, class T, size_t Rank>
+inline index_sequence<Rank>
+make_index_sequence_for(const expression<Container, T, Rank> &a,
+                        layout_t order) {
+  return index_sequence<Rank>(a.shape(), order);
 }
 } // namespace numcpp
 

@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/slice.h
+/** @file include/numcpp/tensor/slice.h
  *  This header defines slice class.
  */
 

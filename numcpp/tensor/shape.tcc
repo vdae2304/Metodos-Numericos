@@ -25,8 +25,7 @@
 #define NUMCPP_SHAPE_TCC_INCLUDED
 
 #include <algorithm>
-#include <sstream>
-#include <stdexcept>
+#include "numcpp/broadcasting/assert.h"
 
 namespace numcpp {
 template <size_t Rank> shape_t<Rank>::shape_t() : m_shape{0} {}
@@ -47,8 +46,6 @@ inline shape_t<Rank> &shape_t<Rank>::operator=(const shape_t &other) {
   return *this;
 }
 
-template <size_t Rank> constexpr size_t shape_t<Rank>::ndim() { return Rank; }
-
 template <size_t Rank> inline size_t shape_t<Rank>::prod() const {
   size_t size = 1;
   for (size_t i = 0; i < Rank; ++i) {
@@ -62,43 +59,6 @@ template <size_t Rank> inline size_t *shape_t<Rank>::data() { return m_shape; }
 template <size_t Rank> inline const size_t *shape_t<Rank>::data() const {
   return m_shape;
 }
-
-namespace detail {
-/**
- * @brief Asserts whether an index is within the bounds of a tensor. Throws a
- * std::out_of_range exception if assertion fails.
- */
-inline void assert_within_bounds(size_t size, size_t i) {
-  if (i >= size) {
-    std::ostringstream error;
-    error << "index " << i << " is out of bounds with size " << size;
-    throw std::out_of_range(error.str());
-  }
-}
-
-template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape,
-                                 const index_t<Rank> &index) {
-  for (size_t i = 0; i < index.ndim(); ++i) {
-    if (index[i] >= shape[i]) {
-      std::ostringstream error;
-      error << "index " << index << " is out of bounds with size " << shape;
-      throw std::out_of_range(error.str());
-    }
-  }
-}
-
-template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape, size_t index,
-                                 size_t axis) {
-  if (index >= shape[axis]) {
-    std::ostringstream error;
-    error << "index " << index << " is out of bounds for axis " << axis
-          << " with size " << shape[axis];
-    throw std::out_of_range(error.str());
-  }
-}
-} // namespace detail
 
 template <size_t Rank> inline size_t &shape_t<Rank>::operator[](size_t i) {
   detail::assert_within_bounds(Rank, i);
@@ -132,8 +92,8 @@ template <size_t Rank>
 shape_t<Rank> make_strides(const shape_t<Rank> &shape, layout_t order) {
   shape_t<Rank> strides;
   size_t size = 1;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     strides[k] = size;
     size *= shape[k];
   }
@@ -145,8 +105,8 @@ size_t ravel_index(const index_t<Rank> &index, const shape_t<Rank> &shape,
                    layout_t order) {
   size_t flat_index = 0;
   size_t size = 1;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     flat_index += size * index[k];
     size *= shape[k];
   }
@@ -157,8 +117,8 @@ template <size_t Rank>
 index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
                             layout_t order) {
   index_t<Rank> multi_index;
-  for (size_t i = 0; i < shape.ndim(); ++i) {
-    size_t k = (order == row_major) ? shape.ndim() - 1 - i : i;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (order == row_major) ? Rank - 1 - i : i;
     multi_index[k] = index % shape[k];
     index /= shape[k];
   }
@@ -166,6 +126,72 @@ index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
 }
 
 namespace detail {
+/**
+ * @brief Expand the dimension of the shape by inserting new axes.
+ */
+template <size_t Rank, size_t N>
+shape_t<Rank + N> insert_axes(const shape_t<Rank> &shape,
+                              const shape_t<N> &axes, size_t val = 0) {
+  shape_t<Rank + N> out_shape;
+  bool new_axis[Rank + N] = {};
+  for (size_t i = 0; i < N; ++i) {
+    new_axis[axes[i]] = true;
+  }
+  for (size_t i = 0, offset = 0; i < Rank + N; ++i) {
+    out_shape[i] = new_axis[i] ? val : shape[offset++];
+  }
+  return out_shape;
+}
+
+template <size_t Rank>
+shape_t<Rank + 1> insert_axes(const shape_t<Rank> &shape, size_t axis,
+                              size_t val = 0) {
+  shape_t<Rank + 1> out_shape;
+  for (size_t i = 0; i < axis; ++i) {
+    out_shape[i] = shape[i];
+  }
+  out_shape[axis] = val;
+  for (size_t i = axis; i < Rank; ++i) {
+    out_shape[i + 1] = shape[i];
+  }
+  return out_shape;
+}
+
+/**
+ * @brief Removes specified axes from a shape.
+ */
+template <size_t Rank, size_t N>
+shape_t<Rank - N> remove_axes(const shape_t<Rank> &shape,
+                              const shape_t<N> &axes) {
+  static_assert(N < Rank, "The number of dimensions to remove cannot be larger"
+                          " than the tensor dimension");
+  bool drop_axis[Rank] = {};
+  for (size_t i = 0; i < N; ++i) {
+    drop_axis[axes[i]] = true;
+  }
+  shape_t<Rank - N> out_shape;
+  for (size_t i = 0, offset = 0; i < Rank; ++i) {
+    if (!drop_axis[i]) {
+      out_shape[offset++] = shape[i];
+    }
+  }
+  return out_shape;
+}
+
+template <size_t Rank>
+shape_t<Rank - 1> remove_axes(const shape_t<Rank> &shape, size_t axis) {
+  static_assert(Rank > 1, "The number of dimensions to remove cannot be larger"
+                          " than the tensor dimension");
+  shape_t<Rank - 1> out_shape;
+  for (size_t i = 0; i < axis; ++i) {
+    out_shape[i] = shape[i];
+  }
+  for (size_t i = axis + 1; i < Rank; ++i) {
+    out_shape[i - 1] = shape[i];
+  }
+  return out_shape;
+}
+
 /**
  * @brief Broadcast input shapes into a common shape.
  */
@@ -175,7 +201,7 @@ template <size_t Rank, class... Shapes>
 void broadcast_shapes_impl(shape_t<Rank> &out_shape,
                            const shape_t<Rank> &shape1,
                            const Shapes &...shape2) {
-  for (size_t i = 0; i < shape1.ndim(); ++i) {
+  for (size_t i = 0; i < Rank; ++i) {
     if (out_shape[i] == 1) {
       out_shape[i] = shape1[i];
     } else if (shape1[i] != out_shape[i] && shape1[i] != 1) {
@@ -196,7 +222,7 @@ void shape_cat_impl(size_t *) {}
 template <size_t Rank, class... Shapes>
 void shape_cat_impl(size_t *out_shape, const shape_t<Rank> &shape1,
                     const Shapes &...shape2) {
-  out_shape = std::copy_n(shape1.data(), shape1.ndim(), out_shape);
+  out_shape = std::copy_n(shape1.data(), Rank, out_shape);
   shape_cat_impl(out_shape, shape2...);
 }
 } // namespace detail
@@ -221,15 +247,107 @@ shape_cat(const shape_t<Rank> &shape1, const Shapes &...shape2) {
 template <size_t Rank1, size_t Rank2>
 inline bool operator==(const shape_t<Rank1> &shape1,
                        const shape_t<Rank2> &shape2) {
-  const size_t *first1 = shape1.data(), *last1 = first1 + shape1.ndim();
+  const size_t *first1 = shape1.data(), *last1 = first1 + Rank1;
   const size_t *first2 = shape2.data();
-  return (shape1.ndim() == shape2.ndim() && std::equal(first1, last1, first2));
+  return (Rank1 == Rank2 && std::equal(first1, last1, first2));
 }
 
 template <size_t Rank1, size_t Rank2>
 inline bool operator!=(const shape_t<Rank1> &shape1,
                        const shape_t<Rank2> &shape2) {
   return !(shape1 == shape2);
+}
+
+template <class charT, class traits, size_t Rank>
+std::basic_istream<charT, traits> &
+operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape) {
+  charT ch;
+  bool fail = true;
+  if (istr >> ch) {
+    if (traits::eq(ch, istr.widen('('))) {
+      for (size_t i = 0; i < Rank; ++i) {
+        if (istr >> shape[i] >> ch) {
+          if (traits::eq(ch, istr.widen(','))) {
+            if (i < Rank - 1) {
+              continue;
+            }
+          } else if (traits::eq(ch, istr.widen(')'))) {
+            if (i == Rank - 1) {
+              fail = false;
+              break;
+            }
+          } else {
+            istr.putback(ch);
+          }
+        }
+        break;
+      }
+    } else {
+      istr.putback(ch);
+    }
+  }
+  if (fail) {
+    istr.setstate(std::ios_base::failbit);
+  }
+  return istr;
+}
+
+template <class charT, class traits>
+std::basic_istream<charT, traits> &
+operator>>(std::basic_istream<charT, traits> &istr, shape_t<1> &shape) {
+  charT ch;
+  bool fail = true;
+  if (istr >> ch) {
+    if (traits::eq(ch, istr.widen('('))) {
+      if (istr >> shape[0] >> ch) {
+        if (traits::eq(ch, istr.widen(','))) {
+          if (istr >> ch) {
+            if (traits::eq(ch, istr.widen(')'))) {
+              fail = false;
+            } else {
+              istr.putback(ch);
+            }
+          }
+        } else {
+          istr.putback(ch);
+        }
+      }
+    } else {
+      istr.putback(ch);
+      if (istr >> shape[0]) {
+        fail = false;
+      }
+    }
+  }
+  if (fail) {
+    istr.setstate(std::ios_base::failbit);
+  }
+  return istr;
+}
+
+template <class charT, class traits, size_t Rank>
+std::basic_ostream<charT, traits> &
+operator<<(std::basic_ostream<charT, traits> &ostr,
+           const shape_t<Rank> &shape) {
+  std::basic_stringstream<charT, traits> sstr;
+  sstr.flags(ostr.flags());
+  sstr.imbue(ostr.getloc());
+  sstr << "(" << shape[0];
+  for (size_t i = 1; i < Rank; ++i) {
+    sstr << ", " << shape[i];
+  }
+  sstr << ")";
+  return ostr << sstr.str();
+}
+
+template <class charT, class traits>
+std::basic_ostream<charT, traits> &
+operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape) {
+  std::basic_stringstream<charT, traits> sstr;
+  sstr.flags(ostr.flags());
+  sstr.imbue(ostr.getloc());
+  sstr << "(" << shape[0] << ",)";
+  return ostr << sstr.str();
 }
 } // namespace numcpp
 

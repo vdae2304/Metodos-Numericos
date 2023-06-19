@@ -24,40 +24,39 @@
 #ifndef NUMCPP_TRANSPOSE_VIEW_H_INCLUDED
 #define NUMCPP_TRANSPOSE_VIEW_H_INCLUDED
 
-namespace numcpp {
-/// Forward declarations.
-template <class Tag> struct transpose_tag;
-template <class Tag> struct conj_transpose_tag;
+#include "numcpp/shape.h"
+#include "numcpp/iterators/flat_iterator.h"
 
+namespace numcpp {
 /**
  * @brief A light-weight object which stores the elements of a tensor with its
- * axes reversed or permuted. This class represents a view of the elements of
- * another tensor rather than a new tensor.
+ * axes reversed or permuted. This class represents a readonly view of the
+ * elements of another tensor rather than a new tensor.
  *
+ * @tparam Container Type of the tensor whose elements are referenced.
  * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
- * @tparam Tag Type of the base_tensor container to transpose.
+ * @tparam Rank Dimension of the tensor.
  */
-template <class T, size_t Rank, class Tag>
-class base_tensor<T, Rank, transpose_tag<Tag>> {
+template <class Container, class T, size_t Rank>
+class transpose_expr
+    : public expression<transpose_expr<Container, T, Rank>, T, Rank> {
 public:
   /// Member types.
-  typedef typename base_tensor<T, Rank, Tag>::value_type value_type;
-  typedef typename base_tensor<T, Rank, Tag>::const_reference reference;
-  typedef typename base_tensor<T, Rank, Tag>::const_reference const_reference;
-  typedef typename base_tensor<T, Rank, Tag>::const_pointer pointer;
-  typedef typename base_tensor<T, Rank, Tag>::const_pointer const_pointer;
-  typedef base_tensor_const_iterator<T, Rank, transpose_tag<Tag>> iterator;
-  typedef base_tensor_const_iterator<T, Rank, transpose_tag<Tag>>
-      const_iterator;
+  typedef T value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
+  typedef T reference;
+  typedef flat_iterator<const transpose_expr<Container, T, Rank>, value_type,
+                        rank, pointer, reference>
+      iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
   typedef index_t<Rank> index_type;
 
 private:
-  // Tensor object to transpose.
-  const base_tensor<T, Rank, Tag> &m_arg;
+  // Tensor to transpose.
+  const Container &m_arg;
 
   // Permuted shape.
   shape_type m_shape;
@@ -69,28 +68,30 @@ public:
   /// Constructors.
 
   /**
-   * @brief Constructs a view which reverse or permute the axes of a tensor.
+   * @brief Constructs a readonly view which reverse or permute the axes of a
+   * tensor.
    *
-   * @param arg Tensor to transpose.
+   * @param a Tensor to transpose.
    * @param axes A permutation of (0, 1, ..., Rank - 1). Defaults to
    *             (Rank - 1, ..., 1, 0).
    */
-  base_tensor(const base_tensor<T, Rank, Tag> &arg) : m_arg(arg) {
-    for (size_t i = 0; i < m_axes.ndim(); ++i) {
-      m_axes[i] = m_axes.ndim() - 1 - i;
-      m_shape[i] = arg.shape(m_axes[i]);
+  transpose_expr(const expression<Container, T, Rank> &a) : m_arg(a.self()) {
+    for (size_t i = 0; i < Rank; ++i) {
+      m_axes[i] = Rank - 1 - i;
+      m_shape[i] = a.shape(m_axes[i]);
     }
   }
 
-  base_tensor(const base_tensor<T, Rank, Tag> &arg, const shape_type &axes)
-      : m_arg(arg), m_axes(axes) {
-    for (size_t i = 0; i < m_axes.ndim(); ++i) {
-      m_shape[i] = arg.shape(m_axes[i]);
+  transpose_expr(const expression<Container, T, Rank> &a,
+                 const shape_type &axes)
+      : m_arg(a.self()), m_axes(axes) {
+    for (size_t i = 0; i < Rank; ++i) {
+      m_shape[i] = a.shape(m_axes[i]);
     }
   }
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~transpose_expr() = default;
 
   /// Iterators.
 
@@ -105,13 +106,9 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
   /**
    * @brief Return an iterator pointing to the past-the-end element in the
@@ -126,28 +123,13 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
-
-  /**
-   * @brief Call operator. Returns the element at the given position.
-   *
-   * @param indices... Position of an element along each axis.
-   *
-   * @return The element at the specified position.
-   */
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  const_reference operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
-  }
 
   /**
    * @brief Subscript operator. Returns the element at the given position.
@@ -157,20 +139,15 @@ public:
    *
    * @return The element at the specified position.
    */
-  const_reference operator[](const index_type &index) const {
+  auto operator[](const index_type &index) const -> decltype(m_arg[index]) {
     index_type out_index;
-    for (size_t i = 0; i < index.ndim(); ++i) {
+    for (size_t i = 0; i < Rank; ++i) {
       out_index[i] = index[m_axes[i]];
     }
     return m_arg[out_index];
   }
 
   /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank; }
-
-  /**
    * @brief Return the shape of the tensor.
    *
    * @param axis It is an optional parameter that changes the return value. If
@@ -192,49 +169,42 @@ public:
    * @brief Return the memory layout in which elements are stored.
    */
   layout_t layout() const { return m_arg.layout(); }
-
-  /// Public methods.
-
-  /**
-   * @brief Return a copy of the tensor.
-   */
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 
 /**
  * @brief A light-weight object which stores the complex conjugate of the
  * elements in a tensor with its axes reversed or permuted. This class
- * represents a view of the elements of another tensor rather than a new tensor.
+ * represents a readonly view of the elements of another tensor rather than a
+ * new tensor.
  *
- * @tparam T Type of the real and imaginary components in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
- * @tparam Tag Type of the base_tensor container to transpose.
+ * @tparam Container Type of the tensor whose elements are referenced.
+ * @tparam T Type of the elements contained in the tensor.
+ * @tparam Rank Dimension of the tensor.
  */
-template <class T, size_t Rank, class Tag>
-class base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag>> {
+template <class Container, class T, size_t Rank> class conj_transpose_expr;
+
+template <class Container, class T, size_t Rank>
+class conj_transpose_expr<Container, std::complex<T>, Rank>
+    : public expression<conj_transpose_expr<Container, std::complex<T>, Rank>,
+                        std::complex<T>, Rank> {
 public:
   /// Member types.
   typedef std::complex<T> value_type;
+  static constexpr size_t rank = Rank;
+  typedef void pointer;
   typedef std::complex<T> reference;
-  typedef std::complex<T> const_reference;
-  typedef nullptr_t pointer;
-  typedef nullptr_t const_pointer;
-  typedef base_tensor_const_iterator<std::complex<T>, Rank,
-                                     conj_transpose_tag<Tag>>
+  typedef flat_iterator<
+      const conj_transpose_expr<Container, std::complex<T>, Rank>, value_type,
+      rank, pointer, reference>
       iterator;
-  typedef base_tensor_const_iterator<std::complex<T>, Rank,
-                                     conj_transpose_tag<Tag>>
-      const_iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<Rank> shape_type;
   typedef index_t<Rank> index_type;
 
 private:
-  // Tensor object to conjugate transpose.
-  const base_tensor<std::complex<T>, Rank, Tag> &m_arg;
+  // Tensor to conjugate transpose.
+  const Container &m_arg;
 
   // Permuted shape.
   shape_type m_shape;
@@ -246,29 +216,31 @@ public:
   /// Constructors.
 
   /**
-   * @brief Constructs a view which reverse or permute the axes of a tensor.
+   * @brief Constructs a readonly view which reverse or permute the axes of a
+   * tensor.
    *
-   * @param arg Tensor to conjugate transpose.
+   * @param a Tensor to conjugate transpose.
    * @param axes A permutation of (0, 1, ..., Rank - 1). Defaults to
    *             (Rank - 1, ..., 1, 0).
    */
-  base_tensor(const base_tensor<std::complex<T>, Rank, Tag> &arg) : m_arg(arg) {
-    for (size_t i = 0; i < m_axes.ndim(); ++i) {
-      m_axes[i] = m_axes.ndim() - 1 - i;
-      m_shape[i] = arg.shape(m_axes[i]);
+  conj_transpose_expr(const expression<Container, std::complex<T>, Rank> &a)
+      : m_arg(a.self()) {
+    for (size_t i = 0; i < Rank; ++i) {
+      m_axes[i] = Rank - 1 - i;
+      m_shape[i] = a.shape(m_axes[i]);
     }
   }
 
-  base_tensor(const base_tensor<std::complex<T>, Rank, Tag> &arg,
-              const shape_type &axes)
-      : m_arg(arg), m_axes(axes) {
-    for (size_t i = 0; i < m_axes.ndim(); ++i) {
-      m_shape[i] = arg.shape(m_axes[i]);
+  conj_transpose_expr(const expression<Container, std::complex<T>, Rank> &a,
+                      const shape_type &axes)
+      : m_arg(a.self()), m_axes(axes) {
+    for (size_t i = 0; i < Rank; ++i) {
+      m_shape[i] = a.shape(m_axes[i]);
     }
   }
 
   /// Destructor.
-  ~base_tensor() = default;
+  ~conj_transpose_expr() = default;
 
   /// Iterators.
 
@@ -283,13 +255,9 @@ public:
    *
    * @return A random access iterator to the beginning of the tensor.
    */
-  const_iterator begin() const {
-    return const_iterator(this, 0, this->layout());
-  }
+  iterator begin() const { return this->begin(this->layout()); }
 
-  const_iterator begin(layout_t order) const {
-    return const_iterator(this, 0, order);
-  }
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
 
   /**
    * @brief Return an iterator pointing to the past-the-end element in the
@@ -304,28 +272,13 @@ public:
    *
    * @return A random access iterator to the element past the end of the tensor.
    */
-  const_iterator end() const {
-    return const_iterator(this, this->size(), this->layout());
-  }
+  iterator end() const { return this->end(this->layout()); }
 
-  const_iterator end(layout_t order) const {
-    return const_iterator(this, this->size(), order);
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
   }
 
   /// Indexing.
-
-  /**
-   * @brief Call operator. Returns the element at the given position.
-   *
-   * @param indices... Position of an element along each axis.
-   *
-   * @return The element at the specified position.
-   */
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresIntegral<Indices...> = 0>
-  value_type operator()(Indices... indices) const {
-    return this->operator[](index_type(indices...));
-  }
 
   /**
    * @brief Subscript operator. Returns the element at the given position.
@@ -335,18 +288,13 @@ public:
    *
    * @return The element at the specified position.
    */
-  value_type operator[](const index_type &index) const {
+  std::complex<T> operator[](const index_type &index) const {
     index_type out_index;
-    for (size_t i = 0; i < index.ndim(); ++i) {
+    for (size_t i = 0; i < Rank; ++i) {
       out_index[i] = index[m_axes[i]];
     }
     return std::conj(m_arg[out_index]);
   }
-
-  /**
-   * @brief Return the dimension of the tensor.
-   */
-  static constexpr size_type ndim() { return Rank; }
 
   /**
    * @brief Return the shape of the tensor.
@@ -370,15 +318,6 @@ public:
    * @brief Return the memory layout in which elements are stored.
    */
   layout_t layout() const { return m_arg.layout(); }
-
-  /// Public methods.
-
-  /**
-   * @brief Return a copy of the tensor.
-   */
-  tensor<value_type, Rank> copy() const {
-    return tensor<value_type, Rank>(*this);
-  }
 };
 } // namespace numcpp
 

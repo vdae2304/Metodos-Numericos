@@ -23,6 +23,9 @@
 #ifndef NUMCPP_INDIRECT_TENSOR_H_INCLUDED
 #define NUMCPP_INDIRECT_TENSOR_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/tensor/dense_tensor.h"
+
 namespace numcpp {
 /**
  * @brief An indirect_tensor is a view of a subset of elements from a
@@ -37,12 +40,15 @@ namespace numcpp {
  * @tparam Rank Dimension of the indirect_tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class base_tensor<T, Rank, indirect_tag>
-    : public tensor_interface<T, Rank, indirect_tag>,
-      public complex_interface<T, Rank, indirect_tag> {
+class indirect_tensor
+    : public dense_tensor<indirect_tensor<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank>,
+      public complex_expr<indirect_tensor<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;
+  static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
   typedef T *pointer;
@@ -58,7 +64,7 @@ public:
    * @brief Default constructor. Constructs an indirect_tensor that does not
    * reference any object.
    */
-  base_tensor();
+  indirect_tensor();
 
   /**
    * @brief View constructor. Constructs an indirect_tensor that references the
@@ -74,10 +80,10 @@ public:
    */
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
-  base_tensor(T *data, Sizes... sizes);
+  indirect_tensor(T *data, Sizes... sizes);
 
-  base_tensor(T *data, const shape_type &shape,
-              layout_t order = default_layout);
+  indirect_tensor(T *data, const shape_type &shape,
+                  layout_t order = default_layout);
 
   /**
    * @brief Index array constructor. Constructs an indirect_tensor that
@@ -93,8 +99,8 @@ public:
    *              row-major order.
    */
   template <class IntegralType, detail::RequiresIntegral<IntegralType> = 0>
-  base_tensor(T *data, const shape_type &shape, IntegralType *indptr,
-              layout_t order = default_layout);
+  indirect_tensor(T *data, const shape_type &shape, IntegralType *indptr,
+                  layout_t order = default_layout);
 
   /**
    * @brief Copy constructor. Constructs an indirect_tensor as a copy of
@@ -102,7 +108,7 @@ public:
    *
    * @param other An indirect_tensor of the same type and rank.
    */
-  base_tensor(const base_tensor &other);
+  indirect_tensor(const indirect_tensor &other);
 
   /**
    * @brief Move constructor. Constructs an indirect_tensor that acquires the
@@ -112,10 +118,10 @@ public:
    *              of the array of indices is directly transferred from @a other.
    *              @a other is left in an empty state.
    */
-  base_tensor(base_tensor &&other);
+  indirect_tensor(indirect_tensor &&other);
 
   /// Destructor.
-  ~base_tensor();
+  ~indirect_tensor();
 
   /// Indexing.
 
@@ -193,12 +199,7 @@ public:
 
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
             detail::RequiresIntegral<Indices...> = 0>
-  size_type &iat(Indices... indices) const;
-
-  /**
-   * @brief Return the dimension of the indirect_tensor.
-   */
-  static constexpr size_type ndim();
+  const size_type &iat(Indices... indices) const;
 
   /**
    * @brief Return the shape of the indirect_tensor.
@@ -270,11 +271,13 @@ public:
    *
    * @return *this
    *
-   * @throw std::invalid_argument Thrown if the shapes are different.
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
    */
-  base_tensor &operator=(const base_tensor &other);
-  template <class U, class Tag>
-  base_tensor &operator=(const base_tensor<U, Rank, Tag> &other);
+  indirect_tensor &operator=(const indirect_tensor &other);
+  template <class Container, class U>
+  indirect_tensor &operator=(const expression<Container, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.
@@ -283,7 +286,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(const T &val);
+  indirect_tensor &operator=(const T &val);
 
   /**
    * @brief Move assignment. Acquires the contents of @a other, leaving @a other
@@ -295,7 +298,7 @@ public:
    *
    * @return *this
    */
-  base_tensor &operator=(base_tensor &&other);
+  indirect_tensor &operator=(indirect_tensor &&other);
 
 private:
   // Pointer to data.
@@ -313,6 +316,17 @@ private:
   // Memory layout.
   layout_t m_order;
 };
+
+/// Deduction guides
+#if __cplusplus >= 201703L
+template <class T, class... Sizes>
+indirect_tensor(T *data, Sizes... sizes)
+    -> indirect_tensor<T, sizeof...(sizes)>;
+
+template <class T, size_t Rank>
+indirect_tensor(T *data, const shape_t<Rank> &shape,
+                layout_t order = default_layout) -> indirect_tensor<T, Rank>;
+#endif // C++17
 } // namespace numcpp
 
 #include "numcpp/tensor/indirect_tensor.tcc"

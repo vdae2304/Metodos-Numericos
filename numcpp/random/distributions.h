@@ -51,7 +51,6 @@ using std::student_t_distribution;
 using std::uniform_real_distribution;
 using std::weibull_distribution;
 
-/// Namespace for implementation details.
 namespace detail {
 /**
  * @brief Return an uniform random floating-point number in [0, 1).

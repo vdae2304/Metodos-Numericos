@@ -89,26 +89,69 @@ enum layout_t {
  */
 class slice;
 
-/// Interfaces.
+/// Base class.
 
 /**
- * @brief Base tensor class.
+ * @brief Base class for all expressions and tensors. All subclasses inherits
+ * from this class.
+ *
+ * @tparam Container Tensor subclass.
+ * @tparam T Type of the elements contained in the tensor.
+ * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
-template <class T, size_t Rank, class Tag> class base_tensor;
+template <class Container, class T, size_t Rank> class expression {
+public:
+  /**
+   * @brief Return the element at the given position.
+   */
+  T operator[](const index_t<Rank> &index) const {
+    return static_cast<const Container &>(*this)[index];
+  }
+
+  /**
+   * @brief Return the shape of the tensor.
+   *
+   * @param axis It is an optional parameter that changes the return value. If
+   *             provided, returns the size along the given axis. Otherwise,
+   *             returns a shape_t object with the shape of the tensor along all
+   *             axes.
+   */
+  shape_t<Rank> shape() const {
+    return static_cast<const Container &>(*this).shape();
+  }
+
+  size_t shape(size_t axis) const {
+    return static_cast<const Container &>(*this).shape(axis);
+  }
+
+  /**
+   * @brief Return the number of elements in the tensor (i.e., the product of
+   * the sizes along all the axes).
+   */
+  size_t size() const { return static_cast<const Container &>(*this).size(); }
+
+  /**
+   * @brief Return the memory layout in which elements are stored.
+   */
+  layout_t layout() const {
+    return static_cast<const Container &>(*this).layout();
+  }
+
+  /**
+   * @brief Return the derived subclass.
+   */
+  Container &self() { return static_cast<Container &>(*this); }
+
+  const Container &self() const {
+    return static_cast<const Container &>(*this);
+  }
+};
 
 /**
- * @brief A tensor_interface is a generic interface for tensor subclasses. It
- * implements an assortment of methods which will be inherited to all the
- * subclasses.
+ * @brief Base class for dense tensors such as tensor, tensor_view and
+ * indirect_tensor.
  */
-template <class T, size_t Rank, class Tag> class tensor_interface;
-
-/**
- * @brief A complex_interface is an interface with additional methods for
- * complex-valued tensor subclasses. It can be used in conjunction with
- * tensor_interface.
- */
-template <class T, size_t Rank, class Tag> class complex_interface;
+template <class Container, class T, size_t Rank> class dense_tensor;
 
 /// Iterators.
 
@@ -118,83 +161,75 @@ template <class T, size_t Rank, class Tag> class complex_interface;
 template <size_t Rank> class index_sequence;
 
 /**
- * @brief A generic random access iterator for base_tensor class.
+ * @brief A generic random access iterator for tensor subclasses.
  */
-template <class T, size_t Rank, class Tag> class base_tensor_iterator;
-
-/**
- * @brief A generic random access iterator for const-qualified base_tensor
- * class.
- */
-template <class T, size_t Rank, class Tag> class base_tensor_const_iterator;
-
-/**
- * @brief A random access iterator for base_tensor class obtained by fixing some
- * axes and iterating over the remaining axes.
- */
-template <class T, size_t Rank, class Tag, size_t N>
-class base_tensor_axes_iterator;
-
-/**
- * @brief A random access iterator for const-qualified base_tensor class
- * obtained by fixing some axes and iterating over the remaining axes.
- */
-template <class T, size_t Rank, class Tag, size_t N>
-class base_tensor_const_axes_iterator;
+template <class Container, class T, size_t Rank, class Pointer, class Reference>
+class flat_iterator;
 
 /// Subclases.
-
-struct scalar_tag;
-struct tensor_tag;
-struct view_tag;
-struct indirect_tag;
 
 /**
  * @brief Tensors are contiguous multidimensional sequence containers: they hold
  * a variable number of elements arranged in multiple axis.
  */
-template <class T, size_t Rank> using tensor = base_tensor<T, Rank, tensor_tag>;
+template <class T, size_t Rank> class tensor;
+
+template <class T> using vector = tensor<T, 1>;
+
+template <class T> using matrix = tensor<T, 2>;
 
 /**
  * @brief A tensor_view is just a view of a multidimensional array. It
  * references the elements in the original array. The view itself does not own
  * the data.
  */
-template <class T, size_t Rank>
-using tensor_view = base_tensor<T, Rank, view_tag>;
+template <class T, size_t Rank> class tensor_view;
+
+template <class T> using vector_view = tensor_view<T, 1>;
+
+template <class T> using matrix_view = tensor_view<T, 2>;
 
 /**
  * @brief An indirect_tensor is a view of a subset of elements from a
  * multidimensional array. It references the elements in the original array
  * through an array of indices.
  */
-template <class T, size_t Rank>
-using indirect_tensor = base_tensor<T, Rank, indirect_tag>;
+template <class T, size_t Rank> class indirect_tensor;
+
+template <class T> using indirect_vector = indirect_tensor<T, 1>;
+
+template <class T> using indirect_matrix = indirect_tensor<T, 2>;
 
 /**
  * @brief A light-weight object which stores the result of applying an unary
  * function to each element in a tensor object.
  */
-template <class Function, class T, class Tag> struct lazy_unary_tag;
+template <class Function, class Container, class T, size_t Rank>
+class unary_expr;
 
 /**
  * @brief A light-weight object which stores the result of applying a binary
  * function to each element in two tensor objects.
  */
-template <class Function, class T, class TagT, class U, class TagU>
-struct lazy_binary_tag;
+template <class Function, class Container1, class T, class Container2, class U,
+          size_t Rank>
+class binary_expr;
 
 /**
- * @brief A light-weight object which stores the result of applying a binary
- * function to all pairs of elements from two tensors.
+ * @brief Placeholder for reduction operations.
  */
-template <class Function, class T, size_t M, class TagT, class U, size_t N,
-          class TagU>
-struct lazy_outer_tag;
+struct keepdims_t {
+} keepdims;
+struct dropdims_t {
+} dropdims;
 
 /// Namespace for implementation details.
 namespace detail {
-#if __cplusplus < 201703L
+#if __cplusplus >= 201703L
+using std::conjunction;
+using std::disjunction;
+using std::void_t;
+#else
 /**
  * @brief Variadic logical AND.
  */
@@ -206,7 +241,7 @@ template <class B1> struct conjunction<B1> : B1 {};
 
 template <class B1, class... Bn>
 struct conjunction<B1, Bn...>
-    : std::conditional<B1::value, conjunction<Bn...>, B1> {};
+    : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
 
 /**
  * @brief Variadic logical OR.
@@ -218,11 +253,49 @@ template <> struct disjunction<> : std::false_type {};
 template <class B1> struct disjunction<B1> : B1 {};
 
 template <class B1, class... Bn>
-    : std::conditional<B1::value, B1, disjunction<Bn...>> {}
-#else
-using std::conjunction;
-using std::disjunction;
+struct disjunction<B1, Bn...>
+    : std::conditional<bool(B1::value), B1, disjunction<Bn...>>::type {};
+
+/**
+ * @brief Always yields void.
+ */
+template <class...> using void_t = void;
 #endif
+
+/**
+ * @brief Check whether a type is a tensor or an expression.
+ */
+template <class T, typename = void, typename = void>
+struct is_expression : std::false_type {};
+
+template <class T>
+struct is_expression<T, void_t<typename T::value_type>,
+                     void_t<decltype(T::rank)>>
+    : std::is_base_of<expression<T, typename T::value_type, T::rank>, T> {};
+
+/**
+ * @brief Promotes integral types to floating-point.
+ */
+template <class T, bool = std::is_integral<T>::value> struct promote_helper {
+  typedef double type;
+};
+
+template <class T> struct promote_helper<T, false> {};
+
+template <> struct promote_helper<float> {
+  typedef float type;
+};
+
+template <> struct promote_helper<double> {
+  typedef double type;
+};
+
+template <> struct promote_helper<long double> {
+  typedef long double type;
+};
+
+template <class... T>
+using promote = std::common_type<typename promote_helper<T>::type...>;
 
 /**
  * @brief Type traits for complex types.
@@ -285,16 +358,13 @@ struct slicing_rank<IntegralType, Indices...>
 /**
  * @brief Result type of function call.
  */
-#if __cplusplus < 201703L
+#if __cplusplus >= 201703L
 template <class Function, class... Args>
-using result_of_t = typename std::result_of<Function(Args...)>::type;
-
-template <class...> using void_t = void;
+using result_of_t = std::decay_t<std::invoke_result_t<Function, Args...>>;
 #else
 template <class Function, class... Args>
-using result_of_t = typename std::invoke_result<Function, Args...>::type;
-
-using std::void_t;
+using result_of_t =
+    typename std::decay<typename std::result_of<Function(Args...)>::type>::type;
 #endif // C++17
 
 template <class Signature, typename = void>
@@ -310,24 +380,26 @@ struct is_callable_helper<F(Args...), void_t<result_of_t<F, Args...>>>
 template <class F, class... Args>
 struct is_callable : is_callable_helper<F(Args...)> {};
 
-/// Type constraint to request N arguments.
+/// Constraints.
+
+/**
+ * @brief Type constraint to request N arguments.
+ */
 template <size_t N, class... Args>
 using RequiresNArguments =
     typename std::enable_if<sizeof...(Args) == N, int>::type;
 
-/// Type constraint to request integer arguments.
+/**
+ * @brief Type constraint to request integer arguments.
+ */
 template <class... T>
 using RequiresIntegral =
     typename std::enable_if<conjunction<std::is_integral<T>...>::value,
                             int>::type;
 
-/// Type constraint to request at least one slice argument.
-template <class... Indices>
-using RequiresSlicing =
-    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
-                            int>::type;
-
-/// Type constraint to request input iterator.
+/**
+ * @brief Type constraint to request input iterator.
+ */
 template <class Iterator>
 using RequiresInputIterator = typename std::enable_if<
     std::is_convertible<
@@ -335,7 +407,24 @@ using RequiresInputIterator = typename std::enable_if<
         std::input_iterator_tag>::value,
     int>::type;
 
-/// Type constraint to request callable type.
+/**
+ * @brief Type constraint to request a scalar (non-expression) argument.
+ */
+template <class T>
+using RequiresScalar =
+    typename std::enable_if<!is_expression<T>::value, int>::type;
+
+/**
+ * @brief Type constraint to request at least one slice argument.
+ */
+template <class... Indices>
+using RequiresSlicing =
+    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
+                            int>::type;
+
+/**
+ * @brief Type constraint to request callable type.
+ */
 template <class F, class... Args>
 using RequiresCallable =
     typename std::enable_if<is_callable<F, Args...>::value, int>::type;
