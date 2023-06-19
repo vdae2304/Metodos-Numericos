@@ -28,7 +28,6 @@
 #include <utility>
 
 namespace numcpp {
-/// Namespace for implementation details.
 namespace detail {
 /**
  * @brief Function object implementing @c std::make_pair and @c std::make_tuple.

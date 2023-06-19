@@ -124,7 +124,6 @@ tensor<T, 2> vander(const expression<Container, T, 1> &x, size_t N,
 
 /// Maximums and minimums.
 
-// Namespace for implementation details.
 namespace detail {
 /**
  * @brief Apply a function over multiple axes.

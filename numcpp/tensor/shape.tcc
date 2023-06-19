@@ -125,7 +125,6 @@ index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
   return multi_index;
 }
 
-/// Namespace for implementation details.
 namespace detail {
 /**
  * @brief Expand the dimension of the shape by inserting new axes.
