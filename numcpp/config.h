@@ -174,6 +174,10 @@ class flat_iterator;
  */
 template <class T, size_t Rank> class tensor;
 
+template <class T> using vector = tensor<T, 1>;
+
+template <class T> using matrix = tensor<T, 2>;
+
 /**
  * @brief A tensor_view is just a view of a multidimensional array. It
  * references the elements in the original array. The view itself does not own
@@ -181,12 +185,20 @@ template <class T, size_t Rank> class tensor;
  */
 template <class T, size_t Rank> class tensor_view;
 
+template <class T> using vector_view = tensor_view<T, 1>;
+
+template <class T> using matrix_view = tensor_view<T, 2>;
+
 /**
  * @brief An indirect_tensor is a view of a subset of elements from a
  * multidimensional array. It references the elements in the original array
  * through an array of indices.
  */
 template <class T, size_t Rank> class indirect_tensor;
+
+template <class T> using indirect_vector = indirect_tensor<T, 1>;
+
+template <class T> using indirect_matrix = indirect_tensor<T, 2>;
 
 /**
  * @brief A light-weight object which stores the result of applying an unary
