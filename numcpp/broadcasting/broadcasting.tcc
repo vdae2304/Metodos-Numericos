@@ -226,7 +226,7 @@ inline tensor_view<T, Rank - sizeof...(Axes)> squeeze(tensor_view<T, Rank> &a,
 template <class T, size_t Rank, size_t N>
 tensor_view<T, Rank - N> squeeze(tensor<T, Rank> &a, const shape_t<N> &axes) {
   for (size_t i = 0; i < N; ++i) {
-    if (a.shape(i) != 1) {
+    if (a.shape(axes[i]) != 1) {
       throw std::invalid_argument("cannot select an axis to squeeze out which "
                                   "has size not equal to one");
     }
@@ -239,7 +239,7 @@ template <class T, size_t Rank, size_t N>
 tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> &a,
                                  const shape_t<N> &axes) {
   for (size_t i = 0; i < N; ++i) {
-    if (a.shape(i) != 1) {
+    if (a.shape(axes[i]) != 1) {
       throw std::invalid_argument("cannot select an axis to squeeze out which "
                                   "has size not equal to one");
     }
