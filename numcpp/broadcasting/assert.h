@@ -28,7 +28,6 @@
 #include <stdexcept>
 
 namespace numcpp {
-/// Namespace for implementation details.
 namespace detail {
 /**
  * @brief Asserts whether an index is within the bounds of a tensor. Throws a
@@ -85,6 +84,34 @@ void assert_output_shape(size_t output, size_t input) {
           << " doesn't match the broadcast shape " << input;
     throw std::invalid_argument(error.str());
   }
+}
+
+/**
+ * @brief Asserts whether the shapes are aligned along the given axis. Throws a
+ * std::invalid_argument exception if assertion fails.
+ */
+template <size_t Rank1, size_t Rank2>
+void assert_aligned_shapes(const shape_t<Rank1> &shape1, size_t axis1,
+                           const shape_t<Rank2> &shape2, size_t axis2) {
+  if (shape1[axis1] != shape2[axis2]) {
+    std::ostringstream error;
+    error << "shapes " << shape1 << " and " << shape2
+          << " not aligned: " << shape1[axis1] << " (dim " << axis1
+          << ") != " << shape2[axis2] << " (dim " << axis2 << ")";
+    throw std::invalid_argument(error.str());
+  }
+}
+
+template <size_t Rank1, size_t Rank2, size_t N>
+size_t
+assert_aligned_shapes(const shape_t<Rank1> &shape1, const shape_t<N> axes1,
+                      const shape_t<Rank2> &shape2, const shape_t<N> axes2) {
+  size_t size = 1;
+  for (size_t i = 0; i < N; ++i) {
+    assert_aligned_shapes(shape1, axes1[i], shape2, axes2[i]);
+    size *= shape1[axes1[i]];
+  }
+  return size;
 }
 
 /**

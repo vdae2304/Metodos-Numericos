@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/slice.h
+/** @file include/numcpp/linalg.h
  *  This header defines routines for linear algebra.
  */
 
@@ -24,10 +24,7 @@
 #define NUMCPP_LINALG_H_INCLUDED
 
 #include "numcpp/config.h"
-#include "numcpp/routines/ranges.h"
 #include "numcpp/linalg/transpose_view.h"
-#include "numcpp/linalg/lu.h"
-#include "numcpp/linalg/cholesky.h"
 
 namespace numcpp {
 /// Basic linear algebra.
@@ -49,8 +46,9 @@ namespace numcpp {
  * @throw std::invalid_argument Thrown if the tensor arguments have different
  *                              sizes.
  */
-template <class T, class Tag1, class Tag2>
-T dot(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class Container2, class T>
+T dot(const expression<Container1, T, 1> &a,
+      const expression<Container2, T, 1> &b);
 
 /**
  * @brief Return the dot product of two vectors.
@@ -67,12 +65,13 @@ T dot(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b);
  * @throw std::invalid_argument Thrown if the tensor arguments have different
  *                              sizes.
  */
-template <class T, class Tag1, class Tag2>
-T vdot(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class Container2, class T>
+T vdot(const expression<Container1, T, 1> &a,
+       const expression<Container2, T, 1> &b);
 
-template <class T, class Tag1, class Tag2>
-std::complex<T> vdot(const base_tensor<std::complex<T>, 1, Tag1> &a,
-                     const base_tensor<std::complex<T>, 1, Tag2> &b);
+template <class Container1, class Container2, class T>
+std::complex<T> vdot(const expression<Container1, std::complex<T>, 1> &a,
+                     const expression<Container2, std::complex<T>, 1> &b);
 
 /**
  * @brief Return the cross product of two vectors.
@@ -93,9 +92,9 @@ std::complex<T> vdot(const base_tensor<std::complex<T>, 1, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-tensor<T, Rank> cross(const base_tensor<T, Rank, Tag1> &a,
-                      const base_tensor<T, Rank, Tag2> &b,
+template <class Container1, class Container2, class T, size_t Rank>
+tensor<T, Rank> cross(const expression<Container1, T, Rank> &a,
+                      const expression<Container2, T, Rank> &b,
                       size_t axis = Rank - 1);
 
 /**
@@ -132,32 +131,33 @@ tensor<T, Rank> cross(const base_tensor<T, Rank, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, class Tag1, class Tag2>
-T matmul(const base_tensor<T, 1, Tag1> &a, const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class Container2, class T>
+T matmul(const expression<Container1, T, 1> &a,
+         const expression<Container2, T, 1> &b);
 
-template <class T, class Tag1, class Tag2>
-tensor<T, 2> matmul(const base_tensor<T, 2, Tag1> &a,
-                    const base_tensor<T, 2, Tag2> &b);
+template <class Container1, class Container2, class T>
+tensor<T, 2> matmul(const expression<Container1, T, 2> &a,
+                    const expression<Container2, T, 2> &b);
 
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> matmul(const base_tensor<T, 1, Tag1> &a,
-                    const base_tensor<T, 2, Tag2> &b);
+template <class Container1, class Container2, class T>
+tensor<T, 1> matmul(const expression<Container1, T, 1> &a,
+                    const expression<Container2, T, 2> &b);
 
-template <class T, class Tag1, class Tag2>
-tensor<T, 1> matmul(const base_tensor<T, 2, Tag1> &a,
-                    const base_tensor<T, 1, Tag2> &b);
+template <class Container1, class Container2, class T>
+tensor<T, 1> matmul(const expression<Container1, T, 2> &a,
+                    const expression<Container2, T, 1> &b);
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-tensor<T, Rank> matmul(const base_tensor<T, Rank, Tag1> &a,
-                       const base_tensor<T, Rank, Tag2> &b);
+template <class Container1, class Container2, class T, size_t Rank>
+tensor<T, Rank> matmul(const expression<Container1, T, Rank> &a,
+                       const expression<Container2, T, Rank> &b);
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-tensor<T, Rank> matmul(const base_tensor<T, Rank, Tag1> &a,
-                       const base_tensor<T, 2, Tag2> &b);
+template <class Container1, class Container2, class T, size_t Rank>
+tensor<T, Rank> matmul(const expression<Container1, T, Rank> &a,
+                       const expression<Container2, T, 2> &b);
 
-template <class T, size_t Rank, class Tag1, class Tag2>
-tensor<T, Rank> matmul(const base_tensor<T, 2, Tag1> &a,
-                       const base_tensor<T, Rank, Tag2> &b);
+template <class Container1, class Container2, class T, size_t Rank>
+tensor<T, Rank> matmul(const expression<Container1, T, 2> &a,
+                       const expression<Container2, T, Rank> &b);
 
 /**
  * @brief Return a contraction of two tensors over multiple axes.
@@ -180,16 +180,31 @@ tensor<T, Rank> matmul(const base_tensor<T, 2, Tag1> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank, class Tag1, class Tag2>
-T tensordot(const base_tensor<T, Rank, Tag1> &a,
-            const base_tensor<T, Rank, Tag2> &b, const shape_t<Rank> &a_axes,
-            const shape_t<Rank> &b_axes);
-
-template <class T, size_t Rank1, class Tag1, size_t Rank2, class Tag2, size_t N>
+template <class Container1, class T, size_t Rank1, class Container2,
+          size_t Rank2, size_t N>
 tensor<T, (Rank1 - N) + (Rank2 - N)>
-tensordot(const base_tensor<T, Rank1, Tag1> &a,
-          const base_tensor<T, Rank2, Tag2> &b, const shape_t<N> &a_axes,
+tensordot(const expression<Container1, T, Rank1> &a,
+          const expression<Container2, T, Rank2> &b, const shape_t<N> &a_axes,
           const shape_t<N> &b_axes);
+
+template <class Container1, class T, size_t Rank1, class Container2,
+          size_t Rank2>
+tensor<T, Rank1 - Rank2> tensordot(const expression<Container1, T, Rank1> &a,
+                                   const expression<Container2, T, Rank2> &b,
+                                   const shape_t<Rank2> &a_axes,
+                                   const shape_t<Rank2> &b_axes);
+
+template <class Container1, class T, size_t Rank1, class Container2,
+          size_t Rank2>
+tensor<T, Rank2 - Rank1> tensordot(const expression<Container1, T, Rank1> &a,
+                                   const expression<Container2, T, Rank2> &b,
+                                   const shape_t<Rank1> &a_axes,
+                                   const shape_t<Rank1> &b_axes);
+
+template <class Container1, class T, size_t Rank, class Container2>
+T tensordot(const expression<Container1, T, Rank> &a,
+            const expression<Container2, T, Rank> &b,
+            const shape_t<Rank> &a_axes, const shape_t<Rank> &b_axes);
 
 /**
  * @brief Reverse or permute the axes of a tensor.
@@ -204,13 +219,17 @@ tensordot(const base_tensor<T, Rank1, Tag1> &a,
  *         does not create a new tensor, instead, it returns a readonly view of
  *         @a a with its axes reversed or permuted.
  */
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, transpose_tag<Tag>>
-transpose(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+transpose_expr<Container, T, Rank>
+transpose(const expression<Container, T, Rank> &a) {
+  return transpose_expr<Container, T, Rank>(a);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, transpose_tag<Tag>>
-transpose(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes);
+template <class Container, class T, size_t Rank>
+transpose_expr<Container, T, Rank>
+transpose(const expression<Container, T, Rank> &a, const shape_t<Rank> &axes) {
+  return transpose_expr<Container, T, Rank>(a, axes);
+}
 
 /**
  * @brief Return the (complex) conjugate transpose of a tensor. For non-complex
@@ -224,25 +243,34 @@ transpose(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes);
  *
  * @return A light-weight object with the conjugate transpose of @a a. This
  *         function does not create a new tensor, instead, it returns a readonly
- *         view of @a a with its elements complex conjugated and its axes
+ *         view of @a a with the complex conjugate of its elements and its axes
  *         reversed or permuted.
  */
-template <class T, size_t Rank, class Tag>
-base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag>>
-conj_transpose(const base_tensor<std::complex<T>, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+conj_transpose_expr<Container, std::complex<T>, Rank>
+conj_transpose(const expression<Container, std::complex<T>, Rank> &a) {
+  return conj_transpose_expr<Container, std::complex<T>, Rank>(a);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<std::complex<T>, Rank, conj_transpose_tag<Tag>>
-conj_transpose(const base_tensor<std::complex<T>, Rank, Tag> &a,
-               const shape_t<Rank> &axes);
+template <class Container, class T, size_t Rank>
+conj_transpose_expr<Container, std::complex<T>, Rank>
+conj_transpose(const expression<Container, std::complex<T>, Rank> &a,
+               const shape_t<Rank> &axes) {
+  return conj_transpose_expr<Container, std::complex<T>, Rank>(a, axes);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, transpose_tag<Tag>>
-conj_transpose(const base_tensor<T, Rank, Tag> &a);
+template <class Container, class T, size_t Rank>
+transpose_expr<Container, T, Rank>
+conj_transpose(const expression<Container, T, Rank> &a) {
+  return transpose_expr<Container, T, Rank>(a);
+}
 
-template <class T, size_t Rank, class Tag>
-base_tensor<T, Rank, transpose_tag<Tag>>
-conj_transpose(const base_tensor<T, Rank, Tag> &a, const shape_t<Rank> &axes);
+template <class Container, class T, size_t Rank>
+transpose_expr<Container, T, Rank>
+conj_transpose(const expression<Container, T, Rank> &a,
+               const shape_t<Rank> &axes) {
+  return transpose_expr<Container, T, Rank>(a, axes);
+}
 
 namespace linalg {
 /**
@@ -262,33 +290,11 @@ namespace linalg {
  *
  * @return Norm of the vector.
  */
-template <class T, class Tag>
-T norm(const base_tensor<T, 1, Tag> &a, double ord = 2);
+template <class Container, class T>
+T norm(const expression<Container, T, 1> &a, double ord = 2);
 
-template <class T, class Tag>
-T norm(const base_tensor<std::complex<T>, 1, Tag> &a, double ord = 2);
-
-/**
- * @brief Return the vector norm along the given axis.
- *
- * @param a A tensor-like object.
- * @param ord Order of the norm.
- * @param axis Axis along which to compute the vector norm.
- *
- * @return A new tensor with the norm of the vectors along the given axis. The
- *         output tensor has the same dimension as @a a, but the axis which is
- *         reduced is left as a dimension of size one.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
- */
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank> norm(const base_tensor<T, Rank, Tag> &a, double ord,
-                     size_t axis);
-
-template <class T, size_t Rank, class Tag>
-tensor<T, Rank> norm(const base_tensor<std::complex<T>, Rank, Tag> &a,
-                     double ord, size_t axis);
+template <class Container, class T>
+T norm(const expression<Container, std::complex<T>, 1> &a, double ord = 2);
 
 /**
  * @brief Compute the determinant of a matrix via LU decomposition.
@@ -299,7 +305,7 @@ tensor<T, Rank> norm(const base_tensor<std::complex<T>, Rank, Tag> &a,
  *
  * @throw std::invalid_argument Thrown if input matrix is not square.
  */
-template <class T, class Tag> T det(const base_tensor<T, 2, Tag> &a);
+template <class Container, class T> T det(const expression<Container, T, 2> &a);
 } // namespace linalg
 
 /**
@@ -313,126 +319,8 @@ template <class T, class Tag> T det(const base_tensor<T, 2, Tag> &a);
  *
  * @return The sum along the diagonal.
  */
-template <class T, class Tag>
-T trace(const base_tensor<T, 2, Tag> &a, ptrdiff_t k = 0);
-
-/// Exceptions.
-
-namespace linalg {
-/**
- * @brief This class defines the type of objects thrown as exceptions by linalg
- * functions. It reports when a Linear Algebra-related condition would prevent
- * further correct execution of the function.
- */
-class linalg_error : public std::runtime_error {
-public:
-  explicit linalg_error(const std::string &what_arg)
-      : std::runtime_error(what_arg) {}
-
-  explicit linalg_error(const char *what_arg) : std::runtime_error(what_arg) {}
-
-  linalg_error(const linalg_error &) = default;
-  linalg_error(linalg_error &&) = default;
-  linalg_error &operator=(const linalg_error &) = default;
-  linalg_error &operator=(linalg_error &&) = default;
-
-  virtual ~linalg_error() = default;
-};
-} // namespace linalg
-
-/// Decompositions.
-
-namespace linalg {
-/**
- * @brief Compute the pivoted LU decomposition of a matrix.
- *
- * @details Let @f$A@f$ be a @f$m \times n@f$ matrix. The decomposition is
- * @f[
- *     A = P L U
- * @f]
- * where
- * - @f$P@f$ is a @f$m \times m@f$ permutation matrix,
- * - @f$L@f$ is a @f$m \times k@f$, @f$k = \min(m, n)@f$, lower triangular or
- *   lower trapezoidal matrix with unit diagonal, and
- * - @f$U@f$ is a @f$k \times n@f$ upper triangular or upper trapezoidal matrix.
- *
- * @param A Matrix to decompose.
- *
- * @return A @c lu_result object with the pivoted LU decomposition of @a A.
- *
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
- */
-template <class T, class Tag>
-lu_result<typename base_tensor<T, 2, Tag>::value_type>
-lu(const base_tensor<T, 2, Tag> &A);
-
-/**
- * @brief Compute the LDL decomposition of a matrix.
- *
- * @details Let @f$A@f$ be a Hermitian matrix. The decomposition is
- * @f[
- *     A = L D L^*
- * @f]
- * where
- * - @f$L@f$ is a lower triangular matrix with unit diagonal,
- * - @f$D@f$ is a diagonal matrix, and
- * - @f$L^*@f$ denotes the conjugate transpose of @f$L@f$.
- * When @f$A@f$ is a real matrix (hence symmetric), the decomposition may be
- * written as
- * @f[
- *     A = L D L^T
- * @f]
- *
- * @param A Matrix to decompose. Only the lower triangle of @a A is used.
- *
- * @return A @c ldl_result object with the LDL decomposition of @a A.
- *
- * @throw std::invalid_argument Thrown if input matrix is not square.
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
- */
-template <class T, class Tag>
-ldl_result<typename base_tensor<T, 2, Tag>::value_type>
-ldl(const base_tensor<T, 2, Tag> &A);
-
-template <class T, class Tag>
-ldl_result<std::complex<T>> ldl(const base_tensor<std::complex<T>, 2, Tag> &A);
-
-/**
- * @brief Compute the Cholesky decomposition of a matrix.
- *
- * @details Let @f$A@f$ be a Hermitian positive-definite matrix. The
- * decomposition is
- * @f[
- *     A = L L^*
- * @f]
- * where
- * - @f$L@f$ is a lower triangular matrix, and
- * - @f$L^*@f$ denotes the conjugate transpose of @f$L@f$.
- * When @f$A@f$ is a real matrix (hence symmetric positive-definite), the
- * decomposition may be written as
- * @f[
- *     A = L L^T
- * @f]
- *
- * @param A Matrix to decompose. Only the lower triangle of @a A is used.
- *
- * @return A @c cho_result object with the Cholesky decomposition of @a A.
- *
- * @throw std::invalid_argument Thrown if input matrix is not square.
- * @throw std::bad_alloc If the function fails to allocate storage it may throw
- *                       an exception.
- * @throw linalg_error Thrown if decomposition fails.
- */
-template <class T, class Tag>
-cho_result<typename base_tensor<T, 2, Tag>::value_type>
-cholesky(const base_tensor<T, 2, Tag> &A);
-
-template <class T, class Tag>
-cho_result<std::complex<T>>
-cholesky(const base_tensor<std::complex<T>, 2, Tag> &A);
-} // namespace linalg
+template <class Container, class T>
+T trace(const expression<Container, T, 2> &a, ptrdiff_t k = 0);
 } // namespace numcpp
 
 #include "numcpp/linalg/linalg.tcc"
