@@ -10,7 +10,10 @@ Defined in header [`numcpp/tensor.h`](/include/numcpp/tensor.h)
   - [Constructors](#constructors)
   - [Indexing](#indexing)
   - [Advanced indexing](#advanced-indexing)
+  - [Iterators](#iterators)
   - [Assignment](#assignment)
+  - [Compound assignment](#compound-assignment)
+  - [Operators](#operators)
   - [Public methods](#public-methods)
   - [Specializations](#specializations)
     - [`tensor<std::complex<T>>`](#tensorstdcomplext)
@@ -78,7 +81,32 @@ using matrix = tensor<T, 2>;
 
 ## [Advanced indexing](Advanced%20indexing.md)
 
+## [Iterators](Iterators.md)
+
+| Function                                      | Description                                                                   |
+| --------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`tensor::begin`](Iterators.md#tensorbegin)   | Return an iterator pointing to the first element in the tensor.               |
+| [`tensor::end`](Iterators.md#tensorend)       | Return an iterator pointing to the past-the-end element in the tensor.        |
+| [`tensor::cbegin`](Iterators.md#tensorcbegin) | Return a `const_iterator` pointing to the first element in the tensor.        |
+| [`tensor::cend`](Iterators.md#tensorcend)     | Return a `const_iterator` pointing to the past-the-end element in the tensor. |
+
 ## [Assignment](Assignment.md)
+
+## [Compound assignment](Compound%20assignment.md)
+
+| Function                                                                                                                                                                                                 | Description                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [<code>operator+=<br>operator-=<br>operator*=<br>operator/=<br>operator%=<br>operator&=<br>operator\|=<br>operator^=<br>operator<<=<br>operator>>=</code>](Compound%20assignment.md#compound-assignment) | Assigns to `*this` the result of performing the respective operation on all the elements. |
+
+## [Operators](Operators.md)
+
+| Function                                                                                                                         | Description          |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| [<code>operator+<br>operator-<br>operator~<br>operator!</code>](Operators.md#unary-operators)                                    | Unary operators      |
+| [<code>operator+<br>operator-<br>operator*<br>operator/<br>operator%</code>](Operators.md#arithmetic-operators)                  | Arithmetic operators |
+| [<code>operator&<br>operator\|<br>operator^<br>operator<<<br>operator>></code>](Operators.md#bitwise-operators)                  | Bitwise operators    |
+| [<code>operator&&<br>operator\|\|</code>](Operators.md#logical-operators)                                                        | Logical operators    |
+| [<code>operator==<br>operator!=<br>operator<<br>operator><br>operator<=<br>operator>=</code>](Operators.md#relational-operators) | Relational operators |
 
 ## [Public methods](Public%20methods.md)
 
