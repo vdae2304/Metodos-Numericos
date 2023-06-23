@@ -94,45 +94,45 @@ using matrix = tensor<T, 2>;
 
 ## [Compound assignment](Compound%20assignment.md)
 
-| Function                                                    | Description                                                                               |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [operator+=](Compound%20assignment.md#compound-assignment)  | Assigns to `*this` the result of performing the respective operation on all the elements. |
-| [operator-=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator*=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator/=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator%=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator&=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator\|=](Compound%20assignment.md#compound-assignment) |                                                                                           |
-| [operator^=](Compound%20assignment.md#compound-assignment)  |                                                                                           |
-| [operator<<=](Compound%20assignment.md#compound-assignment) |                                                                                           |
-| [operator>>=](Compound%20assignment.md#compound-assignment) |                                                                                           |
+| Function                                                      | Description                                                                               |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [`operator+=`](Compound%20assignment.md#compound-assignment)  | Assigns to `*this` the result of performing the respective operation on all the elements. |
+| [`operator-=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator*=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator/=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator%=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator&=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator\|=`](Compound%20assignment.md#compound-assignment) |                                                                                           |
+| [`operator^=`](Compound%20assignment.md#compound-assignment)  |                                                                                           |
+| [`operator<<=`](Compound%20assignment.md#compound-assignment) |                                                                                           |
+| [`operator>>=`](Compound%20assignment.md#compound-assignment) |                                                                                           |
 
 ## [Operators](Operators.md)
 
-| Function                                        | Description          |
-| ----------------------------------------------- | -------------------- |
-| [operator+](Operators.md#unary-operators)       | Unary operators      |
-| [operator-](Operators.md#unary-operators)       |                      |
-| [operator~](Operators.md#unary-operators)       |                      |
-| [operator!](Operators.md#unary-operators)       |                      |
-| [operator+](Operators.md#arithmetic-operators)  | Arithmetic operators |
-| [operator-](Operators.md#arithmetic-operators)  |                      |
-| [operator*](Operators.md#arithmetic-operators)  |                      |
-| [operator/](Operators.md#arithmetic-operators)  |                      |
-| [operator%](Operators.md#arithmetic-operators)  |                      |
-| [operator&](Operators.md#bitwise-operators)     | Bitwise operators    |
-| [operator\|](Operators.md#bitwise-operators)    |                      |
-| [operator^](Operators.md#bitwise-operators)     |                      |
-| [operator<<](Operators.md#bitwise-operators)    |                      |
-| [operator>>](Operators.md#bitwise-operators)    |                      |
-| [operator&&](Operators.md#logical-operators)    | Logical operators    |
-| [operator\|\|](Operators.md#logical-operators)  |                      |
-| [operator==](Operators.md#relational-operators) | Relational operators |
-| [operator!=](Operators.md#relational-operators) |                      |
-| [operator<](Operators.md#relational-operators)  |                      |
-| [operator>](Operators.md#relational-operators)  |                      |
-| [operator<=](Operators.md#relational-operators) |                      |
-| [operator>=](Operators.md#relational-operators) |                      |
+| Function                                          | Description          |
+| ------------------------------------------------- | -------------------- |
+| [`operator+`](Operators.md#unary-operators)       | Unary operators      |
+| [`operator-`](Operators.md#unary-operators)       |                      |
+| [`operator~`](Operators.md#unary-operators)       |                      |
+| [`operator!`](Operators.md#unary-operators)       |                      |
+| [`operator+`](Operators.md#arithmetic-operators)  | Arithmetic operators |
+| [`operator-`](Operators.md#arithmetic-operators)  |                      |
+| [`operator*`](Operators.md#arithmetic-operators)  |                      |
+| [`operator/`](Operators.md#arithmetic-operators)  |                      |
+| [`operator%`](Operators.md#arithmetic-operators)  |                      |
+| [`operator&`](Operators.md#bitwise-operators)     | Bitwise operators    |
+| [`operator\|`](Operators.md#bitwise-operators)    |                      |
+| [`operator^`](Operators.md#bitwise-operators)     |                      |
+| [`operator<<`](Operators.md#bitwise-operators)    |                      |
+| [`operator>>`](Operators.md#bitwise-operators)    |                      |
+| [`operator&&`](Operators.md#logical-operators)    | Logical operators    |
+| [`operator\|\|`](Operators.md#logical-operators)  |                      |
+| [`operator==`](Operators.md#relational-operators) | Relational operators |
+| [`operator!=`](Operators.md#relational-operators) |                      |
+| [`operator<`](Operators.md#relational-operators)  |                      |
+| [`operator>`](Operators.md#relational-operators)  |                      |
+| [`operator<=`](Operators.md#relational-operators) |                      |
+| [`operator>=`](Operators.md#relational-operators) |                      |
 
 ## [Public methods](Public%20methods.md)
 
