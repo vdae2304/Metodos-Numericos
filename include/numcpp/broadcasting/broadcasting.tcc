@@ -175,8 +175,7 @@ tensor_view<const T, Rank> broadcast_to(tensor_view<T, Rank> &a,
       strides[i] = 0;
     }
   }
-  return tensor_view<const T, Rank>(a.data(), shape, a.offset(), strides,
-                                    a.layout());
+  return tensor_view<const T, Rank>(a.data(), shape, 0, strides, a.layout());
 }
 
 template <class T, size_t Rank, class... Axes,
@@ -205,8 +204,7 @@ tensor_view<T, Rank + N> expand_dims(tensor_view<T, Rank> &a,
                                      const shape_t<N> &axes) {
   shape_t<Rank + N> shape = detail::insert_axes(a.shape(), axes, 1);
   shape_t<Rank + N> strides = detail::insert_axes(a.strides(), axes);
-  return tensor_view<T, Rank + N>(a.data(), shape, a.offset(), strides,
-                                  a.layout());
+  return tensor_view<T, Rank + N>(a.data(), shape, 0, strides, a.layout());
 }
 
 template <class T, size_t Rank, class... Axes,
@@ -246,8 +244,7 @@ tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> &a,
   }
   shape_t<Rank - N> shape = detail::remove_axes(a.shape(), axes);
   shape_t<Rank - N> strides = detail::remove_axes(a.strides(), axes);
-  return tensor_view<T, Rank - N>(a.data(), shape, a.offset(), strides,
-                                  a.layout());
+  return tensor_view<T, Rank - N>(a.data(), shape, 0, strides, a.layout());
 }
 
 /// Basic manipulation routines.

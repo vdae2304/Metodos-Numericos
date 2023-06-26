@@ -125,7 +125,7 @@ public:
   /**
    * @brief Call operator. Return a reference to the element at the given
    * position. The elements in a tensor_view are given by
-   *     data[offset + index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
+   *     data[index[0]*stride[0] + ... + index[rank-1]*stride[rank-1]]
    * where @a data is the memory array.
    *
    * @param indices... Position of an element along each axis.
@@ -204,11 +204,6 @@ public:
    */
   T *data();
   const T *data() const;
-
-  /**
-   * @brief Return the position in the memory array of the first element.
-   */
-  difference_type offset() const;
 
   /**
    * @brief Return the span that separates the elements in the memory array.
@@ -372,9 +367,6 @@ private:
 
   // Number of elements.
   size_type m_size;
-
-  // Offset of array data in memory.
-  difference_type m_offset;
 
   // Strides of data in memory.
   shape_type m_stride;

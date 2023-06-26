@@ -32,44 +32,40 @@ namespace numcpp {
 
 template <class T, size_t Rank>
 tensor_view<T, Rank>::tensor_view()
-    : m_data(NULL), m_shape(), m_size(0), m_offset(0), m_stride(),
-      m_order(default_layout) {}
+    : m_data(NULL), m_shape(), m_size(0), m_stride(), m_order(default_layout) {}
 
 template <class T, size_t Rank>
 template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
           detail::RequiresIntegral<Sizes...>>
 tensor_view<T, Rank>::tensor_view(T *data, Sizes... sizes)
-    : m_data(data), m_shape(sizes...), m_size(m_shape.prod()), m_offset(0),
+    : m_data(data), m_shape(sizes...), m_size(m_shape.prod()),
       m_stride(make_strides(m_shape)), m_order(default_layout) {}
 
 template <class T, size_t Rank>
 tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   layout_t order)
-    : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(0),
+    : m_data(data), m_shape(shape), m_size(shape.prod()),
       m_stride(make_strides(shape, order)), m_order(order) {}
 
 template <class T, size_t Rank>
 tensor_view<T, Rank>::tensor_view(T *data, const shape_type &shape,
                                   difference_type offset,
                                   const shape_type &strides, layout_t order)
-    : m_data(data), m_shape(shape), m_size(shape.prod()), m_offset(offset),
+    : m_data(data + offset), m_shape(shape), m_size(shape.prod()),
       m_stride(strides), m_order(order) {}
 
 template <class T, size_t Rank>
 tensor_view<T, Rank>::tensor_view(const tensor_view &other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
-      m_offset(other.m_offset), m_stride(other.m_stride),
-      m_order(other.m_order) {}
+      m_stride(other.m_stride), m_order(other.m_order) {}
 
 template <class T, size_t Rank>
 tensor_view<T, Rank>::tensor_view(tensor_view &&other)
     : m_data(other.m_data), m_shape(other.m_shape), m_size(other.m_size),
-      m_offset(other.m_offset), m_stride(other.m_stride),
-      m_order(other.m_order) {
+      m_stride(other.m_stride), m_order(other.m_order) {
   other.m_data = NULL;
   other.m_shape = shape_type();
   other.m_size = 0;
-  other.m_offset = 0;
   other.m_stride = shape_type();
   other.m_order = default_layout;
 }
@@ -97,7 +93,7 @@ inline const T &tensor_view<T, Rank>::operator()(Indices... indices) const {
 template <class T, size_t Rank>
 T &tensor_view<T, Rank>::operator[](const index_type &index) {
   detail::assert_within_bounds(m_shape, index);
-  difference_type flat_index = m_offset;
+  size_type flat_index = 0;
   for (size_t i = 0; i < Rank; ++i) {
     flat_index += index[i] * m_stride[i];
   }
@@ -107,7 +103,7 @@ T &tensor_view<T, Rank>::operator[](const index_type &index) {
 template <class T, size_t Rank>
 const T &tensor_view<T, Rank>::operator[](const index_type &index) const {
   detail::assert_within_bounds(m_shape, index);
-  difference_type flat_index = m_offset;
+  size_type flat_index = 0;
   for (size_t i = 0; i < Rank; ++i) {
     flat_index += index[i] * m_stride[i];
   }
@@ -157,11 +153,6 @@ template <class T, size_t Rank> inline T *tensor_view<T, Rank>::data() {
 template <class T, size_t Rank>
 inline const T *tensor_view<T, Rank>::data() const {
   return m_data;
-}
-
-template <class T, size_t Rank>
-inline ptrdiff_t tensor_view<T, Rank>::offset() const {
-  return m_offset;
 }
 
 template <class T, size_t Rank>
@@ -216,13 +207,11 @@ tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(tensor_view &&other) {
     m_data = other.m_data;
     m_shape = other.m_shape;
     m_size = other.m_size;
-    m_offset = other.m_offset;
     m_stride = other.m_stride;
     m_order = other.m_order;
     other.m_data = NULL;
     other.m_shape = shape_type();
     other.m_size = 0;
-    other.m_offset = 0;
     other.m_stride = shape_type();
     other.m_order = default_layout;
   }
@@ -236,18 +225,18 @@ tensor_view<T, Rank - 1> tensor_view<T, Rank>::diagonal(difference_type k) {
   size_type axis1 = Rank - 2, axis2 = Rank - 1;
   shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
   shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
-  difference_type offset = m_offset;
+  difference_type offset = 0;
   shape[axis1] = 0;
   strides[axis1] += m_stride[axis2];
   if (k >= 0) {
     if (size_type(k) < m_shape[axis2]) {
       shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
-      offset += k * m_stride[axis2];
+      offset = k * m_stride[axis2];
     }
   } else {
     if (size_type(-k) < m_shape[axis1]) {
       shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
-      offset += -k * m_stride[axis1];
+      offset = -k * m_stride[axis1];
     }
   }
   return tensor_view<T, Rank - 1>(m_data, shape, offset, strides, m_order);
@@ -259,18 +248,18 @@ tensor_view<T, Rank>::diagonal(difference_type k) const {
   size_type axis1 = Rank - 2, axis2 = Rank - 1;
   shape_t<Rank - 1> shape = detail::remove_axes(m_shape, axis2);
   shape_t<Rank - 1> strides = detail::remove_axes(m_stride, axis2);
-  difference_type offset = m_offset;
+  difference_type offset = 0;
   shape[axis1] = 0;
   strides[axis1] += m_stride[axis2];
   if (k >= 0) {
     if (size_type(k) < m_shape[axis2]) {
       shape[axis1] = std::min(m_shape[axis1], m_shape[axis2] - k);
-      offset += k * m_stride[axis2];
+      offset = k * m_stride[axis2];
     }
   } else {
     if (size_type(-k) < m_shape[axis1]) {
       shape[axis1] = std::min(m_shape[axis1] + k, m_shape[axis2]);
-      offset += -k * m_stride[axis1];
+      offset = -k * m_stride[axis1];
     }
   }
   return tensor_view<const T, Rank - 1>(m_data, shape, offset, strides,
@@ -282,7 +271,7 @@ inline tensor_view<T, 1> tensor_view<T, Rank>::flatten() {
   if (!this->is_contiguous()) {
     throw std::runtime_error("cannot flatten a non-contiguous view");
   }
-  return tensor_view<T, 1>(m_data, m_size, m_offset, 1);
+  return tensor_view<T, 1>(m_data, m_size);
 }
 
 template <class T, size_t Rank>
@@ -290,7 +279,7 @@ inline tensor_view<const T, 1> tensor_view<T, Rank>::flatten() const {
   if (!this->is_contiguous()) {
     throw std::runtime_error("cannot flatten a non-contiguous view");
   }
-  return tensor_view<const T, 1>(m_data, m_size, m_offset, 1);
+  return tensor_view<const T, 1>(m_data, m_size);
 }
 
 template <class T, size_t Rank>
@@ -334,8 +323,7 @@ tensor_view<T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
   if (!this->is_contiguous()) {
     throw std::runtime_error("cannot reshape a non-contiguous view");
   }
-  shape_t<N> strides = make_strides(shape, order);
-  return tensor_view<T, N>(m_data, shape, m_offset, strides, order);
+  return tensor_view<T, N>(m_data, shape, order);
 }
 
 template <class T, size_t Rank>
@@ -351,8 +339,7 @@ tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
   if (!this->is_contiguous()) {
     throw std::runtime_error("cannot reshape a non-contiguous view");
   }
-  shape_t<N> strides = make_strides(shape, order);
-  return tensor_view<const T, N>(m_data, shape, m_offset, strides, order);
+  return tensor_view<const T, N>(m_data, shape, order);
 }
 
 template <class T, size_t Rank>
@@ -368,7 +355,7 @@ inline tensor_view<T, Rank> tensor_view<T, Rank>::t() {
   layout_t order = (m_order == row_major) ? column_major : row_major;
   std::reverse(shape.data(), shape.data() + Rank);
   std::reverse(strides.data(), strides.data() + Rank);
-  return tensor_view<T, Rank>(m_data, shape, m_offset, strides, order);
+  return tensor_view<T, Rank>(m_data, shape, 0, strides, order);
 }
 
 template <class T, size_t Rank>
@@ -378,7 +365,7 @@ inline tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
   layout_t order = (m_order == row_major) ? column_major : row_major;
   std::reverse(shape.data(), shape.data() + Rank);
   std::reverse(strides.data(), strides.data() + Rank);
-  return tensor_view<const T, Rank>(m_data, shape, m_offset, strides, order);
+  return tensor_view<const T, Rank>(m_data, shape, 0, strides, order);
 }
 } // namespace numcpp
 
