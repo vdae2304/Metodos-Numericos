@@ -47,7 +47,7 @@ Returns
 
 Exceptions
 
-* `std::invalid_argument` Thrown if the shapes are not compatible and cannot be broadcasted according to [broadcasting rules](./Shapes/Non-member%20functions.md#broadcast_shapes).
+* `std::invalid_argument` Thrown if the shapes are not compatible and cannot be broadcasted according to [broadcasting rules](../Shapes/Non-member%20functions.md#broadcast_shapes).
 
 Example
 
