@@ -1,8 +1,8 @@
-# [Tensor view](readme.md)
+# [Indirect tensor](readme.md)
 
 Defined in header [`numcpp/tensor.h`](/include/numcpp/tensor.h)
 
-- [Tensor view](#tensor-view)
+- [Indirect tensor](#indirect-tensor)
   - [Assignment](#assignment)
     - [Copy assignment](#copy-assignment)
     - [Fill assignment](#fill-assignment)
@@ -14,9 +14,9 @@ Defined in header [`numcpp/tensor.h`](/include/numcpp/tensor.h)
 
 Assigns to each element the value of the corresponding element in `other`.
 ```cpp
-tensor_view &operator=(const tensor_view &other);
+indirect_tensor &operator=(const indirect_tensor &other);
 template <class U>
-tensor_view &operator=(const tensor<U, Rank> &other);
+indirect_tensor &operator=(const tensor<U, Rank> &other);
 ```
 
 Parameters
@@ -35,12 +35,12 @@ Exceptions
 
 Assigns `val` to every element.
 ```cpp
-tensor_view &operator=(const T &val);
+indirect_tensor &operator=(const T &val);
 ```
 
 Parameters
 
-* `val` Value assigned to all the elements in the `tensor_view`.
+* `val` Value assigned to all the elements in the `indirect_tensor`.
 
 Returns
 
@@ -50,12 +50,12 @@ Returns
 
 Acquires the contents of `other`, leaving `other` in an empty state.
 ```cpp
-tensor_view &operator=(tensor_view &&other);
+indirect_tensor &operator=(indirect_tensor &&other);
 ```
 
 Parameters
 
-* `other` A `tensor_view` of the same type and rank. `other` is left in an empty state.
+* `other` An `indirect_tensor` of the same type and rank. The ownership of the array of indices is directly transferred from `other`. `other` is left in an empty state.
 
 Returns
 
