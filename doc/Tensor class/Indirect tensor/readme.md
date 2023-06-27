@@ -41,19 +41,19 @@ using indirect_matrix = indirect_tensor<T, 2>;
 
 ## Member types
 
-| Member type       | Definition                             |
-| ----------------- | -------------------------------------- |
-| `value_type`      | `typename std::remove_cv<T>::type`     |
-| `reference`       | `T&`                                   |
-| `const_reference` | `const T&`                             |
-| `pointer`         | `T*`                                   |
-| `const_pointer`   | `const T*`                             |
-| `iterator`        | A random access iterator to `T`        |
-| `const_iterator`  | A random access iterator to `const T`  |
-| `size_type`       | An unsigned integral type              |
-| `difference_type` | A signed integral type                 |
-| `shape_type`      | [`shape_t<Rank>`](../Shapes/readme.md) |
-| `index_type`      | [`index_t<Rank>`](../Shapes/readme.md) |
+| Member type       | Definition                                                      |
+| ----------------- | --------------------------------------------------------------- |
+| `value_type`      | `typename std::remove_cv<T>::type`                              |
+| `reference`       | `T&`                                                            |
+| `const_reference` | `const T&`                                                      |
+| `pointer`         | `T*`                                                            |
+| `const_pointer`   | `const T*`                                                      |
+| `iterator`        | A [random access iterator](../Iterators/readme.md) to `T`       |
+| `const_iterator`  | A [random access iterator](../Iterators/readme.md) to `const T` |
+| `size_type`       | An unsigned integral type                                       |
+| `difference_type` | A signed integral type                                          |
+| `shape_type`      | [`shape_t<Rank>`](../Shapes/readme.md)                          |
+| `index_type`      | [`index_t<Rank>`](../Shapes/readme.md)                          |
 
 ## Member constants
 
@@ -133,26 +133,26 @@ using indirect_matrix = indirect_tensor<T, 2>;
 
 ## [Public methods](../Tensor/Public%20methods.md)
 
-| Function                 | Description                                                       |
-| ------------------------ | ----------------------------------------------------------------- |
-| `tensor_view::all`       | Test whether all tensor elements evaluate to true.                |
-| `tensor_view::any`       | Test whether any tensor element evaluate to true.                 |
-| `tensor_view::apply`     | Assigns to each element the result of applying a function.        |
-| `tensor_view::argmax`    | Return the index of the maximum value in the tensor.              |
-| `tensor_view::argmin`    | Return the index of the minimum value in the tensor.              |
-| `tensor_view::astype`    | Cast each element to a specified type.                            |
-| `tensor_view::clamp`     | Clamp the values in the tensor.                                   |
-| `tensor_view::max`       | Return the maximum value contained in the tensor.                 |
-| `tensor_view::mean`      | Return the average of the tensor elements.                        |
-| `tensor_view::min`       | Return the minimum value contained in the tensor.                 |
-| `tensor_view::partition` | Partition the elements in-place.                                  |
-| `tensor_view::prod`      | Return the product of the tensor elements.                        |
-| `tensor_view::reverse`   | Reverse the order of the elements in-place.                       |
-| `tensor_view::rotate`    | Rotate the elements in-place.                                     |
-| `tensor_view::sort`      | Sort the elements in-place.                                       |
-| `tensor_view::stddev`    | Return the standard deviation of the tensor elements.             |
-| `tensor_view::sum`       | Return the sum of the tensor elements.                            |
-| `tensor_view::var`       | Return the variance of the tensor elements.                       |
+| Function                 | Description                                                |
+| ------------------------ | ---------------------------------------------------------- |
+| `tensor_view::all`       | Test whether all tensor elements evaluate to true.         |
+| `tensor_view::any`       | Test whether any tensor element evaluate to true.          |
+| `tensor_view::apply`     | Assigns to each element the result of applying a function. |
+| `tensor_view::argmax`    | Return the index of the maximum value in the tensor.       |
+| `tensor_view::argmin`    | Return the index of the minimum value in the tensor.       |
+| `tensor_view::astype`    | Cast each element to a specified type.                     |
+| `tensor_view::clamp`     | Clamp the values in the tensor.                            |
+| `tensor_view::max`       | Return the maximum value contained in the tensor.          |
+| `tensor_view::mean`      | Return the average of the tensor elements.                 |
+| `tensor_view::min`       | Return the minimum value contained in the tensor.          |
+| `tensor_view::partition` | Partition the elements in-place.                           |
+| `tensor_view::prod`      | Return the product of the tensor elements.                 |
+| `tensor_view::reverse`   | Reverse the order of the elements in-place.                |
+| `tensor_view::rotate`    | Rotate the elements in-place.                              |
+| `tensor_view::sort`      | Sort the elements in-place.                                |
+| `tensor_view::stddev`    | Return the standard deviation of the tensor elements.      |
+| `tensor_view::sum`       | Return the sum of the tensor elements.                     |
+| `tensor_view::var`       | Return the variance of the tensor elements.                |
 
 ## [Specializations](../Tensor/Specializations.md)
 

@@ -41,19 +41,19 @@ using matrix_view = tensor_view<T, 2>;
 
 ## Member types
 
-| Member type       | Definition                             |
-| ----------------- | -------------------------------------- |
-| `value_type`      | `typename std::remove_cv<T>::type`     |
-| `reference`       | `T&`                                   |
-| `const_reference` | `const T&`                             |
-| `pointer`         | `T*`                                   |
-| `const_pointer`   | `const T*`                             |
-| `iterator`        | A random access iterator to `T`        |
-| `const_iterator`  | A random access iterator to `const T`  |
-| `size_type`       | An unsigned integral type              |
-| `difference_type` | A signed integral type                 |
-| `shape_type`      | [`shape_t<Rank>`](../Shapes/readme.md) |
-| `index_type`      | [`index_t<Rank>`](../Shapes/readme.md) |
+| Member type       | Definition                                                      |
+| ----------------- | --------------------------------------------------------------- |
+| `value_type`      | `typename std::remove_cv<T>::type`                              |
+| `reference`       | `T&`                                                            |
+| `const_reference` | `const T&`                                                      |
+| `pointer`         | `T*`                                                            |
+| `const_pointer`   | `const T*`                                                      |
+| `iterator`        | A [random access iterator](../Iterators/readme.md) to `T`       |
+| `const_iterator`  | A [random access iterator](../Iterators/readme.md) to `const T` |
+| `size_type`       | An unsigned integral type                                       |
+| `difference_type` | A signed integral type                                          |
+| `shape_type`      | [`shape_t<Rank>`](../Shapes/readme.md)                          |
+| `index_type`      | [`index_t<Rank>`](../Shapes/readme.md)                          |
 
 ## Member constants
 

@@ -1,5 +1,11 @@
 # Header `numcpp/tensor.h`
 
+## Types
+
+| Type                                        | Description                                      |
+| ------------------------------------------- | ------------------------------------------------ |
+| [`layout_t`](./Iterators/readme.md#layouts) | Layout in which elements are stored or iterated. |
+
 ## Classes
 
 | Class                                              | Description                                                  |
