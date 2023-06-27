@@ -235,7 +235,7 @@ public:
    * @brief Copy assignment. Assigns to each element the value of the
    * corresponding element in @a other.
    *
-   * @param other A tensor-like object of the same shape.
+   * @param other A tensor-like object of the same rank.
    *
    * @return *this
    *
