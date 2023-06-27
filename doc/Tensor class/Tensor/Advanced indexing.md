@@ -12,7 +12,7 @@ Defined in header [`numcpp/tensor.h`](/include/numcpp/tensor.h)
 
 ### Slice indexing
 
-Return a `tensor_view` object that selects the elements specified by the slices.
+Return a [`tensor_view`](../Views/readme.md) object that selects the elements specified by the slices.
 ```cpp
 template <class... Indices>
 tensor_view<T, /* Number of slice arguments */>
@@ -146,7 +146,7 @@ Output
 
 ### Coordinate tensor indexing
 
-Return an `indirect_tensor` that selects the elements specified by the tensor of indices.
+Return an [`indirect_tensor`](../Indirect%20tensor/readme.md) that selects the elements specified by the tensor of indices.
 ```cpp
 template <size_t N>
 indirect_tensor<T, N> operator[](const tensor<index_type, N> &indices);
@@ -266,7 +266,7 @@ Output
 
 ### Boolean tensor indexing
 
-Return an `indirect_tensor` that selects the elements specified by the boolean mask.
+Return an [`indirect_tensor`](../Indirect%20tensor/readme.md) that selects the elements specified by the boolean mask.
 ```cpp
 indirect_tensor<T, 1> operator[](const tensor<bool, Rank> &mask);
 tensor<T, 1> operator[](const tensor<bool, Rank> &mask) const;
