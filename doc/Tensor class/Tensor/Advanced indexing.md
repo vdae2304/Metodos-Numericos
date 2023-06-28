@@ -34,7 +34,7 @@ operator[](Indices... indices) const;
 
 Parameters
 
-* `indices...` Each argument can be either an integer or a slice. If an integer is given, an unique position is selected for the axis and the dimensionality of the returned view is reduced by 1. If a slice is given, a subset of positions is selected along the axis. An empty slice can be used as a placeholder to select all the positions along the axis.
+* `indices...` Each argument can be either an integer or a [`slice`](../Slices/readme.md). If an integer is given, an unique position is selected for the axis and the dimensionality of the returned view is reduced by 1. If a slice is given, a subset of positions is selected along the axis. An empty slice can be used as a placeholder to select all the positions along the axis.
 
 Returns
 
