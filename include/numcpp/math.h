@@ -791,7 +791,7 @@ ldexp(const expression<Container, T, Rank> &x, int exp) {
   return binary_expr<math::ldexp, Container, T, void, int, Rank>(x, exp);
 }
 
-template <class T, class Container, size_t Rank>
+template <class T, class Container, size_t Rank, detail::RequiresScalar<T> = 0>
 inline binary_expr<math::ldexp, void, T, Container, int, Rank>
 ldexp(const T &x, const expression<Container, int, Rank> &exp) {
   return binary_expr<math::ldexp, void, T, Container, int, Rank>(x, exp);
