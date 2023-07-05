@@ -330,9 +330,11 @@ zip(const expression<Container1, T, Rank> &a,
 }
 
 #if __cplusplus >= 201402L
-template <class Container1, class... Container2>
+template <class Container1, class T, class... Container2, class... U,
+          size_t Rank>
 element_wise_expr<detail::zip, Container1, Container2...>
-zip(const Container1 &a, const Container2 &...b) {
+zip(const expression<Container1, T, Rank> &a,
+    const expression<Container2, U, Rank> &...b) {
   return element_wise_expr<detail::zip, Container1, Container2...>(a, b...);
 }
 #endif // C++14
@@ -386,12 +388,12 @@ unzip(const expression<Container, Tuple, Rank> &a) {
  */
 template <class Container1, class T, size_t Rank, class... Container2>
 tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const Container2 &...b);
+                            const expression<Container2, T, Rank> &...b);
 
 template <size_t Axis, class Container1, class T, size_t Rank,
           class... Container2>
 tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const Container2 &...b);
+                            const expression<Container2, T, Rank> &...b);
 
 /**
  * @brief Concatenate one or more tensors along a new axis.
@@ -410,12 +412,12 @@ tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
  */
 template <class Container1, class T, size_t Rank, class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Container2 &...b);
+                          const expression<Container2, T, Rank> &...b);
 
 template <size_t Axis, class Container1, class T, size_t Rank,
           class... Container2>
 tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const Container2 &...b);
+                          const expression<Container2, T, Rank> &...b);
 
 /// Tiling.
 

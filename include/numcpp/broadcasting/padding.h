@@ -24,6 +24,7 @@
 #ifndef NUMCPP_PADDING_H_INCLUDED
 #define NUMCPP_PADDING_H_INCLUDED
 
+#include "numcpp/shape.h"
 #include <tuple>
 #include <utility>
 
