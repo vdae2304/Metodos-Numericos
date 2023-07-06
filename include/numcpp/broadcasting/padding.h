@@ -175,15 +175,16 @@ struct constant {
 
   /**
    * @param args... If a matrix of values is passed, unique pad constants are
-   *                used for each axis, where @a values(i,0) and @a values(i,1)
-   *                are the before and after constants for axis @a i.
+   *                used for each axis, where @a values[{i,0}] and
+   *                @a values[{i,1}] are the before and after constants for axis
+   *                @a i.
    */
   template <class Container, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
                   size_t axis,
                   const expression<Container, T, 2> &values) const {
-    this->operator()(view, before, after, axis, values(axis, 0),
-                     values(axis, 1));
+    this->operator()(view, before, after, axis, values[{axis, 0}],
+                     values[{axis, 1}]);
   }
 };
 
@@ -204,7 +205,7 @@ struct edge : constant {
  * @brief Pads with the linear ramp between an end value and the tensor edge
  * value.
  *
- * @param args.. The values used for the ending values of the linear ramp.
+ * @param args... The values used for the ending values of the linear ramp.
  */
 struct linear_ramp {
   /**
@@ -251,15 +252,15 @@ struct linear_ramp {
 
   /**
    * @param args... If a matrix of values is passed, unique end values are used
-   *                for each axis, where @a values(i,0) and @a values(i,1) are
-   *                the before and after end values for axis @a i.
+   *                for each axis, where @a values[{i,0}] and @a values[{i,1}]
+   *                are the before and after end values for axis @a i.
    */
   template <class Container, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
                   size_t axis,
                   const expression<Container, T, 2> &end_values) const {
-    this->operator()(view, before, after, axis, end_values(axis, 0),
-                     end_values(axis, 1));
+    this->operator()(view, before, after, axis, end_values[{axis, 0}],
+                     end_values[{axis, 1}]);
   }
 };
 
