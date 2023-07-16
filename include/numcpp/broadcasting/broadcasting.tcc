@@ -580,7 +580,7 @@ void put(dense_tensor<Container1, T, Rank> &a,
 template <class Container1, class T, size_t Rank, class Container2, size_t N>
 void put(dense_tensor<Container1, T, Rank> &a,
          const expression<Container2, index_t<Rank>, N> &indices,
-         const typename dense_tensor<Container1, T, Rank>::value_type &value) {
+         const typename Container1::value_type &value) {
   for (index_t<N> i : make_index_sequence_for(indices)) {
     a[indices[i]] = value;
   }
@@ -606,7 +606,7 @@ template <class Container1, class T, class Container2, class IntegralType,
           size_t N, detail::RequiresIntegral<IntegralType>>
 void put(dense_tensor<Container1, T, 1> &a,
          const expression<Container2, IntegralType, N> &indices,
-         const typename dense_tensor<Container1, T, 1>::value_type &value) {
+         const typename Container1::value_type &value) {
   for (index_t<N> i : make_index_sequence_for(indices)) {
     a[indices[i]] = value;
   }
@@ -686,10 +686,9 @@ void place(dense_tensor<Container1, T, Rank> &a,
 }
 
 template <class Container1, class T, size_t Rank, class Container2>
-void place(
-    dense_tensor<Container1, T, Rank> &a,
-    const expression<Container2, bool, Rank> &condition,
-    const typename dense_tensor<Container1, T, Rank>::value_type &value) {
+void place(dense_tensor<Container1, T, Rank> &a,
+           const expression<Container2, bool, Rank> &condition,
+           const typename Container1::value_type &value) {
   detail::assert_mask_shape(a.shape(), condition.shape());
   for (index_t<Rank> i : make_index_sequence_for(condition)) {
     if (condition[i]) {
