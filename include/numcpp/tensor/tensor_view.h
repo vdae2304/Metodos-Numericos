@@ -42,8 +42,8 @@ template <class T, size_t Rank>
 class tensor_view
     : public dense_tensor<tensor_view<T, Rank>,
                           typename std::remove_cv<T>::type, Rank>,
-      public complex_expr<tensor_view<T, Rank>,
-                          typename std::remove_cv<T>::type, Rank> {
+      public tensor_specialization<tensor_view<T, Rank>,
+                                   typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;

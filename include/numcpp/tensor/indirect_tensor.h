@@ -43,8 +43,8 @@ template <class T, size_t Rank>
 class indirect_tensor
     : public dense_tensor<indirect_tensor<T, Rank>,
                           typename std::remove_cv<T>::type, Rank>,
-      public complex_expr<indirect_tensor<T, Rank>,
-                          typename std::remove_cv<T>::type, Rank> {
+      public tensor_specialization<indirect_tensor<T, Rank>,
+                                   typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
   typedef typename std::remove_cv<T>::type value_type;

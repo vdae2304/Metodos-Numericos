@@ -504,14 +504,14 @@ inline T dense_tensor<Container, T, Rank>::var(bool bias) const {
 
 template <class Container, class T, size_t Rank>
 unary_expr<math::real, Container, std::complex<T>, Rank>
-complex_expr<Container, std::complex<T>, Rank>::real() const {
+tensor_specialization<Container, std::complex<T>, Rank>::real() const {
   const Container &self = static_cast<const Container &>(*this);
   return unary_expr<math::real, Container, std::complex<T>, Rank>(self);
 }
 
 template <class Container, class T, size_t Rank>
 template <class ContainerOp>
-void complex_expr<Container, std::complex<T>, Rank>::real(
+void tensor_specialization<Container, std::complex<T>, Rank>::real(
     const expression<ContainerOp, T, Rank> &x) {
   Container &self = static_cast<Container &>(*this);
   detail::assert_output_shape(self.shape(),
@@ -526,7 +526,8 @@ void complex_expr<Container, std::complex<T>, Rank>::real(
 }
 
 template <class Container, class T, size_t Rank>
-void complex_expr<Container, std::complex<T>, Rank>::real(const T &val) {
+void tensor_specialization<Container, std::complex<T>, Rank>::real(
+    const T &val) {
   Container &self = static_cast<Container &>(*this);
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i].real(val);
@@ -535,14 +536,14 @@ void complex_expr<Container, std::complex<T>, Rank>::real(const T &val) {
 
 template <class Container, class T, size_t Rank>
 unary_expr<math::imag, Container, std::complex<T>, Rank>
-complex_expr<Container, std::complex<T>, Rank>::imag() const {
+tensor_specialization<Container, std::complex<T>, Rank>::imag() const {
   const Container &self = static_cast<const Container &>(*this);
   return unary_expr<math::imag, Container, std::complex<T>, Rank>(self);
 }
 
 template <class Container, class T, size_t Rank>
 template <class ContainerOp>
-void complex_expr<Container, std::complex<T>, Rank>::imag(
+void tensor_specialization<Container, std::complex<T>, Rank>::imag(
     const expression<ContainerOp, T, Rank> &y) {
   Container &self = static_cast<Container &>(*this);
   detail::assert_output_shape(self.shape(),
@@ -557,7 +558,8 @@ void complex_expr<Container, std::complex<T>, Rank>::imag(
 }
 
 template <class Container, class T, size_t Rank>
-void complex_expr<Container, std::complex<T>, Rank>::imag(const T &val) {
+void tensor_specialization<Container, std::complex<T>, Rank>::imag(
+    const T &val) {
   Container &self = static_cast<Container &>(*this);
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i].imag(val);
@@ -566,7 +568,7 @@ void complex_expr<Container, std::complex<T>, Rank>::imag(const T &val) {
 
 template <class Container, class T, size_t Rank>
 unary_expr<math::conj, Container, std::complex<T>, Rank>
-complex_expr<Container, std::complex<T>, Rank>::conj() const {
+tensor_specialization<Container, std::complex<T>, Rank>::conj() const {
   const Container &self = static_cast<const Container &>(*this);
   return unary_expr<math::conj, Container, std::complex<T>, Rank>(self);
 }

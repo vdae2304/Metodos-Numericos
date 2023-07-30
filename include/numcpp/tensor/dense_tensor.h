@@ -443,18 +443,17 @@ private:
   template <class Function> Container &apply2(Function f, const T &val);
 };
 
-template <class Container, class T, size_t Rank> class complex_expr {};
+template <class Container, class T, size_t Rank> class tensor_specialization {};
 
 /**
- * @brief A complex_expr is an interface with additional methods for
- * complex-valued tensor subclasses.
+ * @brief Specialization for complex-valued tensor subclasses.
  *
  * @tparam Container Tensor subclass.
- * @tparam T Type of the elements contained in the tensor.
+ * @tparam T Type of the real part of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class Container, class T, size_t Rank>
-class complex_expr<Container, std::complex<T>, Rank> {
+class tensor_specialization<Container, std::complex<T>, Rank> {
 public:
   /// Public methods.
 

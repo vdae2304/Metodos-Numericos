@@ -56,7 +56,7 @@ namespace numcpp {
  */
 template <class T, size_t Rank>
 class tensor : public dense_tensor<tensor<T, Rank>, T, Rank>,
-               public complex_expr<tensor<T, Rank>, T, Rank> {
+               public tensor_specialization<tensor<T, Rank>, T, Rank> {
 public:
   /// Member types.
   typedef T value_type;
