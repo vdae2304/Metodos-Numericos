@@ -48,8 +48,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
@@ -75,8 +75,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> mat{{15, -4,  3, 18, -2,  7},
@@ -107,8 +107,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> cube{{{-5, 19,  5, 18},
@@ -176,8 +176,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
@@ -200,8 +200,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> mat{{15, -4,  3, 18, -2,  7},
@@ -231,8 +231,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> cube{{{-5, 19,  5, 18},
@@ -289,8 +289,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
@@ -313,8 +313,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> mat{{15, -4,  3, 18, -2,  7},
@@ -343,8 +343,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::tensor<int, 3> cube{{{-5, 19,  5, 18},

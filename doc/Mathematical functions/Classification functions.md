@@ -31,9 +31,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x{0., 0./0., 1., -1., np::sqrt(-1.), 1./0., -1./0.};
@@ -72,9 +72,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x{0., 0./0., 1., -1., np::sqrt(-1.), 1./0., -1./0.};
@@ -113,9 +113,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x{0., 0./0., 1., -1., np::sqrt(-1.), 1./0., -1./0.};
@@ -154,9 +154,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> x;

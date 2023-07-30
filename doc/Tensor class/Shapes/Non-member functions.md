@@ -32,7 +32,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     std::cout << np::make_shape(10) << "\n";
@@ -72,7 +72,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     std::cout << np::make_index(10) << "\n";
@@ -118,7 +118,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 
 void print_matrix(int data[], const np::shape_t<2> &shape,
@@ -179,7 +179,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 
 void print_matrix(int data[], const np::shape_t<2> &shape, np::layout_t order) {
@@ -239,7 +239,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 
 void flatten_matrix(int data[3][4], const np::shape_t<2> &shape,
@@ -306,7 +306,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     np::shape_t<3> shape1, shape2;
@@ -364,7 +364,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     np::shape_t<3> shape1, shape2;

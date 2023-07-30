@@ -39,9 +39,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x, y;
@@ -84,9 +84,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x;
@@ -128,9 +128,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x;

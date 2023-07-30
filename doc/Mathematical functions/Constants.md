@@ -45,7 +45,7 @@ static constexpr T constants<T>::egamma;
 Example
 ```cpp
 #include <iostream>
-#include "numcpp/math.h"
+#include <numcpp/math.h>
 namespace np = numcpp;
 int main() {
     std::cout << "Infinity: " << np::constants<double>::inf << "\n";

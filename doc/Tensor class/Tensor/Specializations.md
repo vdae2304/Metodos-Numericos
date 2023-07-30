@@ -32,8 +32,8 @@ Example
 ```cpp
 #include <complex>
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::printoptions;
@@ -83,8 +83,8 @@ Example
 ```cpp
 #include <complex>
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::printoptions;
@@ -130,8 +130,8 @@ Example
 ```cpp
 #include <complex>
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::printoptions;
@@ -181,8 +181,8 @@ Example
 ```cpp
 #include <complex>
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::printoptions;
@@ -228,8 +228,8 @@ Example
 ```cpp
 #include <complex>
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::printoptions;

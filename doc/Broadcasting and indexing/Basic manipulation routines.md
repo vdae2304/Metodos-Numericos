@@ -37,9 +37,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> a;
@@ -86,9 +86,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> x;
@@ -143,9 +143,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
@@ -207,9 +207,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a;
@@ -265,9 +265,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 
 namespace std {
@@ -302,9 +302,9 @@ Example
 ```cpp
 #include <iostream>
 #include <tuple>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 
 namespace std {
@@ -370,9 +370,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     typedef std::pair<std::string, int> person;
@@ -402,9 +402,9 @@ Example
 ```cpp
 #include <iostream>
 #include <tuple>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     typedef std::tuple<std::string, std::string, int> car;

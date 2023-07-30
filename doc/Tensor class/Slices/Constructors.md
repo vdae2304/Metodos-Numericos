@@ -37,8 +37,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec{7, 13, 19, 11, 5, 8, -2, 7, 11, 3};
@@ -70,8 +70,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     using namespace np::placeholders;

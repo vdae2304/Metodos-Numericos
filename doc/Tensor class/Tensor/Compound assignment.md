@@ -53,8 +53,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> a{11, 8, 16, 17, -2, 16, 18, -5, -4, 15};
@@ -83,8 +83,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> a{11, 8, 16, 17, -2, 16, 18, -5, -4, 15};
@@ -109,8 +109,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{ 7, 12, 18,  8,  4, 15},
@@ -158,8 +158,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{ 7, 12, 18,  8,  4, 15},
@@ -188,8 +188,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{ 7, 12, 18,  8,  4, 15}};

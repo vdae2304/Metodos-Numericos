@@ -37,10 +37,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     const double pi = np::constants<double>::pi;
@@ -100,10 +100,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     const double pi = np::constants<double>::pi;
@@ -163,10 +163,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     const double pi = np::constants<double>::pi;
@@ -236,9 +236,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x, y;
@@ -282,10 +282,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-1., 1.);
@@ -345,10 +345,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-1., 1.);
@@ -408,10 +408,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-5., 5.);
@@ -478,10 +478,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace, np::allclose
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace, np::allclose
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     const double pi = np::constants<double>::pi;
@@ -538,9 +538,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     const double pi = np::constants<double>::pi;
@@ -600,9 +600,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x{0, 30, 45, 60, 90, 120, 135, 150, 180};

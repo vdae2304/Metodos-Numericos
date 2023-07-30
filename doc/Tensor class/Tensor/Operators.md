@@ -245,8 +245,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> x{-4,  4, 16,  1,  9, -4, 13,  8,  8, -1};
@@ -281,9 +281,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     double a = 1;
@@ -320,8 +320,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{ 7, 12, 18,  8,  4, 15},
@@ -367,8 +367,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{ 7, 12, 18,  8,  4, 15},
@@ -397,8 +397,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> a{{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}};

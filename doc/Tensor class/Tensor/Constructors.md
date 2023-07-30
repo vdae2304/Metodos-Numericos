@@ -44,7 +44,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
+#include <numcpp/tensor.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec(10);
@@ -86,8 +86,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec(10, 0);
@@ -145,8 +145,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     int ptr[10] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
@@ -166,8 +166,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     int ptr[12] = {0, 10, -4, 5, 6, 10, 8, 12, 2, 11, 0, -1};
@@ -196,8 +196,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     int ptr[24] = { 1, 18, 11, 10,  9, 19, 12, 10, 13,  8,
@@ -284,8 +284,8 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec{-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};

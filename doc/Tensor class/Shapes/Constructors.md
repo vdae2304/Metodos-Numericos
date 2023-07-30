@@ -33,7 +33,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);

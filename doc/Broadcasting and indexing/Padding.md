@@ -42,9 +42,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;
@@ -74,9 +74,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::matrix<int> mat;
@@ -147,9 +147,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 
 void zero_pad(np::vector_view<int> &view, size_t before, size_t after, size_t) {
@@ -207,9 +207,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;
@@ -262,9 +262,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;
@@ -313,9 +313,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> vec;
@@ -370,9 +370,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;
@@ -417,9 +417,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;
@@ -464,9 +464,9 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/broadcasting.h"
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/broadcasting.h>
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<int> vec;

@@ -17,7 +17,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     // Deduces to shape_t<1>.

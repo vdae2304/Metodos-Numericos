@@ -20,7 +20,7 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     np::shape_t<1> shape1(10);
@@ -54,7 +54,7 @@ Example
 ```cpp
 #include <iostream>
 #include <algorithm> // std::reverse
-#include "numcpp/shape.h"
+#include <numcpp/shape.h>
 namespace np = numcpp;
 int main() {
     np::shape_t<3> shape(3, 4, 6);

@@ -33,10 +33,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-4., 4.);
@@ -94,10 +94,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-4., 4.);
@@ -157,10 +157,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-4., 4.);
@@ -220,10 +220,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(1., 25.);
@@ -279,10 +279,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-25., 25.);
@@ -340,10 +340,10 @@ Example
 
 ```cpp
 #include <iostream>
-#include "numcpp/tensor.h"
-#include "numcpp/math.h"
-#include "numcpp/routines.h" // np::linspace
-#include "numcpp/io.h"
+#include <numcpp/tensor.h>
+#include <numcpp/math.h>
+#include <numcpp/routines.h> // np::linspace
+#include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
     np::vector<double> x = np::linspace(-1., 1.);
