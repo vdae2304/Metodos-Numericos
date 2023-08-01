@@ -67,7 +67,7 @@ void apply(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
            const expression<Container, T, Rank> &a);
 
 /**
- * @brief Apply a function element-wise.
+ * @brief Apply a binary function element-wise.
  *
  * @param f The function to apply.
  * @param a A tensor-like object with the values to pass as first argument.
@@ -112,7 +112,7 @@ apply2(Function &&f, const T &val, const expression<Container, U, Rank> &b) {
 }
 
 /**
- * @brief Apply a function element-wise.
+ * @brief Apply a binary function element-wise.
  *
  * @param out A location into which the result is stored.
  * @param f The function to apply.
