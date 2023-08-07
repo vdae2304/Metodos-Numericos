@@ -26,6 +26,7 @@
 #include "numcpp/config.h"
 #include "numcpp/functional/lazy_expression.h"
 #include "numcpp/functional/operators.h"
+#include "numcpp/functional/vectorize.h"
 
 namespace numcpp {
 /// Functional programming.
@@ -315,9 +316,23 @@ template <class OutContainer, class R, class Function, class Container1,
 void outer(dense_tensor<OutContainer, R, Rank1 + Rank2> &out, Function &&f,
            const expression<Container1, T, Rank1> &a,
            const expression<Container2, U, Rank2> &b);
+
+/**
+ * @brief Vectorize a function.
+ * 
+ * @details A vectorized function is a wrapper for a function that operates on
+ * tensors in an element-by-element fashion, supporting broadcasting.
+ *
+ * @param f Function to vectorize.
+ *
+ * @return A vectorized function that operates on tensors in an
+ *         element-by-element fashion.
+ */
+template <class Function> vectorized_expr<Function> vectorize(Function &&f) {
+  return vectorized_expr<Function>(std::forward<Function>(f));
+}
 } // namespace numcpp
 
 #include "numcpp/functional/functional.tcc"
-#include "numcpp/functional/vectorize.h"
 
 #endif // NUMCPP_FUNCTIONAL_H_INCLUDED
