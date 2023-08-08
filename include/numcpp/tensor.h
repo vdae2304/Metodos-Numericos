@@ -621,6 +621,13 @@ template <class InputIterator, size_t Rank>
 tensor(InputIterator first, const shape_t<Rank> &shape,
        layout_t order = default_layout)
     -> tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>;
+
+template <class Container, class T, size_t Rank>
+tensor(const expression<Container, T, Rank> &other) -> tensor<T, Rank>;
+
+template <class Container, class T, size_t Rank>
+tensor(const expression<Container, T, Rank> &other, layout_t order)
+    -> tensor<T, Rank>;
 #endif // C++17
 
 /**
