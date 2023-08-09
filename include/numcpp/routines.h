@@ -35,17 +35,23 @@ namespace numcpp {
 /**
  * @brief Return a new tensor of given shape without initializing entries.
  *
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam T Type of the elements contained in the tensor. Default is double.
  *
- * @param shape Shape of the empty tensor.
+ * @param shape Shape of the tensor. It can be a shape_t object or the elements
+ *              of the shape passed as separate arguments.
  *
  * @return A tensor of uninitialized data with the given shape.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class T, size_t Rank>
+template <class T = double, class... Sizes,
+          detail::RequiresIntegral<Sizes...> = 0>
+tensor<T, sizeof...(Sizes)> empty(Sizes... sizes) {
+  return tensor<T, sizeof...(Sizes)>(sizes...);
+}
+
+template <class T = double, size_t Rank>
 tensor<T, Rank> empty(const shape_t<Rank> &shape) {
   return tensor<T, Rank>(shape);
 }
@@ -69,15 +75,21 @@ tensor<T, Rank> empty_like(const expression<Container, T, Rank> &like) {
 /**
  * @brief Return a tensor of given shape filled with zeros.
  *
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam T Type of the elements contained in the tensor. Default is double.
  *
- * @param shape Shape of the tensor.
+ * @param shape Shape of the tensor. It can be a shape_t object or the elements
+ *              of the shape passed as separate arguments.
  *
  * @return A tensor of zeros with the given shape. This function does not create
  *         a new tensor, instead, an expression object is returned.
  */
-template <class T, size_t Rank>
+template <class T = double, class... Sizes,
+          detail::RequiresIntegral<Sizes...> = 0>
+const_expr<T, sizeof...(Sizes)> zeros(Sizes... sizes) {
+  return const_expr<T, sizeof...(Sizes)>({sizes...}, T());
+}
+
+template <class T = double, size_t Rank>
 const_expr<T, Rank> zeros(const shape_t<Rank> &shape) {
   return const_expr<T, Rank>(shape, T());
 }
@@ -100,15 +112,21 @@ const_expr<T, Rank> zeros_like(const expression<Container, T, Rank> &like) {
 /**
  * @brief Return a tensor of given shape filled with ones.
  *
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam T Type of the elements contained in the tensor. Default is double.
  *
- * @param shape Shape of the tensor.
+ * @param shape Shape of the tensor. It can be a shape_t object or the elements
+ *              of the shape passed as separate arguments.
  *
  * @return A tensor of ones with the given shape. This function does not create
  *         a new tensor, instead, an expression object is returned.
  */
-template <class T, size_t Rank>
+template <class T = double, class... Sizes,
+          detail::RequiresIntegral<Sizes...> = 0>
+const_expr<T, sizeof...(Sizes)> ones(Sizes... sizes) {
+  return const_expr<T, sizeof...(Sizes)>({sizes...}, T(1));
+}
+
+template <class T = double, size_t Rank>
 const_expr<T, Rank> ones(const shape_t<Rank> &shape) {
   return const_expr<T, Rank>(shape, T(1));
 }
@@ -130,9 +148,6 @@ const_expr<T, Rank> ones_like(const expression<Container, T, Rank> &like) {
 
 /**
  * @brief Return a tensor of given shape filled with @a val.
- *
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
  *
  * @param shape Shape of the tensor.
  * @param val Fill value.
@@ -242,6 +257,9 @@ logspace(const T &start, const U &stop, size_t num, bool endpoint,
  * @details This is similar to @c logspace, but with endpoints specified
  * directly. Each output sample is a constant multiple of the previous.
  *
+ * If the inputs are complex, the output will follow a logarithmic spiral in the
+ * complex plane.
+ *
  * @param start The starting value of the sequence.
  * @param stop The final value of the sequence.
  * @param num Number of samples to generate. Default is 50.
@@ -261,7 +279,7 @@ geomspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
 /**
  * @brief Return a matrix with ones on the diagonal and zeros elsewhere.
  *
- * @tparam T Type of the elements contained in the tensor.
+ * @tparam T Type of the elements contained in the tensor. Default is double.
  *
  * @param m Number of rows. If not provided, defaults to @a n.
  * @param n Number of columns.
@@ -273,9 +291,12 @@ geomspace(const T &start, const U &stop, size_t num = 50, bool endpoint = true);
  *         This function, does not create a new tensor, instead, an expression
  *         object is returned with ones on the diagonal and zeros elsewhere.
  */
-template <class T> identity_expr<T> eye(size_t n) { return eye<T>(n, n); }
+template <class T = double> identity_expr<T> eye(size_t n) {
+  return eye<T>(n, n);
+}
 
-template <class T> identity_expr<T> eye(size_t m, size_t n, ptrdiff_t k = 0) {
+template <class T = double>
+identity_expr<T> eye(size_t m, size_t n, ptrdiff_t k = 0) {
   return identity_expr<T>({m, n}, k);
 }
 
