@@ -879,15 +879,9 @@ tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
  * non-negative, typically very small numbers. For floating-point values, the
  * function uses the following equation to test whether two numbers are
  * equivalent:
- *     abs(a - b) <= fmax(rtol * fmax(abs(a), abs(b)), atol)
+ *     fabs(a - b) <= fmax(rtol * fmax(fabs(a), fabs(b)), atol)
  * NaN is not considered equal to any other value, including NaN. inf and -inf
  * are only considered equal to themselves.
- *
- * @note If one of the arguments has integral type, it is cast to double.
- * If one of the arguments is long double, the other argument is promoted to
- * long double.
- * If one of the arguments is double and the other argument is float, the float
- * argument is promoted to double.
  *
  * @param a An integer or floating-point value.
  * @param b An integer or floating-point value.
@@ -895,6 +889,12 @@ tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
  * @param atol The absolute tolerance.
  *
  * @return true if the values are considered equal and false otherwise.
+ *
+ * @note If one of the arguments has integral type, it is cast to double.
+ * @note If one of the arguments is long double, the other argument is promoted
+ * to long double.
+ * @note If one of the arguments is double and the other argument is float, the
+ * float argument is promoted to double.
  */
 template <class T, class U>
 bool isclose(T a, U b, typename detail::promote<T, U>::type rtol = 1e-8,
