@@ -10,6 +10,7 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
   - [Sums and products](#sums-and-products)
   - [Logic functions](#logic-functions)
   - [Sorting and searching](#sorting-and-searching)
+  - [Rearranging elements](#rearranging-elements)
   - [Basic statistics](#basic-statistics)
 
 ## [Tensor creation routines](Tensor%20creation%20routines.md)
@@ -86,6 +87,13 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
 | [`partition`](Sorting%20and%20searching.md#partition)       | Return a partitioned copy of the flattened tensor.                |
 | [`nonzero`](Sorting%20and%20searching.md#nonzero)           | Return the indices of the elements that are non-zero.             |
 | [`where`](Sorting%20and%20searching.md#where)               | Return elements chosen from two tensors depending on `condition`. |
+
+## [Rearranging elements](Rearranging%20elements.md)
+
+| Function                                       | Description                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| [`reverse`](Rearranging%20elements.md#reverse) | Reverse the order of the elements in a tensor along the given axes. |
+| [`rotate`](Rearranging%20elements.md#rotate)   | Rotate the elements in a tensor along the given axes.               |
 
 ## [Basic statistics](Basic%20statistics.md)
 
