@@ -690,16 +690,16 @@ tensor<T, 1> unique(const expression<Container, T, Rank> &a) {
 }
 
 template <class Container, class T>
-bool includes(const expression<Container, T, 1> &a,
+bool contains(const expression<Container, T, 1> &a,
               const typename Container::value_type &val) {
   return std::binary_search(a.self().begin(), a.self().end(), val);
 }
 
 template <class Container1, class T, class Container2>
-bool includes(const expression<Container1, T, 1> &a,
-              const expression<Container2, T, 1> &b) {
-  return std::includes(a.self().begin(), a.self().end(), b.self().begin(),
-                       b.self().end());
+bool is_subset(const expression<Container1, T, 1> &a,
+               const expression<Container2, T, 1> &b) {
+  return std::includes(b.self().begin(), b.self().end(), a.self().begin(),
+                       a.self().end());
 }
 
 template <class Container1, class T, class Container2>

@@ -11,6 +11,7 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
   - [Logic functions](#logic-functions)
   - [Sorting and searching](#sorting-and-searching)
   - [Rearranging elements](#rearranging-elements)
+  - [Set routines](#set-routines)
   - [Basic statistics](#basic-statistics)
 
 ## [Tensor creation routines](Tensor%20creation%20routines.md)
@@ -94,6 +95,18 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
 | ---------------------------------------------- | ------------------------------------------------------------------- |
 | [`reverse`](Rearranging%20elements.md#reverse) | Reverse the order of the elements in a tensor along the given axes. |
 | [`rotate`](Rearranging%20elements.md#rotate)   | Rotate the elements in a tensor along the given axes.               |
+
+## [Set routines](Set%20routines.md)
+
+| Function                                                                 | Description                                                                   |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| [`unique`](Set%20routines.md#unique)                                     | Find the sorted unique elements of a tensor.                                  |
+| [`contains`](Set%20routines.md#contains)                                 | Test whether a value is present in a tensor.                                  |
+| [`is_subset`](Set%20routines.md#is_subset)                               | Test whether all the elements in a tensor are also present in another tensor. |
+| [`set_union`](Set%20routines.md#set_union)                               | Find the set union of two tensors.                                            |
+| [`set_intersection`](Set%20routines.md#set_intersection)                 | Find the set intersection of two tensors.                                     |
+| [`set_difference`](Set%20routines.md#set_difference)                     | Find the set difference of two tensors.                                       |
+| [`set_symmetric_difference`](Set%20routines.md#set_symmetric_difference) | Find the set symmetric difference of two tensors.                             |
 
 ## [Basic statistics](Basic%20statistics.md)
 

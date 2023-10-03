@@ -1378,9 +1378,9 @@ rotate(const expression<Container, T, Rank> &a, const index_t<N> &shift,
  *
  * @return A new tensor with the sorted unique elements of @a a.
  *
- * @note The elements of @a a are not required to be sorted before calling
- * @c unique. However, the function might perform faster if the elements of @a a
- * are already sorted.
+ * @note The elements of @a a are not required to be sorted beforehand.
+ * However, this function might perform faster if the elements of @a a are
+ * already sorted.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
@@ -1391,31 +1391,31 @@ tensor<T, 1> unique(const expression<Container, T, Rank> &a);
 /**
  * @brief Test whether a value is present in a tensor.
  *
- * @param a A 1-dimensional tensor-like object. The function tests whether @a a
- *          contains @a val. The elements of @a a must be sorted.
+ * @param a A 1-dimensional tensor-like object. This function tests whether
+ *          @a a contains @a val. The elements in @a a must be sorted.
  * @param val The value to test.
  *
  * @return true if @a val is present in @a a and false otherwise.
  */
 template <class Container, class T>
-bool includes(const expression<Container, T, 1> &a,
+bool contains(const expression<Container, T, 1> &a,
               const typename Container::value_type &val);
 
 /**
  * @brief Test whether all the elements in a tensor are also present in another
  * tensor.
  *
- * @param a A 1-dimensional tensor-like object. The function test whether @a a
- *          contains all the elements of @a b. The elements of @a a must be
+ * @param a A 1-dimensional tensor-like object. This function test whether @a b
+ *          contains all the elements of @a a. The elements in @a a must be
  *          sorted.
- * @param b A 1-dimensional tensor-like object with the values to test. The
- *          elements of @a b must be sorted.
+ * @param b A 1-dimensional tensor-like object. The elements in @a b must be
+ *          sorted.
  *
- * @return true if @a b is a subset of @a a and false otherwise.
+ * @return true if @a a is a subset of @a b and false otherwise.
  */
 template <class Container1, class T, class Container2>
-bool includes(const expression<Container1, T, 1> &a,
-              const expression<Container2, T, 1> &b);
+bool is_subset(const expression<Container1, T, 1> &a,
+               const expression<Container2, T, 1> &b);
 
 /**
  * @brief Find the set union of two tensors. Return the unique sorted elements
