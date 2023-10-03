@@ -1653,9 +1653,7 @@ T stddev(const expression<Container, T, Rank> &a, bool bias = true);
  *                 dimensions with size one. If set to @a dropdims, the axes
  *                 which are reduced are dropped. Defaults to @a dropdims.
  *
- * @return A new tensor with the standard deviation over the given axes. The
- *         output tensor has the same dimension as @a a, but the axes which are
- *         reduced are left as dimensions of size one.
+ * @return A new tensor with the standard deviation over the given axes.
  *
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
