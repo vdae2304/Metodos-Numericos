@@ -9,6 +9,7 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
   - [Maximums and minimums](#maximums-and-minimums)
   - [Sums and products](#sums-and-products)
   - [Logic functions](#logic-functions)
+  - [Sorting and searching](#sorting-and-searching)
   - [Basic statistics](#basic-statistics)
 
 ## [Tensor creation routines](Tensor%20creation%20routines.md)
@@ -74,6 +75,17 @@ Defined in header [`numcpp/routines.h`](/include/numcpp/routines.h)
 | [`count_nonzero`](Logic%20functions.md#count_nonzero) | Count the number of non-zero elements in the tensor.                |
 | [`isclose`](Logic%20functions.md#isclose)             | Return whether two numbers are equal within a tolerance.            |
 | [`allclose`](Logic%20functions.md#allclose)           | Test whether two tensors are element-wise equal within a tolerance. |
+
+## [Sorting and searching](Sorting%20and%20searching.md)
+
+| Function                                                    | Description                                                       |
+| ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| [`argsort`](Sorting%20and%20searching.md#argsort)           | Return the indices that would sort the tensor.                    |
+| [`sort`](Sorting%20and%20searching.md#sort)                 | Return a sorted copy of the flattened tensor.                     |
+| [`argpartition`](Sorting%20and%20searching.md#argpartition) | Return the indices that would partition the tensor.               |
+| [`partition`](Sorting%20and%20searching.md#partition)       | Return a partitioned copy of the flattened tensor.                |
+| [`nonzero`](Sorting%20and%20searching.md#nonzero)           | Return the indices of the elements that are non-zero.             |
+| [`where`](Sorting%20and%20searching.md#where)               | Return elements chosen from two tensors depending on `condition`. |
 
 ## [Basic statistics](Basic%20statistics.md)
 

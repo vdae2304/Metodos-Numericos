@@ -26,7 +26,7 @@
 #include "numcpp/config.h"
 #include "numcpp/routines/ranges.h"
 #include "numcpp/routines/new.h"
-#include "numcpp/routines/lazy_where.h"
+#include "numcpp/routines/ternary_op.h"
 #include "numcpp/routines/rearrange.h"
 
 namespace numcpp {
@@ -1282,35 +1282,35 @@ where(const expression<Container, bool, Rank> &condition);
 
 template <class Container, class Container1, class Container2, class T,
           size_t Rank>
-where_expr<Container, Container1, Container2, T, Rank>
+ternary_op_expr<Container, Container1, Container2, T, Rank>
 where(const expression<Container, bool, Rank> &condition,
       const expression<Container1, T, Rank> &x,
       const expression<Container2, T, Rank> &y) {
-  return where_expr<Container, Container1, Container2, T, Rank>(condition, x,
-                                                                y);
+  return ternary_op_expr<Container, Container1, Container2, T, Rank>(condition,
+                                                                     x, y);
 }
 
 template <class Container, class Container1, class T, size_t Rank>
-where_expr<Container, Container1, void, T, Rank>
+ternary_op_expr<Container, Container1, void, T, Rank>
 where(const expression<Container, bool, Rank> &condition,
       const expression<Container1, T, Rank> &x,
       const typename Container1::value_type &y) {
-  return where_expr<Container, Container1, void, T, Rank>(condition, x, y);
+  return ternary_op_expr<Container, Container1, void, T, Rank>(condition, x, y);
 }
 
 template <class Container, class Container1, class T, size_t Rank>
-where_expr<Container, void, Container1, T, Rank>
+ternary_op_expr<Container, void, Container1, T, Rank>
 where(const expression<Container, bool, Rank> &condition,
       const typename Container1::value_type &x,
       const expression<Container1, T, Rank> &y) {
-  return where_expr<Container, void, Container1, T, Rank>(condition, x, y);
+  return ternary_op_expr<Container, void, Container1, T, Rank>(condition, x, y);
 }
 
 template <class Container, class T, size_t Rank, detail::RequiresScalar<T> = 0>
-where_expr<Container, void, void, T, Rank>
+ternary_op_expr<Container, void, void, T, Rank>
 where(const expression<Container, bool, Rank> &condition, const T &x,
       const T &y) {
-  return where_expr<Container, void, void, T, Rank>(condition, x, y);
+  return ternary_op_expr<Container, void, void, T, Rank>(condition, x, y);
 }
 
 /// Rearranging elements.

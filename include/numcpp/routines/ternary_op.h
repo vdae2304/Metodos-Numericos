@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/routines/lazy_where.h
+/** @file include/numcpp/routines/ternary_op.h
  *  This is an internal header file, included by other library headers.
  *  Do not attempt to use it directly. @headername{numcpp/routines.h}
  */
@@ -41,9 +41,10 @@ namespace numcpp {
  */
 template <class Container, class Container1, class Container2, class T,
           size_t Rank>
-class where_expr
-    : public expression<where_expr<Container, Container1, Container2, T, Rank>,
-                        T, Rank> {
+class ternary_op_expr
+    : public expression<
+          ternary_op_expr<Container, Container1, Container2, T, Rank>, T,
+          Rank> {
 public:
   /// Member types.
   typedef T value_type;
@@ -51,8 +52,8 @@ public:
   typedef void pointer;
   typedef T reference;
   typedef flat_iterator<
-      const where_expr<Container, Container1, Container2, T, Rank>, value_type,
-      rank, pointer, reference>
+      const ternary_op_expr<Container, Container1, Container2, T, Rank>,
+      value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -86,15 +87,15 @@ public:
    * @param x Values from which to choose where condition is true.
    * @param y Values from which to choose where condition is false.
    */
-  where_expr(const expression<Container, bool, Rank> &condition,
-             const expression<Container1, T, Rank> &x,
-             const expression<Container2, T, Rank> &y)
+  ternary_op_expr(const expression<Container, bool, Rank> &condition,
+                  const expression<Container1, T, Rank> &x,
+                  const expression<Container2, T, Rank> &y)
       : m_cond(condition.self()), m_true(x.self()), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), x.shape(), y.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~where_expr() = default;
+  ~ternary_op_expr() = default;
 
   /// Iterators.
 
@@ -181,17 +182,18 @@ public:
  * false argument is a value. Values are broadcasted to an appropriate shape.
  */
 template <class Container, class Container1, class T, size_t Rank>
-class where_expr<Container, Container1, void, T, Rank>
-    : public expression<where_expr<Container, Container1, void, T, Rank>, T,
-                        Rank> {
+class ternary_op_expr<Container, Container1, void, T, Rank>
+    : public expression<ternary_op_expr<Container, Container1, void, T, Rank>,
+                        T, Rank> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const where_expr<Container, Container1, void, T, Rank>,
-                        value_type, rank, pointer, reference>
+  typedef flat_iterator<
+      const ternary_op_expr<Container, Container1, void, T, Rank>, value_type,
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -217,14 +219,14 @@ private:
 public:
   /// Constructors.
 
-  where_expr(const expression<Container, bool, Rank> &condition,
-             const expression<Container1, T, Rank> &x, const T &y)
+  ternary_op_expr(const expression<Container, bool, Rank> &condition,
+                  const expression<Container1, T, Rank> &x, const T &y)
       : m_cond(condition.self()), m_true(x.self()), m_false(y),
         m_shape(broadcast_shapes(condition.shape(), x.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~where_expr() = default;
+  ~ternary_op_expr() = default;
 
   /// Iterators.
 
@@ -263,17 +265,18 @@ public:
  * false argument is a tensor. Values are broadcasted to an appropriate shape.
  */
 template <class Container, class Container1, class T, size_t Rank>
-class where_expr<Container, void, Container1, T, Rank>
-    : public expression<where_expr<Container, void, Container1, T, Rank>, T,
-                        Rank> {
+class ternary_op_expr<Container, void, Container1, T, Rank>
+    : public expression<ternary_op_expr<Container, void, Container1, T, Rank>,
+                        T, Rank> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const where_expr<Container, void, Container1, T, Rank>,
-                        value_type, rank, pointer, reference>
+  typedef flat_iterator<
+      const ternary_op_expr<Container, void, Container1, T, Rank>, value_type,
+      rank, pointer, reference>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -299,14 +302,14 @@ private:
 public:
   /// Constructors.
 
-  where_expr(const expression<Container, bool, Rank> &condition, const T &x,
-             const expression<Container1, T, Rank> &y)
+  ternary_op_expr(const expression<Container, bool, Rank> &condition,
+                  const T &x, const expression<Container1, T, Rank> &y)
       : m_cond(condition.self()), m_true(x), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), y.shape())),
         m_size(m_shape.prod()) {}
 
   /// Destructor.
-  ~where_expr() = default;
+  ~ternary_op_expr() = default;
 
   /// Iterators.
 
@@ -345,15 +348,16 @@ public:
  * Values are broadcasted to an appropriate shape.
  */
 template <class Container, class T, size_t Rank>
-class where_expr<Container, void, void, T, Rank>
-    : public expression<where_expr<Container, void, void, T, Rank>, T, Rank> {
+class ternary_op_expr<Container, void, void, T, Rank>
+    : public expression<ternary_op_expr<Container, void, void, T, Rank>, T,
+                        Rank> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const where_expr<Container, void, void, T, Rank>,
+  typedef flat_iterator<const ternary_op_expr<Container, void, void, T, Rank>,
                         value_type, rank, pointer, reference>
       iterator;
   typedef size_t size_type;
@@ -374,12 +378,12 @@ private:
 public:
   /// Constructors.
 
-  where_expr(const expression<Container, bool, Rank> &condition, const T &x,
-             const T &y)
+  ternary_op_expr(const expression<Container, bool, Rank> &condition,
+                  const T &x, const T &y)
       : m_cond(condition.self()), m_true(x), m_false(y) {}
 
   /// Destructor.
-  ~where_expr() = default;
+  ~ternary_op_expr() = default;
 
   /// Iterators.
 
