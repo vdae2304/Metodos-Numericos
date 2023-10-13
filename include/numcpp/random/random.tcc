@@ -60,25 +60,28 @@ Generator<bit_generator>::__sample_distribution(OutputIterator first, size_t n,
 }
 
 template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::integers(T low, T high) {
-  uniform_int_distribution<T> rvs(low, high);
+template <class T, class U>
+inline typename std::common_type<T, U>::type
+Generator<bit_generator>::integers(T low, U high) {
+  typedef typename std::common_type<T, U>::type Rt;
+  uniform_int_distribution<Rt> rvs(low, high);
   return rvs(m_rng);
 }
 
 template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::integers(T low, T high,
-                                                       size_t size) {
-  return this->integers<T>(low, high, make_shape(size));
+template <class T, class U>
+inline tensor<typename std::common_type<T, U>::type, 1>
+Generator<bit_generator>::integers(T low, U high, size_t size) {
+  return this->integers(low, high, make_shape(size));
 }
 
 template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::integers(T low, T high, const shape_t<Rank> &size) {
-  uniform_int_distribution<T> rvs(low, high);
-  tensor<T, Rank> out(size);
+template <class T, class U, size_t Rank>
+inline tensor<typename std::common_type<T, U>::type, Rank>
+Generator<bit_generator>::integers(T low, U high, const shape_t<Rank> &size) {
+  typedef typename std::common_type<T, U>::type Rt;
+  uniform_int_distribution<Rt> rvs(low, high);
+  tensor<Rt, Rank> out(size);
   __sample_distribution(out.data(), out.size(), rvs);
   return out;
 }
@@ -118,10 +121,10 @@ T Generator<bit_generator>::choice(
 }
 
 template <class bit_generator>
-template <class Container1, class T, class Container2, class W>
+template <class Container1, class T, class Container2, class U>
 T Generator<bit_generator>::choice(
     const expression<Container1, T, 1> &population,
-    const expression<Container2, W, 1> &weights) {
+    const expression<Container2, U, 1> &weights) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
@@ -242,18 +245,18 @@ void Generator<bit_generator>::__sample_no_replacement(
 }
 
 template <class bit_generator>
-template <class Container1, class T, class Container2, class W>
+template <class Container1, class T, class Container2, class U>
 inline tensor<T, 1> Generator<bit_generator>::choice(
     const expression<Container1, T, 1> &population, size_t size,
-    const expression<Container2, W, 1> &weights, bool replace) {
+    const expression<Container2, U, 1> &weights, bool replace) {
   return this->choice(population, make_shape(size), weights, replace);
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2, class W>
+template <class Container1, class T, size_t Rank, class Container2, class U>
 inline tensor<T, Rank> Generator<bit_generator>::choice(
     const expression<Container1, T, 1> &population, const shape_t<Rank> &size,
-    const expression<Container2, W, 1> &weights, bool replace) {
+    const expression<Container2, U, 1> &weights, bool replace) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }

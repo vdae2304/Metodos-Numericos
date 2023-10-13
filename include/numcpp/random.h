@@ -79,21 +79,17 @@ public:
   /**
    * @brief Return random integers from @a low to @a high (inclusive).
    *
-   * @tparam T An integer type.
-   *
    * @param low Lowest integer to be drawn.
    * @param high Largest integer to be drawn.
    *
    * @return A random integer.
    */
-  template <class T> T integers(T low, T high);
+  template <class T, class U>
+  typename std::common_type<T, U>::type integers(T low, U high);
 
   /**
    * @brief Return a tensor of random integers from @a low to @a high
    * (inclusive).
-   *
-   * @tparam T An integer type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param low Lowest integer to be drawn.
    * @param high Largest integer to be drawn.
@@ -104,26 +100,25 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> integers(T low, T high, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> integers(T low, T high, const shape_t<Rank> &size);
+  template <class T, class U>
+  tensor<typename std::common_type<T, U>::type, 1> integers(T low, U high,
+                                                            size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename std::common_type<T, U>::type, Rank>
+  integers(T low, U high, const shape_t<Rank> &size);
 
   /**
    * @brief Return random floating-point numbers in the half-open interval
    * [0, 1).
    *
-   * @tparam T A floating-point type.
-   *
    * @return A random floating-point number.
    */
-  template <class T> T random();
+  template <class T = double> T random();
 
   /**
    * @brief Return a tensor of random floating-point numbers in the half-open
    * interval [0, 1).
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param size Output shape.
    *
@@ -132,8 +127,9 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> random(size_t size);
-  template <class T, size_t Rank>
+  template <class T = double> tensor<T, 1> random(size_t size);
+
+  template <class T = double, size_t Rank>
   tensor<T, Rank> random(const shape_t<Rank> &size);
 
   /**
@@ -153,9 +149,9 @@ public:
   template <class Container, class T>
   T choice(const expression<Container, T, 1> &population);
 
-  template <class Container1, class T, class Container2, class W>
+  template <class Container1, class T, class Container2, class U>
   T choice(const expression<Container1, T, 1> &population,
-           const expression<Container2, W, 1> &weights);
+           const expression<Container2, U, 1> &weights);
 
   /**
    * @brief Generates a random sample from a given sequence.
@@ -189,15 +185,15 @@ public:
                          const shape_t<Rank> &size, bool replace = true,
                          bool shuffle = true);
 
-  template <class Container1, class T, class Container2, class W>
+  template <class Container1, class T, class Container2, class U>
   tensor<T, 1> choice(const expression<Container1, T, 1> &population,
-                      size_t size, const expression<Container2, W, 1> &weights,
+                      size_t size, const expression<Container2, U, 1> &weights,
                       bool replace = true);
 
-  template <class Container1, class T, size_t Rank, class Container2, class W>
+  template <class Container1, class T, size_t Rank, class Container2, class U>
   tensor<T, Rank> choice(const expression<Container1, T, 1> &population,
                          const shape_t<Rank> &size,
-                         const expression<Container2, W, 1> &weights,
+                         const expression<Container2, U, 1> &weights,
                          bool replace = true);
 
   /// Permutations.
