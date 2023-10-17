@@ -60,6 +60,66 @@ Generator<bit_generator>::__sample_distribution(OutputIterator first, size_t n,
 }
 
 template <class bit_generator>
+template <class R, template <class> class Distribution, class Container,
+          class T, size_t Rank>
+tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
+    Distribution<R> &rvs, const expression<Container, T, Rank> &param) {
+  typedef typename Distribution<R>::param_type param_type;
+  tensor<R, Rank> out(param.shape());
+  for (index_t<Rank> index : make_index_sequence_for(out)) {
+    out[index] = rvs(m_rng, param_type(param[index]));
+  }
+  return out;
+}
+
+template <class bit_generator>
+template <class R, template <class> class Distribution, class Container1,
+          class T, class Container2, class U, size_t Rank>
+tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
+    Distribution<R> &rvs, const expression<Container1, T, Rank> &param1,
+    const expression<Container2, U, Rank> &param2) {
+  typedef typename Distribution<R>::param_type param_type;
+  tensor<R, Rank> out(broadcast_shapes(param1.shape(), param2.shape()));
+  for (index_t<Rank> index : make_index_sequence_for(out)) {
+    index_t<Rank> i, j;
+    for (size_t axis = 0; axis < Rank; ++axis) {
+      i[axis] = (param1.shape(axis) > 1) ? index[axis] : 0;
+      j[axis] = (param2.shape(axis) > 1) ? index[axis] : 0;
+    }
+    out[index] = rvs(m_rng, param_type(param1[i], param2[j]));
+  }
+  return out;
+}
+
+template <class bit_generator>
+template <class R, template <class> class Distribution, class Container,
+          class T, class U, size_t Rank, detail::RequiresScalar<U>>
+tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
+    Distribution<R> &rvs, const expression<Container, T, Rank> &param1,
+    const U &param2) {
+  typedef typename Distribution<R>::param_type param_type;
+  tensor<R, Rank> out(param1.shape());
+  for (index_t<Rank> index : make_index_sequence_for(out)) {
+    out[index] = rvs(m_rng, param_type(param1[index], param2));
+  }
+  return out;
+}
+
+template <class bit_generator>
+template <class R, template <class> class Distribution, class T,
+          class Container, class U, size_t Rank, detail::RequiresScalar<T>>
+tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
+    Distribution<R> &rvs, const T &param1,
+    const expression<Container, U, Rank> &param2) {
+  typedef typename Distribution<R>::param_type param_type;
+  tensor<R, Rank> out(param2.shape());
+  for (index_t<Rank> index : make_index_sequence_for(out)) {
+    out[index] = rvs(m_rng, param_type(param1, param2[index]));
+  }
+  return out;
+}
+
+template <class bit_generator>
 template <class T, class U>
 inline typename std::common_type<T, U>::type
 Generator<bit_generator>::integers(T low, U high) {
@@ -325,31 +385,875 @@ Generator<bit_generator>::permutation(const expression<Container, T, Rank> &a,
   return out;
 }
 
-/// Distributions.
+/// Continuous distributions.
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::beta(T shape1, U shape2) {
+  typedef typename detail::promote<T, U>::type Rt;
+  beta_distribution<Rt> rvs(shape1, shape2);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::beta(const expression<Container1, T, Rank> &shape1,
+                               const expression<Container2, T, Rank> &shape2) {
+  beta_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape1, shape2);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::beta(const expression<Container, T, Rank> &shape1,
+                               typename Container::value_type shape2) {
+  beta_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape1, shape2);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::beta(typename Container::value_type shape1,
+                               const expression<Container, T, Rank> &shape2) {
+  beta_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape1, shape2);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::beta(T shape1, U shape2, size_t size) {
+  return this->beta(shape1, shape2, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::beta(T shape1, U shape2, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  beta_distribution<Rt> rvs(shape1, shape2);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::cauchy(T loc, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  cauchy_distribution<Rt> rvs(loc, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::cauchy(const expression<Container1, T, Rank> &loc,
+                                 const expression<Container2, T, Rank> &scale) {
+  cauchy_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::cauchy(const expression<Container, T, Rank> &loc,
+                                 typename Container::value_type scale) {
+  cauchy_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::cauchy(typename Container::value_type loc,
+                                 const expression<Container, T, Rank> &scale) {
+  cauchy_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::cauchy(T loc, U scale, size_t size) {
+  return this->cauchy(loc, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::cauchy(T loc, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  cauchy_distribution<Rt> rvs(loc, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
 
 template <class bit_generator>
 template <class T>
-inline T Generator<bit_generator>::beta(T shape1, T shape2) {
-  beta_distribution<T> rvs(shape1, shape2);
+inline typename detail::promote<T>::type
+Generator<bit_generator>::chisquare(T df) {
+  typedef typename detail::promote<T>::type Rt;
+  chi_squared_distribution<Rt> rvs(df);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::chisquare(const expression<Container, T, Rank> &df) {
+  chi_squared_distribution<T> rvs;
+  return __sample_element_wise(rvs, df);
+}
+
+template <class bit_generator>
+template <class T>
+inline tensor<typename detail::promote<T>::type, 1>
+Generator<bit_generator>::chisquare(T df, size_t size) {
+  return this->chisquare(df, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, size_t Rank>
+inline tensor<typename detail::promote<T>::type, Rank>
+Generator<bit_generator>::chisquare(T df, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T>::type Rt;
+  chi_squared_distribution<Rt> rvs(df);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T>
+inline typename detail::promote<T>::type
+Generator<bit_generator>::exponential(T rate) {
+  typedef typename detail::promote<T>::type Rt;
+  exponential_distribution<Rt> rvs(rate);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::exponential(
+    const expression<Container, T, Rank> &rate) {
+  exponential_distribution<T> rvs;
+  return __sample_element_wise(rvs, rate);
+}
+
+template <class bit_generator>
+template <class T>
+inline tensor<typename detail::promote<T>::type, 1>
+Generator<bit_generator>::exponential(T rate, size_t size) {
+  return this->exponential(rate, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, size_t Rank>
+inline tensor<typename detail::promote<T>::type, Rank>
+Generator<bit_generator>::exponential(T rate, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T>::type Rt;
+  exponential_distribution<Rt> rvs(rate);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::fisher_f(T df1, U df2) {
+  typedef typename detail::promote<T, U>::type Rt;
+  fisher_f_distribution<Rt> rvs(df1, df2);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::fisher_f(const expression<Container1, T, Rank> &df1,
+                                   const expression<Container2, T, Rank> &df2) {
+  fisher_f_distribution<T> rvs;
+  return __sample_element_wise(rvs, df1, df2);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::fisher_f(const expression<Container, T, Rank> &df1,
+                                   typename Container::value_type df2) {
+  fisher_f_distribution<T> rvs;
+  return __sample_element_wise(rvs, df1, df2);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::fisher_f(typename Container::value_type df1,
+                                   const expression<Container, T, Rank> &df2) {
+  fisher_f_distribution<T> rvs;
+  return __sample_element_wise(rvs, df1, df2);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::fisher_f(T df1, U df2, size_t size) {
+  return this->fisher_f(df1, df2, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::fisher_f(T df1, U df2, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  fisher_f_distribution<Rt> rvs(df1, df2);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::gamma(T shape, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  gamma_distribution<Rt> rvs(shape, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::gamma(const expression<Container1, T, Rank> &shape,
+                                const expression<Container2, T, Rank> &scale) {
+  gamma_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::gamma(const expression<Container, T, Rank> &shape,
+                                typename Container::value_type scale) {
+  gamma_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::gamma(typename Container::value_type shape,
+                                const expression<Container, T, Rank> &scale) {
+  gamma_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::gamma(T shape, U scale, size_t size) {
+  return this->gamma(shape, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::gamma(T shape, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  gamma_distribution<Rt> rvs(shape, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::gumbel(T loc, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  extreme_value_distribution<Rt> rvs(loc, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::gumbel(const expression<Container1, T, Rank> &loc,
+                                 const expression<Container2, T, Rank> &scale) {
+  extreme_value_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::gumbel(const expression<Container, T, Rank> &loc,
+                                 typename Container::value_type scale) {
+  extreme_value_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::gumbel(typename Container::value_type loc,
+                                 const expression<Container, T, Rank> &scale) {
+  extreme_value_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::gumbel(T loc, U scale, size_t size) {
+  return this->gumbel(loc, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::gumbel(T loc, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  extreme_value_distribution<Rt> rvs(loc, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::laplace(T loc, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  laplace_distribution<Rt> rvs(loc, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::laplace(
+    const expression<Container1, T, Rank> &loc,
+    const expression<Container2, T, Rank> &scale) {
+  laplace_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::laplace(const expression<Container, T, Rank> &loc,
+                                  typename Container::value_type scale) {
+  laplace_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::laplace(typename Container::value_type loc,
+                                  const expression<Container, T, Rank> &scale) {
+  laplace_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::laplace(T loc, U scale, size_t size) {
+  return this->laplace(loc, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::laplace(T loc, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  laplace_distribution<Rt> rvs(loc, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::logistic(T loc, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  logistic_distribution<Rt> rvs(loc, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::logistic(
+    const expression<Container1, T, Rank> &loc,
+    const expression<Container2, T, Rank> &scale) {
+  logistic_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::logistic(const expression<Container, T, Rank> &loc,
+                                   typename Container::value_type scale) {
+  logistic_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::logistic(
+    typename Container::value_type loc,
+    const expression<Container, T, Rank> &scale) {
+  logistic_distribution<T> rvs;
+  return __sample_element_wise(rvs, loc, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::logistic(T loc, U scale, size_t size) {
+  return this->logistic(loc, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::logistic(T loc, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  logistic_distribution<Rt> rvs(loc, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::lognormal(T logmean, U logscale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  lognormal_distribution<Rt> rvs(logmean, logscale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::lognormal(
+    const expression<Container1, T, Rank> &logmean,
+    const expression<Container2, T, Rank> &logscale) {
+  lognormal_distribution<T> rvs;
+  return __sample_element_wise(rvs, logmean, logscale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::lognormal(
+    const expression<Container, T, Rank> &logmean,
+    typename Container::value_type logscale) {
+  lognormal_distribution<T> rvs;
+  return __sample_element_wise(rvs, logmean, logscale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::lognormal(
+    typename Container::value_type logmean,
+    const expression<Container, T, Rank> &logscale) {
+  lognormal_distribution<T> rvs;
+  return __sample_element_wise(rvs, logmean, logscale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::lognormal(T logmean, U logscale, size_t size) {
+  return this->lognormal(logmean, logscale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::lognormal(T logmean, U logscale,
+                                    const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  lognormal_distribution<Rt> rvs(logmean, logscale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::normal(T mean, U stddev) {
+  typedef typename detail::promote<T, U>::type Rt;
+  normal_distribution<Rt> rvs(mean, stddev);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::normal(
+    const expression<Container1, T, Rank> &mean,
+    const expression<Container2, T, Rank> &stddev) {
+  normal_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, stddev);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::normal(const expression<Container, T, Rank> &mean,
+                                 typename Container::value_type stddev) {
+  normal_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, stddev);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::normal(typename Container::value_type mean,
+                                 const expression<Container, T, Rank> &stddev) {
+  normal_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, stddev);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::normal(T mean, U stddev, size_t size) {
+  return this->normal(mean, stddev, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::normal(T mean, U stddev, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  normal_distribution<Rt> rvs(mean, stddev);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::pareto(T shape, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  pareto_distribution<Rt> rvs(shape, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::pareto(const expression<Container1, T, Rank> &shape,
+                                 const expression<Container2, T, Rank> &scale) {
+  pareto_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::pareto(const expression<Container, T, Rank> &shape,
+                                 typename Container::value_type scale) {
+  pareto_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::pareto(typename Container::value_type shape,
+                                 const expression<Container, T, Rank> &scale) {
+  pareto_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::pareto(T shape, U scale, size_t size) {
+  return this->pareto(shape, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::pareto(T shape, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  pareto_distribution<Rt> rvs(shape, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T>
+inline typename detail::promote<T>::type
+Generator<bit_generator>::rayleigh(T scale) {
+  typedef typename detail::promote<T>::type Rt;
+  rayleigh_distribution<Rt> rvs(scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::rayleigh(
+    const expression<Container, T, Rank> &scale) {
+  rayleigh_distribution<T> rvs;
+  return __sample_element_wise(rvs, scale);
+}
+
+template <class bit_generator>
+template <class T>
+inline tensor<typename detail::promote<T>::type, 1>
+Generator<bit_generator>::rayleigh(T scale, size_t size) {
+  return this->rayleigh(scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, size_t Rank>
+inline tensor<typename detail::promote<T>::type, Rank>
+Generator<bit_generator>::rayleigh(T scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T>::type Rt;
+  rayleigh_distribution<Rt> rvs(scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T>
+inline T Generator<bit_generator>::standard_normal() {
+  normal_distribution<T> rvs;
   return rvs(m_rng);
 }
 
 template <class bit_generator>
 template <class T>
-inline tensor<T, 1> Generator<bit_generator>::beta(T shape1, T shape2,
-                                                   size_t size) {
-  return this->beta<T>(shape1, shape2, make_shape(size));
+inline tensor<T, 1> Generator<bit_generator>::standard_normal(size_t size) {
+  return this->standard_normal<T>(make_shape(size));
 }
 
 template <class bit_generator>
 template <class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::beta(T shape1, T shape2, const shape_t<Rank> &size) {
-  beta_distribution<T> rvs(shape1, shape2);
+Generator<bit_generator>::standard_normal(const shape_t<Rank> &size) {
+  normal_distribution<T> rvs;
   tensor<T, Rank> out(size);
   __sample_distribution(out.data(), out.size(), rvs);
   return out;
 }
+
+template <class bit_generator>
+template <class T>
+inline typename detail::promote<T>::type
+Generator<bit_generator>::student_t(T df) {
+  typedef typename detail::promote<T>::type Rt;
+  student_t_distribution<Rt> rvs(df);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::student_t(const expression<Container, T, Rank> &df) {
+  student_t_distribution<T> rvs;
+  return __sample_element_wise(rvs, df);
+}
+
+template <class bit_generator>
+template <class T>
+inline tensor<typename detail::promote<T>::type, 1>
+Generator<bit_generator>::student_t(T df, size_t size) {
+  return this->student_t(df, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, size_t Rank>
+inline tensor<typename detail::promote<T>::type, Rank>
+Generator<bit_generator>::student_t(T df, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T>::type Rt;
+  student_t_distribution<Rt> rvs(df);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::uniform(T low, U high) {
+  typedef typename detail::promote<T, U>::type Rt;
+  uniform_real_distribution<Rt> rvs(low, high);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::uniform(const expression<Container1, T, Rank> &low,
+                                  const expression<Container2, T, Rank> &high) {
+  uniform_real_distribution<T> rvs;
+  return __sample_element_wise(rvs, low, high);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::uniform(const expression<Container, T, Rank> &low,
+                                  typename Container::value_type high) {
+  uniform_real_distribution<T> rvs;
+  return __sample_element_wise(rvs, low, high);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::uniform(typename Container::value_type low,
+                                  const expression<Container, T, Rank> &high) {
+  uniform_real_distribution<T> rvs;
+  return __sample_element_wise(rvs, low, high);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::uniform(T low, U high, size_t size) {
+  return this->uniform(low, high, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::uniform(T low, U high, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  uniform_real_distribution<Rt> rvs(low, high);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::wald(T mean, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  inverse_gaussian_distribution<Rt> rvs(mean, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank>
+Generator<bit_generator>::wald(const expression<Container1, T, Rank> &mean,
+                               const expression<Container2, T, Rank> &scale) {
+  inverse_gaussian_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::wald(const expression<Container, T, Rank> &mean,
+                               typename Container::value_type scale) {
+  inverse_gaussian_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::wald(typename Container::value_type mean,
+                               const expression<Container, T, Rank> &scale) {
+  inverse_gaussian_distribution<T> rvs;
+  return __sample_element_wise(rvs, mean, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::wald(T mean, U scale, size_t size) {
+  return this->wald(mean, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::wald(T mean, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  inverse_gaussian_distribution<Rt> rvs(mean, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline typename detail::promote<T, U>::type
+Generator<bit_generator>::weibull(T shape, U scale) {
+  typedef typename detail::promote<T, U>::type Rt;
+  weibull_distribution<Rt> rvs(shape, scale);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::weibull(
+    const expression<Container1, T, Rank> &shape,
+    const expression<Container2, T, Rank> &scale) {
+  weibull_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::weibull(const expression<Container, T, Rank> &shape,
+                                  typename Container::value_type scale) {
+  weibull_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::weibull(typename Container::value_type shape,
+                                  const expression<Container, T, Rank> &scale) {
+  weibull_distribution<T> rvs;
+  return __sample_element_wise(rvs, shape, scale);
+}
+
+template <class bit_generator>
+template <class T, class U>
+inline tensor<typename detail::promote<T, U>::type, 1>
+Generator<bit_generator>::weibull(T shape, U scale, size_t size) {
+  return this->weibull(shape, scale, make_shape(size));
+}
+
+template <class bit_generator>
+template <class T, class U, size_t Rank>
+inline tensor<typename detail::promote<T, U>::type, Rank>
+Generator<bit_generator>::weibull(T shape, U scale, const shape_t<Rank> &size) {
+  typedef typename detail::promote<T, U>::type Rt;
+  weibull_distribution<Rt> rvs(shape, scale);
+  tensor<Rt, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+/// Discrete distributions.
 
 template <class bit_generator>
 template <class T>
@@ -378,124 +1282,6 @@ Generator<bit_generator>::binomial(T n, double prob,
 
 template <class bit_generator>
 template <class T>
-inline T Generator<bit_generator>::cauchy(T loc, T scale) {
-  cauchy_distribution<T> rvs(loc, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::cauchy(T loc, T scale,
-                                                     size_t size) {
-  return this->cauchy<T>(loc, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::cauchy(T loc, T scale, const shape_t<Rank> &size) {
-  cauchy_distribution<T> rvs(loc, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::chisquare(T df) {
-  chi_squared_distribution<T> rvs(df);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::chisquare(T df, size_t size) {
-  return this->chisquare<T>(df, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::chisquare(T df, const shape_t<Rank> &size) {
-  chi_squared_distribution<T> rvs(df);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::exponential(T rate) {
-  exponential_distribution<T> rvs(rate);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::exponential(T rate, size_t size) {
-  return this->exponential<T>(rate, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::exponential(T rate, const shape_t<Rank> &size) {
-  exponential_distribution<T> rvs(rate);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::fisher_f(T df1, T df2) {
-  fisher_f_distribution<T> rvs(df1, df2);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::fisher_f(T df1, T df2,
-                                                       size_t size) {
-  return this->fisher_f<T>(df1, df2, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::fisher_f(T df1, T df2, const shape_t<Rank> &size) {
-  fisher_f_distribution<T> rvs(df1, df2);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::gamma(T shape, T scale) {
-  gamma_distribution<T> rvs(shape, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::gamma(T shape, T scale,
-                                                    size_t size) {
-  return this->gamma<T>(shape, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::gamma(T shape, T scale, const shape_t<Rank> &size) {
-  gamma_distribution<T> rvs(shape, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
 inline T Generator<bit_generator>::geometric(double prob) {
   geometric_distribution<T> rvs(prob);
   return rvs(m_rng);
@@ -513,103 +1299,6 @@ template <class T, size_t Rank>
 inline tensor<T, Rank>
 Generator<bit_generator>::geometric(double prob, const shape_t<Rank> &size) {
   geometric_distribution<T> rvs(prob);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::gumbel(T loc, T scale) {
-  extreme_value_distribution<T> rvs(loc, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::gumbel(T loc, T scale,
-                                                     size_t size) {
-  return this->gumbel<T>(loc, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::gumbel(T loc, T scale, const shape_t<Rank> &size) {
-  extreme_value_distribution<T> rvs(loc, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::laplace(T loc, T scale) {
-  laplace_distribution<T> rvs(loc, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::laplace(T loc, T scale,
-                                                      size_t size) {
-  return this->laplace<T>(loc, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::laplace(T loc, T scale, const shape_t<Rank> &size) {
-  laplace_distribution<T> rvs(loc, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::logistic(T loc, T scale) {
-  logistic_distribution<T> rvs(loc, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::logistic(T loc, T scale,
-                                                       size_t size) {
-  return this->logistic<T>(loc, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::logistic(T loc, T scale, const shape_t<Rank> &size) {
-  logistic_distribution<T> rvs(loc, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::lognormal(T logmean, T logscale) {
-  lognormal_distribution<T> rvs(logmean, logscale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::lognormal(T logmean, T logscale,
-                                                        size_t size) {
-  return this->lognormal<T>(logmean, logscale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::lognormal(T logmean, T logscale,
-                                    const shape_t<Rank> &size) {
-  lognormal_distribution<T> rvs(logmean, logscale);
   tensor<T, Rank> out(size);
   __sample_distribution(out.data(), out.size(), rvs);
   return out;
@@ -642,54 +1331,6 @@ Generator<bit_generator>::negative_binomial(T n, double prob,
 
 template <class bit_generator>
 template <class T>
-inline T Generator<bit_generator>::normal(T mean, T stddev) {
-  normal_distribution<T> rvs(mean, stddev);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::normal(T mean, T stddev,
-                                                     size_t size) {
-  return this->normal<T>(mean, stddev, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::normal(T mean, T stddev, const shape_t<Rank> &size) {
-  normal_distribution<T> rvs(mean, stddev);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::pareto(T shape, T scale) {
-  pareto_distribution<T> rvs(shape, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::pareto(T shape, T scale,
-                                                     size_t size) {
-  return this->pareto<T>(shape, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::pareto(T shape, T scale, const shape_t<Rank> &size) {
-  pareto_distribution<T> rvs(shape, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
 inline T Generator<bit_generator>::poisson(double rate) {
   poisson_distribution<T> rvs(rate);
   return rvs(m_rng);
@@ -707,176 +1348,6 @@ template <class T, size_t Rank>
 inline tensor<T, Rank>
 Generator<bit_generator>::poisson(double rate, const shape_t<Rank> &size) {
   poisson_distribution<T> rvs(rate);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::rayleigh(T scale) {
-  rayleigh_distribution<T> rvs(scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::rayleigh(T scale, size_t size) {
-  return this->rayleigh<T>(scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::rayleigh(T scale, const shape_t<Rank> &size) {
-  rayleigh_distribution<T> rvs(scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::standard_normal() {
-  normal_distribution<T> rvs;
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::standard_normal(size_t size) {
-  return this->standard_normal<T>(make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::standard_normal(const shape_t<Rank> &size) {
-  normal_distribution<T> rvs;
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::student_t(T df) {
-  student_t_distribution<T> rvs(df);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::student_t(T df, size_t size) {
-  return this->student_t<T>(df, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::student_t(T df, const shape_t<Rank> &size) {
-  student_t_distribution<T> rvs(df);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::triangular(T lower, T mode, T right) {
-  T breaks[3] = {lower, mode, right};
-  T weights[3] = {T(0), T(1), T(0)};
-  piecewise_linear_distribution<T> rvs(breaks, breaks + 3, weights);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::triangular(T lower, T mode,
-                                                         T right, size_t size) {
-  return this->triangular<T>(lower, mode, right, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::triangular(T lower, T mode, T right,
-                                     const shape_t<Rank> &size) {
-  T breaks[3] = {lower, mode, right};
-  T weights[3] = {T(0), T(1), T(0)};
-  piecewise_linear_distribution<T> rvs(breaks, breaks + 3, weights);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::uniform(T low, T high) {
-  uniform_real_distribution<T> rvs(low, high);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::uniform(T low, T high,
-                                                      size_t size) {
-  return this->uniform<T>(low, high, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::uniform(T low, T high, const shape_t<Rank> &size) {
-  uniform_real_distribution<T> rvs(low, high);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::wald(T mean, T scale) {
-  inverse_gaussian_distribution<T> rvs(mean, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::wald(T mean, T scale,
-                                                   size_t size) {
-  return this->wald<T>(mean, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::wald(T mean, T scale, const shape_t<Rank> &size) {
-  inverse_gaussian_distribution<T> rvs(mean, scale);
-  tensor<T, Rank> out(size);
-  __sample_distribution(out.data(), out.size(), rvs);
-  return out;
-}
-
-template <class bit_generator>
-template <class T>
-inline T Generator<bit_generator>::weibull(T shape, T scale) {
-  weibull_distribution<T> rvs(shape, scale);
-  return rvs(m_rng);
-}
-
-template <class bit_generator>
-template <class T>
-inline tensor<T, 1> Generator<bit_generator>::weibull(T shape, T scale,
-                                                      size_t size) {
-  return this->weibull<T>(shape, scale, make_shape(size));
-}
-
-template <class bit_generator>
-template <class T, size_t Rank>
-inline tensor<T, Rank>
-Generator<bit_generator>::weibull(T shape, T scale, const shape_t<Rank> &size) {
-  weibull_distribution<T> rvs(shape, scale);
   tensor<T, Rank> out(size);
   __sample_distribution(out.data(), out.size(), rvs);
   return out;

@@ -240,7 +240,7 @@ public:
   tensor<T, Rank> permutation(const expression<Container, T, Rank> &a,
                               size_t axis);
 
-  /// Distributions.
+  /// Continuous distributions.
 
   /**
    * @brief Draw samples from a Beta distribution.
@@ -254,20 +254,34 @@ public:
    * for @f$0 \leq x \leq 1@f$, where @f$\alpha@f$ and @f$\beta@f$ are shape
    * parameters.
    *
-   * @tparam T A floating-point type.
-   *
    * @param shape1 Shape parameter. This shall be a positive value.
    * @param shape2 Shape parameter. This shall be a positive value.
    *
    * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
    */
-  template <class T> T beta(T shape1, T shape2);
+  template <class T, class U>
+  typename detail::promote<T, U>::type beta(T shape1, U shape2);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> beta(const expression<Container1, T, Rank> &shape1,
+                       const expression<Container2, T, Rank> &shape2);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> beta(const expression<Container, T, Rank> &shape1,
+                       typename Container::value_type shape2);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> beta(typename Container::value_type shape1,
+                       const expression<Container, T, Rank> &shape2);
 
   /**
    * @brief Draw samples from a Beta distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param shape1 Shape parameter. This shall be a positive value.
    * @param shape2 Shape parameter. This shall be a positive value.
@@ -278,9 +292,888 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> beta(T shape1, T shape2, size_t size);
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> beta(T shape1, U shape2,
+                                                       size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  beta(T shape1, U shape2, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Cauchy distribution.
+   *
+   * @details The probability density function for the Cauchy distribution is
+   * @f[
+   *   f(x;x_0,\gamma) = \frac{1}
+   *     {\pi\gamma\left[1+\left(\frac{x-x_0}{\gamma}\right)^2\right]}
+   * @f]
+   * for all @a x, where @f$x_0@f$ and @f$\gamma@f$ are location and scale
+   * parameters.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type cauchy(T loc, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> cauchy(const expression<Container1, T, Rank> &loc,
+                         const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> cauchy(const expression<Container, T, Rank> &loc,
+                         typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> cauchy(typename Container::value_type loc,
+                         const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Cauchy distribution.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> cauchy(T loc, U scale,
+                                                         size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  cauchy(T loc, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a chi-squared distribution.
+   *
+   * @details The probability density function for the chi-squared distribution
+   * is
+   * @f[
+   *   f(x;k) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2}
+   * @f]
+   * for @f$x \geq 0@f$, where @a k is the degrees of freedom.
+   *
+   * @param df Degrees of freedom. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T> typename detail::promote<T>::type chisquare(T df);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> chisquare(const expression<Container, T, Rank> &df);
+
+  /**
+   * @brief Draw samples from a chi-squared distribution.
+   *
+   * @param df Degrees of freedom. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T>
+  tensor<typename detail::promote<T>::type, 1> chisquare(T df, size_t size);
+
   template <class T, size_t Rank>
-  tensor<T, Rank> beta(T shape1, T shape2, const shape_t<Rank> &size);
+  tensor<typename detail::promote<T>::type, Rank>
+  chisquare(T df, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from an exponential distribution.
+   *
+   * @details The probability density function for the exponential distribution
+   * is
+   * @f[
+   *   f(x;\lambda) = \lambda e^{-\lambda x}
+   * @f]
+   * for @f$x \geq 0@f$, where @f$\lambda@f$ is the rate parameter.
+   *
+   * @param rate Rate parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T> typename detail::promote<T>::type exponential(T rate);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> exponential(const expression<Container, T, Rank> &rate);
+
+  /**
+   * @brief Draw samples from an exponential distribution.
+   *
+   * @param rate Rate parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T>
+  tensor<typename detail::promote<T>::type, 1> exponential(T rate, size_t size);
+
+  template <class T, size_t Rank>
+  tensor<typename detail::promote<T>::type, Rank>
+  exponential(T rate, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Fisher F-distribution.
+   *
+   * @details The probability density function for the F distribution is
+   * @f[
+   *   f(x;d_1,d_2) = \frac{\Gamma\left(\frac{d_1+d_2}{2}\right)}
+   *     {\Gamma\left(\frac{d_1}{2}\right)\Gamma\left(\frac{d_2}{2}\right)}
+   *     \frac{\left(\frac{d_1x}{d_2}\right)^{d_1/2}}
+   *     {x\left(1+\frac{d_1x}{d_2}\right)^{(d_1+d_2)/2}}
+   * @f]
+   * for @f$x \geq 0@f$, where @f$d_1@f$ and @f$d_2@f$ are the degrees of
+   * freedom.
+   *
+   * @param df1 Degrees of freedom. This shall be a positive value.
+   * @param df2 Degrees of freedom. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type fisher_f(T df1, U df2);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> fisher_f(const expression<Container1, T, Rank> &df1,
+                           const expression<Container2, T, Rank> &df2);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> fisher_f(const expression<Container, T, Rank> &df1,
+                           typename Container::value_type df2);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> fisher_f(typename Container::value_type df1,
+                           const expression<Container, T, Rank> &df2);
+
+  /**
+   * @brief Draw samples from a Fisher F-distribution.
+   *
+   * @param df1 Degrees of freedom. This shall be a positive value.
+   * @param df2 Degrees of freedom. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> fisher_f(T df1, U df2,
+                                                           size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  fisher_f(T df1, U df2, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Gamma distribution.
+   *
+   * @details The probability density function for the Gamma distribution is
+   * @f[
+   *   f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}} x^{\alpha-1}
+   *     e^{-x/\beta}
+   * @f]
+   * for @f$x > 0@f$, where @f$\alpha@f$ is the shape parameter and @f$\beta@f$
+   * is the scale parameter.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type gamma(T shape, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> gamma(const expression<Container1, T, Rank> &shape,
+                        const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> gamma(const expression<Container, T, Rank> &shape,
+                        typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> gamma(typename Container::value_type shape,
+                        const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Gamma distribution.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> gamma(T shape, U scale,
+                                                        size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  gamma(T shape, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Gumbel distribution.
+   *
+   * @details The probability density function for the Gumbel distribution is
+   * @f[
+   *   f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b}
+   * @f]
+   * for all @a x, where @a a is the location parameter and @a b is the scale
+   * parameter.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type gumbel(T loc, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> gumbel(const expression<Container1, T, Rank> &loc,
+                         const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> gumbel(const expression<Container, T, Rank> &loc,
+                         typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> gumbel(typename Container::value_type loc,
+                         const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Gumbel distribution.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> gumbel(T loc, U scale,
+                                                         size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  gumbel(T loc, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Laplace distribution.
+   *
+   * @details The probability density function for the Laplace distribution is
+   * @f[
+   *   f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)
+   * @f]
+   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
+   * scale parameter.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type laplace(T loc, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> laplace(const expression<Container1, T, Rank> &loc,
+                          const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> laplace(const expression<Container, T, Rank> &loc,
+                          typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> laplace(typename Container::value_type loc,
+                          const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Laplace distribution.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> laplace(T loc, U scale,
+                                                          size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  laplace(T loc, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a logistic distribution.
+   *
+   * @details The probability density function for the logistic distribution is
+   * @f[
+   *   f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}
+   * @f]
+   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
+   * scale parameter.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type logistic(T loc, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> logistic(const expression<Container1, T, Rank> &loc,
+                           const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> logistic(const expression<Container, T, Rank> &loc,
+                           typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> logistic(typename Container::value_type loc,
+                           const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a logistic distribution.
+   *
+   * @param loc Location parameter.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> logistic(T loc, U scale,
+                                                           size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  logistic(T loc, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a log-normal distribution.
+   *
+   * @details The probability density function for the log-normal distribution
+   * is
+   * @f[
+   *   f(x;\mu,\sigma) = \frac{1}{x\sigma\sqrt{2\pi}}
+   *     \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right)
+   * @f]
+   * for @f$x > 0@f$, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
+   * deviation of the underlying normal distribution formed by the logaritm
+   * transformation.
+   *
+   * @param logmean Mean of the underlying normal distribution.
+   * @param logscale Standard deviation of the underlying normal distribution.
+   *                 This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type lognormal(T logmean, U logscale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> lognormal(const expression<Container1, T, Rank> &logmean,
+                            const expression<Container2, T, Rank> &logscale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> lognormal(const expression<Container, T, Rank> &logmean,
+                            typename Container::value_type logscale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> lognormal(typename Container::value_type logmean,
+                            const expression<Container, T, Rank> &logscale);
+
+  /**
+   * @brief Draw samples from a log-normal distribution.
+   *
+   * @param logmean Mean of the underlying normal distribution.
+   * @param logscale Standard deviation of the underlying normal distribution.
+   *                 This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1>
+  lognormal(T logmean, U logscale, size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  lognormal(T logmean, U logscale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a normal distribution.
+   *
+   * @details The probability density function for the normal distribution is
+   * @f[
+   *   f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
+   *     \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+   * @f]
+   * for all @a x, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
+   * deviation.
+   *
+   * @param mean Mean of the distribution.
+   * @param stddev Standard deviation of the distribution. This shall be a
+   *               positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type normal(T mean, U stddev);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> normal(const expression<Container1, T, Rank> &mean,
+                         const expression<Container2, T, Rank> &stddev);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> normal(const expression<Container, T, Rank> &mean,
+                         typename Container::value_type stddev);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> normal(typename Container::value_type mean,
+                         const expression<Container, T, Rank> &stddev);
+
+  /**
+   * @brief Draw samples from a normal distribution.
+   *
+   * @param mean Mean of the distribution.
+   * @param stddev Standard deviation of the distribution. This shall be a
+   *               positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> normal(T mean, U stddev,
+                                                         size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  normal(T mean, U stddev, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Pareto distribution.
+   *
+   * @details The probability density function for the Pareto distribution is
+   * @f[
+   *   f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}
+   * @f]
+   * for @f$x \geq x_m@f$, where @f$\alpha@f$ is the shape parameter and
+   * @f$x_m@f$ is the scale parameter.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type pareto(T shape, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> pareto(const expression<Container1, T, Rank> &shape,
+                         const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> pareto(const expression<Container, T, Rank> &shape,
+                         typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> pareto(typename Container::value_type shape,
+                         const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Pareto distribution.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> pareto(T shape, U scale,
+                                                         size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  pareto(T shape, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Rayleigh distribution.
+   *
+   * @details The probability density function for the Rayleigh distribution is
+   * @f[
+   *   f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}
+   * @f]
+   * for @f$x \geq 0@f$, where @f$\sigma@f$ is the scale parameter.
+   *
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   *
+   */
+  template <class T> typename detail::promote<T>::type rayleigh(T scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> rayleigh(const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Rayleigh distribution.
+   *
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T>
+  tensor<typename detail::promote<T>::type, 1> rayleigh(T scale, size_t size);
+
+  template <class T, size_t Rank>
+  tensor<typename detail::promote<T>::type, Rank>
+  rayleigh(T scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a standard normal distribution ( @a mean=0,
+   * @a stddev=1 ).
+   *
+   * @return A sample from the distribution.
+   */
+  template <class T = double> T standard_normal();
+
+  /**
+   * @brief Draw samples from a standard normal distribution ( @a mean=0,
+   * @a stddev = 1 ).
+   *
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T = double> tensor<T, 1> standard_normal(size_t size);
+
+  template <class T = double, size_t Rank>
+  tensor<T, Rank> standard_normal(const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Student's t distribution.
+   *
+   * @details The probability density function for the Student's t distribution
+   * is
+   * @f[
+   *   f(x;\nu) = \frac{1}{\sqrt{\pi\nu}}
+   *     \frac{\Gamma\left(\frac{\nu+1}{2}\right)}
+   *     {\Gamma\left(\frac{\nu}{2}\right)}
+   *     \left(1+\frac{x^2}{\nu}\right)^{-(\nu+1)/2}
+   * @f]
+   * for all @a x, where @f$\nu@f$ is the degrees of freedom.
+   *
+   * @param df Degrees of freedom. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T> typename detail::promote<T>::type student_t(T df);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> student_t(const expression<Container, T, Rank> &df);
+
+  /**
+   * @brief Draw samples from a Student's t distribution.
+   *
+   * @param df Degrees of freedom. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T>
+  tensor<typename detail::promote<T>::type, 1> student_t(T df, size_t size);
+
+  template <class T, size_t Rank>
+  tensor<typename detail::promote<T>::type, Rank>
+  student_t(T df, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from an uniform distribution.
+   *
+   * @details The probability density function for the uniform distribution is
+   * @f[
+   *   f(x;a,b) = \frac{1}{b-a}
+   * @f]
+   * for @f$a \leq x < b@f$, where @a a and @a b are the lower and upper
+   * boundaries of the distribution.
+   *
+   * @param low Lower boundary.
+   * @param high Upper boundary.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type uniform(T low, U high);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> uniform(const expression<Container1, T, Rank> &low,
+                          const expression<Container2, T, Rank> &high);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> uniform(const expression<Container, T, Rank> &low,
+                          typename Container::value_type high);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> uniform(typename Container::value_type low,
+                          const expression<Container, T, Rank> &high);
+
+  /**
+   * @brief Draw samples from an uniform distribution.
+   *
+   * @param low Lower boundary.
+   * @param high Upper boundary.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> uniform(T low, U high,
+                                                          size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  uniform(T low, U high, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Wald, or inverse Gaussian, distribution.
+   *
+   * @details The probability density function for the Wald distribution is
+   * @f[
+   *   f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
+   *     \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)
+   * @f]
+   * for @f$x > 0@f$, where @f$\mu@f$ is the mean and @f$\lambda@f$ is the scale
+   * parameter.
+   *
+   * @param mean Mean of the distribution. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type wald(T mean, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> wald(const expression<Container1, T, Rank> &mean,
+                       const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> wald(const expression<Container, T, Rank> &mean,
+                       typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> wald(typename Container::value_type mean,
+                       const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Wald distribution.
+   *
+   * @param mean Mean of the distribution. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> wald(T mean, U scale,
+                                                       size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  wald(T mean, U scale, const shape_t<Rank> &size);
+
+  /**
+   * @brief Draw samples from a Weibull distribution.
+   *
+   * @details The probability density function for the Weibull distribution is
+   * @f[
+   *   f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a}
+   * @f]
+   * for @f$x \geq 0@f$, where @a a is the shape parameter and @a b is the scale
+   * parameter.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  typename detail::promote<T, U>::type weibull(T shape, U scale);
+
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> weibull(const expression<Container1, T, Rank> &shape,
+                          const expression<Container2, T, Rank> &scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> weibull(const expression<Container, T, Rank> &shape,
+                          typename Container::value_type scale);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> weibull(typename Container::value_type shape,
+                          const expression<Container, T, Rank> &scale);
+
+  /**
+   * @brief Draw samples from a Weibull distribution.
+   *
+   * @param shape Shape parameter. This shall be a positive value.
+   * @param scale Scale parameter. This shall be a positive value.
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  template <class T, class U>
+  tensor<typename detail::promote<T, U>::type, 1> weibull(T shape, U scale,
+                                                          size_t size);
+
+  template <class T, class U, size_t Rank>
+  tensor<typename detail::promote<T, U>::type, Rank>
+  weibull(T shape, U scale, const shape_t<Rank> &size);
+
+  /// Discrete distributions.
 
   /**
    * @brief Draw samples from a binomial distribution.
@@ -323,197 +1216,6 @@ public:
   tensor<T, Rank> binomial(T n, double prob, const shape_t<Rank> &size);
 
   /**
-   * @brief Draw samples from a Cauchy distribution.
-   *
-   * @details The probability density function for the Cauchy distribution is
-   * @f[
-   *   f(x;x_0,\gamma) = \frac{1}
-   *     {\pi\gamma\left[1+\left(\frac{x-x_0}{\gamma}\right)^2\right]}
-   * @f]
-   * for all @a x, where @f$x_0@f$ and @f$\gamma@f$ are location and scale
-   * parameters.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T cauchy(T loc, T scale);
-
-  /**
-   * @brief Draw samples from a Cauchy distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> cauchy(T loc, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> cauchy(T loc, T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a chi-squared distribution.
-   *
-   * @details The probability density function for the chi-squared distribution
-   * is
-   * @f[
-   *   f(x;k) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2}
-   * @f]
-   * for @f$x \geq 0@f$, where @a k is the degrees of freedom.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T chisquare(T df);
-
-  /**
-   * @brief Draw samples from a chi-squared distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> chisquare(T df, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> chisquare(T df, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from an exponential distribution.
-   *
-   * @details The probability density function for the exponential distribution
-   * is
-   * @f[
-   *   f(x;\lambda) = \lambda e^{-\lambda x}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$\lambda@f$ is the rate parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T exponential(T rate);
-
-  /**
-   * @brief Draw samples from an exponential distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> exponential(T rate, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> exponential(T rate, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Fisher F-distribution.
-   *
-   * @details The probability density function for the F distribution is
-   * @f[
-   *   f(x;d_1,d_2) = \frac{\Gamma\left(\frac{d_1+d_2}{2}\right)}
-   *     {\Gamma\left(\frac{d_1}{2}\right)\Gamma\left(\frac{d_2}{2}\right)}
-   *     \frac{\left(\frac{d_1x}{d_2}\right)^{d_1/2}}
-   *     {x\left(1+\frac{d_1x}{d_2}\right)^{(d_1+d_2)/2}}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$d_1@f$ and @f$d_2@f$ are the degrees of
-   * freedom.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param df1 Degrees of freedom. This shall be a positive value.
-   * @param df2 Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T fisher_f(T df1, T df2);
-
-  /**
-   * @brief Draw samples from a Fisher F-distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param df1 Degrees of freedom. This shall be a positive value.
-   * @param df2 Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> fisher_f(T df1, T df2, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> fisher_f(T df1, T df2, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Gamma distribution.
-   *
-   * @details The probability density function for the Gamma distribution is
-   * @f[
-   *   f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}} x^{\alpha-1}
-   *     e^{-x/\beta}
-   * @f]
-   * for @f$x > 0@f$, where @f$\alpha@f$ is the shape parameter and @f$\beta@f$
-   * is the scale parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T gamma(T shape, T scale);
-
-  /**
-   * @brief Draw samples from a Gamma distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> gamma(T shape, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> gamma(T shape, T scale, const shape_t<Rank> &size);
-
-  /**
    * @brief Draw samples from a geometric distribution.
    *
    * @details The probability mass function for the geometric distribution is
@@ -549,163 +1251,6 @@ public:
   template <class T> tensor<T, 1> geometric(double prob, size_t size);
   template <class T, size_t Rank>
   tensor<T, Rank> geometric(double prob, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Gumbel distribution.
-   *
-   * @details The probability density function for the Gumbel distribution is
-   * @f[
-   *   f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b}
-   * @f]
-   * for all @a x, where @a a is the location parameter and @a b is the scale
-   * parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T gumbel(T loc, T scale);
-
-  /**
-   * @brief Draw samples from a Gumbel distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> gumbel(T loc, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> gumbel(T loc, T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Laplace distribution.
-   *
-   * @details The probability density function for the Laplace distribution is
-   * @f[
-   *   f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)
-   * @f]
-   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
-   * scale parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T laplace(T loc, T scale);
-
-  /**
-   * @brief Draw samples from a Laplace distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> laplace(T loc, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> laplace(T loc, T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a logistic distribution.
-   *
-   * @details The probability density function for the logistic distribution is
-   * @f[
-   *   f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}
-   * @f]
-   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
-   * scale parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T logistic(T loc, T scale);
-
-  /**
-   * @brief Draw samples from a logistic distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> logistic(T loc, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> logistic(T loc, T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a log-normal distribution.
-   *
-   * @details The probability density function for the log-normal distribution
-   * is
-   * @f[
-   *   f(x;\mu,\sigma) = \frac{1}{x\sigma\sqrt{2\pi}}
-   *     \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right)
-   * @f]
-   * for @f$x > 0@f$, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
-   * deviation of the underlying normal distribution formed by the logaritm
-   * transformation.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param logmean Mean of the underlying normal distribution.
-   * @param logscale Standard deviation of the underlying normal distribution.
-   *                 This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T lognormal(T logmean, T logscale);
-
-  /**
-   * @brief Draw samples from a log-normal distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param logmean Mean of the underlying normal distribution.
-   * @param logscale Standard deviation of the underlying normal distribution.
-   *                 This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> lognormal(T logmean, T logscale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> lognormal(T logmean, T logscale, const shape_t<Rank> &size);
 
   /**
    * @brief Draw samples from a negative binomial distribution.
@@ -751,85 +1296,6 @@ public:
                                     const shape_t<Rank> &size);
 
   /**
-   * @brief Draw samples from a normal distribution.
-   *
-   * @details The probability density function for the normal distribution is
-   * @f[
-   *   f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
-   *     \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
-   * @f]
-   * for all @a x, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
-   * deviation.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param mean Mean of the distribution.
-   * @param stddev Standard deviation of the distribution. This shall be a
-   *               positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T normal(T mean, T stddev);
-
-  /**
-   * @brief Draw samples from a normal distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param mean Mean of the distribution.
-   * @param stddev Standard deviation of the distribution. This shall be a
-   *               positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> normal(T mean, T stddev, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> normal(T mean, T stddev, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Pareto distribution.
-   *
-   * @details The probability density function for the Pareto distribution is
-   * @f[
-   *   f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}
-   * @f]
-   * for @f$x \geq x_m@f$, where @f$\alpha@f$ is the shape parameter and
-   * @f$x_m@f$ is the scale parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T pareto(T shape, T scale);
-
-  /**
-   * @brief Draw samples from a Pareto distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> pareto(T shape, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> pareto(T shape, T scale, const shape_t<Rank> &size);
-
-  /**
    * @brief Draw samples from a Poisson distribution.
    *
    * @details The probability mass function for the Poisson distribution is
@@ -864,276 +1330,42 @@ public:
   template <class T, size_t Rank>
   tensor<T, Rank> poisson(double rate, const shape_t<Rank> &size);
 
-  /**
-   * @brief Draw samples from a Rayleigh distribution.
-   *
-   * @details The probability density function for the Rayleigh distribution is
-   * @f[
-   *   f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$\sigma@f$ is the scale parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T rayleigh(T scale);
-
-  /**
-   * @brief Draw samples from a Rayleigh distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> rayleigh(T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> rayleigh(T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a standard normal distribution ( @a mean=0,
-   * @a stddev=1 ).
-   *
-   * @tparam T A floating-point type.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T standard_normal();
-
-  /**
-   * @brief Draw samples from a standard normal distribution ( @a mean=0,
-   * @a stddev = 1 ).
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> standard_normal(size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> standard_normal(const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Student's t distribution.
-   *
-   * @details The probability density function for the Student's t distribution
-   * is
-   * @f[
-   *   f(x;\nu) = \frac{1}{\sqrt{\pi\nu}}
-   *     \frac{\Gamma\left(\frac{\nu+1}{2}\right)}
-   *     {\Gamma\left(\frac{\nu}{2}\right)}
-   *     \left(1+\frac{x^2}{\nu}\right)^{-(\nu+1)/2}
-   * @f]
-   * for all @a x, where @f$\nu@f$ is the degrees of freedom.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T student_t(T df);
-
-  /**
-   * @brief Draw samples from a Student's t distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> student_t(T df, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> student_t(T df, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a triangular distribution.
-   *
-   * @details The probability density function for the triangular distribution
-   * is
-   * @f[
-   *   f(x;a,c,b) = \begin{cases}
-   *     \frac{2(x-a)}{(b-a)(c-a)}, & a \leq x \leq c,\\
-   *     \frac{2(b-x)}{(b-a)(b-c)}, & c \leq x \leq b,\\
-   *     0, & \text{otherwise}
-   *   \end{cases}
-   * @f]
-   * where @a a is the lower boundary, @a b is the upper boundary, and @a c is
-   * the mode of the distribution.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param left Lower boundary.
-   * @param mode Mode of the distribution.
-   * @param right Upper boundary.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T triangular(T left, T mode, T right);
-
-  /**
-   * @brief Draw samples from a triangular distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param left Lower boundary.
-   * @param mode Mode of the distribution.
-   * @param right Upper boundary.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<T, 1> triangular(T left, T mode, T right, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> triangular(T left, T mode, T right,
-                             const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from an uniform distribution.
-   *
-   * @details The probability density function for the uniform distribution is
-   * @f[
-   *   f(x;a,b) = \frac{1}{b-a}
-   * @f]
-   * for @f$a \leq x < b@f$, where @a a and @a b are the lower and upper
-   * boundaries of the distribution.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param low Lower boundary.
-   * @param high Upper boundary.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T uniform(T low, T high);
-
-  /**
-   * @brief Draw samples from an uniform distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param low Lower boundary.
-   * @param high Upper boundary.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> uniform(T low, T high, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> uniform(T low, T high, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Wald, or inverse Gaussian, distribution.
-   *
-   * @details The probability density function for the Wald distribution is
-   * @f[
-   *   f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
-   *     \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)
-   * @f]
-   * for @f$x > 0@f$, where @f$\mu@f$ is the mean and @f$\lambda@f$ is the scale
-   * parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param mean Mean of the distribution. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T wald(T mean, T scale);
-
-  /**
-   * @brief Draw samples from a Wald distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param mean Mean of the distribution. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> wald(T mean, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> wald(T mean, T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Weibull distribution.
-   *
-   * @details The probability density function for the Weibull distribution is
-   * @f[
-   *   f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a}
-   * @f]
-   * for @f$x \geq 0@f$, where @a a is the shape parameter and @a b is the scale
-   * parameter.
-   *
-   * @tparam T A floating-point type.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T> T weibull(T shape, T scale);
-
-  /**
-   * @brief Draw samples from a Weibull distribution.
-   *
-   * @tparam T A floating-point type.
-   * @tparam Rank Dimension of the tensor.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> weibull(T shape, T scale, size_t size);
-  template <class T, size_t Rank>
-  tensor<T, Rank> weibull(T shape, T scale, const shape_t<Rank> &size);
-
 private:
   /**
    * @brief Sample values from a distribution.
    */
   template <class OutputIterator, class Distribution>
   void __sample_distribution(OutputIterator first, size_t n, Distribution &rvs);
+
+  /**
+   * @brief Sample element-wise values from a distribution with parameters.
+   */
+  template <class R, template <class> class Distribution, class Container,
+            class T, size_t Rank>
+  tensor<R, Rank>
+  __sample_element_wise(Distribution<R> &rvs,
+                        const expression<Container, T, Rank> &param);
+
+  template <class R, template <class> class Distribution, class Container1,
+            class T, class Container2, class U, size_t Rank>
+  tensor<R, Rank>
+  __sample_element_wise(Distribution<R> &rvs,
+                        const expression<Container1, T, Rank> &param1,
+                        const expression<Container2, U, Rank> &param2);
+
+  template <class R, template <class> class Distribution, class Container,
+            class T, class U, size_t Rank, detail::RequiresScalar<U> = 0>
+  tensor<R, Rank>
+  __sample_element_wise(Distribution<R> &rvs,
+                        const expression<Container, T, Rank> &param1,
+                        const U &param2);
+
+  template <class R, template <class> class Distribution, class T,
+            class Container, class U, size_t Rank,
+            detail::RequiresScalar<T> = 0>
+  tensor<R, Rank>
+  __sample_element_wise(Distribution<R> &rvs, const T &param1,
+                        const expression<Container, U, Rank> &param2);
 
   /**
    * @brief Sample @a n elements (with replacement) from the sequence
@@ -1143,6 +1375,7 @@ private:
   void __sample_replacement(RandomAccessIterator first,
                             RandomAccessIterator last, OutputIterator out,
                             size_t n);
+
   template <class RandomAccessIterator1, class RandomAccessIterator2,
             class OutputIterator>
   void __sample_replacement(RandomAccessIterator1 first,
@@ -1157,6 +1390,7 @@ private:
   template <class InputIterator, class RandomAccessIterator>
   void __sample_no_replacement(InputIterator first, InputIterator last,
                                RandomAccessIterator out, size_t n);
+
   template <class RandomAccessIterator1, class RandomAccessIterator2,
             class OutputIterator>
   void __sample_no_replacement(RandomAccessIterator1 first,
