@@ -1185,21 +1185,34 @@ public:
    * for @f$x = 0, 1, 2, \ldots , n@f$, where @a n is the number of trials and
    * @a p is the probability of success.
    *
-   * @tparam T An integer type.
-   *
    * @param n Number of trials.
    * @param prob Probability of success. This shall be a value between 0 and 1
    *             (inclusive).
    *
    * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
    */
   template <class T> T binomial(T n, double prob);
 
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank> binomial(const expression<Container1, T, Rank> &n,
+                           const expression<Container2, double, Rank> &prob);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> binomial(const expression<Container, T, Rank> &n,
+                           double prob);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> binomial(T n,
+                           const expression<Container, double, Rank> &prob);
+
   /**
    * @brief Draw samples from a binomial distribution.
-   *
-   * @tparam T An integer type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param n Number of trials.
    * @param prob Probability of success. This shall be a value between 0 and 1
@@ -1212,6 +1225,7 @@ public:
    *                       throw an exception.
    */
   template <class T> tensor<T, 1> binomial(T n, double prob, size_t size);
+
   template <class T, size_t Rank>
   tensor<T, Rank> binomial(T n, double prob, const shape_t<Rank> &size);
 
@@ -1224,20 +1238,21 @@ public:
    * @f]
    * for @f$x = 0, 1, 2, ...@f$, where @a p is the probability of success.
    *
-   * @tparam T An integer type.
-   *
    * @param prob Probability of success. This shall be a value between 0 and 1
    *             (inclusive).
    *
    * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
    */
-  template <class T> T geometric(double prob);
+  template <class T = int> T geometric(double prob);
+
+  template <class T = int, class Container, size_t Rank>
+  tensor<T, Rank> geometric(const expression<Container, double, Rank> &prob);
 
   /**
    * @brief Draw samples from a geometric distribution.
-   *
-   * @tparam T An integer type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param prob Probability of success. This shall be a value between 0 and 1
    *             (inclusive).
@@ -1248,8 +1263,9 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> geometric(double prob, size_t size);
-  template <class T, size_t Rank>
+  template <class T = int> tensor<T, 1> geometric(double prob, size_t size);
+
+  template <class T = int, size_t Rank>
   tensor<T, Rank> geometric(double prob, const shape_t<Rank> &size);
 
   /**
@@ -1263,21 +1279,35 @@ public:
    * for @f$x = 0, 1, 2, ...@f$, where @a n is the number of successes before
    * the experiment is stopped and @a p is the probability of success.
    *
-   * @tparam T An integer type.
-   *
    * @param n Number of successes.
    * @param prob Probability of success. This shall be a value between 0 and 1
    *             (inclusive).
    *
    * @return A sample from the distribution.
+   *
+   * @throw std::invalid_argument Thrown if the shapes are not compatible and
+   *                              cannot be broadcasted according to
+   *                              broadcasting rules.
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
    */
   template <class T> T negative_binomial(T n, double prob);
 
+  template <class Container1, class T, size_t Rank, class Container2>
+  tensor<T, Rank>
+  negative_binomial(const expression<Container1, T, Rank> &n,
+                    const expression<Container2, double, Rank> &prob);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank> negative_binomial(const expression<Container, T, Rank> &n,
+                                    double prob);
+
+  template <class Container, class T, size_t Rank>
+  tensor<T, Rank>
+  negative_binomial(T n, const expression<Container, double, Rank> &prob);
+
   /**
    * @brief Draw samples from a negative binomial distribution.
-   *
-   * @tparam T An integer type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param n Number of successes.
    * @param prob Probability of success. This shall be a value between 0 and 1
@@ -1291,6 +1321,7 @@ public:
    */
   template <class T>
   tensor<T, 1> negative_binomial(T n, double prob, size_t size);
+
   template <class T, size_t Rank>
   tensor<T, Rank> negative_binomial(T n, double prob,
                                     const shape_t<Rank> &size);
@@ -1304,19 +1335,20 @@ public:
    * @f]
    * for @f$x = 0, 1, 2, ...@f$, where @f$\lambda@f$ is the rate parameter.
    *
-   * @tparam T An integer type.
-   *
    * @param rate Rate parameter. This shall be a positive value.
    *
    * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
    */
-  template <class T> T poisson(double rate);
+  template <class T = int> T poisson(double rate);
+
+  template <class T = int, class Container, size_t Rank>
+  tensor<T, Rank> poisson(const expression<Container, double, Rank> &rate);
 
   /**
    * @brief Draw samples from a Poisson distribution.
-   *
-   * @tparam T An integer type.
-   * @tparam Rank Dimension of the tensor.
    *
    * @param rate Rate parameter. This shall be a positive value.
    * @param size Output shape.
@@ -1326,8 +1358,9 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> tensor<T, 1> poisson(double rate, size_t size);
-  template <class T, size_t Rank>
+  template <class T = int> tensor<T, 1> poisson(double rate, size_t size);
+
+  template <class T = int, size_t Rank>
   tensor<T, Rank> poisson(double rate, const shape_t<Rank> &size);
 
 private:

@@ -1263,10 +1263,36 @@ inline T Generator<bit_generator>::binomial(T n, double prob) {
 }
 
 template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::binomial(
+    const expression<Container1, T, Rank> &n,
+    const expression<Container2, double, Rank> &prob) {
+  binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::binomial(const expression<Container, T, Rank> &n,
+                                   double prob) {
+  binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::binomial(
+    T n, const expression<Container, double, Rank> &prob) {
+  binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
 template <class T>
 inline tensor<T, 1> Generator<bit_generator>::binomial(T n, double prob,
                                                        size_t size) {
-  return this->binomial<T>(n, prob, make_shape(size));
+  return this->binomial(n, prob, make_shape(size));
 }
 
 template <class bit_generator>
@@ -1285,6 +1311,14 @@ template <class T>
 inline T Generator<bit_generator>::geometric(double prob) {
   geometric_distribution<T> rvs(prob);
   return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class T, class Container, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::geometric(
+    const expression<Container, double, Rank> &prob) {
+  geometric_distribution<T> rvs;
+  return __sample_element_wise(rvs, prob);
 }
 
 template <class bit_generator>
@@ -1312,10 +1346,35 @@ inline T Generator<bit_generator>::negative_binomial(T n, double prob) {
 }
 
 template <class bit_generator>
+template <class Container1, class T, size_t Rank, class Container2>
+inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
+    const expression<Container1, T, Rank> &n,
+    const expression<Container2, double, Rank> &prob) {
+  negative_binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
+    const expression<Container, T, Rank> &n, double prob) {
+  negative_binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
+template <class Container, class T, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
+    T n, const expression<Container, double, Rank> &prob) {
+  negative_binomial_distribution<T> rvs;
+  return __sample_element_wise(rvs, n, prob);
+}
+
+template <class bit_generator>
 template <class T>
 inline tensor<T, 1>
 Generator<bit_generator>::negative_binomial(T n, double prob, size_t size) {
-  return this->negative_binomial<T>(n, prob, make_shape(size));
+  return this->negative_binomial(n, prob, make_shape(size));
 }
 
 template <class bit_generator>
@@ -1334,6 +1393,14 @@ template <class T>
 inline T Generator<bit_generator>::poisson(double rate) {
   poisson_distribution<T> rvs(rate);
   return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class T, class Container, size_t Rank>
+inline tensor<T, Rank> Generator<bit_generator>::poisson(
+    const expression<Container, double, Rank> &rate) {
+  poisson_distribution<T> rvs;
+  return __sample_element_wise(rvs, rate);
 }
 
 template <class bit_generator>
