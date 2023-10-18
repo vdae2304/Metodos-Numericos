@@ -1,8 +1,8 @@
-# Routines
+# Random sampling
 
 Defined in header [`numcpp/random.h`](/include/numcpp/random.h)
 
-- [Routines](#routines)
+- [Random sampling](#random-sampling)
   - [Sample random data](#sample-random-data)
     - [`Generator::integers`](#generatorintegers)
     - [`Generator::random`](#generatorrandom)

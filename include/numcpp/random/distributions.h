@@ -30,6 +30,7 @@
 
 namespace numcpp {
 /// Discrete distributions
+using std::bernoulli_distribution;
 using std::binomial_distribution;
 using std::discrete_distribution;
 using std::geometric_distribution;

@@ -731,7 +731,7 @@ public:
    *     \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right)
    * @f]
    * for @f$x > 0@f$, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
-   * deviation of the underlying normal distribution formed by the logaritm
+   * deviation of the underlying normal distribution formed by the logarithm
    * transformation.
    *
    * @param logmean Mean of the underlying normal distribution.
@@ -1176,6 +1176,48 @@ public:
   /// Discrete distributions.
 
   /**
+   * @brief Draw samples from a Bernoulli distribution.
+   *
+   * @details The probability mass function for the Bernoulli distribution is
+   * @f[
+   *   f(x;p) = \begin{cases}
+   *     1-p, & x=0,\\
+   *     p, & x=1,
+   *   \end{cases}
+   * @f]
+   * where @a p is the probability of success.
+   *
+   * @param prob Probability of success. This shall be a value between 0 and 1
+   *             (inclusive).
+   *
+   * @return A sample from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  bool bernoulli(double prob);
+
+  template <class Container, size_t Rank>
+  tensor<bool, Rank> bernoulli(const expression<Container, double, Rank> &prob);
+
+  /**
+   * @brief Draw samples from a Bernoulli distribution.
+   *
+   * @param prob Probability of success. This shall be a value between 0 and 1
+   *             (inclusive).
+   * @param size Output shape.
+   *
+   * @return A tensor with samples from the distribution.
+   *
+   * @throw std::bad_alloc If the function fails to allocate storage it may
+   *                       throw an exception.
+   */
+  tensor<bool, 1> bernoulli(double prob, size_t size);
+
+  template <size_t Rank>
+  tensor<bool, Rank> bernoulli(double prob, const shape_t<Rank> &size);
+
+  /**
    * @brief Draw samples from a binomial distribution.
    *
    * @details The probability mass function for the binomial distribution is
@@ -1197,7 +1239,8 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> T binomial(T n, double prob);
+  template <class T, detail::RequiresIntegral<T> = 0>
+  T binomial(T n, double prob);
 
   template <class Container1, class T, size_t Rank, class Container2>
   tensor<T, Rank> binomial(const expression<Container1, T, Rank> &n,
@@ -1207,7 +1250,8 @@ public:
   tensor<T, Rank> binomial(const expression<Container, T, Rank> &n,
                            double prob);
 
-  template <class Container, class T, size_t Rank>
+  template <class Container, class T, size_t Rank,
+            detail::RequiresIntegral<T> = 0>
   tensor<T, Rank> binomial(T n,
                            const expression<Container, double, Rank> &prob);
 
@@ -1291,7 +1335,8 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class T> T negative_binomial(T n, double prob);
+  template <class T, detail::RequiresIntegral<T> = 0>
+  T negative_binomial(T n, double prob);
 
   template <class Container1, class T, size_t Rank, class Container2>
   tensor<T, Rank>
@@ -1302,7 +1347,8 @@ public:
   tensor<T, Rank> negative_binomial(const expression<Container, T, Rank> &n,
                                     double prob);
 
-  template <class Container, class T, size_t Rank>
+  template <class Container, class T, size_t Rank,
+            detail::RequiresIntegral<T> = 0>
   tensor<T, Rank>
   negative_binomial(T n, const expression<Container, double, Rank> &prob);
 
@@ -1373,31 +1419,29 @@ private:
   /**
    * @brief Sample element-wise values from a distribution with parameters.
    */
-  template <class R, template <class> class Distribution, class Container,
-            class T, size_t Rank>
-  tensor<R, Rank>
-  __sample_element_wise(Distribution<R> &rvs,
+  template <class Distribution, class Container, class T, size_t Rank>
+  tensor<typename Distribution::result_type, Rank>
+  __sample_element_wise(Distribution &rvs,
                         const expression<Container, T, Rank> &param);
 
-  template <class R, template <class> class Distribution, class Container1,
-            class T, class Container2, class U, size_t Rank>
-  tensor<R, Rank>
-  __sample_element_wise(Distribution<R> &rvs,
+  template <class Distribution, class Container1, class T, class Container2,
+            class U, size_t Rank>
+  tensor<typename Distribution::result_type, Rank>
+  __sample_element_wise(Distribution &rvs,
                         const expression<Container1, T, Rank> &param1,
                         const expression<Container2, U, Rank> &param2);
 
-  template <class R, template <class> class Distribution, class Container,
-            class T, class U, size_t Rank, detail::RequiresScalar<U> = 0>
-  tensor<R, Rank>
-  __sample_element_wise(Distribution<R> &rvs,
+  template <class Distribution, class Container, class T, class U, size_t Rank,
+            detail::RequiresScalar<U> = 0>
+  tensor<typename Distribution::result_type, Rank>
+  __sample_element_wise(Distribution &rvs,
                         const expression<Container, T, Rank> &param1,
                         const U &param2);
 
-  template <class R, template <class> class Distribution, class T,
-            class Container, class U, size_t Rank,
+  template <class Distribution, class T, class Container, class U, size_t Rank,
             detail::RequiresScalar<T> = 0>
-  tensor<R, Rank>
-  __sample_element_wise(Distribution<R> &rvs, const T &param1,
+  tensor<typename Distribution::result_type, Rank>
+  __sample_element_wise(Distribution &rvs, const T &param1,
                         const expression<Container, U, Rank> &param2);
 
   /**

@@ -60,12 +60,13 @@ Generator<bit_generator>::__sample_distribution(OutputIterator first, size_t n,
 }
 
 template <class bit_generator>
-template <class R, template <class> class Distribution, class Container,
-          class T, size_t Rank>
-tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
-    Distribution<R> &rvs, const expression<Container, T, Rank> &param) {
-  typedef typename Distribution<R>::param_type param_type;
-  tensor<R, Rank> out(param.shape());
+template <class Distribution, class Container, class T, size_t Rank>
+tensor<typename Distribution::result_type, Rank>
+Generator<bit_generator>::__sample_element_wise(
+    Distribution &rvs, const expression<Container, T, Rank> &param) {
+  typedef typename Distribution::result_type Rt;
+  typedef typename Distribution::param_type param_type;
+  tensor<Rt, Rank> out(param.shape());
   for (index_t<Rank> index : make_index_sequence_for(out)) {
     out[index] = rvs(m_rng, param_type(param[index]));
   }
@@ -73,13 +74,15 @@ tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
 }
 
 template <class bit_generator>
-template <class R, template <class> class Distribution, class Container1,
-          class T, class Container2, class U, size_t Rank>
-tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
-    Distribution<R> &rvs, const expression<Container1, T, Rank> &param1,
+template <class Distribution, class Container1, class T, class Container2,
+          class U, size_t Rank>
+tensor<typename Distribution::result_type, Rank>
+Generator<bit_generator>::__sample_element_wise(
+    Distribution &rvs, const expression<Container1, T, Rank> &param1,
     const expression<Container2, U, Rank> &param2) {
-  typedef typename Distribution<R>::param_type param_type;
-  tensor<R, Rank> out(broadcast_shapes(param1.shape(), param2.shape()));
+  typedef typename Distribution::result_type Rt;
+  typedef typename Distribution::param_type param_type;
+  tensor<Rt, Rank> out(broadcast_shapes(param1.shape(), param2.shape()));
   for (index_t<Rank> index : make_index_sequence_for(out)) {
     index_t<Rank> i, j;
     for (size_t axis = 0; axis < Rank; ++axis) {
@@ -92,13 +95,15 @@ tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
 }
 
 template <class bit_generator>
-template <class R, template <class> class Distribution, class Container,
-          class T, class U, size_t Rank, detail::RequiresScalar<U>>
-tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
-    Distribution<R> &rvs, const expression<Container, T, Rank> &param1,
+template <class Distribution, class Container, class T, class U, size_t Rank,
+          detail::RequiresScalar<U>>
+tensor<typename Distribution::result_type, Rank>
+Generator<bit_generator>::__sample_element_wise(
+    Distribution &rvs, const expression<Container, T, Rank> &param1,
     const U &param2) {
-  typedef typename Distribution<R>::param_type param_type;
-  tensor<R, Rank> out(param1.shape());
+  typedef typename Distribution::result_type Rt;
+  typedef typename Distribution::param_type param_type;
+  tensor<Rt, Rank> out(param1.shape());
   for (index_t<Rank> index : make_index_sequence_for(out)) {
     out[index] = rvs(m_rng, param_type(param1[index], param2));
   }
@@ -106,13 +111,15 @@ tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
 }
 
 template <class bit_generator>
-template <class R, template <class> class Distribution, class T,
-          class Container, class U, size_t Rank, detail::RequiresScalar<T>>
-tensor<R, Rank> Generator<bit_generator>::__sample_element_wise(
-    Distribution<R> &rvs, const T &param1,
+template <class Distribution, class T, class Container, class U, size_t Rank,
+          detail::RequiresScalar<T>>
+tensor<typename Distribution::result_type, Rank>
+Generator<bit_generator>::__sample_element_wise(
+    Distribution &rvs, const T &param1,
     const expression<Container, U, Rank> &param2) {
-  typedef typename Distribution<R>::param_type param_type;
-  tensor<R, Rank> out(param2.shape());
+  typedef typename Distribution::result_type Rt;
+  typedef typename Distribution::param_type param_type;
+  tensor<Rt, Rank> out(param2.shape());
   for (index_t<Rank> index : make_index_sequence_for(out)) {
     out[index] = rvs(m_rng, param_type(param1, param2[index]));
   }
@@ -1256,7 +1263,37 @@ Generator<bit_generator>::weibull(T shape, U scale, const shape_t<Rank> &size) {
 /// Discrete distributions.
 
 template <class bit_generator>
-template <class T>
+inline bool Generator<bit_generator>::bernoulli(double prob) {
+  bernoulli_distribution rvs(prob);
+  return rvs(m_rng);
+}
+
+template <class bit_generator>
+template <class Container, size_t Rank>
+inline tensor<bool, Rank> Generator<bit_generator>::bernoulli(
+    const expression<Container, double, Rank> &prob) {
+  bernoulli_distribution rvs;
+  return __sample_element_wise(rvs, prob);
+}
+
+template <class bit_generator>
+inline tensor<bool, 1> Generator<bit_generator>::bernoulli(double prob,
+                                                           size_t size) {
+  return this->bernoulli(prob, make_shape(size));
+}
+
+template <class bit_generator>
+template <size_t Rank>
+inline tensor<bool, Rank>
+Generator<bit_generator>::bernoulli(double prob, const shape_t<Rank> &size) {
+  bernoulli_distribution rvs(prob);
+  tensor<bool, Rank> out(size);
+  __sample_distribution(out.data(), out.size(), rvs);
+  return out;
+}
+
+template <class bit_generator>
+template <class T, detail::RequiresIntegral<T>>
 inline T Generator<bit_generator>::binomial(T n, double prob) {
   binomial_distribution<T> rvs(n, prob);
   return rvs(m_rng);
@@ -1281,7 +1318,7 @@ Generator<bit_generator>::binomial(const expression<Container, T, Rank> &n,
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Container, class T, size_t Rank, detail::RequiresIntegral<T>>
 inline tensor<T, Rank> Generator<bit_generator>::binomial(
     T n, const expression<Container, double, Rank> &prob) {
   binomial_distribution<T> rvs;
@@ -1339,7 +1376,7 @@ Generator<bit_generator>::geometric(double prob, const shape_t<Rank> &size) {
 }
 
 template <class bit_generator>
-template <class T>
+template <class T, detail::RequiresIntegral<T>>
 inline T Generator<bit_generator>::negative_binomial(T n, double prob) {
   negative_binomial_distribution<T> rvs(n, prob);
   return rvs(m_rng);
@@ -1363,7 +1400,7 @@ inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Container, class T, size_t Rank, detail::RequiresIntegral<T>>
 inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
     T n, const expression<Container, double, Rank> &prob) {
   negative_binomial_distribution<T> rvs;
