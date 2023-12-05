@@ -531,7 +531,12 @@ public:
   void resize(const shape_type &shape);
 
   /**
-   * @brief Return a view of the tensor with its axes in reversed order.
+   * @brief Return a view of the tensor with its axes transposed.
+   * 
+   * @param axes If specified, it must be a permutation of
+   *             (0, 1, ..., Rank - 1). The @a i -th axis of the returned
+   *             view will correspond to the axis numbered @a axes[i] of the
+   *             tensor. If not specified, reverses the order of the axes.
    *
    * @return If the tensor is const-qualified, the function returns a
    *         tensor_view to const T, which is convertible to a tensor object.
@@ -540,6 +545,16 @@ public:
    */
   tensor_view<T, Rank> t();
   tensor_view<const T, Rank> t() const;
+  
+  template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
+            detail::RequiresIntegral<Sizes...> = 0>
+  tensor_view<T, Rank> t(Sizes... axes);
+  template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
+            detail::RequiresIntegral<Sizes...> = 0>
+  tensor_view<const T, Rank> t(Sizes... axes) const;
+
+  tensor_view<T, Rank> t(const shape_type &axes);
+  tensor_view<const T, Rank> t(const shape_type &axes) const;
 
   /**
    * @brief Return a view of the tensor with the same data.

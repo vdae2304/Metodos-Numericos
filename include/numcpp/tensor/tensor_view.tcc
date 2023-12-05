@@ -348,8 +348,7 @@ inline void tensor_view<T, Rank>::swapaxes(size_type axis1, size_type axis2) {
   std::swap(m_stride[axis1], m_stride[axis2]);
 }
 
-template <class T, size_t Rank>
-inline tensor_view<T, Rank> tensor_view<T, Rank>::t() {
+template <class T, size_t Rank> tensor_view<T, Rank> tensor_view<T, Rank>::t() {
   shape_type shape = m_shape;
   shape_type strides = m_stride;
   layout_t order = (m_order == row_major) ? column_major : row_major;
@@ -359,13 +358,48 @@ inline tensor_view<T, Rank> tensor_view<T, Rank>::t() {
 }
 
 template <class T, size_t Rank>
-inline tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
+tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
   shape_type shape = m_shape;
   shape_type strides = m_stride;
   layout_t order = (m_order == row_major) ? column_major : row_major;
   std::reverse(shape.data(), shape.data() + Rank);
   std::reverse(strides.data(), strides.data() + Rank);
   return tensor_view<const T, Rank>(m_data, shape, 0, strides, order);
+}
+
+template <class T, size_t Rank>
+template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor_view<T, Rank> tensor_view<T, Rank>::t(Sizes... axes) {
+  return this->t(shape_type(axes...));
+}
+
+template <class T, size_t Rank>
+template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...>,
+          detail::RequiresIntegral<Sizes...>>
+inline tensor_view<const T, Rank> tensor_view<T, Rank>::t(Sizes... axes) const {
+  return this->t(shape_type(axes...));
+}
+
+template <class T, size_t Rank>
+tensor_view<T, Rank> tensor_view<T, Rank>::t(const shape_type &axes) {
+  shape_type shape, strides;
+  for (size_t i = 0; i < Rank; ++i) {
+    shape[i] = m_shape[axes[i]];
+    strides[i] = m_stride[axes[i]];
+  }
+  return tensor_view<T, Rank>(m_data, shape, 0, strides, m_order);
+}
+
+template <class T, size_t Rank>
+tensor_view<const T, Rank>
+tensor_view<T, Rank>::t(const shape_type &axes) const {
+  shape_type shape, strides;
+  for (size_t i = 0; i < Rank; ++i) {
+    shape[i] = m_shape[axes[i]];
+    strides[i] = m_stride[axes[i]];
+  }
+  return tensor_view<const T, Rank>(m_data, shape, 0, strides, m_order);
 }
 } // namespace numcpp
 

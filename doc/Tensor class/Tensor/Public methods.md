@@ -1623,15 +1623,23 @@ Output
 
 ### `tensor::t`
 
-Return a view of the tensor with its axes in reversed order.
+Return a view of the tensor with its axes transposed.
 ```cpp
 tensor_view<T, Rank> t();
 tensor_view<const T, Rank> t() const;
+
+template <class... Sizes>
+tensor_view<T, Rank> t(Sizes... axes);
+template <class... Sizes>
+tensor_view<const T, Rank> t(Sizes... axes) const;
+
+tensor_view<T, Rank> t(const shape_type &axes);
+tensor_view<const T, Rank> t(const shape_type &axes) const;
 ```
 
 Parameters
 
-* None
+* `axes` If specified, it must be a permutation of (0, 1, ..., Rank - 1). The `i`-th axis of the returned view will correspond to the axis numbered `axes[i]` of the tensor. If not specified, reverses the order of the axes.
 
 Returns
 
@@ -1712,7 +1720,7 @@ namespace np = numcpp;
 int main() {
     np::tensor<int, 3> a;
     std::cin >> a;
-    np::tensor_view<int, 3> view = a.t();
+    np::tensor_view<int, 3> view = a.t(0, 2, 1);
     std::cout << view.shape() << "\n";
     std::cout << view << "\n";
     return 0;
@@ -1734,22 +1742,16 @@ Input
 Output
 
 ```
-(4, 3, 2)
-[[[16, 11],
-  [ 5,  7],
-  [18, 14]],
+(2, 4, 3)
+[[[16,  5, 18],
+  [15, 14, 15],
+  [14,  9,  2],
+  [-1, 10,  5]],
 
- [[15,  6],
-  [14, 10],
-  [15,  7]],
-
- [[14, 19],
-  [ 9,  1],
-  [ 2, -2]],
-
- [[-1, -2],
-  [10, -2],
-  [ 5, 11]]]
+ [[11,  7, 14],
+  [ 6, 10,  7],
+  [19,  1, -2],
+  [-2, -2, 11]]]
 ```
 
 ### `tensor::var`
