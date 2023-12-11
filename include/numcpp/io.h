@@ -57,6 +57,12 @@ size_t edgeitems = 3;
  */
 size_t linewidth = 80;
 
+/**
+ * @brief Controls printing of the sign of numeric values. If true, always print
+ * the sign of positive values. If false, omit the sign of positive values.
+ */
+bool sign = false;
+
 enum floatmode_t {
   /**
    * @brief Write floating-point values in default notation.
@@ -77,24 +83,6 @@ enum floatmode_t {
  * floating-point types.
  */
 floatmode_t floatmode = defaultfloat;
-
-enum complexmode_t {
-  /**
-   * @brief Read and print complex values in default notation, i.e., as a pair
-   * @a (real,imag).
-   */
-  defaultcomplex,
-  /**
-   * @brief Read and print complex values in arithmetic notation, i.e., as
-   * @a real+imag*i.
-   */
-  arithmetic
-};
-
-/**
- * @brief Controls the input and output format of complex types.
- */
-complexmode_t complexmode = defaultcomplex;
 } // namespace printoptions
 
 /// Binary data.
@@ -107,6 +95,7 @@ complexmode_t complexmode = defaultcomplex;
  * @tparam Rank Dimension of the tensor.
  *
  * @param filename A string representing the name of the file to load.
+ * @param file File object to read.
  *
  * @return A new tensor with its contents loaded from the file.
  *
@@ -122,10 +111,13 @@ complexmode_t complexmode = defaultcomplex;
 template <class T, size_t Rank>
 tensor<T, Rank> load(const std::string &filename);
 
+template <class T, size_t Rank> tensor<T, Rank> load(std::istream &file);
+
 /**
  * @brief Save tensor contents to a binary file in NumPy @c .npy format.
  *
  * @param filename A string representing the name of the file destination.
+ * @param file File object to write.
  * @param data Tensor data to be saved. Only arithmetic types (either integer or
  *             floating-point) and complex types are supported.
  *
@@ -134,6 +126,9 @@ tensor<T, Rank> load(const std::string &filename);
 template <class Container, class T, size_t Rank>
 void save(const std::string &filename,
           const expression<Container, T, Rank> &data);
+
+template <class Container, class T, size_t Rank>
+void save(std::ostream &file, const expression<Container, T, Rank> &data);
 
 /// Text files.
 
@@ -144,6 +139,7 @@ void save(const std::string &filename,
  * @tparam Rank Dimension of the tensor. Must be 1 or 2.
  *
  * @param filename A string representing the name of the file to load.
+ * @param file File object to read.
  * @param delimiter Character used to separate values. Defaults to whitespace.
  * @param newline Character used to separate lines. Defaults to end of line.
  * @param skiprows Skip the first @a skiprows lines. Default is 0.
@@ -165,10 +161,17 @@ tensor<T, Rank> loadtxt(const std::string &filename, char delimiter = ' ',
                         size_t max_rows = SIZE_MAX,
                         std::initializer_list<size_t> usecols = {});
 
+template <class T, size_t Rank>
+tensor<T, Rank> loadtxt(std::istream &file, char delimiter = ' ',
+                        char newline = '\n', size_t skiprows = 0,
+                        size_t max_rows = SIZE_MAX,
+                        std::initializer_list<size_t> usecols = {});
+
 /**
  * @brief Save a tensor to a text file.
  *
  * @param filename A string representing the name of the file destination.
+ * @param file File object to write.
  * @param data A 1-dimensional or 2-dimensional tensor with the data to be saved
  *             to a text file.
  * @param delimiter Character used to separate values. Defaults to whitespace.
@@ -184,20 +187,36 @@ void savetxt(const std::string &filename,
              char newline = '\n', const std::string &header = "",
              const std::string &footer = "");
 
+template <class Container, class T, size_t Rank>
+void savetxt(std::ostream &file, const expression<Container, T, Rank> &data,
+             char delimiter = ' ', char newline = '\n',
+             const std::string &header = "", const std::string &footer = "");
+
 /// Input/output streams.
 
 /**
- * @brief Extracts a tensor from an input stream.
+ * @brief Extracts a tensor from the input stream.
  *
  * @details The format for input extraction is a list of values separated by
  * commas and delimited by brackets:
- *     [arg_1, arg_2, arg_3 ... , arg_n]
- * Each value in the list might be a list as well. However, the number of nested
- * lists must be equal to the dimension of the tensor to extract. If extraction
- * fails, an empty tensor is written and failbit flag is set.
+ *     [a1, a2, a3, ..., an]
+ * Each value in the list can be a list as well. However, the depth of nested
+ * lists must be equal to the dimension of the tensor to extract. For example,
+ * a 1-dimensional tensor is formatted as
+ *     [a1, a2, a3, ..., an]
+ * while a 2-dimensional is formatted as
+ *     [[a11, a12, a13, ..., a1n],
+ *      [a21, a22, a23, ..., a2n],
+ *      ...,
+ *      [am1, am2, am3, ..., amn]]
+ * 
+ * String values must be delimited by either single quotes (') or double quotes
+ * (").
+ * 
+ * If extraction fails, an empty tensor is written and failbit flag is set.
  *
  * @param istr Input stream object.
- * @param arg Tensor to be extracted from the input stream.
+ * @param a Tensor to be extracted from the input stream.
  *
  * @return istr
  *
@@ -206,23 +225,76 @@ void savetxt(const std::string &filename,
  */
 template <class charT, class traits, class T, size_t Rank>
 std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, tensor<T, Rank> &arg);
+operator>>(std::basic_istream<charT, traits> &istr, tensor<T, Rank> &a);
 
 /**
  * @brief Inserts a tensor into the output stream.
  *
  * @details The format for output insertion is the same as input extraction,
  * i.e., a list of values separated by commas and delimited by brackets.
+ * 
+ * Floating-point values are formatted according to @c precision and
+ * @c floatmode options (see printoptions).
+ * 
+ * String values are enclosed with double quotes (").
  *
  * @param ostr Output stream object.
- * @param arg A tensor-like object to be inserted into the output stream.
+ * @param a A tensor-like object to be inserted into the output stream.
  *
  * @return ostr
  */
 template <class charT, class traits, class Container, class T, size_t Rank>
 std::basic_ostream<charT, traits> &
 operator<<(std::basic_ostream<charT, traits> &ostr,
-           const expression<Container, T, Rank> &arg);
+           const expression<Container, T, Rank> &a);
+
+/**
+ * @brief Return a string representation of a tensor.
+ *
+ * @param a Input tensor.
+ * @param formatter Custom formatter. A function that accepts an element of type
+ *                  T as argument, and returns a value convertible to string.
+ * @param precision Floating point precision. Defaults to
+ *                  @a printoptions::precision
+ * @param threshold Total number of array elements which trigger summarization
+ *                  rather than full representation. Defaults to
+ *                  @a printoptions::threshold
+ * @param edgeitems Number of array items in summary at beginning and end of
+ *                  each dimension. Defaults to @a printoptions::edgeitems
+ * @param linewidth Insert newlines if text is longer than @a linewidth.
+ *                  Defaults to @a printoptions::linewidth
+ * @param sign Controls the sign of numeric values. If true, always print the
+ *             sign of positive values. If false, omit the sign of positive
+ *             values. Default is @a printoptions::sign.
+ * @param floatmode Controls the interpretation of the precision option for
+ *                  floating-point types. Defaults to @a printoptions::floatmode
+ * @param prefix String to insert at the beginning of each dimension.
+ * @param suffix String to insert the end of each dimension.
+ * @param separator String to insert bewtween elements.
+ *
+ * @return String representation of the tensor.
+ */
+template <class Container, class T, size_t Rank>
+std::string
+to_string(const expression<Container, T, Rank> &a,
+          size_t precision = printoptions::precision,
+          size_t threshold = printoptions::threshold,
+          size_t edgeitems = printoptions::edgeitems,
+          size_t linewidth = printoptions::linewidth,
+          bool sign = printoptions::sign,
+          printoptions::floatmode_t floatmode = printoptions::floatmode,
+          const std::string &prefix = "[", const std::string &suffix = "]",
+          const std::string &separator = ", ");
+
+template <class Container, class T, size_t Rank, class Function,
+          detail::RequiresCallable<Function, T> = 0>
+std::string
+to_string(const expression<Container, T, Rank> &a, Function formatter,
+          size_t threshold = printoptions::threshold,
+          size_t edgeitems = printoptions::edgeitems,
+          size_t linewidth = printoptions::linewidth,
+          const std::string &prefix = "[", const std::string &suffix = "]",
+          const std::string &separator = ", ");
 } // namespace numcpp
 
 #include "numcpp/io/io.tcc"
