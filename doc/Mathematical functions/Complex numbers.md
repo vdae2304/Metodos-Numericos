@@ -40,8 +40,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << np::real(z) << "\n";
@@ -52,7 +50,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
@@ -89,8 +87,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << np::imag(z) << "\n";
@@ -101,7 +97,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
@@ -138,8 +134,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << np::conj(z) << "\n";
@@ -150,13 +144,14 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
 
 ```
-[ 8+1i, 12+3i,  8-9i,  5-0i,  1-2i, 12-1i,  0+3i, -1-9i,  6-0i, 0-10i]
+[  (8,1),  (12,3),  (8,-9),  (5,-0),  (1,-2), (12,-1),   (0,3), (-1,-9), 
+  (6,-0), (0,-10)]
 ```
 
 ### `abs`
@@ -184,8 +179,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << np::abs(z) << "\n";
@@ -196,7 +189,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
@@ -234,8 +227,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << np::arg(z) << "\n";
@@ -246,7 +237,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output

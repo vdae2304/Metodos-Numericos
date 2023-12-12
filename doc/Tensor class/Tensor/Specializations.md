@@ -36,8 +36,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << z.real() << "\n";
@@ -48,7 +46,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
@@ -87,8 +85,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<double> x;
     std::cin >> x;
     np::vector<std::complex<double>> z(x.size(), 0);
@@ -107,7 +103,7 @@ Output
 Output
 
 ```
-[ 8+0i, 12+0i,  8+0i,  5+0i,  1+0i, 12+0i,  0+0i, -1+0i,  6+0i,  0+0i]
+[ (8,0), (12,0),  (8,0),  (5,0),  (1,0), (12,0),  (0,0), (-1,0),  (6,0),  (0,0)]
 ```
 
 ### `tensor::imag`
@@ -134,8 +130,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << z.imag() << "\n";
@@ -146,7 +140,7 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
@@ -185,8 +179,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<double> y;
     std::cin >> y;
     np::vector<std::complex<double>> z(y.size(), 0);
@@ -205,7 +197,7 @@ Output
 Output
 
 ```
-[ 0-1i,  0-3i,  0+9i,  0+0i,  0+2i,  0+1i,  0-3i,  0+9i,  0+0i, 0+10i]
+[(0,-1), (0,-3),  (0,9),  (0,0),  (0,2),  (0,1), (0,-3),  (0,9),  (0,0), (0,10)]
 ```
 
 ### `tensor::conj`
@@ -232,8 +224,6 @@ Example
 #include <numcpp/io.h>
 namespace np = numcpp;
 int main() {
-    using namespace np::printoptions;
-    complexmode = arithmetic;
     np::vector<std::complex<double>> z;
     std::cin >> z;
     std::cout << z.conj() << "\n";
@@ -244,11 +234,12 @@ int main() {
 Input
 
 ```
-[8-1i, 12-3i, 8+9i, 5, 1+2i, 12+1i, -3i, -1+9i, 6, 10i]
+[(8,-1), (12,-3), (8,9), (5,0), (1,2), (12,1), (0,-3), (-1,9), (6,0), (0,10)]
 ```
 
 Output
 
 ```
-[ 8+1i, 12+3i,  8-9i,  5-0i,  1-2i, 12-1i,  0+3i, -1-9i,  6-0i, 0-10i]
+[  (8,1),  (12,3),  (8,-9),  (5,-0),  (1,-2), (12,-1),   (0,3), (-1,-9), 
+  (6,-0), (0,-10)]
 ```
