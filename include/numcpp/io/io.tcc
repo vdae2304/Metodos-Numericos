@@ -833,7 +833,7 @@ template <class charT, class traits, class T, class Function>
 void print_value(std::basic_ostream<charT, traits> &ostr, const T &value,
                  Function &formatter, size_t linewidth, size_t padding,
                  size_t &offset, size_t width) {
-  if (offset + width > linewidth) {
+  if (offset + width >= linewidth) {
     ostr << "\n";
     if (padding > 0) {
       ostr.width(padding);
