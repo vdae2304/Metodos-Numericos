@@ -60,10 +60,10 @@ Generator<bit_generator>::__sample_distribution(OutputIterator first, size_t n,
 }
 
 template <class bit_generator>
-template <class Distribution, class Container, class T, size_t Rank>
+template <class Distribution, class Expr, class T, size_t Rank>
 tensor<typename Distribution::result_type, Rank>
 Generator<bit_generator>::__sample_element_wise(
-    Distribution &rvs, const expression<Container, T, Rank> &param) {
+    Distribution &rvs, const abstract_tensor<Expr, T, Rank> &param) {
   typedef typename Distribution::result_type Rt;
   typedef typename Distribution::param_type param_type;
   tensor<Rt, Rank> out(param.shape());
@@ -74,32 +74,30 @@ Generator<bit_generator>::__sample_element_wise(
 }
 
 template <class bit_generator>
-template <class Distribution, class Container1, class T, class Container2,
-          class U, size_t Rank>
+template <class Distribution, class Expr1, class T, class Expr2, class U,
+          size_t Rank>
 tensor<typename Distribution::result_type, Rank>
 Generator<bit_generator>::__sample_element_wise(
-    Distribution &rvs, const expression<Container1, T, Rank> &param1,
-    const expression<Container2, U, Rank> &param2) {
+    Distribution &rvs, const abstract_tensor<Expr1, T, Rank> &param1,
+    const abstract_tensor<Expr2, U, Rank> &param2) {
   typedef typename Distribution::result_type Rt;
   typedef typename Distribution::param_type param_type;
   tensor<Rt, Rank> out(broadcast_shapes(param1.shape(), param2.shape()));
   for (index_t<Rank> index : make_index_sequence_for(out)) {
-    index_t<Rank> i, j;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (param1.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (param2.shape(axis) > 1) ? index[axis] : 0;
-    }
-    out[index] = rvs(m_rng, param_type(param1[i], param2[j]));
+    out[index] =
+        rvs(m_rng,
+            param_type(param1[detail::broadcast_index(index, param1.shape())],
+                       param2[detail::broadcast_index(index, param2.shape())]));
   }
   return out;
 }
 
 template <class bit_generator>
-template <class Distribution, class Container, class T, class U, size_t Rank,
+template <class Distribution, class Expr, class T, class U, size_t Rank,
           detail::RequiresScalar<U>>
 tensor<typename Distribution::result_type, Rank>
 Generator<bit_generator>::__sample_element_wise(
-    Distribution &rvs, const expression<Container, T, Rank> &param1,
+    Distribution &rvs, const abstract_tensor<Expr, T, Rank> &param1,
     const U &param2) {
   typedef typename Distribution::result_type Rt;
   typedef typename Distribution::param_type param_type;
@@ -111,12 +109,12 @@ Generator<bit_generator>::__sample_element_wise(
 }
 
 template <class bit_generator>
-template <class Distribution, class T, class Container, class U, size_t Rank,
+template <class Distribution, class Expr, class T, class U, size_t Rank,
           detail::RequiresScalar<T>>
 tensor<typename Distribution::result_type, Rank>
 Generator<bit_generator>::__sample_element_wise(
     Distribution &rvs, const T &param1,
-    const expression<Container, U, Rank> &param2) {
+    const abstract_tensor<Expr, U, Rank> &param2) {
   typedef typename Distribution::result_type Rt;
   typedef typename Distribution::param_type param_type;
   tensor<Rt, Rank> out(param2.shape());
@@ -177,9 +175,9 @@ Generator<bit_generator>::random(const shape_t<Rank> &size) {
 }
 
 template <class bit_generator>
-template <class Container, class T>
+template <class Expr, class T>
 T Generator<bit_generator>::choice(
-    const expression<Container, T, 1> &population) {
+    const abstract_tensor<Expr, T, 1> &population) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
@@ -188,10 +186,10 @@ T Generator<bit_generator>::choice(
 }
 
 template <class bit_generator>
-template <class Container1, class T, class Container2, class U>
+template <class Expr1, class T, class Expr2, class U>
 T Generator<bit_generator>::choice(
-    const expression<Container1, T, 1> &population,
-    const expression<Container2, U, 1> &weights) {
+    const abstract_tensor<Expr1, T, 1> &population,
+    const abstract_tensor<Expr2, U, 1> &weights) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
@@ -243,17 +241,17 @@ void Generator<bit_generator>::__sample_no_replacement(InputIterator first,
 }
 
 template <class bit_generator>
-template <class Container, class T>
+template <class Expr, class T>
 inline tensor<T, 1>
-Generator<bit_generator>::choice(const expression<Container, T, 1> &population,
+Generator<bit_generator>::choice(const abstract_tensor<Expr, T, 1> &population,
                                  size_t size, bool replace, bool shuffle) {
   return this->choice(population, make_shape(size), replace, shuffle);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 tensor<T, Rank>
-Generator<bit_generator>::choice(const expression<Container, T, 1> &population,
+Generator<bit_generator>::choice(const abstract_tensor<Expr, T, 1> &population,
                                  const shape_t<Rank> &size, bool replace,
                                  bool shuffle) {
   if (population.size() == 0) {
@@ -298,8 +296,8 @@ void Generator<bit_generator>::__sample_no_replacement(
     RandomAccessIterator1 first, RandomAccessIterator1 last,
     RandomAccessIterator2 weights, OutputIterator out, size_t n) {
   typedef discrete_distribution<size_t>::param_type param_type;
-  discrete_distribution<size_t> rvs;
   size_t size = std::distance(first, last);
+  discrete_distribution<size_t> rvs;
   double *w = new double[size];
   std::copy(weights, weights + size, w);
   for (size_t i = 0; i < n; ++i) {
@@ -312,18 +310,18 @@ void Generator<bit_generator>::__sample_no_replacement(
 }
 
 template <class bit_generator>
-template <class Container1, class T, class Container2, class U>
+template <class Expr1, class T, class Expr2, class U>
 inline tensor<T, 1> Generator<bit_generator>::choice(
-    const expression<Container1, T, 1> &population, size_t size,
-    const expression<Container2, U, 1> &weights, bool replace) {
+    const abstract_tensor<Expr1, T, 1> &population, size_t size,
+    const abstract_tensor<Expr2, U, 1> &weights, bool replace) {
   return this->choice(population, make_shape(size), weights, replace);
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2, class U>
+template <class Expr1, class T, size_t Rank, class Expr2, class U>
 inline tensor<T, Rank> Generator<bit_generator>::choice(
-    const expression<Container1, T, 1> &population, const shape_t<Rank> &size,
-    const expression<Container2, U, 1> &weights, bool replace) {
+    const abstract_tensor<Expr1, T, 1> &population, const shape_t<Rank> &size,
+    const abstract_tensor<Expr2, U, 1> &weights, bool replace) {
   if (population.size() == 0) {
     throw std::invalid_argument("population cannot be empty");
   }
@@ -349,14 +347,14 @@ inline tensor<T, Rank> Generator<bit_generator>::choice(
 /// Permutations.
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
-void Generator<bit_generator>::shuffle(dense_tensor<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+void Generator<bit_generator>::shuffle(dense_tensor<Expr, T, Rank> &a,
                                        size_t axis) {
   shape_t<Rank> shape = a.shape();
   size_t size = shape[axis];
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
-    typedef axes_iterator<Container, T, Rank, 1> iterator;
+    typedef axes_iterator<Expr, T, Rank, 1> iterator;
     iterator first(&a.self(), index, axis, 0);
     iterator last(&a.self(), index, axis, size);
     std::shuffle(first, last, m_rng);
@@ -374,18 +372,18 @@ inline tensor<T, 1> Generator<bit_generator>::permutation(T n) {
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, 1>
-Generator<bit_generator>::permutation(const expression<Container, T, Rank> &a) {
+Generator<bit_generator>::permutation(const abstract_tensor<Expr, T, Rank> &a) {
   tensor<T, 1> out(a.self().begin(), a.size());
   std::shuffle(out.data(), out.data() + out.size(), m_rng);
   return out;
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::permutation(const expression<Container, T, Rank> &a,
+Generator<bit_generator>::permutation(const abstract_tensor<Expr, T, Rank> &a,
                                       size_t axis) {
   tensor<T, Rank> out(a);
   this->shuffle(out, axis);
@@ -404,28 +402,28 @@ Generator<bit_generator>::beta(T shape1, U shape2) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::beta(const expression<Container1, T, Rank> &shape1,
-                               const expression<Container2, T, Rank> &shape2) {
+Generator<bit_generator>::beta(const abstract_tensor<Expr1, T, Rank> &shape1,
+                               const abstract_tensor<Expr2, T, Rank> &shape2) {
   beta_distribution<T> rvs;
   return __sample_element_wise(rvs, shape1, shape2);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::beta(const expression<Container, T, Rank> &shape1,
-                               typename Container::value_type shape2) {
+Generator<bit_generator>::beta(const abstract_tensor<Expr, T, Rank> &shape1,
+                               typename detail::identity<T>::type shape2) {
   beta_distribution<T> rvs;
   return __sample_element_wise(rvs, shape1, shape2);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::beta(typename Container::value_type shape1,
-                               const expression<Container, T, Rank> &shape2) {
+Generator<bit_generator>::beta(typename detail::identity<T>::type shape1,
+                               const abstract_tensor<Expr, T, Rank> &shape2) {
   beta_distribution<T> rvs;
   return __sample_element_wise(rvs, shape1, shape2);
 }
@@ -458,28 +456,28 @@ Generator<bit_generator>::cauchy(T loc, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::cauchy(const expression<Container1, T, Rank> &loc,
-                                 const expression<Container2, T, Rank> &scale) {
+Generator<bit_generator>::cauchy(const abstract_tensor<Expr1, T, Rank> &loc,
+                                 const abstract_tensor<Expr2, T, Rank> &scale) {
   cauchy_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::cauchy(const expression<Container, T, Rank> &loc,
-                                 typename Container::value_type scale) {
+Generator<bit_generator>::cauchy(const abstract_tensor<Expr, T, Rank> &loc,
+                                 typename detail::identity<T>::type scale) {
   cauchy_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::cauchy(typename Container::value_type loc,
-                                 const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::cauchy(typename detail::identity<T>::type loc,
+                                 const abstract_tensor<Expr, T, Rank> &scale) {
   cauchy_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
@@ -512,9 +510,9 @@ Generator<bit_generator>::chisquare(T df) {
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::chisquare(const expression<Container, T, Rank> &df) {
+Generator<bit_generator>::chisquare(const abstract_tensor<Expr, T, Rank> &df) {
   chi_squared_distribution<T> rvs;
   return __sample_element_wise(rvs, df);
 }
@@ -547,9 +545,9 @@ Generator<bit_generator>::exponential(T rate) {
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::exponential(
-    const expression<Container, T, Rank> &rate) {
+    const abstract_tensor<Expr, T, Rank> &rate) {
   exponential_distribution<T> rvs;
   return __sample_element_wise(rvs, rate);
 }
@@ -582,28 +580,28 @@ Generator<bit_generator>::fisher_f(T df1, U df2) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::fisher_f(const expression<Container1, T, Rank> &df1,
-                                   const expression<Container2, T, Rank> &df2) {
+Generator<bit_generator>::fisher_f(const abstract_tensor<Expr1, T, Rank> &df1,
+                                   const abstract_tensor<Expr2, T, Rank> &df2) {
   fisher_f_distribution<T> rvs;
   return __sample_element_wise(rvs, df1, df2);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::fisher_f(const expression<Container, T, Rank> &df1,
-                                   typename Container::value_type df2) {
+Generator<bit_generator>::fisher_f(const abstract_tensor<Expr, T, Rank> &df1,
+                                   typename detail::identity<T>::type df2) {
   fisher_f_distribution<T> rvs;
   return __sample_element_wise(rvs, df1, df2);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::fisher_f(typename Container::value_type df1,
-                                   const expression<Container, T, Rank> &df2) {
+Generator<bit_generator>::fisher_f(typename detail::identity<T>::type df1,
+                                   const abstract_tensor<Expr, T, Rank> &df2) {
   fisher_f_distribution<T> rvs;
   return __sample_element_wise(rvs, df1, df2);
 }
@@ -636,28 +634,28 @@ Generator<bit_generator>::gamma(T shape, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gamma(const expression<Container1, T, Rank> &shape,
-                                const expression<Container2, T, Rank> &scale) {
+Generator<bit_generator>::gamma(const abstract_tensor<Expr1, T, Rank> &shape,
+                                const abstract_tensor<Expr2, T, Rank> &scale) {
   gamma_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gamma(const expression<Container, T, Rank> &shape,
-                                typename Container::value_type scale) {
+Generator<bit_generator>::gamma(const abstract_tensor<Expr, T, Rank> &shape,
+                                typename detail::identity<T>::type scale) {
   gamma_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gamma(typename Container::value_type shape,
-                                const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::gamma(typename detail::identity<T>::type shape,
+                                const abstract_tensor<Expr, T, Rank> &scale) {
   gamma_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
@@ -690,28 +688,28 @@ Generator<bit_generator>::gumbel(T loc, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gumbel(const expression<Container1, T, Rank> &loc,
-                                 const expression<Container2, T, Rank> &scale) {
+Generator<bit_generator>::gumbel(const abstract_tensor<Expr1, T, Rank> &loc,
+                                 const abstract_tensor<Expr2, T, Rank> &scale) {
   extreme_value_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gumbel(const expression<Container, T, Rank> &loc,
-                                 typename Container::value_type scale) {
+Generator<bit_generator>::gumbel(const abstract_tensor<Expr, T, Rank> &loc,
+                                 typename detail::identity<T>::type scale) {
   extreme_value_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::gumbel(typename Container::value_type loc,
-                                 const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::gumbel(typename detail::identity<T>::type loc,
+                                 const abstract_tensor<Expr, T, Rank> &scale) {
   extreme_value_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
@@ -744,28 +742,28 @@ Generator<bit_generator>::laplace(T loc, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::laplace(
-    const expression<Container1, T, Rank> &loc,
-    const expression<Container2, T, Rank> &scale) {
+    const abstract_tensor<Expr1, T, Rank> &loc,
+    const abstract_tensor<Expr2, T, Rank> &scale) {
   laplace_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::laplace(const expression<Container, T, Rank> &loc,
-                                  typename Container::value_type scale) {
+Generator<bit_generator>::laplace(const abstract_tensor<Expr, T, Rank> &loc,
+                                  typename detail::identity<T>::type scale) {
   laplace_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::laplace(typename Container::value_type loc,
-                                  const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::laplace(typename detail::identity<T>::type loc,
+                                  const abstract_tensor<Expr, T, Rank> &scale) {
   laplace_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
@@ -798,28 +796,28 @@ Generator<bit_generator>::logistic(T loc, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::logistic(
-    const expression<Container1, T, Rank> &loc,
-    const expression<Container2, T, Rank> &scale) {
+    const abstract_tensor<Expr1, T, Rank> &loc,
+    const abstract_tensor<Expr2, T, Rank> &scale) {
   logistic_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::logistic(const expression<Container, T, Rank> &loc,
-                                   typename Container::value_type scale) {
+Generator<bit_generator>::logistic(const abstract_tensor<Expr, T, Rank> &loc,
+                                   typename detail::identity<T>::type scale) {
   logistic_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::logistic(
-    typename Container::value_type loc,
-    const expression<Container, T, Rank> &scale) {
+    typename detail::identity<T>::type loc,
+    const abstract_tensor<Expr, T, Rank> &scale) {
   logistic_distribution<T> rvs;
   return __sample_element_wise(rvs, loc, scale);
 }
@@ -852,28 +850,28 @@ Generator<bit_generator>::lognormal(T logmean, U logscale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::lognormal(
-    const expression<Container1, T, Rank> &logmean,
-    const expression<Container2, T, Rank> &logscale) {
+    const abstract_tensor<Expr1, T, Rank> &logmean,
+    const abstract_tensor<Expr2, T, Rank> &logscale) {
   lognormal_distribution<T> rvs;
   return __sample_element_wise(rvs, logmean, logscale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::lognormal(
-    const expression<Container, T, Rank> &logmean,
-    typename Container::value_type logscale) {
+    const abstract_tensor<Expr, T, Rank> &logmean,
+    typename detail::identity<T>::type logscale) {
   lognormal_distribution<T> rvs;
   return __sample_element_wise(rvs, logmean, logscale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
-inline tensor<T, Rank> Generator<bit_generator>::lognormal(
-    typename Container::value_type logmean,
-    const expression<Container, T, Rank> &logscale) {
+template <class Expr, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::lognormal(typename detail::identity<T>::type logmean,
+                                    const abstract_tensor<Expr, T, Rank> &logscale) {
   lognormal_distribution<T> rvs;
   return __sample_element_wise(rvs, logmean, logscale);
 }
@@ -907,28 +905,28 @@ Generator<bit_generator>::normal(T mean, U stddev) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
-inline tensor<T, Rank> Generator<bit_generator>::normal(
-    const expression<Container1, T, Rank> &mean,
-    const expression<Container2, T, Rank> &stddev) {
+template <class Expr1, class Expr2, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::normal(const abstract_tensor<Expr1, T, Rank> &mean,
+                                 const abstract_tensor<Expr2, T, Rank> &stddev) {
   normal_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, stddev);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::normal(const expression<Container, T, Rank> &mean,
-                                 typename Container::value_type stddev) {
+Generator<bit_generator>::normal(const abstract_tensor<Expr, T, Rank> &mean,
+                                 typename detail::identity<T>::type stddev) {
   normal_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, stddev);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::normal(typename Container::value_type mean,
-                                 const expression<Container, T, Rank> &stddev) {
+Generator<bit_generator>::normal(typename detail::identity<T>::type mean,
+                                 const abstract_tensor<Expr, T, Rank> &stddev) {
   normal_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, stddev);
 }
@@ -961,28 +959,28 @@ Generator<bit_generator>::pareto(T shape, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::pareto(const expression<Container1, T, Rank> &shape,
-                                 const expression<Container2, T, Rank> &scale) {
+Generator<bit_generator>::pareto(const abstract_tensor<Expr1, T, Rank> &shape,
+                                 const abstract_tensor<Expr2, T, Rank> &scale) {
   pareto_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::pareto(const expression<Container, T, Rank> &shape,
-                                 typename Container::value_type scale) {
+Generator<bit_generator>::pareto(const abstract_tensor<Expr, T, Rank> &shape,
+                                 typename detail::identity<T>::type scale) {
   pareto_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::pareto(typename Container::value_type shape,
-                                 const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::pareto(typename detail::identity<T>::type shape,
+                                 const abstract_tensor<Expr, T, Rank> &scale) {
   pareto_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
@@ -1015,9 +1013,9 @@ Generator<bit_generator>::rayleigh(T scale) {
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
-inline tensor<T, Rank> Generator<bit_generator>::rayleigh(
-    const expression<Container, T, Rank> &scale) {
+template <class Expr, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::rayleigh(const abstract_tensor<Expr, T, Rank> &scale) {
   rayleigh_distribution<T> rvs;
   return __sample_element_wise(rvs, scale);
 }
@@ -1073,9 +1071,9 @@ Generator<bit_generator>::student_t(T df) {
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::student_t(const expression<Container, T, Rank> &df) {
+Generator<bit_generator>::student_t(const abstract_tensor<Expr, T, Rank> &df) {
   student_t_distribution<T> rvs;
   return __sample_element_wise(rvs, df);
 }
@@ -1108,28 +1106,28 @@ Generator<bit_generator>::uniform(T low, U high) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::uniform(const expression<Container1, T, Rank> &low,
-                                  const expression<Container2, T, Rank> &high) {
+Generator<bit_generator>::uniform(const abstract_tensor<Expr1, T, Rank> &low,
+                                  const abstract_tensor<Expr2, T, Rank> &high) {
   uniform_real_distribution<T> rvs;
   return __sample_element_wise(rvs, low, high);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::uniform(const expression<Container, T, Rank> &low,
-                                  typename Container::value_type high) {
+Generator<bit_generator>::uniform(const abstract_tensor<Expr, T, Rank> &low,
+                                  typename detail::identity<T>::type high) {
   uniform_real_distribution<T> rvs;
   return __sample_element_wise(rvs, low, high);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::uniform(typename Container::value_type low,
-                                  const expression<Container, T, Rank> &high) {
+Generator<bit_generator>::uniform(typename detail::identity<T>::type low,
+                                  const abstract_tensor<Expr, T, Rank> &high) {
   uniform_real_distribution<T> rvs;
   return __sample_element_wise(rvs, low, high);
 }
@@ -1162,28 +1160,28 @@ Generator<bit_generator>::wald(T mean, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::wald(const expression<Container1, T, Rank> &mean,
-                               const expression<Container2, T, Rank> &scale) {
+Generator<bit_generator>::wald(const abstract_tensor<Expr1, T, Rank> &mean,
+                               const abstract_tensor<Expr2, T, Rank> &scale) {
   inverse_gaussian_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::wald(const expression<Container, T, Rank> &mean,
-                               typename Container::value_type scale) {
+Generator<bit_generator>::wald(const abstract_tensor<Expr, T, Rank> &mean,
+                               typename detail::identity<T>::type scale) {
   inverse_gaussian_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::wald(typename Container::value_type mean,
-                               const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::wald(typename detail::identity<T>::type mean,
+                               const abstract_tensor<Expr, T, Rank> &scale) {
   inverse_gaussian_distribution<T> rvs;
   return __sample_element_wise(rvs, mean, scale);
 }
@@ -1216,28 +1214,28 @@ Generator<bit_generator>::weibull(T shape, U scale) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
-inline tensor<T, Rank> Generator<bit_generator>::weibull(
-    const expression<Container1, T, Rank> &shape,
-    const expression<Container2, T, Rank> &scale) {
+template <class Expr1, class Expr2, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::weibull(const abstract_tensor<Expr1, T, Rank> &shape,
+                                  const abstract_tensor<Expr2, T, Rank> &scale) {
   weibull_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::weibull(const expression<Container, T, Rank> &shape,
-                                  typename Container::value_type scale) {
+Generator<bit_generator>::weibull(const abstract_tensor<Expr, T, Rank> &shape,
+                                  typename detail::identity<T>::type scale) {
   weibull_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::weibull(typename Container::value_type shape,
-                                  const expression<Container, T, Rank> &scale) {
+Generator<bit_generator>::weibull(typename detail::identity<T>::type shape,
+                                  const abstract_tensor<Expr, T, Rank> &scale) {
   weibull_distribution<T> rvs;
   return __sample_element_wise(rvs, shape, scale);
 }
@@ -1269,9 +1267,9 @@ inline bool Generator<bit_generator>::bernoulli(double prob) {
 }
 
 template <class bit_generator>
-template <class Container, size_t Rank>
+template <class Expr, size_t Rank>
 inline tensor<bool, Rank> Generator<bit_generator>::bernoulli(
-    const expression<Container, double, Rank> &prob) {
+    const abstract_tensor<Expr, double, Rank> &prob) {
   bernoulli_distribution rvs;
   return __sample_element_wise(rvs, prob);
 }
@@ -1300,27 +1298,28 @@ inline T Generator<bit_generator>::binomial(T n, double prob) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::binomial(
-    const expression<Container1, T, Rank> &n,
-    const expression<Container2, double, Rank> &prob) {
+    const abstract_tensor<Expr1, T, Rank> &n,
+    const abstract_tensor<Expr2, double, Rank> &prob) {
   binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline tensor<T, Rank>
-Generator<bit_generator>::binomial(const expression<Container, T, Rank> &n,
+Generator<bit_generator>::binomial(const abstract_tensor<Expr, T, Rank> &n,
                                    double prob) {
   binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank, detail::RequiresIntegral<T>>
-inline tensor<T, Rank> Generator<bit_generator>::binomial(
-    T n, const expression<Container, double, Rank> &prob) {
+template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T>>
+inline tensor<T, Rank>
+Generator<bit_generator>::binomial(T n,
+                                   const abstract_tensor<Expr, double, Rank> &prob) {
   binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
@@ -1351,9 +1350,9 @@ inline T Generator<bit_generator>::geometric(double prob) {
 }
 
 template <class bit_generator>
-template <class T, class Container, size_t Rank>
+template <class T, class Expr, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::geometric(
-    const expression<Container, double, Rank> &prob) {
+    const abstract_tensor<Expr, double, Rank> &prob) {
   geometric_distribution<T> rvs;
   return __sample_element_wise(rvs, prob);
 }
@@ -1383,26 +1382,27 @@ inline T Generator<bit_generator>::negative_binomial(T n, double prob) {
 }
 
 template <class bit_generator>
-template <class Container1, class T, size_t Rank, class Container2>
+template <class Expr1, class Expr2, class T, size_t Rank>
 inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
-    const expression<Container1, T, Rank> &n,
-    const expression<Container2, double, Rank> &prob) {
+    const abstract_tensor<Expr1, T, Rank> &n,
+    const abstract_tensor<Expr2, double, Rank> &prob) {
   negative_binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank>
-inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
-    const expression<Container, T, Rank> &n, double prob) {
+template <class Expr, class T, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::negative_binomial(const abstract_tensor<Expr, T, Rank> &n,
+                                            double prob) {
   negative_binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
 
 template <class bit_generator>
-template <class Container, class T, size_t Rank, detail::RequiresIntegral<T>>
+template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T>>
 inline tensor<T, Rank> Generator<bit_generator>::negative_binomial(
-    T n, const expression<Container, double, Rank> &prob) {
+    T n, const abstract_tensor<Expr, double, Rank> &prob) {
   negative_binomial_distribution<T> rvs;
   return __sample_element_wise(rvs, n, prob);
 }
@@ -1433,9 +1433,9 @@ inline T Generator<bit_generator>::poisson(double rate) {
 }
 
 template <class bit_generator>
-template <class T, class Container, size_t Rank>
-inline tensor<T, Rank> Generator<bit_generator>::poisson(
-    const expression<Container, double, Rank> &rate) {
+template <class T, class Expr, size_t Rank>
+inline tensor<T, Rank>
+Generator<bit_generator>::poisson(const abstract_tensor<Expr, double, Rank> &rate) {
   poisson_distribution<T> rvs;
   return __sample_element_wise(rvs, rate);
 }

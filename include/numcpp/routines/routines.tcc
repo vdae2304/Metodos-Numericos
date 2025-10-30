@@ -128,10 +128,10 @@ namespace detail {
 /**
  * @brief Apply a function over multiple axes.
  */
-template <class R, class Function, class Container, class T, size_t Rank,
+template <class R, class Function, class Expr, class T, size_t Rank,
           size_t N>
 tensor<R, Rank> apply_over_axes(Function f,
-                                const expression<Container, T, Rank> &a,
+                                const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<N> &axes, keepdims_t) {
   shape_t<Rank> shape = a.shape();
   size_t size = 1;
@@ -149,10 +149,10 @@ tensor<R, Rank> apply_over_axes(Function f,
   return out;
 }
 
-template <class R, class Function, class Container, class T, size_t Rank,
+template <class R, class Function, class Expr, class T, size_t Rank,
           size_t N>
 tensor<R, Rank - N> apply_over_axes(Function f,
-                                    const expression<Container, T, Rank> &a,
+                                    const abstract_tensor<Expr, T, Rank> &a,
                                     const shape_t<N> &axes, dropdims_t) {
   shape_t<Rank> shape = a.shape();
   size_t size = 1;
@@ -171,156 +171,156 @@ tensor<R, Rank - N> apply_over_axes(Function f,
 }
 } // namespace detail
 
-template <class Container, class T, size_t Rank>
-index_t<Rank> argmax(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+index_t<Rank> argmax(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::argmax pred;
   size_t index = pred(a.self().begin(), a.self().end());
   return unravel_index(index, a.shape(), a.layout());
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis) {
   return argmax(a, axis, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argmax(const abstract_tensor<Expr, T, Rank> &a,
                             const shape_t<1> &axis, keepdims_t) {
   return detail::apply_over_axes<size_t>(ranges::argmax(), a, axis, keepdims);
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis, dropdims_t) {
   return detail::apply_over_axes<size_t>(ranges::argmax(), a, axis, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-index_t<Rank> argmin(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+index_t<Rank> argmin(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::argmin pred;
   size_t index = pred(a.self().begin(), a.self().end());
   return unravel_index(index, a.shape(), a.layout());
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis) {
   return argmin(a, axis, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argmin(const abstract_tensor<Expr, T, Rank> &a,
                             const shape_t<1> &axis, keepdims_t) {
   return detail::apply_over_axes<size_t>(ranges::argmin(), a, axis, keepdims);
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis, dropdims_t) {
   return detail::apply_over_axes<size_t>(ranges::argmin(), a, axis, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T amax(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T amax(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::max pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes) {
   return amax(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> amax(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::max(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::max(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T amin(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T amin(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::min pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes) {
   return amin(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> amin(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::min(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::min(), a, axes, dropdims);
 }
 
 /// Sums and products.
 
-template <class Container, class T, size_t Rank>
-T sum(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T sum(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::sum pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes) {
   return sum(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> sum(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::sum(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::sum(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T prod(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T prod(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::prod pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes) {
   return prod(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> prod(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::prod(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::prod(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> cumsum(const expression<Container, T, Rank> &a, size_t axis) {
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> cumsum(const abstract_tensor<Expr, T, Rank> &a, size_t axis) {
   shape_t<Rank> shape = a.shape();
   tensor<T, Rank> out(shape);
   size_t size = shape[axis];
@@ -336,8 +336,8 @@ tensor<T, Rank> cumsum(const expression<Container, T, Rank> &a, size_t axis) {
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> cumprod(const expression<Container, T, Rank> &a, size_t axis) {
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> cumprod(const abstract_tensor<Expr, T, Rank> &a, size_t axis) {
   shape_t<Rank> shape = a.shape();
   tensor<T, Rank> out(shape);
   size_t size = shape[axis];
@@ -403,27 +403,27 @@ tensor<bool, Rank - N> any(const expression<Container, bool, Rank> &a,
   return detail::apply_over_axes<bool>(ranges::any(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-size_t count_nonzero(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+size_t count_nonzero(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::count_nonzero pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                        const shape_t<N> &axes) {
   return count_nonzero(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                    const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<size_t>(ranges::count_nonzero(), a, axes,
                                          keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                        const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<size_t>(ranges::count_nonzero(), a, axes,
                                          dropdims);
@@ -466,14 +466,14 @@ bool isclose(const T &a, const std::complex<U> &b,
 
 /// Sorting and searching.
 
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argsort(const abstract_tensor<Expr, T, Rank> &a) {
   return argsort(a, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a,
+tensor<index_t<Rank>, 1> argsort(const abstract_tensor<Expr, T, Rank> &a,
                                  Compare comp, bool stable) {
   index_sequence<Rank> indices(a.shape(), a.layout());
   tensor<index_t<Rank>, 1> out(indices.begin(), a.size());
@@ -491,15 +491,15 @@ tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argsort(const abstract_tensor<Expr, T, Rank> &a,
                              size_t axis) {
   return argsort(a, axis, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+tensor<size_t, Rank> argsort(const abstract_tensor<Expr, T, Rank> &a,
                              size_t axis, Compare comp, bool stable) {
   shape_t<Rank> shape = a.shape();
   tensor<size_t, Rank> out(shape);
@@ -528,14 +528,14 @@ tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, 1> sort(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> sort(const abstract_tensor<Expr, T, Rank> &a) {
   return sort(a, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<T, 1> sort(const expression<Container, T, Rank> &a, Compare comp,
+tensor<T, 1> sort(const abstract_tensor<Expr, T, Rank> &a, Compare comp,
                   bool stable) {
   tensor<T, 1> out(a.self().begin(), a.size());
   if (stable) {
@@ -546,14 +546,14 @@ tensor<T, 1> sort(const expression<Container, T, Rank> &a, Compare comp,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis) {
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> sort(const abstract_tensor<Expr, T, Rank> &a, size_t axis) {
   return sort(a, axis, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis,
+tensor<T, Rank> sort(const abstract_tensor<Expr, T, Rank> &a, size_t axis,
                      Compare comp, bool stable) {
   shape_t<Rank> shape = a.shape();
   tensor<T, Rank> out(a);
@@ -572,15 +572,15 @@ tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                       size_t kth) {
   return argpartition(a, kth, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
+tensor<index_t<Rank>, 1> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                       size_t kth, Compare comp) {
   index_sequence<Rank> indices(a.shape(), a.layout());
   tensor<index_t<Rank>, 1> out(indices.begin(), a.size());
@@ -591,15 +591,15 @@ tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                   size_t kth, size_t axis) {
   return argpartition(a, kth, axis, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
+tensor<size_t, Rank> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                   size_t kth, size_t axis, Compare comp) {
   shape_t<Rank> shape = a.shape();
   tensor<size_t, Rank> out(shape);
@@ -621,29 +621,29 @@ tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth) {
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth) {
   return partition(a, kth, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth,
+tensor<T, 1> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                        Compare comp) {
   tensor<T, 1> out(a.self().begin(), a.size());
   std::nth_element(out.data(), out.data() + kth, out.data() + out.size(), comp);
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                           size_t axis) {
   return partition(a, kth, axis, less());
 }
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T>>
-tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+tensor<T, Rank> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                           size_t axis, Compare comp) {
   shape_t<Rank> shape = a.shape();
   tensor<T, Rank> out(a);
@@ -658,8 +658,8 @@ tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> nonzero(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> nonzero(const abstract_tensor<Expr, T, Rank> &a) {
   size_t size = count_nonzero(a);
   tensor<index_t<Rank>, 1> out(size);
   size_t n = 0;
@@ -679,8 +679,8 @@ where(const expression<Container, bool, Rank> &condition) {
 
 /// Set routines.
 
-template <class Container, class T, size_t Rank>
-tensor<T, 1> unique(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> unique(const abstract_tensor<Expr, T, Rank> &a) {
   std::vector<T> buffer(a.self().begin(), a.self().end());
   if (!std::is_sorted(buffer.begin(), buffer.end())) {
     std::sort(buffer.begin(), buffer.end());
@@ -741,126 +741,126 @@ tensor<T, 1> set_symmetric_difference(const expression<Container1, T, 1> &a,
 
 /// Basic statistics.
 
-template <class Container, class T, size_t Rank>
-T mean(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T mean(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::mean pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes) {
   return mean(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> mean(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::mean(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::mean(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T median(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+T median(const abstract_tensor<Expr, T, Rank> &a) {
   ranges::median pred;
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes) {
   return median(a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> median(const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::median(), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::median(), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T var(const expression<Container, T, Rank> &a, bool bias) {
+template <class Expr, class T, size_t Rank>
+T var(const abstract_tensor<Expr, T, Rank> &a, bool bias) {
   ranges::var pred(bias);
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, bool bias) {
   return var(a, axes, bias, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> var(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<N> &axes, bool bias, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::var(bias), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, bool bias, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::var(bias), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T stddev(const expression<Container, T, Rank> &a, bool bias) {
+template <class Expr, class T, size_t Rank>
+T stddev(const abstract_tensor<Expr, T, Rank> &a, bool bias) {
   ranges::stddev pred(bias);
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, bool bias) {
   return stddev(a, axes, bias, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> stddev(const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, bool bias, keepdims_t) {
   return detail::apply_over_axes<T>(ranges::stddev(bias), a, axes, keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, bool bias, dropdims_t) {
   return detail::apply_over_axes<T>(ranges::stddev(bias), a, axes, dropdims);
 }
 
-template <class Container, class T, size_t Rank>
-T quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank>
+T quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
            const std::string &method) {
   ranges::quantile pred(q, method);
   return pred(a.self().begin(), a.self().end());
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                              const shape_t<N> &axes,
                              const std::string &method) {
   return quantile(a, q, axes, method, dropdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                          const shape_t<N> &axes, const std::string &method,
                          keepdims_t) {
   return detail::apply_over_axes<T>(ranges::quantile(q, method), a, axes,
                                     keepdims);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                              const shape_t<N> &axes, const std::string &method,
                              dropdims_t) {
   return detail::apply_over_axes<T>(ranges::quantile(q, method), a, axes,

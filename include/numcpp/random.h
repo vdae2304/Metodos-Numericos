@@ -146,12 +146,12 @@ public:
    *                              @a population and @a weights have different
    *                              sizes.
    */
-  template <class Container, class T>
-  T choice(const expression<Container, T, 1> &population);
+  template <class Expr, class T>
+  T choice(const abstract_tensor<Expr, T, 1> &population);
 
-  template <class Container1, class T, class Container2, class U>
-  T choice(const expression<Container1, T, 1> &population,
-           const expression<Container2, U, 1> &weights);
+  template <class Expr1, class T, class Expr2, class U>
+  T choice(const abstract_tensor<Expr1, T, 1> &population,
+           const abstract_tensor<Expr2, U, 1> &weights);
 
   /**
    * @brief Generates a random sample from a given sequence.
@@ -176,24 +176,24 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class Container, class T>
-  tensor<T, 1> choice(const expression<Container, T, 1> &population,
+  template <class Expr, class T>
+  tensor<T, 1> choice(const abstract_tensor<Expr, T, 1> &population,
                       size_t size, bool replace = true, bool shuffle = true);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> choice(const expression<Container, T, 1> &population,
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> choice(const abstract_tensor<Expr, T, 1> &population,
                          const shape_t<Rank> &size, bool replace = true,
                          bool shuffle = true);
 
-  template <class Container1, class T, class Container2, class U>
-  tensor<T, 1> choice(const expression<Container1, T, 1> &population,
-                      size_t size, const expression<Container2, U, 1> &weights,
+  template <class Expr1, class T, class Expr2, class U>
+  tensor<T, 1> choice(const abstract_tensor<Expr1, T, 1> &population,
+                      size_t size, const abstract_tensor<Expr2, U, 1> &weights,
                       bool replace = true);
 
-  template <class Container1, class T, size_t Rank, class Container2, class U>
-  tensor<T, Rank> choice(const expression<Container1, T, 1> &population,
+  template <class Expr1, class T, size_t Rank, class Expr2, class U>
+  tensor<T, Rank> choice(const abstract_tensor<Expr1, T, 1> &population,
                          const shape_t<Rank> &size,
-                         const expression<Container2, U, 1> &weights,
+                         const abstract_tensor<Expr2, U, 1> &weights,
                          bool replace = true);
 
   /// Permutations.
@@ -205,8 +205,8 @@ public:
    * @param axis Axis along which to shuffle. Defaults to Rank - 1, which means
    *             shuffle along the last axis.
    */
-  template <class Container, class T, size_t Rank>
-  void shuffle(dense_tensor<Container, T, Rank> &a, size_t axis = Rank - 1);
+  template <class Expr, class T, size_t Rank>
+  void shuffle(dense_tensor<Expr, T, Rank> &a, size_t axis = Rank - 1);
 
   /**
    * @brief Return a permuted range.
@@ -233,11 +233,11 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    *                       throw an exception.
    */
-  template <class Container, class T, size_t Rank>
-  tensor<T, 1> permutation(const expression<Container, T, Rank> &a);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, 1> permutation(const abstract_tensor<Expr, T, Rank> &a);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> permutation(const expression<Container, T, Rank> &a,
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> permutation(const abstract_tensor<Expr, T, Rank> &a,
                               size_t axis);
 
   /// Continuous distributions.
@@ -268,17 +268,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type beta(T shape1, U shape2);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> beta(const expression<Container1, T, Rank> &shape1,
-                       const expression<Container2, T, Rank> &shape2);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> beta(const abstract_tensor<Expr1, T, Rank> &shape1,
+                       const abstract_tensor<Expr2, T, Rank> &shape2);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> beta(const expression<Container, T, Rank> &shape1,
-                       typename Container::value_type shape2);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> beta(const abstract_tensor<Expr, T, Rank> &shape1,
+                       typename detail::identity<T>::type shape2);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> beta(typename Container::value_type shape1,
-                       const expression<Container, T, Rank> &shape2);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> beta(typename detail::identity<T>::type shape1,
+                       const abstract_tensor<Expr, T, Rank> &shape2);
 
   /**
    * @brief Draw samples from a Beta distribution.
@@ -325,17 +325,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type cauchy(T loc, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> cauchy(const expression<Container1, T, Rank> &loc,
-                         const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> cauchy(const abstract_tensor<Expr1, T, Rank> &loc,
+                         const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> cauchy(const expression<Container, T, Rank> &loc,
-                         typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> cauchy(const abstract_tensor<Expr, T, Rank> &loc,
+                         typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> cauchy(typename Container::value_type loc,
-                         const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> cauchy(typename detail::identity<T>::type loc,
+                         const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Cauchy distribution.
@@ -376,8 +376,8 @@ public:
    */
   template <class T> typename detail::promote<T>::type chisquare(T df);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> chisquare(const expression<Container, T, Rank> &df);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> chisquare(const abstract_tensor<Expr, T, Rank> &df);
 
   /**
    * @brief Draw samples from a chi-squared distribution.
@@ -416,8 +416,8 @@ public:
    */
   template <class T> typename detail::promote<T>::type exponential(T rate);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> exponential(const expression<Container, T, Rank> &rate);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> exponential(const abstract_tensor<Expr, T, Rank> &rate);
 
   /**
    * @brief Draw samples from an exponential distribution.
@@ -464,17 +464,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type fisher_f(T df1, U df2);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> fisher_f(const expression<Container1, T, Rank> &df1,
-                           const expression<Container2, T, Rank> &df2);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> fisher_f(const abstract_tensor<Expr1, T, Rank> &df1,
+                           const abstract_tensor<Expr2, T, Rank> &df2);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> fisher_f(const expression<Container, T, Rank> &df1,
-                           typename Container::value_type df2);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> fisher_f(const abstract_tensor<Expr, T, Rank> &df1,
+                           typename detail::identity<T>::type df2);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> fisher_f(typename Container::value_type df1,
-                           const expression<Container, T, Rank> &df2);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> fisher_f(typename detail::identity<T>::type df1,
+                           const abstract_tensor<Expr, T, Rank> &df2);
 
   /**
    * @brief Draw samples from a Fisher F-distribution.
@@ -521,17 +521,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type gamma(T shape, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> gamma(const expression<Container1, T, Rank> &shape,
-                        const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> gamma(const abstract_tensor<Expr1, T, Rank> &shape,
+                        const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> gamma(const expression<Container, T, Rank> &shape,
-                        typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> gamma(const abstract_tensor<Expr, T, Rank> &shape,
+                        typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> gamma(typename Container::value_type shape,
-                        const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> gamma(typename detail::identity<T>::type shape,
+                        const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Gamma distribution.
@@ -577,17 +577,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type gumbel(T loc, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> gumbel(const expression<Container1, T, Rank> &loc,
-                         const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> gumbel(const abstract_tensor<Expr1, T, Rank> &loc,
+                         const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> gumbel(const expression<Container, T, Rank> &loc,
-                         typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> gumbel(const abstract_tensor<Expr, T, Rank> &loc,
+                         typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> gumbel(typename Container::value_type loc,
-                         const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> gumbel(typename detail::identity<T>::type loc,
+                         const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Gumbel distribution.
@@ -633,17 +633,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type laplace(T loc, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> laplace(const expression<Container1, T, Rank> &loc,
-                          const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> laplace(const abstract_tensor<Expr1, T, Rank> &loc,
+                          const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> laplace(const expression<Container, T, Rank> &loc,
-                          typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> laplace(const abstract_tensor<Expr, T, Rank> &loc,
+                          typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> laplace(typename Container::value_type loc,
-                          const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> laplace(typename detail::identity<T>::type loc,
+                          const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Laplace distribution.
@@ -689,17 +689,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type logistic(T loc, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> logistic(const expression<Container1, T, Rank> &loc,
-                           const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> logistic(const abstract_tensor<Expr1, T, Rank> &loc,
+                           const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> logistic(const expression<Container, T, Rank> &loc,
-                           typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> logistic(const abstract_tensor<Expr, T, Rank> &loc,
+                           typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> logistic(typename Container::value_type loc,
-                           const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> logistic(typename detail::identity<T>::type loc,
+                           const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a logistic distribution.
@@ -749,17 +749,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type lognormal(T logmean, U logscale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> lognormal(const expression<Container1, T, Rank> &logmean,
-                            const expression<Container2, T, Rank> &logscale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> lognormal(const abstract_tensor<Expr1, T, Rank> &logmean,
+                            const abstract_tensor<Expr2, T, Rank> &logscale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> lognormal(const expression<Container, T, Rank> &logmean,
-                            typename Container::value_type logscale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> lognormal(const abstract_tensor<Expr, T, Rank> &logmean,
+                            typename detail::identity<T>::type logscale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> lognormal(typename Container::value_type logmean,
-                            const expression<Container, T, Rank> &logscale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> lognormal(typename detail::identity<T>::type logmean,
+                            const abstract_tensor<Expr, T, Rank> &logscale);
 
   /**
    * @brief Draw samples from a log-normal distribution.
@@ -808,17 +808,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type normal(T mean, U stddev);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> normal(const expression<Container1, T, Rank> &mean,
-                         const expression<Container2, T, Rank> &stddev);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> normal(const abstract_tensor<Expr1, T, Rank> &mean,
+                         const abstract_tensor<Expr2, T, Rank> &stddev);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> normal(const expression<Container, T, Rank> &mean,
-                         typename Container::value_type stddev);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> normal(const abstract_tensor<Expr, T, Rank> &mean,
+                         typename detail::identity<T>::type stddev);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> normal(typename Container::value_type mean,
-                         const expression<Container, T, Rank> &stddev);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> normal(typename detail::identity<T>::type mean,
+                         const abstract_tensor<Expr, T, Rank> &stddev);
 
   /**
    * @brief Draw samples from a normal distribution.
@@ -865,17 +865,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type pareto(T shape, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> pareto(const expression<Container1, T, Rank> &shape,
-                         const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> pareto(const abstract_tensor<Expr1, T, Rank> &shape,
+                         const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> pareto(const expression<Container, T, Rank> &shape,
-                         typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> pareto(const abstract_tensor<Expr, T, Rank> &shape,
+                         typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> pareto(typename Container::value_type shape,
-                         const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> pareto(typename detail::identity<T>::type shape,
+                         const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Pareto distribution.
@@ -916,8 +916,8 @@ public:
    */
   template <class T> typename detail::promote<T>::type rayleigh(T scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> rayleigh(const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> rayleigh(const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Rayleigh distribution.
@@ -983,8 +983,8 @@ public:
    */
   template <class T> typename detail::promote<T>::type student_t(T df);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> student_t(const expression<Container, T, Rank> &df);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> student_t(const abstract_tensor<Expr, T, Rank> &df);
 
   /**
    * @brief Draw samples from a Student's t distribution.
@@ -1028,17 +1028,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type uniform(T low, U high);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> uniform(const expression<Container1, T, Rank> &low,
-                          const expression<Container2, T, Rank> &high);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> uniform(const abstract_tensor<Expr1, T, Rank> &low,
+                          const abstract_tensor<Expr2, T, Rank> &high);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> uniform(const expression<Container, T, Rank> &low,
-                          typename Container::value_type high);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> uniform(const abstract_tensor<Expr, T, Rank> &low,
+                          typename detail::identity<T>::type high);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> uniform(typename Container::value_type low,
-                          const expression<Container, T, Rank> &high);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> uniform(typename detail::identity<T>::type low,
+                          const abstract_tensor<Expr, T, Rank> &high);
 
   /**
    * @brief Draw samples from an uniform distribution.
@@ -1085,17 +1085,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type wald(T mean, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> wald(const expression<Container1, T, Rank> &mean,
-                       const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> wald(const abstract_tensor<Expr1, T, Rank> &mean,
+                       const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> wald(const expression<Container, T, Rank> &mean,
-                       typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> wald(const abstract_tensor<Expr, T, Rank> &mean,
+                       typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> wald(typename Container::value_type mean,
-                       const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> wald(typename detail::identity<T>::type mean,
+                       const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Wald distribution.
@@ -1141,17 +1141,17 @@ public:
   template <class T, class U>
   typename detail::promote<T, U>::type weibull(T shape, U scale);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> weibull(const expression<Container1, T, Rank> &shape,
-                          const expression<Container2, T, Rank> &scale);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> weibull(const abstract_tensor<Expr1, T, Rank> &shape,
+                          const abstract_tensor<Expr2, T, Rank> &scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> weibull(const expression<Container, T, Rank> &shape,
-                          typename Container::value_type scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> weibull(const abstract_tensor<Expr, T, Rank> &shape,
+                          typename detail::identity<T>::type scale);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> weibull(typename Container::value_type shape,
-                          const expression<Container, T, Rank> &scale);
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> weibull(typename detail::identity<T>::type shape,
+                          const abstract_tensor<Expr, T, Rank> &scale);
 
   /**
    * @brief Draw samples from a Weibull distribution.
@@ -1197,8 +1197,8 @@ public:
    */
   bool bernoulli(double prob);
 
-  template <class Container, size_t Rank>
-  tensor<bool, Rank> bernoulli(const expression<Container, double, Rank> &prob);
+  template <class Expr, size_t Rank>
+  tensor<bool, Rank> bernoulli(const abstract_tensor<Expr, double, Rank> &prob);
 
   /**
    * @brief Draw samples from a Bernoulli distribution.
@@ -1242,18 +1242,17 @@ public:
   template <class T, detail::RequiresIntegral<T> = 0>
   T binomial(T n, double prob);
 
-  template <class Container1, class T, size_t Rank, class Container2>
-  tensor<T, Rank> binomial(const expression<Container1, T, Rank> &n,
-                           const expression<Container2, double, Rank> &prob);
+  template <class Expr1, class Expr2, class T, size_t Rank>
+  tensor<T, Rank> binomial(const abstract_tensor<Expr1, T, Rank> &n,
+                           const abstract_tensor<Expr2, double, Rank> &prob);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> binomial(const expression<Container, T, Rank> &n,
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> binomial(const abstract_tensor<Expr, T, Rank> &n,
                            double prob);
 
-  template <class Container, class T, size_t Rank,
-            detail::RequiresIntegral<T> = 0>
+  template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T> = 0>
   tensor<T, Rank> binomial(T n,
-                           const expression<Container, double, Rank> &prob);
+                           const abstract_tensor<Expr, double, Rank> &prob);
 
   /**
    * @brief Draw samples from a binomial distribution.
@@ -1292,8 +1291,8 @@ public:
    */
   template <class T = int> T geometric(double prob);
 
-  template <class T = int, class Container, size_t Rank>
-  tensor<T, Rank> geometric(const expression<Container, double, Rank> &prob);
+  template <class T = int, class Expr, size_t Rank>
+  tensor<T, Rank> geometric(const abstract_tensor<Expr, double, Rank> &prob);
 
   /**
    * @brief Draw samples from a geometric distribution.
@@ -1338,19 +1337,18 @@ public:
   template <class T, detail::RequiresIntegral<T> = 0>
   T negative_binomial(T n, double prob);
 
-  template <class Container1, class T, size_t Rank, class Container2>
+  template <class Expr1, class Expr2, class T, size_t Rank>
   tensor<T, Rank>
-  negative_binomial(const expression<Container1, T, Rank> &n,
-                    const expression<Container2, double, Rank> &prob);
+  negative_binomial(const abstract_tensor<Expr1, T, Rank> &n,
+                    const abstract_tensor<Expr2, double, Rank> &prob);
 
-  template <class Container, class T, size_t Rank>
-  tensor<T, Rank> negative_binomial(const expression<Container, T, Rank> &n,
+  template <class Expr, class T, size_t Rank>
+  tensor<T, Rank> negative_binomial(const abstract_tensor<Expr, T, Rank> &n,
                                     double prob);
 
-  template <class Container, class T, size_t Rank,
-            detail::RequiresIntegral<T> = 0>
+  template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T> = 0>
   tensor<T, Rank>
-  negative_binomial(T n, const expression<Container, double, Rank> &prob);
+  negative_binomial(T n, const abstract_tensor<Expr, double, Rank> &prob);
 
   /**
    * @brief Draw samples from a negative binomial distribution.
@@ -1390,8 +1388,8 @@ public:
    */
   template <class T = int> T poisson(double rate);
 
-  template <class T = int, class Container, size_t Rank>
-  tensor<T, Rank> poisson(const expression<Container, double, Rank> &rate);
+  template <class T = int, class Expr, size_t Rank>
+  tensor<T, Rank> poisson(const abstract_tensor<Expr, double, Rank> &rate);
 
   /**
    * @brief Draw samples from a Poisson distribution.
@@ -1419,30 +1417,30 @@ private:
   /**
    * @brief Sample element-wise values from a distribution with parameters.
    */
-  template <class Distribution, class Container, class T, size_t Rank>
+  template <class Distribution, class Expr, class T, size_t Rank>
   tensor<typename Distribution::result_type, Rank>
   __sample_element_wise(Distribution &rvs,
-                        const expression<Container, T, Rank> &param);
+                        const abstract_tensor<Expr, T, Rank> &param);
 
-  template <class Distribution, class Container1, class T, class Container2,
-            class U, size_t Rank>
+  template <class Distribution, class Expr1, class T, class Expr2, class U,
+            size_t Rank>
   tensor<typename Distribution::result_type, Rank>
   __sample_element_wise(Distribution &rvs,
-                        const expression<Container1, T, Rank> &param1,
-                        const expression<Container2, U, Rank> &param2);
+                        const abstract_tensor<Expr1, T, Rank> &param1,
+                        const abstract_tensor<Expr2, U, Rank> &param2);
 
-  template <class Distribution, class Container, class T, class U, size_t Rank,
+  template <class Distribution, class Expr, class T, class U, size_t Rank,
             detail::RequiresScalar<U> = 0>
   tensor<typename Distribution::result_type, Rank>
   __sample_element_wise(Distribution &rvs,
-                        const expression<Container, T, Rank> &param1,
+                        const abstract_tensor<Expr, T, Rank> &param1,
                         const U &param2);
 
-  template <class Distribution, class T, class Container, class U, size_t Rank,
+  template <class Distribution, class Expr, class T, class U, size_t Rank,
             detail::RequiresScalar<T> = 0>
   tensor<typename Distribution::result_type, Rank>
   __sample_element_wise(Distribution &rvs, const T &param1,
-                        const expression<Container, U, Rank> &param2);
+                        const abstract_tensor<Expr, U, Rank> &param2);
 
   /**
    * @brief Sample @a n elements (with replacement) from the sequence

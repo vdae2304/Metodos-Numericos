@@ -23,6 +23,8 @@
 #ifndef NUMCPP_SLICE_H_INCLUDED
 #define NUMCPP_SLICE_H_INCLUDED
 
+#include <cstdint>
+
 namespace numcpp {
 /// Namespace for placeholders.
 namespace placeholders {

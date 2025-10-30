@@ -26,6 +26,7 @@
 
 #include <tuple>
 #include "numcpp/shape.h"
+#include "numcpp/tensor/abstract_tensor.h"
 #include "numcpp/iterators/flat_iterator.h"
 
 namespace numcpp {
@@ -38,33 +39,33 @@ namespace numcpp {
  * expression is evaluated or assigned to a tensor object.
  *
  * @tparam Function Type of the applied function.
- * @tparam Container Type of the tensor where the function is applied.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
+ * @tparam Expression Type of the tensor where the function is applied.
  */
-template <class Function, class Container, class T, size_t Rank>
-class unary_expr : public expression<unary_expr<Function, Container, T, Rank>,
-                                     detail::result_of_t<Function, T>, Rank> {
+template <class Function, class Expression>
+class unary_expr
+    : public abstract_tensor<
+          unary_expr<Function, Expression>,
+          detail::result_of_t<Function, typename Expression::value_type>,
+          Expression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, T> value_type;
-  static constexpr size_t rank = Rank;
+  typedef detail::result_of_t<Function, typename Expression::value_type>
+      value_type;
+  static constexpr size_t rank = Expression::rank;
   typedef void pointer;
   typedef value_type reference;
-  typedef flat_iterator<const unary_expr<Function, Container, T, Rank>,
-                        value_type, rank, pointer, reference>
-      iterator;
+  typedef flat_iterator<const unary_expr<Function, Expression>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Function to apply.
   Function m_fun;
 
   // Tensor where the function is applied.
-  const Container &m_arg;
+  const Expression &m_arg;
 
 public:
   /// Constructors.
@@ -74,12 +75,15 @@ public:
    * unary function to each element in a tensor.
    *
    * @param f The function to apply.
-   * @param a Tensor-like object.
+   * @param a Abstract tensor.
    */
-  unary_expr(Function f, const expression<Container, T, Rank> &a)
+  unary_expr(Function f,
+             const abstract_tensor<Expression, typename Expression::value_type,
+                                   Expression::rank> &a)
       : m_fun(f), m_arg(a.self()) {}
 
-  unary_expr(const expression<Container, T, Rank> &a)
+  unary_expr(const abstract_tensor<Expression, typename Expression::value_type,
+                                   Expression::rank> &a)
       : unary_expr(Function(), a) {}
 
   /// Destructor.
@@ -171,42 +175,43 @@ public:
  * expression is evaluated or assigned to a tensor object.
  *
  * @tparam Function Type of the applied function.
- * @tparam Container1 Type of the first tensor where the function is applied.
- * @tparam T Type of the elements contained in the first tensor.
- * @tparam Container2 Type of the second tensor where the function is applied.
- * @tparam U Type of the elements contained in the second tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
+ * @tparam LhsExpression Type of the first tensor where the function is
+ *                       applied.
+ * @tparam RhsExpression Type of the second tensor where the function is
+ *                       applied.
  */
-template <class Function, class Container1, class T, class Container2, class U,
-          size_t Rank>
+template <class Function, class LhsExpression, class RhsExpression>
 class binary_expr
-    : public expression<
-          binary_expr<Function, Container1, T, Container2, U, Rank>,
-          detail::result_of_t<Function, T, U>, Rank> {
+    : public abstract_tensor<
+          binary_expr<Function, LhsExpression, RhsExpression>,
+          detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type>,
+          LhsExpression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, T, U> value_type;
-  static constexpr size_t rank = Rank;
+  typedef detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type>
+      value_type;
+  static constexpr size_t rank = LhsExpression::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const binary_expr<Function, Container1, T, Container2, U, Rank>,
-      value_type, rank, pointer, reference>
+      const binary_expr<Function, LhsExpression, RhsExpression>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Function to apply.
   Function m_fun;
 
   // First tensor argument.
-  const Container1 &m_arg1;
+  const LhsExpression &m_arg1;
 
   // Second tensor argument.
-  const Container2 &m_arg2;
+  const RhsExpression &m_arg2;
 
   // Common shape.
   shape_type m_shape;
@@ -222,17 +227,24 @@ public:
    * binary function to each element in two tensors.
    *
    * @param f The function to apply.
-   * @param a First tensor-like argument.
-   * @param b Second tensor-like argument.
+   * @param a First argument.
+   * @param b Second argument.
    */
-  binary_expr(Function f, const expression<Container1, T, Rank> &a,
-              const expression<Container2, U, Rank> &b)
+  binary_expr(
+      Function f,
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &b)
       : m_fun(f), m_arg1(a.self()), m_arg2(b.self()),
         m_shape(broadcast_shapes(m_arg1.shape(), m_arg2.shape())),
         m_size(m_shape.prod()) {}
 
-  binary_expr(const expression<Container1, T, Rank> &a,
-              const expression<Container2, U, Rank> &b)
+  binary_expr(
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &b)
       : binary_expr(Function(), a, b) {}
 
   /// Destructor.
@@ -288,12 +300,8 @@ public:
    */
   auto operator[](const index_type &index) const
       -> decltype(m_fun(m_arg1[index], m_arg2[index])) {
-    index_type i, j;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (m_arg1.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (m_arg2.shape(axis) > 1) ? index[axis] : 0;
-    }
-    return m_fun(m_arg1[i], m_arg2[j]);
+    return m_fun(m_arg1[detail::broadcast_index(index, m_arg1.shape())],
+                 m_arg2[detail::broadcast_index(index, m_arg2.shape())]);
   }
 
   /**
@@ -331,42 +339,49 @@ public:
  * tensor and the second argument is a value. Values are broadcasted to an
  * appropriate shape.
  */
-template <class Function, class Container, class T, class U, size_t Rank>
-class binary_expr<Function, Container, T, void, U, Rank>
-    : public expression<binary_expr<Function, Container, T, void, U, Rank>,
-                        detail::result_of_t<Function, T, U>, Rank> {
+template <class Function, class Expression, class T>
+class binary_expr<Function, Expression, detail::identity<T>>
+    : public abstract_tensor<
+          binary_expr<Function, Expression, detail::identity<T>>,
+          detail::result_of_t<Function, typename Expression::value_type, T>,
+          Expression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, T, U> value_type;
-  static constexpr size_t rank = Rank;
+  typedef detail::result_of_t<Function, typename Expression::value_type, T>
+      value_type;
+  static constexpr size_t rank = Expression::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const binary_expr<Function, Container, T, void, U, Rank>, value_type,
-      rank, pointer, reference>
+      const binary_expr<Function, Expression, detail::identity<T>>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Function to apply.
   Function m_fun;
 
   // First tensor argument.
-  const Container &m_arg;
+  const Expression &m_arg;
 
   // Value to use as second argument.
-  U m_val;
+  T m_val;
 
 public:
   /// Constructors.
 
-  binary_expr(Function f, const expression<Container, T, Rank> &a, const U &val)
+  binary_expr(Function f,
+              const abstract_tensor<Expression, typename Expression::value_type,
+                                    Expression::rank> &a,
+              const T &val)
       : m_fun(f), m_arg(a.self()), m_val(val) {}
 
-  binary_expr(const expression<Container, T, Rank> &a, const U &val)
+  binary_expr(const abstract_tensor<Expression, typename Expression::value_type,
+                                    Expression::rank> &a,
+              const T &val)
       : binary_expr(Function(), a, val) {}
 
   /// Destructor.
@@ -405,24 +420,26 @@ public:
  * value and the second argument is a tensor. Values are broadcasted to an
  * appropriate shape.
  */
-template <class Function, class T, class Container, class U, size_t Rank>
-class binary_expr<Function, void, T, Container, U, Rank>
-    : public expression<binary_expr<Function, void, T, Container, U, Rank>,
-                        detail::result_of_t<Function, T, U>, Rank> {
+template <class Function, class Expression, class T>
+class binary_expr<Function, detail::identity<T>, Expression>
+    : public abstract_tensor<
+          binary_expr<Function, detail::identity<T>, Expression>,
+          detail::result_of_t<Function, T, typename Expression::value_type>,
+          Expression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, T, U> value_type;
-  static constexpr size_t rank = Rank;
+  typedef detail::result_of_t<Function, T, typename Expression::value_type>
+      value_type;
+  static constexpr size_t rank = Expression::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const binary_expr<Function, void, T, Container, U, Rank>, value_type,
-      rank, pointer, reference>
+      const binary_expr<Function, detail::identity<T>, Expression>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Function to apply.
@@ -432,15 +449,19 @@ private:
   T m_val;
 
   // Second tensor argument.
-  const Container &m_arg;
+  const Expression &m_arg;
 
 public:
   /// Constructors.
 
-  binary_expr(Function f, const T &val, const expression<Container, U, Rank> &b)
+  binary_expr(Function f, const T &val,
+              const abstract_tensor<Expression, typename Expression::value_type,
+                                    Expression::rank> &b)
       : m_fun(f), m_val(val), m_arg(b.self()) {}
 
-  binary_expr(const T &val, const expression<Container, U, Rank> &b)
+  binary_expr(const T &val,
+              const abstract_tensor<Expression, typename Expression::value_type,
+                                    Expression::rank> &b)
       : binary_expr(Function(), val, b) {}
 
   /// Destructor.
@@ -483,28 +504,28 @@ public:
  * expression is evaluated or assigned to a tensor object.
  *
  * @tparam Function Type of the applied function.
- * @tparam Container1 Type of the first tensor where the function is applied.
- * @tparam T Type of the elements contained in the first tensor.
- * @tparam Rank1 Dimension of the first tensor.
- * @tparam Container2 Type of the second tensor where the function is applied.
- * @tparam U Type of the elements contained in the second tensor.
- * @tparam Rank2 Dimension of the second tensor.
+ * @tparam LhsExpression Type of the first tensor where the function is
+ *                       applied.
+ * @tparam RhsExpression Type of the second tensor where the function is
+ *                       applied.
  */
-template <class Function, class Container1, class T, size_t Rank1,
-          class Container2, class U, size_t Rank2>
+template <class Function, class LhsExpression, class RhsExpression>
 class outer_expr
-    : public expression<
-          outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
-          detail::result_of_t<Function, T, U>, Rank1 + Rank2> {
+    : public abstract_tensor<
+          outer_expr<Function, LhsExpression, RhsExpression>,
+          detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type>,
+          LhsExpression::rank + RhsExpression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, T, U> value_type;
-  static constexpr size_t rank = Rank1 + Rank2;
+  typedef detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type>
+      value_type;
+  static constexpr size_t rank = LhsExpression::rank + RhsExpression::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>,
-      value_type, rank, pointer, reference>
+      const outer_expr<Function, LhsExpression, RhsExpression>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -516,10 +537,10 @@ private:
   Function m_fun;
 
   // First tensor argument.
-  const Container1 &m_arg1;
+  const LhsExpression &m_arg1;
 
   // Second tensor argument.
-  const Container2 &m_arg2;
+  const RhsExpression &m_arg2;
 
   // Output shape.
   shape_type m_shape;
@@ -535,17 +556,24 @@ public:
    * binary function to all pairs of elements.
    *
    * @param f The function to apply.
-   * @param a First tensor-like argument.
-   * @param b Second tensor-like argument.
+   * @param a First argument.
+   * @param b Second argument.
    */
-  outer_expr(Function f, const expression<Container1, T, Rank1> &a,
-             const expression<Container2, U, Rank2> &b)
+  outer_expr(
+      Function f,
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &b)
       : m_fun(f), m_arg1(a.self()), m_arg2(b.self()),
         m_shape(shape_cat(m_arg1.shape(), m_arg2.shape())),
         m_size(a.size() * b.size()) {}
 
-  outer_expr(const expression<Container1, T, Rank1> &a,
-             const expression<Container2, U, Rank2> &b)
+  outer_expr(
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &b)
       : outer_expr(Function(), a, b) {}
 
   /// Destructor.
@@ -600,11 +628,12 @@ public:
    *         the tensor.
    */
   auto operator[](const index_type &index) const
-      -> decltype(m_fun(m_arg1[index_t<Rank1>()], m_arg2[index_t<Rank2>()])) {
-    index_t<Rank1> i;
-    std::copy_n(index.data(), Rank1, i.data());
-    index_t<Rank2> j;
-    std::copy_n(index.data() + Rank1, Rank2, j.data());
+      -> decltype(m_fun(m_arg1[typename LhsExpression::index_type()],
+                        m_arg2[typename RhsExpression::index_type()])) {
+    typename LhsExpression::index_type i;
+    typename RhsExpression::index_type j;
+    std::copy_n(index.data(), m_arg1.rank, i.data());
+    std::copy_n(index.data() + m_arg1.rank, m_arg2.rank, j.data());
     return m_fun(m_arg1[i], m_arg2[j]);
   }
 
@@ -650,28 +679,28 @@ public:
  * object.
  *
  * @tparam Function Type of the applied function.
- * @tparam Container1 Type of the first tensor where the function is applied.
- * @tparam Container2... Type of the remaining tensors where the function is
+ * @tparam LhsExpression Type of the first tensor where the function is
  *                       applied.
+ * @tparam RhsExpression... Type of the remaining tensors where the function is
+ *                          applied.
  */
-template <class Function, class Container1, class... Container2>
+template <class Function, class LhsExpression, class... RhsExpression>
 class element_wise_expr
-    : public expression<
-          element_wise_expr<Function, Container1, Container2...>,
-          detail::result_of_t<Function, typename Container1::value_type,
-                              typename Container2::value_type...>,
-          Container1::rank> {
+    : public abstract_tensor<
+          element_wise_expr<Function, LhsExpression, RhsExpression...>,
+          detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type...>,
+          LhsExpression::rank> {
 public:
   /// Member types.
-  typedef detail::result_of_t<Function, typename Container1::value_type,
-                              typename Container2::value_type...>
+  typedef detail::result_of_t<Function, typename LhsExpression::value_type,
+                              typename RhsExpression::value_type...>
       value_type;
-  static constexpr size_t rank = Container1::rank;
+  static constexpr size_t rank = LhsExpression::rank;
   typedef void pointer;
   typedef value_type reference;
   typedef flat_iterator<
-      const element_wise_expr<Function, Container1, Container2...>, value_type,
-      rank, pointer, reference>
+      const element_wise_expr<Function, LhsExpression, RhsExpression...>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -683,7 +712,7 @@ private:
   Function m_fun;
 
   // Tensor arguments.
-  std::tuple<const Container1 &, const Container2 &...> m_args;
+  std::tuple<const LhsExpression &, const RhsExpression &...> m_args;
 
   // Common shape.
   shape_type m_shape;
@@ -699,23 +728,23 @@ public:
    * function element-wise.
    *
    * @param f The function to apply.
-   * @param a, b... Tensor-like arguments.
+   * @param a, b... Tensor arguments.
    */
   element_wise_expr(
       Function f,
-      const expression<Container1, typename Container1::value_type,
-                       Container1::rank> &a,
-      const expression<Container2, typename Container2::value_type,
-                       Container2::rank> &...b)
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &...b)
       : m_fun(f), m_args(a.self(), b.self()...),
         m_shape(broadcast_shapes(a.shape(), b.shape()...)),
         m_size(m_shape.prod()) {}
 
   element_wise_expr(
-      const expression<Container1, typename Container1::value_type,
-                       Container1::rank> &a,
-      const expression<Container2, typename Container2::value_type,
-                       Container2::rank> &...b)
+      const abstract_tensor<LhsExpression, typename LhsExpression::value_type,
+                            LhsExpression::rank> &a,
+      const abstract_tensor<RhsExpression, typename RhsExpression::value_type,
+                            RhsExpression::rank> &...b)
       : element_wise_expr(Function(), a, b...) {}
 
   /// Destructor.
@@ -770,7 +799,8 @@ public:
    *         the tensor.
    */
   auto operator[](const index_type &index) const {
-    return __at(index, std::make_index_sequence<1 + sizeof...(Container2)>());
+    return __at(index,
+                std::make_index_sequence<1 + sizeof...(RhsExpression)>());
   }
 
   /**
@@ -801,9 +831,10 @@ private:
    * @brief Broadcasts an index and returns the element at the specified
    * position.
    */
-  template <class Container, class T>
-  T __broadcast(const expression<Container, T, rank> &a,
+  template <class Expression, class T, size_t Rank>
+  T __broadcast(const abstract_tensor<Expression, T, Rank> &a,
                 index_type index) const {
+    static_assert(Rank == rank, "Dimension must be the same for all operators");
     for (size_t axis = 0; axis < rank; ++axis) {
       if (a.shape(axis) == 1) {
         index[axis] = 0;
@@ -817,7 +848,8 @@ private:
    */
   template <size_t... Is>
   auto __at(const index_type &index, std::index_sequence<Is...>) const {
-    return m_fun(__broadcast(std::get<Is>(m_args), index)...);
+    return m_fun(std::get<Is>(m_args)[detail::broadcast_index(
+        index, std::get<Is>(m_args).shape())]...);
   }
 };
 #endif // C++14

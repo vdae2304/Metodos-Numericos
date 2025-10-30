@@ -244,8 +244,8 @@ public:
    *                              broadcasting rules.
    */
   tensor_view &operator=(const tensor_view &other);
-  template <class Container, class U>
-  tensor_view &operator=(const expression<Container, U, Rank> &other);
+  template <class Expr, class U>
+  tensor_view &operator=(const abstract_tensor<Expr, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.

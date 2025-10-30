@@ -83,16 +83,16 @@ tensor<T, Rank>::tensor(const tensor &other)
 }
 
 template <class T, size_t Rank>
-template <class Container, class U>
-tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other)
+template <class Expr, class U>
+tensor<T, Rank>::tensor(const abstract_tensor<Expr, U, Rank> &other)
     : m_shape(other.shape()), m_size(other.size()), m_order(other.layout()) {
   m_data = new T[m_size];
   dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
 }
 
 template <class T, size_t Rank>
-template <class Container, class U>
-tensor<T, Rank>::tensor(const expression<Container, U, Rank> &other,
+template <class Expr, class U>
+tensor<T, Rank>::tensor(const abstract_tensor<Expr, U, Rank> &other,
                         layout_t order)
     : m_shape(other.shape()), m_size(other.size()), m_order(order) {
   m_data = new T[m_size];
@@ -301,9 +301,9 @@ tensor<T, Rank>::operator[](Indices... indices) const {
 #endif // C++23
 
 template <class T, size_t Rank>
-template <class Container, size_t N>
+template <class Expr, size_t N>
 indirect_tensor<T, N> tensor<T, Rank>::operator[](
-    const expression<Container, index_type, N> &indices) {
+    const abstract_tensor<Expr, index_type, N> &indices) {
   indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -313,9 +313,9 @@ indirect_tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Container, size_t N>
+template <class Expr, size_t N>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const expression<Container, index_type, N> &indices) const {
+    const abstract_tensor<Expr, index_type, N> &indices) const {
   tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     detail::assert_within_bounds(m_shape, indices[i]);
@@ -325,10 +325,10 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Container, class IntegralType, size_t N,
+template <class Expr, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
 indirect_tensor<T, N> tensor<T, Rank>::operator[](
-    const expression<Container, IntegralType, N> &indices) {
+    const abstract_tensor<Expr, IntegralType, N> &indices) {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
   indirect_tensor<T, N> subarray(m_data, indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
@@ -339,10 +339,10 @@ indirect_tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Container, class IntegralType, size_t N,
+template <class Expr, class IntegralType, size_t N,
           detail::RequiresIntegral<IntegralType>>
 tensor<T, N> tensor<T, Rank>::operator[](
-    const expression<Container, IntegralType, N> &indices) const {
+    const abstract_tensor<Expr, IntegralType, N> &indices) const {
   static_assert(Rank == 1, "Input tensor must be 1-dimensional");
   tensor<T, N> subarray(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
@@ -353,9 +353,9 @@ tensor<T, N> tensor<T, Rank>::operator[](
 }
 
 template <class T, size_t Rank>
-template <class Container>
+template <class Expr>
 indirect_tensor<T, 1>
-tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
+tensor<T, Rank>::operator[](const abstract_tensor<Expr, bool, Rank> &mask) {
   detail::assert_mask_shape(m_shape, mask.shape());
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   indirect_tensor<T, 1> subarray(m_data, size);
@@ -369,9 +369,9 @@ tensor<T, Rank>::operator[](const expression<Container, bool, Rank> &mask) {
 }
 
 template <class T, size_t Rank>
-template <class Container>
+template <class Expr>
 tensor<T, 1> tensor<T, Rank>::operator[](
-    const expression<Container, bool, Rank> &mask) const {
+    const abstract_tensor<Expr, bool, Rank> &mask) const {
   detail::assert_mask_shape(m_shape, mask.shape());
   size_type size = std::count(mask.self().begin(), mask.self().end(), true);
   tensor<T, 1> subarray(size);
@@ -430,9 +430,9 @@ tensor<T, Rank> &tensor<T, Rank>::operator=(const tensor &other) {
 }
 
 template <class T, size_t Rank>
-template <class Container, class U>
+template <class Expr, class U>
 tensor<T, Rank> &
-tensor<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
+tensor<T, Rank>::operator=(const abstract_tensor<Expr, U, Rank> &other) {
   this->resize(other.shape());
   dense_tensor<tensor<T, Rank>, T, Rank>::operator=(other);
   return *this;

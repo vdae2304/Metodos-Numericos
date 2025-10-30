@@ -117,7 +117,7 @@ public:
       for (size_t i = 0; i < N; ++i) {
         size_t axis = m_axes[N - 1 - i];
         out_index[axis] = flat_index % m_shape[N - 1 - i];
-        flat_index /= m_shape[N - 1 -i];
+        flat_index /= m_shape[N - 1 - i];
       }
       return out_index;
     }
@@ -207,7 +207,7 @@ private:
  * arguments.
  *
  * @param shape Number of elements along each axis.
- * @param a A tensor-like object to iterate over its indices.
+ * @param a An abstract tensor to iterate over its indices.
  * @param index An index_t object with the indices to fix.
  * @param axes A shape_t object with the axes to iterate over.
  *
@@ -229,17 +229,17 @@ make_nested_index_sequence(const shape_t<Rank> &shape,
   return nested_index_sequence<Rank, 1>(shape, index, axis);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
+template <class Expr, class T, size_t Rank, size_t N>
 inline nested_index_sequence<Rank, N>
-make_nested_index_sequence_for(const expression<Container, T, Rank> &a,
+make_nested_index_sequence_for(const abstract_tensor<Expr, T, Rank> &a,
                                const index_t<Rank> &index,
                                const shape_t<N> &axes) {
   return nested_index_sequence<Rank, N>(a.shape(), index, axes);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline nested_index_sequence<Rank, 1>
-make_nested_index_sequence_for(const expression<Container, T, Rank> &a,
+make_nested_index_sequence_for(const abstract_tensor<Expr, T, Rank> &a,
                                const index_t<Rank> &index, size_t axis) {
   return nested_index_sequence<Rank, 1>(a.shape(), index, axis);
 }

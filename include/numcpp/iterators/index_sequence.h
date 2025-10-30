@@ -213,23 +213,22 @@ make_index_sequence(const shape_t<Rank> &shape,
 /**
  * @brief Create an index_sequence.
  *
- * @param a A tensor-like object to iterate over.
+ * @param a An abstract tensor to iterate over.
  * @param order Order in which elements are iterated. Defaults to the same
  *              layout as of @a a.
- *
  *
  * @return An index_sequence object which iterates over the indices of a tensor.
  *         At each iteration, a new index is returned.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline index_sequence<Rank>
-make_index_sequence_for(const expression<Container, T, Rank> &a) {
+make_index_sequence_for(const abstract_tensor<Expr, T, Rank> &a) {
   return index_sequence<Rank>(a.shape(), a.layout());
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline index_sequence<Rank>
-make_index_sequence_for(const expression<Container, T, Rank> &a,
+make_index_sequence_for(const abstract_tensor<Expr, T, Rank> &a,
                         layout_t order) {
   return index_sequence<Rank>(a.shape(), order);
 }

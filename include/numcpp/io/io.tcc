@@ -412,9 +412,9 @@ void write_array(std::ostream &file, InputIterator first, InputIterator last) {
 }
 } // namespace detail
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 void save(const std::string &filename,
-          const expression<Container, T, Rank> &data) {
+          const abstract_tensor<Expr, T, Rank> &data) {
   std::ofstream file(filename, std::ofstream::binary);
   if (!file) {
     std::ostringstream error;
@@ -425,8 +425,8 @@ void save(const std::string &filename,
   file.close();
 }
 
-template <class Container, class T, size_t Rank>
-void save(std::ostream &file, const expression<Container, T, Rank> &data) {
+template <class Expr, class T, size_t Rank>
+void save(std::ostream &file, const abstract_tensor<Expr, T, Rank> &data) {
   detail::write_magic(file, 1, 0);
   detail::write_array_header<T>(file, data.shape(), data.layout());
   detail::write_array<T>(file, data.self().begin(), data.self().end());
@@ -599,8 +599,8 @@ void set_printoptions_flags(
 /**
  * @brief Save the tensor's contents to a text file.
  */
-template <class Container, class T>
-void save_file_data(std::ostream &file, const expression<Container, T, 2> &data,
+template <class Expr, class T>
+void save_file_data(std::ostream &file, const abstract_tensor<Expr, T, 2> &data,
                     char delimiter, char newline) {
   size_t rows = data.shape(0), cols = data.shape(1);
   if (cols > 0) {
@@ -614,8 +614,8 @@ void save_file_data(std::ostream &file, const expression<Container, T, 2> &data,
   }
 }
 
-template <class Container, class T>
-void save_file_data(std::ostream &file, const expression<Container, T, 1> &data,
+template <class Expr, class T>
+void save_file_data(std::ostream &file, const abstract_tensor<Expr, T, 1> &data,
                     char, char newline) {
   size_t size = data.size();
   for (size_t i = 0; i < size; ++i) {
@@ -624,9 +624,9 @@ void save_file_data(std::ostream &file, const expression<Container, T, 1> &data,
 }
 } // namespace detail
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 void savetxt(const std::string &filename,
-             const expression<Container, T, Rank> &data, char delimiter,
+             const abstract_tensor<Expr, T, Rank> &data, char delimiter,
              char newline, const std::string &header,
              const std::string &footer) {
   std::ofstream file(filename);
@@ -638,8 +638,8 @@ void savetxt(const std::string &filename,
   savetxt(file, data, delimiter, newline, header, footer);
 }
 
-template <class Container, class T, size_t Rank>
-void savetxt(std::ostream &file, const expression<Container, T, Rank> &data,
+template <class Expr, class T, size_t Rank>
+void savetxt(std::ostream &file, const abstract_tensor<Expr, T, Rank> &data,
              char delimiter, char newline, const std::string &header,
              const std::string &footer) {
   static_assert(Rank == 1 || Rank == 2,
@@ -849,10 +849,10 @@ void print_value(std::basic_ostream<charT, traits> &ostr, const T &value,
 /**
  * @brief Print the last axis in the tensor.
  */
-template <class charT, class traits, class Container, class T, size_t Rank,
+template <class charT, class traits, class Expr, class T, size_t Rank,
           class Function>
 void print_last_axis(std::basic_ostream<charT, traits> &ostr,
-                     const expression<Container, T, Rank> &a,
+                     const abstract_tensor<Expr, T, Rank> &a,
                      Function &formatter, size_t threshold, size_t edgeitems,
                      size_t linewidth,
                      const std::basic_string<charT, traits> &prefix,
@@ -893,10 +893,10 @@ void print_last_axis(std::basic_ostream<charT, traits> &ostr,
 /**
  * @brief Print an axis in the tensor. Each axis is printed recursively.
  */
-template <class charT, class traits, class Container, class T, size_t Rank,
+template <class charT, class traits, class Expr, class T, size_t Rank,
           class Function>
 void print_axis(std::basic_ostream<charT, traits> &ostr,
-                const expression<Container, T, Rank> &a, Function &formatter,
+                const abstract_tensor<Expr, T, Rank> &a, Function &formatter,
                 size_t threshold, size_t edgeitems, size_t linewidth,
                 const std::basic_string<charT, traits> &prefix,
                 const std::basic_string<charT, traits> &suffix,
@@ -942,8 +942,8 @@ void print_axis(std::basic_ostream<charT, traits> &ostr,
  * @brief Return the number of characters required to print each value in the
  * tensor.
  */
-template <class Container, class T, size_t Rank, class Function>
-size_t print_width(const expression<Container, T, Rank> &a, Function &formatter,
+template <class Expr, class T, size_t Rank, class Function>
+size_t print_width(const abstract_tensor<Expr, T, Rank> &a, Function &formatter,
                    size_t threshold, size_t edgeitems, index_t<Rank> &index,
                    size_t axis = 0) {
   if (axis == Rank) {
@@ -970,10 +970,10 @@ size_t print_width(const expression<Container, T, Rank> &a, Function &formatter,
 }
 } // namespace detail
 
-template <class charT, class traits, class Container, class T, size_t Rank>
+template <class charT, class traits, class Expr, class T, size_t Rank>
 inline std::basic_ostream<charT, traits> &
 operator<<(std::basic_ostream<charT, traits> &ostr,
-           const expression<Container, T, Rank> &a) {
+           const abstract_tensor<Expr, T, Rank> &a) {
   using namespace printoptions;
   detail::default_formatter<> formatter(precision, sign, floatmode);
   index_t<Rank> index;
@@ -984,9 +984,9 @@ operator<<(std::basic_ostream<charT, traits> &ostr,
   return ostr;
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 inline std::string
-to_string(const expression<Container, T, Rank> &a, size_t precision,
+to_string(const abstract_tensor<Expr, T, Rank> &a, size_t precision,
           size_t threshold, size_t edgeitems, size_t linewidth, bool sign,
           printoptions::floatmode_t floatmode, const std::string &prefix,
           const std::string &suffix, const std::string &separator) {
@@ -995,10 +995,10 @@ to_string(const expression<Container, T, Rank> &a, size_t precision,
                    suffix, separator);
 }
 
-template <class Container, class T, size_t Rank, class Function,
+template <class Expr, class T, size_t Rank, class Function,
           detail::RequiresCallable<Function, T>>
 inline std::string
-to_string(const expression<Container, T, Rank> &a, Function formatter,
+to_string(const abstract_tensor<Expr, T, Rank> &a, Function formatter,
           size_t threshold, size_t edgeitems, size_t linewidth,
           const std::string &prefix, const std::string &suffix,
           const std::string &separator) {

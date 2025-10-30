@@ -212,24 +212,21 @@ inline bool indirect_tensor<T, Rank>::is_contiguous() const {
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &
 indirect_tensor<T, Rank>::operator=(const indirect_tensor &other) {
-  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(other);
+  dense_tensor<indirect_tensor<T, Rank>, value_type, rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
-template <class Container, class U>
+template <class Expr, class U>
 indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(
-    const expression<Container, U, Rank> &other) {
-  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(other);
+    const abstract_tensor<Expr, U, Rank> &other) {
+  dense_tensor<indirect_tensor<T, Rank>, value_type, rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
 indirect_tensor<T, Rank> &indirect_tensor<T, Rank>::operator=(const T &val) {
-  dense_tensor<indirect_tensor<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(val);
+  dense_tensor<indirect_tensor<T, Rank>, value_type, rank>::operator=(val);
   return *this;
 }
 

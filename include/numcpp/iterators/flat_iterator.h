@@ -35,8 +35,10 @@ namespace numcpp {
  * @tparam Pointer Pointer type.
  * @tparam Reference Reference type.
  */
-template <class Container, class T, size_t Rank, class Pointer = T *,
-          class Reference = T &>
+template <class Container, class T = typename Container::value_type,
+          size_t Rank = Container::rank,
+          class Pointer = typename Container::pointer,
+          class Reference = typename Container::reference>
 class flat_iterator {
 public:
   /// Member types.

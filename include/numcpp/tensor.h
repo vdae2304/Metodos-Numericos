@@ -145,7 +145,7 @@ public:
    * @brief Copy constructor. Constructs a tensor with a copy of each of the
    * elements in @a other, in the same order.
    *
-   * @param other A tensor-like object of the same rank.
+   * @param other An abstract tensor of the same rank.
    * @param order Memory layout in which elements are stored. In row-major
    *              order, the last dimension is contiguous. In column-major
    *              order, the first dimension is contiguous. The default is to
@@ -156,11 +156,11 @@ public:
    */
   tensor(const tensor &other);
 
-  template <class Container, class U>
-  tensor(const expression<Container, U, Rank> &other);
+  template <class Expr, class U>
+  tensor(const abstract_tensor<Expr, U, Rank> &other);
 
-  template <class Container, class U>
-  tensor(const expression<Container, U, Rank> &other, layout_t order);
+  template <class Expr, class U>
+  tensor(const abstract_tensor<Expr, U, Rank> &other, layout_t order);
 
   /**
    * @brief Move constructor. Constructs a tensor that acquires the elements of
@@ -279,10 +279,10 @@ public:
    * @brief Coordinate tensor indexing. Return an @c indirect_tensor that
    * selects the elements specified by the tensor of indices.
    *
-   * @param indices A tensor-like object of @c index_t with its elements
+   * @param indices An abstract tensor of @c index_t with its elements
    *                identifying which elements of the tensor are selected. If
-   *                the tensor is 1-dimensional, a tensor-like object of
-   *                integers can be used instead.
+   *                the tensor is 1-dimensional, a tensor of integers can be
+   *                used instead.
    *
    * @return If the tensor is const-qualified, the function returns a new tensor
    *         object with a copy of the selection. Otherwise, the function
@@ -294,29 +294,29 @@ public:
    * @throw std::bad_alloc If the function needs to allocate storage and fails,
    *                       it may throw an exception.
    */
-  template <class Container, size_t N>
+  template <class Expr, size_t N>
   indirect_tensor<T, N>
-  operator[](const expression<Container, index_type, N> &indices);
+  operator[](const abstract_tensor<Expr, index_type, N> &indices);
 
-  template <class Container, size_t N>
+  template <class Expr, size_t N>
   tensor<T, N>
-  operator[](const expression<Container, index_type, N> &indices) const;
+  operator[](const abstract_tensor<Expr, index_type, N> &indices) const;
 
-  template <class Container, class IntegralType, size_t N,
+  template <class Expr, class IntegralType, size_t N,
             detail::RequiresIntegral<IntegralType> = 0>
   indirect_tensor<T, N>
-  operator[](const expression<Container, IntegralType, N> &indices);
+  operator[](const abstract_tensor<Expr, IntegralType, N> &indices);
 
-  template <class Container, class IntegralType, size_t N,
+  template <class Expr, class IntegralType, size_t N,
             detail::RequiresIntegral<IntegralType> = 0>
   tensor<T, N>
-  operator[](const expression<Container, IntegralType, N> &indices) const;
+  operator[](const abstract_tensor<Expr, IntegralType, N> &indices) const;
 
   /**
    * @brief Boolean tensor indexing. Return an @c indirect_tensor that selects
    * the elements specified by the boolean mask.
    *
-   * @param mask A tensor-like object of @c bool with its elements identifying
+   * @param mask An abstract tensor of @c bool with its elements identifying
    *             whether each element of the tensor is selected or not.
    *
    * @return If the tensor is const-qualified, the function returns a new tensor
@@ -329,12 +329,12 @@ public:
    * @throw std::bad_alloc If the function needs to allocate storage and fails,
    *                       it may throw an exception.
    */
-  template <class Container>
+  template <class Expr>
   indirect_tensor<T, 1>
-  operator[](const expression<Container, bool, Rank> &mask);
+  operator[](const abstract_tensor<Expr, bool, Rank> &mask);
 
-  template <class Container>
-  tensor<T, 1> operator[](const expression<Container, bool, Rank> &mask) const;
+  template <class Expr>
+  tensor<T, 1> operator[](const abstract_tensor<Expr, bool, Rank> &mask) const;
 
   /**
    * @brief Return the shape of the tensor.
@@ -388,7 +388,7 @@ public:
    * corresponding element in @a other, after resizing the object (if
    * necessary).
    *
-   * @param other A tensor-like object of the same rank.
+   * @param other An abstract tensor of the same rank.
    *
    * @return *this
    *
@@ -400,8 +400,8 @@ public:
    * and views keep their validity.
    */
   tensor &operator=(const tensor &other);
-  template <class Container, class U>
-  tensor &operator=(const expression<Container, U, Rank> &other);
+  template <class Expr, class U>
+  tensor &operator=(const abstract_tensor<Expr, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element. The size of the
@@ -532,7 +532,7 @@ public:
 
   /**
    * @brief Return a view of the tensor with its axes transposed.
-   * 
+   *
    * @param axes If specified, it must be a permutation of
    *             (0, 1, ..., Rank - 1). The @a i -th axis of the returned
    *             view will correspond to the axis numbered @a axes[i] of the
@@ -545,7 +545,7 @@ public:
    */
   tensor_view<T, Rank> t();
   tensor_view<const T, Rank> t() const;
-  
+
   template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
             detail::RequiresIntegral<Sizes...> = 0>
   tensor_view<T, Rank> t(Sizes... axes);
@@ -637,11 +637,11 @@ tensor(InputIterator first, const shape_t<Rank> &shape,
        layout_t order = default_layout)
     -> tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>;
 
-template <class Container, class T, size_t Rank>
-tensor(const expression<Container, T, Rank> &other) -> tensor<T, Rank>;
+template <class Expr, class T, size_t Rank>
+tensor(const abstract_tensor<Expr, T, Rank> &other) -> tensor<T, Rank>;
 
-template <class Container, class T, size_t Rank>
-tensor(const expression<Container, T, Rank> &other, layout_t order)
+template <class Expr, class T, size_t Rank>
+tensor(const abstract_tensor<Expr, T, Rank> &other, layout_t order)
     -> tensor<T, Rank>;
 #endif // C++17
 
@@ -657,8 +657,8 @@ tensor(const expression<Container, T, Rank> &other, layout_t order)
  * When one of the arguments is a value, the operation is applied to all the
  * elements in the tensor against that value.
  *
- * @param lhs Left-hand side tensor-like object.
- * @param rhs Right-hand side tensor-like object.
+ * @param lhs Left-hand side abstract tensor.
+ * @param rhs Right-hand side abstract tensor.
  * @param val Value to use either as left-hand or right-hand operand.
  *
  * @return A light-weight object which stores the result of performing the
@@ -675,416 +675,414 @@ tensor(const expression<Container, T, Rank> &other, layout_t order)
 
 /// Unary operators.
 
-template <class Container, class T, size_t Rank>
-inline unary_expr<unary_plus, Container, T, Rank>
-operator+(const expression<Container, T, Rank> &arg) {
-  return unary_expr<unary_plus, Container, T, Rank>(arg);
+template <class Expression, class T, size_t Rank>
+inline unary_expr<unary_plus, Expression>
+operator+(const abstract_tensor<Expression, T, Rank> &arg) {
+  return unary_expr<unary_plus, Expression>(arg);
 }
 
-template <class Container, class T, size_t Rank>
-inline unary_expr<negate, Container, T, Rank>
-operator-(const expression<Container, T, Rank> &arg) {
-  return unary_expr<negate, Container, T, Rank>(arg);
+template <class Expression, class T, size_t Rank>
+inline unary_expr<negate, Expression>
+operator-(const abstract_tensor<Expression, T, Rank> &arg) {
+  return unary_expr<negate, Expression>(arg);
 }
 
-template <class Container, class T, size_t Rank>
-inline unary_expr<bit_not, Container, T, Rank>
-operator~(const expression<Container, T, Rank> &arg) {
-  return unary_expr<bit_not, Container, T, Rank>(arg);
+template <class Expression, class T, size_t Rank>
+inline unary_expr<bit_not, Expression>
+operator~(const abstract_tensor<Expression, T, Rank> &arg) {
+  return unary_expr<bit_not, Expression>(arg);
 }
 
-template <class Container, class T, size_t Rank>
-inline unary_expr<logical_not, Container, T, Rank>
-operator!(const expression<Container, T, Rank> &arg) {
-  return unary_expr<logical_not, Container, T, Rank>(arg);
+template <class Expression, class T, size_t Rank>
+inline unary_expr<logical_not, Expression>
+operator!(const abstract_tensor<Expression, T, Rank> &arg) {
+  return unary_expr<logical_not, Expression>(arg);
 }
 
 /// Arithmetic operators.
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<plus, Container1, T, Container2, T, Rank>
-operator+(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<plus, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<plus, LhsExpression, RhsExpression>
+operator+(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<plus, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<plus, Container, T, void, T, Rank>
-operator+(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<plus, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<plus, Expression, detail::identity<T>>
+operator+(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<plus, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<plus, void, T, Container, T, Rank>
-operator+(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<plus, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<plus, detail::identity<T>, Expression>
+operator+(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<plus, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<minus, Container1, T, Container2, T, Rank>
-operator-(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<minus, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<minus, LhsExpression, RhsExpression>
+operator-(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<minus, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<minus, Container, T, void, T, Rank>
-operator-(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<minus, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<minus, Expression, detail::identity<T>>
+operator-(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<minus, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<minus, void, T, Container, T, Rank>
-operator-(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<minus, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<minus, detail::identity<T>, Expression>
+operator-(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<minus, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<multiplies, Container1, T, Container2, T, Rank>
-operator*(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<multiplies, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<multiplies, LhsExpression, RhsExpression>
+operator*(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<multiplies, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<multiplies, Container, T, void, T, Rank>
-operator*(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<multiplies, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<multiplies, Expression, detail::identity<T>>
+operator*(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<multiplies, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<multiplies, void, T, Container, T, Rank>
-operator*(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<multiplies, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<multiplies, detail::identity<T>, Expression>
+operator*(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<multiplies, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<divides, Container1, T, Container2, T, Rank>
-operator/(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<divides, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<divides, LhsExpression, RhsExpression>
+operator/(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<divides, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<divides, Container, T, void, T, Rank>
-operator/(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<divides, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<divides, Expression, detail::identity<T>>
+operator/(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<divides, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<divides, void, T, Container, T, Rank>
-operator/(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<divides, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<divides, detail::identity<T>, Expression>
+operator/(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<divides, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<modulus, Container1, T, Container2, T, Rank>
-operator%(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<modulus, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<modulus, LhsExpression, RhsExpression>
+operator%(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<modulus, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<modulus, Container, T, void, T, Rank>
-operator%(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<modulus, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<modulus, Expression, detail::identity<T>>
+operator%(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<modulus, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<modulus, void, T, Container, T, Rank>
-operator%(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<modulus, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<modulus, detail::identity<T>, Expression>
+operator%(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<modulus, detail::identity<T>, Expression>(val, rhs);
 }
 
 /// Bitwise operators.
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<bit_and, Container1, T, Container2, T, Rank>
-operator&(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<bit_and, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<bit_and, LhsExpression, RhsExpression>
+operator&(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<bit_and, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<bit_and, Container, T, void, T, Rank>
-operator&(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<bit_and, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_and, Expression, detail::identity<T>>
+operator&(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<bit_and, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<bit_and, void, T, Container, T, Rank>
-operator&(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<bit_and, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_and, detail::identity<T>, Expression>
+operator&(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<bit_and, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<bit_or, Container1, T, Container2, T, Rank>
-operator|(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<bit_or, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<bit_or, LhsExpression, RhsExpression>
+operator|(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<bit_or, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<bit_or, Container, T, void, T, Rank>
-operator|(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<bit_or, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_or, Expression, detail::identity<T>>
+operator|(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<bit_or, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<bit_or, void, T, Container, T, Rank>
-operator|(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<bit_or, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_or, detail::identity<T>, Expression>
+operator|(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<bit_or, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<bit_xor, Container1, T, Container2, T, Rank>
-operator^(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<bit_xor, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<bit_xor, LhsExpression, RhsExpression>
+operator^(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<bit_xor, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<bit_xor, Container, T, void, T, Rank>
-operator^(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<bit_xor, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_xor, Expression, detail::identity<T>>
+operator^(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<bit_xor, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<bit_xor, void, T, Container, T, Rank>
-operator^(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<bit_xor, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<bit_xor, detail::identity<T>, Expression>
+operator^(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<bit_xor, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<left_shift, Container1, T, Container2, T, Rank>
-operator<<(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<left_shift, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<left_shift, LhsExpression, RhsExpression>
+operator<<(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<left_shift, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<left_shift, Container, T, void, T, Rank>
-operator<<(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<left_shift, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<left_shift, Expression, detail::identity<T>>
+operator<<(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<left_shift, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<left_shift, void, T, Container, T, Rank>
-operator<<(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<left_shift, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<left_shift, detail::identity<T>, Expression>
+operator<<(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<left_shift, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<right_shift, Container1, T, Container2, T, Rank>
-operator>>(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<right_shift, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<right_shift, LhsExpression, RhsExpression>
+operator>>(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<right_shift, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<right_shift, Container, T, void, T, Rank>
-operator>>(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<right_shift, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<right_shift, Expression, detail::identity<T>>
+operator>>(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<right_shift, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<right_shift, void, T, Container, T, Rank>
-operator>>(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<right_shift, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<right_shift, detail::identity<T>, Expression>
+operator>>(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<right_shift, detail::identity<T>, Expression>(val, rhs);
 }
 
 /// Logical operators.
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<logical_and, Container1, T, Container2, T, Rank>
-operator&&(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<logical_and, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<logical_and, LhsExpression, RhsExpression>
+operator&&(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<logical_and, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<logical_and, Container, T, void, T, Rank>
-operator&&(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<logical_and, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<logical_and, Expression, detail::identity<T>>
+operator&&(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<logical_and, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<logical_and, void, T, Container, T, Rank>
-operator&&(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<logical_and, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<logical_and, detail::identity<T>, Expression>
+operator&&(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<logical_and, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<logical_or, Container1, T, Container2, T, Rank>
-operator||(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<logical_or, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<logical_or, LhsExpression, RhsExpression>
+operator||(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<logical_or, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<logical_or, Container, T, void, T, Rank>
-operator||(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<logical_or, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<logical_or, Expression, detail::identity<T>>
+operator||(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<logical_or, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<logical_or, void, T, Container, T, Rank>
-operator||(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<logical_or, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<logical_or, detail::identity<T>, Expression>
+operator||(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<logical_or, detail::identity<T>, Expression>(val, rhs);
 }
 
 /// Relational operators.
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<equal_to, Container1, T, Container2, T, Rank>
-operator==(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<equal_to, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<equal_to, LhsExpression, RhsExpression>
+operator==(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<equal_to, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<equal_to, Container, T, void, T, Rank>
-operator==(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<equal_to, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<equal_to, Expression, detail::identity<T>>
+operator==(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<equal_to, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<equal_to, void, T, Container, T, Rank>
-operator==(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<equal_to, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<equal_to, detail::identity<T>, Expression>
+operator==(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<equal_to, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<not_equal_to, Container1, T, Container2, T, Rank>
-operator!=(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<not_equal_to, Container1, T, Container2, T, Rank>(lhs,
-                                                                       rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<not_equal_to, LhsExpression, RhsExpression>
+operator!=(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<not_equal_to, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<not_equal_to, Container, T, void, T, Rank>
-operator!=(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<not_equal_to, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<not_equal_to, Expression, detail::identity<T>>
+operator!=(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<not_equal_to, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<not_equal_to, void, T, Container, T, Rank>
-operator!=(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<not_equal_to, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<not_equal_to, detail::identity<T>, Expression>
+operator!=(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<not_equal_to, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<less, Container1, T, Container2, T, Rank>
-operator<(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<less, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<less, LhsExpression, RhsExpression>
+operator<(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<less, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<less, Container, T, void, T, Rank>
-operator<(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<less, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<less, Expression, detail::identity<T>>
+operator<(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<less, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<less, void, T, Container, T, Rank>
-operator<(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<less, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<less, detail::identity<T>, Expression>
+operator<(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<less, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<greater, Container1, T, Container2, T, Rank>
-operator>(const expression<Container1, T, Rank> &lhs,
-          const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<greater, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<greater, LhsExpression, RhsExpression>
+operator>(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+          const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<greater, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<greater, Container, T, void, T, Rank>
-operator>(const expression<Container, T, Rank> &lhs,
-          const typename Container::value_type &val) {
-  return binary_expr<greater, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<greater, Expression, detail::identity<T>>
+operator>(const abstract_tensor<Expression, T, Rank> &lhs,
+          const typename detail::identity<T>::type &val) {
+  return binary_expr<greater, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<greater, void, T, Container, T, Rank>
-operator>(const typename Container::value_type &val,
-          const expression<Container, T, Rank> &rhs) {
-  return binary_expr<greater, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<greater, detail::identity<T>, Expression>
+operator>(const typename detail::identity<T>::type &val,
+          const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<greater, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<less_equal, Container1, T, Container2, T, Rank>
-operator<=(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<less_equal, Container1, T, Container2, T, Rank>(lhs, rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<less_equal, LhsExpression, RhsExpression>
+operator<=(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<less_equal, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<less_equal, Container, T, void, T, Rank>
-operator<=(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<less_equal, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<less_equal, Expression, detail::identity<T>>
+operator<=(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<less_equal, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<less_equal, void, T, Container, T, Rank>
-operator<=(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<less_equal, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<less_equal, detail::identity<T>, Expression>
+operator<=(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<less_equal, detail::identity<T>, Expression>(val, rhs);
 }
 
-template <class Container1, class T, class Container2, size_t Rank>
-inline binary_expr<greater_equal, Container1, T, Container2, T, Rank>
-operator>=(const expression<Container1, T, Rank> &lhs,
-           const expression<Container2, T, Rank> &rhs) {
-  return binary_expr<greater_equal, Container1, T, Container2, T, Rank>(lhs,
-                                                                        rhs);
+template <class LhsExpression, class RhsExpression, class T, size_t Rank>
+inline binary_expr<greater_equal, LhsExpression, RhsExpression>
+operator>=(const abstract_tensor<LhsExpression, T, Rank> &lhs,
+           const abstract_tensor<RhsExpression, T, Rank> &rhs) {
+  return binary_expr<greater_equal, LhsExpression, RhsExpression>(lhs, rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline binary_expr<greater_equal, Container, T, void, T, Rank>
-operator>=(const expression<Container, T, Rank> &lhs,
-           const typename Container::value_type &val) {
-  return binary_expr<greater_equal, Container, T, void, T, Rank>(lhs, val);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<greater_equal, Expression, detail::identity<T>>
+operator>=(const abstract_tensor<Expression, T, Rank> &lhs,
+           const typename detail::identity<T>::type &val) {
+  return binary_expr<greater_equal, Expression, detail::identity<T>>(lhs, val);
 }
 
-template <class T, class Container, size_t Rank>
-inline binary_expr<greater_equal, void, T, Container, T, Rank>
-operator>=(const typename Container::value_type &val,
-           const expression<Container, T, Rank> &rhs) {
-  return binary_expr<greater_equal, void, T, Container, T, Rank>(val, rhs);
+template <class Expression, class T, size_t Rank>
+inline binary_expr<greater_equal, detail::identity<T>, Expression>
+operator>=(const typename detail::identity<T>::type &val,
+           const abstract_tensor<Expression, T, Rank> &rhs) {
+  return binary_expr<greater_equal, detail::identity<T>, Expression>(val, rhs);
 }
 } // namespace numcpp
 

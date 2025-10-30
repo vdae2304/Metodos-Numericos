@@ -27,6 +27,7 @@
 #include <tuple>
 #include <utility>
 #include "numcpp/shape.h"
+#include "numcpp/tensor/abstract_tensor.h"
 
 namespace numcpp {
 namespace detail {
@@ -179,10 +180,10 @@ struct constant {
    *                @a values[{i,1}] are the before and after constants for axis
    *                @a i.
    */
-  template <class Container, class T>
+  template <class Expr, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
                   size_t axis,
-                  const expression<Container, T, 2> &values) const {
+                  const abstract_tensor<Expr, T, 2> &values) const {
     this->operator()(view, before, after, axis, values[{axis, 0}],
                      values[{axis, 1}]);
   }
@@ -255,10 +256,10 @@ struct linear_ramp {
    *                for each axis, where @a values[{i,0}] and @a values[{i,1}]
    *                are the before and after end values for axis @a i.
    */
-  template <class Container, class T>
+  template <class Expr, class T>
   void operator()(tensor_view<T, 1> &view, size_t before, size_t after,
                   size_t axis,
-                  const expression<Container, T, 2> &end_values) const {
+                  const abstract_tensor<Expr, T, 2> &end_values) const {
     this->operator()(view, before, after, axis, end_values[{axis, 0}],
                      end_values[{axis, 1}]);
   }

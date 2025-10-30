@@ -24,6 +24,7 @@
 #define NUMCPP_DENSE_TENSOR_H_INCLUDED
 
 #include "numcpp/shape.h"
+#include "numcpp/tensor/abstract_tensor.h"
 #include "numcpp/functional/operators.h"
 #include "numcpp/iterators/flat_iterator.h"
 #include "numcpp/math/mathfwd.h"
@@ -35,18 +36,18 @@ namespace numcpp {
  * elements, and implements an assortment of methods which will be inherited to
  * all the subclasses.
  *
- * @tparam Container Tensor subclass.
+ * @tparam Derived Derived tensor subclass.
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
-template <class Container, class T, size_t Rank>
-class dense_tensor : public expression<Container, T, Rank> {
+template <class Derived, class T, size_t Rank>
+class dense_tensor : public abstract_tensor<Derived, T, Rank> {
 public:
-  static_assert(0 < Rank  && Rank <= 10, "Rank must be between 1 and 10");
+  static_assert(0 < Rank && Rank <= 10, "Rank must be between 1 and 10");
 
   /// Member types.
-  typedef flat_iterator<Container, T, Rank> iterator;
-  typedef flat_iterator<const Container, T, Rank, const T *, const T &>
+  typedef flat_iterator<Derived, T, Rank, T *, T &> iterator;
+  typedef flat_iterator<const Derived, T, Rank, const T *, const T &>
       const_iterator;
 
   /// Indexing.
@@ -82,8 +83,8 @@ public:
   /**
    * @brief Return the derived subclass.
    */
-  Container &self();
-  const Container &self() const;
+  Derived &self();
+  const Derived &self() const;
 
   /// Iterators.
 
@@ -162,7 +163,7 @@ public:
    * @brief Copy assignment. Assigns to each element the value of the
    * corresponding element in @a other.
    *
-   * @param other A tensor-like object of the same rank.
+   * @param other An abstract tensor of the same rank.
    *
    * @return *this
    *
@@ -170,8 +171,8 @@ public:
    *                              cannot be broadcasted according to
    *                              broadcasting rules.
    */
-  template <class ContainerOp, class U>
-  Container &operator=(const expression<ContainerOp, U, Rank> &other);
+  template <class Expr, class U>
+  Derived &operator=(const abstract_tensor<Expr, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.
@@ -180,7 +181,7 @@ public:
    *
    * @return *this
    */
-  Container &operator=(const T &val);
+  Derived &operator=(const T &val);
 
   /// Compound assignment operator.
 
@@ -196,7 +197,7 @@ public:
    * When the right-hand side argument is a value, the operation is applied to
    * all the elements in the tensor against that value.
    *
-   * @param rhs Right-hand side tensor-like object.
+   * @param rhs Right-hand side abstract tensor.
    * @param val Value to use as right-hand operand.
    *
    * @return *this
@@ -205,37 +206,37 @@ public:
    *                              cannot be broadcasted according to
    *                              broadcasting rules.
    */
-  template <class ContainerOp>
-  Container &operator+=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator-=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator*=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator/=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator%=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator&=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator|=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator^=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator<<=(const expression<ContainerOp, T, Rank> &rhs);
-  template <class ContainerOp>
-  Container &operator>>=(const expression<ContainerOp, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator+=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator-=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator*=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator/=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator%=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator&=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator|=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator^=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator<<=(const abstract_tensor<Expr, T, Rank> &rhs);
+  template <class Expr>
+  Derived &operator>>=(const abstract_tensor<Expr, T, Rank> &rhs);
 
-  Container &operator+=(const T &val);
-  Container &operator-=(const T &val);
-  Container &operator*=(const T &val);
-  Container &operator/=(const T &val);
-  Container &operator%=(const T &val);
-  Container &operator&=(const T &val);
-  Container &operator|=(const T &val);
-  Container &operator^=(const T &val);
-  Container &operator<<=(const T &val);
-  Container &operator>>=(const T &val);
+  Derived &operator+=(const T &val);
+  Derived &operator-=(const T &val);
+  Derived &operator*=(const T &val);
+  Derived &operator/=(const T &val);
+  Derived &operator%=(const T &val);
+  Derived &operator&=(const T &val);
+  Derived &operator|=(const T &val);
+  Derived &operator^=(const T &val);
+  Derived &operator<<=(const T &val);
+  Derived &operator>>=(const T &val);
 
   /// Public methods.
 
@@ -288,8 +289,7 @@ public:
    *         instead, it returns a readonly view of the tensor with its elements
    *         casted to the specified type.
    */
-  template <class U>
-  unary_expr<cast_to<T, U>, Container, T, Rank> astype() const;
+  template <class U> unary_expr<cast_to<T, U>, Derived> astype() const;
 
   /**
    * @brief Clamp the values in the tensor. Given an interval @a [a_min,a_max],
@@ -437,23 +437,23 @@ private:
    * @brief Apply a binary function in-place with another tensor or with a
    * value.
    */
-  template <class Function, class ContainerOp>
-  Container &apply2(Function f, const expression<ContainerOp, T, Rank> &rhs);
+  template <class Function, class Expr>
+  Derived &apply2(Function f, const abstract_tensor<Expr, T, Rank> &rhs);
 
-  template <class Function> Container &apply2(Function f, const T &val);
+  template <class Function> Derived &apply2(Function f, const T &val);
 };
 
-template <class Container, class T, size_t Rank> class tensor_specialization {};
+template <class Derived, class T, size_t Rank> class tensor_specialization {};
 
 /**
  * @brief Specialization for complex-valued tensor subclasses.
  *
- * @tparam Container Tensor subclass.
+ * @tparam Derived tensor subclass.
  * @tparam T Type of the real part of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
-template <class Container, class T, size_t Rank>
-class tensor_specialization<Container, std::complex<T>, Rank> {
+template <class Derived, class T, size_t Rank>
+class tensor_specialization<Derived, std::complex<T>, Rank> {
 public:
   /// Public methods.
 
@@ -464,20 +464,19 @@ public:
    *         tensor. This function does not create a new tensor, instead, it
    *         returns a readonly view with the real part of each element.
    */
-  unary_expr<math::real, Container, std::complex<T>, Rank> real() const;
+  unary_expr<math::real, Derived> real() const;
 
   /**
    * @brief Set the real part, element-wise.
    *
-   * @param x A tensor-like object with the values to set the real part to.
+   * @param x An abstract tensor with the values to set the real part to.
    * @param val Value to set the real part to.
    *
    * @throw std::invalid_argument Thrown if the shapes are not compatible and
    *                              cannot be broadcasted according to
    *                              broadcasting rules.
    */
-  template <class ContainerOp>
-  void real(const expression<ContainerOp, T, Rank> &x);
+  template <class Expr> void real(const abstract_tensor<Expr, T, Rank> &x);
 
   void real(const T &val);
 
@@ -488,21 +487,19 @@ public:
    *         the tensor. This function does not create a new tensor, instead, it
    *         returns a readonly view with the imaginary part of each element.
    */
-  unary_expr<math::imag, Container, std::complex<T>, Rank> imag() const;
+  unary_expr<math::imag, Derived> imag() const;
 
   /**
    * @brief Set the imaginary part, element-wise.
    *
-   * @param y A tensor-like object with the values to set the imaginary part
-   *            to.
+   * @param y An abstract tensor with the values to set the imaginary part to.
    * @param val Value to set the imaginary part to.
    *
    * @throw std::invalid_argument Thrown if the shapes are not compatible and
    *                              cannot be broadcasted according to
    *                              broadcasting rules.
    */
-  template <class ContainerOp>
-  void imag(const expression<ContainerOp, T, Rank> &y);
+  template <class Expr> void imag(const abstract_tensor<Expr, T, Rank> &y);
 
   void imag(const T &val);
 
@@ -514,7 +511,7 @@ public:
    *         returns an expression object with the complex conjugate of each
    *         element.
    */
-  unary_expr<math::conj, Container, std::complex<T>, Rank> conj() const;
+  unary_expr<math::conj, Derived> conj() const;
 };
 } // namespace numcpp
 

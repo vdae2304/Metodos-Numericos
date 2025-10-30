@@ -180,24 +180,21 @@ inline bool tensor_view<T, Rank>::is_contiguous() const {
 template <class T, size_t Rank>
 tensor_view<T, Rank> &
 tensor_view<T, Rank>::operator=(const tensor_view &other) {
-  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(other);
+  dense_tensor<tensor_view<T, Rank>, value_type, rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
-template <class Container, class U>
+template <class Expr, class U>
 tensor_view<T, Rank> &
-tensor_view<T, Rank>::operator=(const expression<Container, U, Rank> &other) {
-  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(other);
+tensor_view<T, Rank>::operator=(const abstract_tensor<Expr, U, Rank> &other) {
+  dense_tensor<tensor_view<T, Rank>, value_type, rank>::operator=(other);
   return *this;
 }
 
 template <class T, size_t Rank>
 tensor_view<T, Rank> &tensor_view<T, Rank>::operator=(const T &val) {
-  dense_tensor<tensor_view<T, Rank>, typename std::remove_cv<T>::type,
-               Rank>::operator=(val);
+  dense_tensor<tensor_view<T, Rank>, value_type, rank>::operator=(val);
   return *this;
 }
 

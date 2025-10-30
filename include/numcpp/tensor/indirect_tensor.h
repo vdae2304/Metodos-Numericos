@@ -276,8 +276,8 @@ public:
    *                              broadcasting rules.
    */
   indirect_tensor &operator=(const indirect_tensor &other);
-  template <class Container, class U>
-  indirect_tensor &operator=(const expression<Container, U, Rank> &other);
+  template <class Expr, class U>
+  indirect_tensor &operator=(const abstract_tensor<Expr, U, Rank> &other);
 
   /**
    * @brief Fill assignment. Assigns @a val to every element.

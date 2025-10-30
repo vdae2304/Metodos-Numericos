@@ -33,31 +33,28 @@ namespace numcpp {
  * reversed order over multiple axes. This class represents a readonly view of
  * the elements of another tensor.
  *
- * @tparam Container Type of the tensor whose elements are referenced.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam Expr Type of the tensor whose elements are referenced.
  * @tparam N Number of axes to reverse.
  */
-template <class Container, class T, size_t Rank, size_t N>
+template <class Expr, size_t N>
 class reverse_expr
-    : public expression<reverse_expr<Container, T, Rank, N>, T, Rank> {
+    : public abstract_tensor<reverse_expr<Expr, N>, typename Expr::value_type,
+                             Expr::rank> {
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
-  typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<const reverse_expr<Container, T, Rank, N>, value_type,
-                        rank, pointer, reference>
-      iterator;
+  typedef typename Expr::value_type value_type;
+  static constexpr size_t rank = Expr::rank;
+  typedef typename Expr::pointer pointer;
+  typedef typename Expr::reference reference;
+  typedef flat_iterator<const reverse_expr<Expr, N>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Tensor to reverse.
-  const Container &m_arg;
+  const Expr &m_arg;
 
   // Axes along which to reverse over.
   shape_t<N> m_axes;
@@ -72,7 +69,9 @@ public:
    * @param a Tensor to reverse.
    * @param axes Axes along which to reverse over.
    */
-  reverse_expr(const expression<Container, T, Rank> &a, const shape_t<N> &axes)
+  reverse_expr(
+      const abstract_tensor<Expr, typename Expr::value_type, Expr::rank> &a,
+      const shape_t<N> &axes)
       : m_arg(a.self()), m_axes(axes) {}
 
   /// Destructor.
@@ -161,31 +160,28 @@ public:
  * circularly over multiple axes. This class represents a readonly view of the
  * elements of another tensor.
  *
- * @tparam Container Type of the tensor whose elements are referenced.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam Expr Type of the tensor whose elements are referenced.
  * @tparam N Number of axes to shift.
  */
-template <class Container, class T, size_t Rank, size_t N>
+template <class Expr, size_t N>
 class rotate_expr
-    : public expression<rotate_expr<Container, T, Rank, N>, T, Rank> {
+    : public abstract_tensor<rotate_expr<Expr, N>, typename Expr::value_type,
+                             Expr::rank> {
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
-  typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<const rotate_expr<Container, T, Rank, N>, value_type,
-                        rank, pointer, reference>
-      iterator;
+  typedef typename Expr::value_type value_type;
+  static constexpr size_t rank = Expr::rank;
+  typedef typename Expr::pointer pointer;
+  typedef typename Expr::reference reference;
+  typedef flat_iterator<const rotate_expr<Expr, N>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Tensor to rotate.
-  const Container &m_arg;
+  const Expr &m_arg;
 
   // Number of positions to shift along each axis.
   index_t<N> m_shift;
@@ -204,8 +200,9 @@ public:
    * @param shift Number of positions to shift along each axis.
    * @param axes Axes along which to rotate over.
    */
-  rotate_expr(const expression<Container, T, Rank> &a, const index_t<N> &shift,
-              const shape_t<N> &axes)
+  rotate_expr(
+      const abstract_tensor<Expr, typename Expr::value_type, Expr::rank> &a,
+      const index_t<N> &shift, const shape_t<N> &axes)
       : m_arg(a.self()), m_shift(shift), m_axes(axes) {}
 
   /// Destructor.

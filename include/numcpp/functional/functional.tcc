@@ -31,55 +31,68 @@
 namespace numcpp {
 /// Functional programming.
 
-template <class OutContainer, class R, class Function, class Container, class T,
+template <class OutExpr, class R, class Function, class Expr, class T,
           size_t Rank>
-void apply(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-           const expression<Container, T, Rank> &a) {
+void apply(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+           const abstract_tensor<Expr, T, Rank> &a) {
   detail::assert_output_shape(out.shape(), a.shape());
   for (index_t<Rank> i : make_index_sequence_for(out)) {
     out[i] = std::forward<Function>(f)(a[i]);
   }
 }
 
-template <class OutContainer, class R, class Function, class Container1,
-          class T, class Container2, class U, size_t Rank>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const expression<Container1, T, Rank> &a,
-            const expression<Container2, U, Rank> &b) {
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          class Expr2, class U, size_t Rank>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr1, T, Rank> &a,
+            const abstract_tensor<Expr2, U, Rank> &b) {
   detail::assert_output_shape(out.shape(),
                               broadcast_shapes(a.shape(), b.shape()));
-  for (index_t<Rank> index : make_index_sequence_for(out)) {
-    index_t<Rank> i, j;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (a.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (b.shape(axis) > 1) ? index[axis] : 0;
-    }
-    out[index] = std::forward<Function>(f)(a[i], b[j]);
+  for (index_t<Rank> i : make_index_sequence_for(out)) {
+    out[i] =
+        std::forward<Function>(f)(a[detail::broadcast_index(i, a.shape())],
+                                  b[detail::broadcast_index(i, b.shape())]);
   }
 }
 
-template <class OutContainer, class R, class Function, class Container, class T,
-          class U, size_t Rank, detail::RequiresScalar<U>>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const expression<Container, T, Rank> &a, const U &val) {
+template <class OutExpr, class R, class Function, class Expr, class T, class U,
+          size_t Rank, detail::RequiresScalar<U>>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr, T, Rank> &a, const U &val) {
   detail::assert_output_shape(out.shape(), a.shape());
   for (index_t<Rank> i : make_index_sequence_for(out)) {
     out[i] = std::forward<Function>(f)(a[i], val);
   }
 }
 
-template <class OutContainer, class R, class Function, class T, class Container,
-          class U, size_t Rank, detail::RequiresScalar<T>>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const T &val, const expression<Container, U, Rank> &b) {
+template <class OutExpr, class R, class Function, class Expr, class T, class U,
+          size_t Rank, detail::RequiresScalar<T>>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f, const T &val,
+            const abstract_tensor<Expr, U, Rank> &b) {
   detail::assert_output_shape(out.shape(), b.shape());
   for (index_t<Rank> i : make_index_sequence_for(out)) {
     out[i] = std::forward<Function>(f)(val, b[i]);
   }
 }
 
-template <class Function, class Container, class T, size_t Rank>
-T reduce(Function &&f, const expression<Container, T, Rank> &a) {
+#if __cplusplus >= 201402L
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          class... Expr2, class... U, size_t Rank>
+void applyn(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr1, T, Rank> &a,
+            const abstract_tensor<Expr2, U, Rank> &...b) {
+  detail::assert_output_shape(out.shape(),
+                              broadcast_shapes(a.shape(), b.shape()...));
+  for (index_t<Rank> i : make_index_sequence_for(out)) {
+    out[i] =
+        std::forward<Function>(f)(a[detail::broadcast_index(i, a.shape())],
+                                  b[detail::broadcast_index(i, b.shape())]...);
+  }
+}
+#endif // C++14
+
+template <class Function, class Expr, class T, size_t Rank>
+T reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a) {
   if (a.size() == 0) {
     throw std::invalid_argument(
         "attempt to reduce on an empty sequence with no initial value");
@@ -93,20 +106,19 @@ T reduce(Function &&f, const expression<Container, T, Rank> &a) {
   return val;
 }
 
-template <class Function, class Container, class T, size_t Rank>
-T reduce(Function &&f, const expression<Container, T, Rank> &a,
-         typename Container::value_type init) {
+template <class Function, class Expr, class T, size_t Rank>
+T reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
+         typename detail::identity<T>::type init) {
   for (index_t<Rank> i : make_index_sequence_for(a)) {
     init = std::forward<Function>(f)(std::move(init), a[i]);
   }
   return init;
 }
 
-template <class Function, class Container1, class T, size_t Rank,
-          class Container2>
-T reduce(Function &&f, const expression<Container1, T, Rank> &a,
-         typename Container1::value_type init,
-         const expression<Container2, bool, Rank> &where) {
+template <class Function, class Expr1, class T, size_t Rank, class Expr2>
+T reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+         typename detail::identity<T>::type init,
+         const abstract_tensor<Expr2, bool, Rank> &where) {
   detail::assert_mask_shape(a.shape(), where.shape());
   for (index_t<Rank> i : make_index_sequence_for(a)) {
     if (where[i]) {
@@ -116,31 +128,31 @@ T reduce(Function &&f, const expression<Container1, T, Rank> &a,
   return init;
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes) {
   return reduce(std::forward<Function>(f), a, axes, dropdims);
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container, T, Rank> &a,
-       const shape_t<N> &axes, typename Container::value_type init) {
+reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
+       const shape_t<N> &axes, typename detail::identity<T>::type init) {
   return reduce(std::forward<Function>(f), a, axes, dropdims, init);
 }
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
 tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container1, T, Rank> &a,
-       const shape_t<N> &axes, typename Container1::value_type init,
-       const expression<Container2, bool, Rank> &where) {
+reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+       const shape_t<N> &axes, typename detail::identity<T>::type init,
+       const abstract_tensor<Expr2, bool, Rank> &where) {
   return reduce(std::forward<Function>(f), a, axes, dropdims, init, where);
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
+template <class Function, class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
@@ -159,10 +171,10 @@ tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
+template <class Function, class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
-                       typename Container::value_type init) {
+                       typename detail::identity<T>::type init) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
     shape[axes[i]] = 1;
@@ -178,12 +190,12 @@ tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
-tensor<T, Rank> reduce(Function &&f, const expression<Container1, T, Rank> &a,
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
-                       typename Container1::value_type init,
-                       const expression<Container2, bool, Rank> &where) {
+                       typename detail::identity<T>::type init,
+                       const abstract_tensor<Expr2, bool, Rank> &where) {
   detail::assert_mask_shape(a.shape(), where.shape());
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
@@ -202,9 +214,9 @@ tensor<T, Rank> reduce(Function &&f, const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
@@ -223,11 +235,11 @@ tensor<T, Rank - N> reduce(Function &&f,
   return out;
 }
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t,
-                           typename Container::value_type init) {
+                           typename detail::identity<T>::type init) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
     shape[axes[i]] = 1;
@@ -243,12 +255,13 @@ tensor<T, Rank - N> reduce(Function &&f,
   return out;
 }
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
-tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container1, T, Rank> &a,
-       const shape_t<N> &axes, dropdims_t, typename Container1::value_type init,
-       const expression<Container2, bool, Rank> &where) {
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
+tensor<T, Rank - N> reduce(Function &&f,
+                           const abstract_tensor<Expr1, T, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t,
+                           typename detail::identity<T>::type init,
+                           const abstract_tensor<Expr2, bool, Rank> &where) {
   detail::assert_mask_shape(a.shape(), where.shape());
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < N; ++i) {
@@ -267,9 +280,9 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Function, class Container, class T, size_t Rank>
+template <class Function, class Expr, class T, size_t Rank>
 tensor<T, Rank>
-accumulate(Function &&f, const expression<Container, T, Rank> &a, size_t axis) {
+accumulate(Function &&f, const abstract_tensor<Expr, T, Rank> &a, size_t axis) {
   shape_t<Rank> shape = a.shape();
   tensor<T, Rank> out(shape);
   shape[axis] = 1;
@@ -285,11 +298,11 @@ accumulate(Function &&f, const expression<Container, T, Rank> &a, size_t axis) {
   return out;
 }
 
-template <class OutContainer, class R, class Function, class Container1,
-          class T, size_t Rank1, class Container2, class U, size_t Rank2>
-void outer(dense_tensor<OutContainer, R, Rank1 + Rank2> &out, Function &&f,
-           const expression<Container1, T, Rank1> &a,
-           const expression<Container2, U, Rank2> &b) {
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          size_t Rank1, class Expr2, class U, size_t Rank2>
+void outer(dense_tensor<OutExpr, R, Rank1 + Rank2> &out, Function &&f,
+           const abstract_tensor<Expr1, T, Rank1> &a,
+           const abstract_tensor<Expr2, U, Rank2> &b) {
   detail::assert_output_shape(out.shape(), shape_cat(a.shape(), b.shape()));
   for (index_t<Rank1> i : make_index_sequence_for(a)) {
     for (index_t<Rank2> j : make_index_sequence_for(b)) {

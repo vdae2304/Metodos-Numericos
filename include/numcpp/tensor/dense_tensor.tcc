@@ -33,145 +33,141 @@
 namespace numcpp {
 /// Indexing.
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 inline T &
-dense_tensor<Container, T, Rank>::operator[](const index_t<Rank> &index) {
-  return static_cast<Container &>(*this)[index];
+dense_tensor<Derived, T, Rank>::operator[](const index_t<Rank> &index) {
+  return static_cast<Derived &>(*this)[index];
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 inline const T &
-dense_tensor<Container, T, Rank>::operator[](const index_t<Rank> &index) const {
-  return static_cast<const Container &>(*this)[index];
+dense_tensor<Derived, T, Rank>::operator[](const index_t<Rank> &index) const {
+  return static_cast<const Derived &>(*this)[index];
 }
 
-template <class Container, class T, size_t Rank>
-inline shape_t<Rank> dense_tensor<Container, T, Rank>::shape() const {
-  return static_cast<const Container &>(*this).shape();
+template <class Derived, class T, size_t Rank>
+inline shape_t<Rank> dense_tensor<Derived, T, Rank>::shape() const {
+  return static_cast<const Derived &>(*this).shape();
 }
 
-template <class Container, class T, size_t Rank>
-inline size_t dense_tensor<Container, T, Rank>::shape(size_t axis) const {
-  return static_cast<const Container &>(*this).shape(axis);
+template <class Derived, class T, size_t Rank>
+inline size_t dense_tensor<Derived, T, Rank>::shape(size_t axis) const {
+  return static_cast<const Derived &>(*this).shape(axis);
 }
 
-template <class Container, class T, size_t Rank>
-inline size_t dense_tensor<Container, T, Rank>::size() const {
-  return static_cast<const Container &>(*this).size();
+template <class Derived, class T, size_t Rank>
+inline size_t dense_tensor<Derived, T, Rank>::size() const {
+  return static_cast<const Derived &>(*this).size();
 }
 
-template <class Container, class T, size_t Rank>
-inline layout_t dense_tensor<Container, T, Rank>::layout() const {
-  return static_cast<const Container &>(*this).layout();
+template <class Derived, class T, size_t Rank>
+inline layout_t dense_tensor<Derived, T, Rank>::layout() const {
+  return static_cast<const Derived &>(*this).layout();
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::self() {
-  return static_cast<Container &>(*this);
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::self() {
+  return static_cast<Derived &>(*this);
 }
 
-template <class Container, class T, size_t Rank>
-inline const Container &dense_tensor<Container, T, Rank>::self() const {
-  return static_cast<const Container &>(*this);
+template <class Derived, class T, size_t Rank>
+inline const Derived &dense_tensor<Derived, T, Rank>::self() const {
+  return static_cast<const Derived &>(*this);
 }
 
 /// Iterators.
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::iterator
-dense_tensor<Container, T, Rank>::begin() {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::iterator
+dense_tensor<Derived, T, Rank>::begin() {
   return this->begin(this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::begin() const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::begin() const {
   return this->begin(this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::iterator
-dense_tensor<Container, T, Rank>::begin(layout_t order) {
-  return iterator(static_cast<Container *>(this), 0, order);
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::iterator
+dense_tensor<Derived, T, Rank>::begin(layout_t order) {
+  return iterator(static_cast<Derived *>(this), 0, order);
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::begin(layout_t order) const {
-  return const_iterator(static_cast<const Container *>(this), 0, order);
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::begin(layout_t order) const {
+  return const_iterator(static_cast<const Derived *>(this), 0, order);
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::iterator
-dense_tensor<Container, T, Rank>::end() {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::iterator
+dense_tensor<Derived, T, Rank>::end() {
   return this->end(this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::end() const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::end() const {
   return this->end(this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::iterator
-dense_tensor<Container, T, Rank>::end(layout_t order) {
-  return iterator(static_cast<Container *>(this), this->size(), order);
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::iterator
+dense_tensor<Derived, T, Rank>::end(layout_t order) {
+  return iterator(static_cast<Derived *>(this), this->size(), order);
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::end(layout_t order) const {
-  return const_iterator(static_cast<const Container *>(this), this->size(),
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::end(layout_t order) const {
+  return const_iterator(static_cast<const Derived *>(this), this->size(),
                         order);
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::cbegin() const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::cbegin() const {
   return this->begin();
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::cbegin(layout_t order) const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::cbegin(layout_t order) const {
   return this->begin(order);
 };
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::cend() const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::cend() const {
   return this->end();
 }
 
-template <class Container, class T, size_t Rank>
-inline typename dense_tensor<Container, T, Rank>::const_iterator
-dense_tensor<Container, T, Rank>::cend(layout_t order) const {
+template <class Derived, class T, size_t Rank>
+inline typename dense_tensor<Derived, T, Rank>::const_iterator
+dense_tensor<Derived, T, Rank>::cend(layout_t order) const {
   return this->end(order);
 }
 
 /// Assignment operator.
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp, class U>
-Container &dense_tensor<Container, T, Rank>::operator=(
-    const expression<ContainerOp, U, Rank> &other) {
-  Container &self = this->self();
+template <class Derived, class T, size_t Rank>
+template <class Expr, class U>
+Derived &dense_tensor<Derived, T, Rank>::operator=(
+    const abstract_tensor<Expr, U, Rank> &other) {
+  Derived &self = this->self();
   detail::assert_output_shape(self.shape(),
                               broadcast_shapes(self.shape(), other.shape()));
-  for (index_t<Rank> index : make_index_sequence_for(self)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (other.shape(axis) > 1) ? index[axis] : 0;
-    }
-    self[index] = other[i];
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i] = other[detail::broadcast_index(i, other.shape())];
   }
   return self;
 }
 
-template <class Container, class T, size_t Rank>
-Container &dense_tensor<Container, T, Rank>::operator=(const T &val) {
-  Container &self = this->self();
+template <class Derived, class T, size_t Rank>
+Derived &dense_tensor<Derived, T, Rank>::operator=(const T &val) {
+  Derived &self = this->self();
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i] = val;
   }
@@ -180,248 +176,243 @@ Container &dense_tensor<Container, T, Rank>::operator=(const T &val) {
 
 /// Compound assignment operator.
 
-template <class Container, class T, size_t Rank>
-template <class Function, class ContainerOp>
-Container &dense_tensor<Container, T, Rank>::apply2(
-    Function f, const expression<ContainerOp, T, Rank> &rhs) {
-  Container &self = this->self();
+template <class Derived, class T, size_t Rank>
+template <class Function, class Expr>
+Derived &dense_tensor<Derived, T, Rank>::apply2(
+    Function f, const abstract_tensor<Expr, T, Rank> &rhs) {
+  Derived &self = this->self();
   detail::assert_output_shape(self.shape(),
                               broadcast_shapes(self.shape(), rhs.shape()));
-  for (index_t<Rank> index : make_index_sequence_for(self)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (rhs.shape(axis) > 1) ? index[axis] : 0;
-    }
-    self[index] = f(self[index], rhs[i]);
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i] = f(self[i], rhs[detail::broadcast_index(i, rhs.shape())]);
   }
   return self;
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 template <class Function>
-Container &dense_tensor<Container, T, Rank>::apply2(Function f, const T &val) {
-  Container &self = this->self();
+Derived &dense_tensor<Derived, T, Rank>::apply2(Function f, const T &val) {
+  Derived &self = this->self();
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i] = f(self[i], val);
   }
   return self;
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator+=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator+=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(plus(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator-=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator-=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(minus(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator*=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator*=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(multiplies(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator/=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator/=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(divides(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator%=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator%=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(modulus(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator&=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator&=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(bit_and(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator|=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator|=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(bit_or(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator^=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator^=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(bit_xor(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator<<=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator<<=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(left_shift(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-inline Container &dense_tensor<Container, T, Rank>::operator>>=(
-    const expression<ContainerOp, T, Rank> &rhs) {
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+inline Derived &dense_tensor<Derived, T, Rank>::operator>>=(
+    const abstract_tensor<Expr, T, Rank> &rhs) {
   return this->apply2(right_shift(), rhs);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator+=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator+=(const T &val) {
   return this->apply2(plus(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator-=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator-=(const T &val) {
   return this->apply2(minus(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator*=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator*=(const T &val) {
   return this->apply2(multiplies(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator/=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator/=(const T &val) {
   return this->apply2(divides(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator%=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator%=(const T &val) {
   return this->apply2(modulus(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator&=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator&=(const T &val) {
   return this->apply2(bit_and(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator|=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator|=(const T &val) {
   return this->apply2(bit_or(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator^=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator^=(const T &val) {
   return this->apply2(bit_xor(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator<<=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator<<=(const T &val) {
   return this->apply2(left_shift(), val);
 }
 
-template <class Container, class T, size_t Rank>
-inline Container &dense_tensor<Container, T, Rank>::operator>>=(const T &val) {
+template <class Derived, class T, size_t Rank>
+inline Derived &dense_tensor<Derived, T, Rank>::operator>>=(const T &val) {
   return this->apply2(right_shift(), val);
 }
 
 /// Public methods.
 
-template <class Container, class T, size_t Rank>
-inline void dense_tensor<Container, T, Rank>::apply(T f(T)) {
+template <class Derived, class T, size_t Rank>
+inline void dense_tensor<Derived, T, Rank>::apply(T f(T)) {
   std::transform(this->begin(), this->end(), this->begin(), f);
 }
 
-template <class Container, class T, size_t Rank>
-inline void dense_tensor<Container, T, Rank>::apply(T f(const T &)) {
+template <class Derived, class T, size_t Rank>
+inline void dense_tensor<Derived, T, Rank>::apply(T f(const T &)) {
   std::transform(this->begin(), this->end(), this->begin(), f);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 template <class Function>
-inline void dense_tensor<Container, T, Rank>::apply(Function &&f) {
+inline void dense_tensor<Derived, T, Rank>::apply(Function &&f) {
   std::transform(this->begin(), this->end(), this->begin(),
                  std::forward<Function>(f));
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 template <class U>
-inline unary_expr<cast_to<T, U>, Container, T, Rank>
-dense_tensor<Container, T, Rank>::astype() const {
-  return unary_expr<cast_to<T, U>, Container, T, Rank>(this->self());
+inline unary_expr<cast_to<T, U>, Derived>
+dense_tensor<Derived, T, Rank>::astype() const {
+  return unary_expr<cast_to<T, U>, Derived>(this->self());
 }
 
-template <class Container, class T, size_t Rank>
-inline void dense_tensor<Container, T, Rank>::clamp(const T &a_min,
-                                                    const T &a_max) {
+template <class Derived, class T, size_t Rank>
+inline void dense_tensor<Derived, T, Rank>::clamp(const T &a_min,
+                                                  const T &a_max) {
   this->apply(ranges::clamp<T>(a_min, a_max));
 }
 
-template <class Container, class T, size_t Rank>
-inline void dense_tensor<Container, T, Rank>::partition(size_t kth,
-                                                        size_t axis) {
+template <class Derived, class T, size_t Rank>
+inline void dense_tensor<Derived, T, Rank>::partition(size_t kth, size_t axis) {
   this->partition(kth, axis, less());
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 template <class Compare, detail::RequiresCallable<Compare, T, T>>
-void dense_tensor<Container, T, Rank>::partition(size_t kth, size_t axis,
-                                                 Compare comp) {
-  Container &self = this->self();
+void dense_tensor<Derived, T, Rank>::partition(size_t kth, size_t axis,
+                                               Compare comp) {
+  Derived &self = this->self();
   shape_t<Rank> shape = self.shape();
   size_t size = shape[axis];
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
-    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
-    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
+    axes_iterator<Derived, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Derived, T, Rank, 1> last(&self, index, axis, size);
     std::nth_element(first, first + kth, last, comp);
   }
 }
 
-template <class Container, class T, size_t Rank>
-void dense_tensor<Container, T, Rank>::reverse(size_t axis) {
-  Container &self = this->self();
+template <class Derived, class T, size_t Rank>
+void dense_tensor<Derived, T, Rank>::reverse(size_t axis) {
+  Derived &self = this->self();
   shape_t<Rank> shape = self.shape();
   size_t size = shape[axis];
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
-    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
-    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
+    axes_iterator<Derived, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Derived, T, Rank, 1> last(&self, index, axis, size);
     std::reverse(first, last);
   }
 }
 
-template <class Container, class T, size_t Rank>
-void dense_tensor<Container, T, Rank>::rotate(size_t shift, size_t axis) {
-  Container &self = this->self();
+template <class Derived, class T, size_t Rank>
+void dense_tensor<Derived, T, Rank>::rotate(size_t shift, size_t axis) {
+  Derived &self = this->self();
   shape_t<Rank> shape = self.shape();
   size_t size = shape[axis];
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
-    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
-    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
+    axes_iterator<Derived, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Derived, T, Rank, 1> last(&self, index, axis, size);
     std::rotate(first, first + shift, last);
   }
 }
 
-template <class Container, class T, size_t Rank>
-inline void dense_tensor<Container, T, Rank>::sort(size_t axis) {
+template <class Derived, class T, size_t Rank>
+inline void dense_tensor<Derived, T, Rank>::sort(size_t axis) {
   this->sort(axis, less());
 }
 
-template <class Container, class T, size_t Rank>
+template <class Derived, class T, size_t Rank>
 template <class Compare, detail::RequiresCallable<Compare, T, T>>
-void dense_tensor<Container, T, Rank>::sort(size_t axis, Compare comp,
-                                            bool stable) {
-  Container &self = this->self();
+void dense_tensor<Derived, T, Rank>::sort(size_t axis, Compare comp,
+                                          bool stable) {
+  Derived &self = this->self();
   shape_t<Rank> shape = self.shape();
   size_t size = shape[axis];
   shape[axis] = 1;
   for (index_t<Rank> index : make_index_sequence(shape)) {
-    axes_iterator<Container, T, Rank, 1> first(&self, index, axis, 0);
-    axes_iterator<Container, T, Rank, 1> last(&self, index, axis, size);
+    axes_iterator<Derived, T, Rank, 1> first(&self, index, axis, 0);
+    axes_iterator<Derived, T, Rank, 1> last(&self, index, axis, size);
     if (stable) {
       std::stable_sort(first, last, comp);
     } else {
@@ -432,145 +423,135 @@ void dense_tensor<Container, T, Rank>::sort(size_t axis, Compare comp,
 
 /// Reductions.
 
-template <class Container, class T, size_t Rank>
-inline bool dense_tensor<Container, T, Rank>::all() const {
+template <class Derived, class T, size_t Rank>
+inline bool dense_tensor<Derived, T, Rank>::all() const {
   ranges::all pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline bool dense_tensor<Container, T, Rank>::any() const {
+template <class Derived, class T, size_t Rank>
+inline bool dense_tensor<Derived, T, Rank>::any() const {
   ranges::any pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline index_t<Rank> dense_tensor<Container, T, Rank>::argmax() const {
+template <class Derived, class T, size_t Rank>
+inline index_t<Rank> dense_tensor<Derived, T, Rank>::argmax() const {
   ranges::argmax pred;
   size_t index = pred(this->begin(), this->end());
   return unravel_index(index, this->shape(), this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline index_t<Rank> dense_tensor<Container, T, Rank>::argmin() const {
+template <class Derived, class T, size_t Rank>
+inline index_t<Rank> dense_tensor<Derived, T, Rank>::argmin() const {
   ranges::argmin pred;
   size_t index = pred(this->begin(), this->end());
   return unravel_index(index, this->shape(), this->layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::max() const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::max() const {
   ranges::max pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::mean() const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::mean() const {
   ranges::mean pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::min() const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::min() const {
   ranges::min pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::prod() const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::prod() const {
   ranges::prod pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::stddev(bool bias) const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::stddev(bool bias) const {
   ranges::stddev pred(bias);
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::sum() const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::sum() const {
   ranges::sum pred;
   return pred(this->begin(), this->end());
 }
 
-template <class Container, class T, size_t Rank>
-inline T dense_tensor<Container, T, Rank>::var(bool bias) const {
+template <class Derived, class T, size_t Rank>
+inline T dense_tensor<Derived, T, Rank>::var(bool bias) const {
   ranges::var pred(bias);
   return pred(this->begin(), this->end());
 }
 
 /// Complex numbers.
 
-template <class Container, class T, size_t Rank>
-unary_expr<math::real, Container, std::complex<T>, Rank>
-tensor_specialization<Container, std::complex<T>, Rank>::real() const {
-  const Container &self = static_cast<const Container &>(*this);
-  return unary_expr<math::real, Container, std::complex<T>, Rank>(self);
+template <class Derived, class T, size_t Rank>
+inline unary_expr<math::real, Derived>
+tensor_specialization<Derived, std::complex<T>, Rank>::real() const {
+  const Derived &self = static_cast<const Derived &>(*this);
+  return unary_expr<math::real, Derived>(self);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-void tensor_specialization<Container, std::complex<T>, Rank>::real(
-    const expression<ContainerOp, T, Rank> &x) {
-  Container &self = static_cast<Container &>(*this);
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+void tensor_specialization<Derived, std::complex<T>, Rank>::real(
+    const abstract_tensor<Expr, T, Rank> &x) {
+  Derived &self = static_cast<Derived &>(*this);
   detail::assert_output_shape(self.shape(),
                               broadcast_shapes(self.shape(), x.shape()));
-  for (index_t<Rank> index : make_index_sequence_for(self)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (x.shape(axis) > 1) ? index[axis] : 0;
-    }
-    self[index].real(x[i]);
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i].real(x[detail::broadcast_index(i, x.shape())]);
   }
 }
 
-template <class Container, class T, size_t Rank>
-void tensor_specialization<Container, std::complex<T>, Rank>::real(
-    const T &val) {
-  Container &self = static_cast<Container &>(*this);
+template <class Derived, class T, size_t Rank>
+void tensor_specialization<Derived, std::complex<T>, Rank>::real(const T &val) {
+  Derived &self = static_cast<Derived &>(*this);
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i].real(val);
   }
 }
 
-template <class Container, class T, size_t Rank>
-unary_expr<math::imag, Container, std::complex<T>, Rank>
-tensor_specialization<Container, std::complex<T>, Rank>::imag() const {
-  const Container &self = static_cast<const Container &>(*this);
-  return unary_expr<math::imag, Container, std::complex<T>, Rank>(self);
+template <class Derived, class T, size_t Rank>
+inline unary_expr<math::imag, Derived>
+tensor_specialization<Derived, std::complex<T>, Rank>::imag() const {
+  const Derived &self = static_cast<const Derived &>(*this);
+  return unary_expr<math::imag, Derived>(self);
 }
 
-template <class Container, class T, size_t Rank>
-template <class ContainerOp>
-void tensor_specialization<Container, std::complex<T>, Rank>::imag(
-    const expression<ContainerOp, T, Rank> &y) {
-  Container &self = static_cast<Container &>(*this);
+template <class Derived, class T, size_t Rank>
+template <class Expr>
+void tensor_specialization<Derived, std::complex<T>, Rank>::imag(
+    const abstract_tensor<Expr, T, Rank> &y) {
+  Derived &self = static_cast<Derived &>(*this);
   detail::assert_output_shape(self.shape(),
                               broadcast_shapes(self.shape(), y.shape()));
-  for (index_t<Rank> index : make_index_sequence_for(self)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (y.shape(axis) > 1) ? index[axis] : 0;
-    }
-    self[index].imag(y[i]);
+  for (index_t<Rank> i : make_index_sequence_for(self)) {
+    self[i].imag(y[detail::broadcast_index(i, y.shape())]);
   }
 }
 
-template <class Container, class T, size_t Rank>
-void tensor_specialization<Container, std::complex<T>, Rank>::imag(
-    const T &val) {
-  Container &self = static_cast<Container &>(*this);
+template <class Derived, class T, size_t Rank>
+void tensor_specialization<Derived, std::complex<T>, Rank>::imag(const T &val) {
+  Derived &self = static_cast<Derived &>(*this);
   for (index_t<Rank> i : make_index_sequence_for(self)) {
     self[i].imag(val);
   }
 }
 
-template <class Container, class T, size_t Rank>
-unary_expr<math::conj, Container, std::complex<T>, Rank>
-tensor_specialization<Container, std::complex<T>, Rank>::conj() const {
-  const Container &self = static_cast<const Container &>(*this);
-  return unary_expr<math::conj, Container, std::complex<T>, Rank>(self);
+template <class Derived, class T, size_t Rank>
+inline unary_expr<math::conj, Derived>
+tensor_specialization<Derived, std::complex<T>, Rank>::conj() const {
+  const Derived &self = static_cast<const Derived &>(*this);
+  return unary_expr<math::conj, Derived>(self);
 }
 } // namespace numcpp
 

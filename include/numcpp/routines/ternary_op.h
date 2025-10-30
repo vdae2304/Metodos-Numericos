@@ -24,6 +24,10 @@
 #ifndef NUMCPP_LAZY_WHERE_H_INCLUDED
 #define NUMCPP_LAZY_WHERE_H_INCLUDED
 
+#include "numcpp/shape.h"
+#include "numcpp/tensor/abstract_tensor.h"
+#include "numcpp/iterators/flat_iterator.h"
+
 namespace numcpp {
 /**
  * @brief A light-weight object which selects elements from two tensors
@@ -31,44 +35,37 @@ namespace numcpp {
  * container. Such expressions relies on short-circuit evaluation, meaning that
  * exactly one of the two tensors is evaluated at each position.
  *
- * @tparam Container Type of the tensor representing the condition.
- * @tparam Container1 Type of the tensor from which to choose where condition is
- *                    true.
- * @tparam Container2 Type of the tensor from which to choose where condition is
- *                    false.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
+ * @tparam BoolExpr Type of the tensor representing the condition.
+ * @tparam Expr1 Type of the tensor from which to choose where condition is
+ *               true.
+ * @tparam Expr2 Type of the tensor from which to choose where condition is
+ *               false.
  */
-template <class Container, class Container1, class Container2, class T,
-          size_t Rank>
+template <class BoolExpr, class Expr1, class Expr2>
 class ternary_op_expr
-    : public expression<
-          ternary_op_expr<Container, Container1, Container2, T, Rank>, T,
-          Rank> {
+    : public abstract_tensor<ternary_op_expr<BoolExpr, Expr1, Expr2>,
+                             typename Expr1::value_type, Expr1::rank> {
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
+  typedef typename Expr1::value_type value_type;
+  static constexpr size_t rank = Expr1::rank;
   typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<
-      const ternary_op_expr<Container, Container1, Container2, T, Rank>,
-      value_type, rank, pointer, reference>
-      iterator;
+  typedef value_type reference;
+  typedef flat_iterator<const ternary_op_expr<BoolExpr, Expr1, Expr2>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Condition tensor argument.
-  const Container &m_cond;
+  const BoolExpr &m_cond;
 
   // True tensor argument.
-  const Container1 &m_true;
+  const Expr1 &m_true;
 
   // False tensor argument.
-  const Container2 &m_false;
+  const Expr2 &m_false;
 
   // Common shape.
   shape_type m_shape;
@@ -87,9 +84,11 @@ public:
    * @param x Values from which to choose where condition is true.
    * @param y Values from which to choose where condition is false.
    */
-  ternary_op_expr(const expression<Container, bool, Rank> &condition,
-                  const expression<Container1, T, Rank> &x,
-                  const expression<Container2, T, Rank> &y)
+  ternary_op_expr(
+      const abstract_tensor<BoolExpr, typename BoolExpr::value_type,
+                            BoolExpr::rank> &condition,
+      const abstract_tensor<Expr1, typename Expr1::value_type, Expr1::rank> &x,
+      const abstract_tensor<Expr2, typename Expr2::value_type, Expr2::rank> &y)
       : m_cond(condition.self()), m_true(x.self()), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), x.shape(), y.shape())),
         m_size(m_shape.prod()) {}
@@ -143,14 +142,10 @@ public:
    *
    * @return The element at the specified position.
    */
-  T operator[](const index_type &index) const {
-    index_type i, j, k;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (m_true.shape(axis) > 1) ? index[axis] : 0;
-      k[axis] = (m_false.shape(axis) > 1) ? index[axis] : 0;
-    }
-    return m_cond[i] ? m_true[j] : m_false[k];
+  value_type operator[](const index_type &index) const {
+    return m_cond[detail::broadcast_index(index, m_cond.shape())]
+               ? m_true[detail::broadcast_index(index, m_true.shape())]
+               : m_false[detail::broadcast_index(index, m_false.shape())];
   }
 
   /**
@@ -181,31 +176,31 @@ public:
  * @brief Partial specialization when the true argument is a tensor and the
  * false argument is a value. Values are broadcasted to an appropriate shape.
  */
-template <class Container, class Container1, class T, size_t Rank>
-class ternary_op_expr<Container, Container1, void, T, Rank>
-    : public expression<ternary_op_expr<Container, Container1, void, T, Rank>,
-                        T, Rank> {
+template <class BoolExpr, class Expr, class T>
+class ternary_op_expr<BoolExpr, Expr, detail::identity<T>>
+    : public abstract_tensor<
+          ternary_op_expr<BoolExpr, Expr, detail::identity<T>>,
+          typename Expr::value_type, Expr::rank> {
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
+  typedef typename Expr::value_type value_type;
+  static constexpr size_t rank = Expr::rank;
   typedef void pointer;
-  typedef T reference;
+  typedef value_type reference;
   typedef flat_iterator<
-      const ternary_op_expr<Container, Container1, void, T, Rank>, value_type,
-      rank, pointer, reference>
+      const ternary_op_expr<BoolExpr, Expr, detail::identity<T>>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Condition tensor argument.
-  const Container &m_cond;
+  const BoolExpr &m_cond;
 
   // True tensor argument.
-  const Container1 &m_true;
+  const Expr &m_true;
 
   // False argument.
   T m_false;
@@ -219,8 +214,11 @@ private:
 public:
   /// Constructors.
 
-  ternary_op_expr(const expression<Container, bool, Rank> &condition,
-                  const expression<Container1, T, Rank> &x, const T &y)
+  ternary_op_expr(
+      const abstract_tensor<BoolExpr, typename BoolExpr::value_type,
+                            BoolExpr::rank> &condition,
+      const abstract_tensor<Expr, typename Expr::value_type, Expr::rank> &x,
+      const T &y)
       : m_cond(condition.self()), m_true(x.self()), m_false(y),
         m_shape(broadcast_shapes(condition.shape(), x.shape())),
         m_size(m_shape.prod()) {}
@@ -242,13 +240,10 @@ public:
 
   /// Indexing.
 
-  T operator[](const index_type &index) const {
-    index_type i, j;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (m_true.shape(axis) > 1) ? index[axis] : 0;
-    }
-    return m_cond[i] ? m_true[j] : m_false;
+  value_type operator[](const index_type &index) const {
+    return m_cond[detail::broadcast_index(index, m_cond.shape())]
+               ? m_true[detail::broadcast_index(index, m_true.shape())]
+               : m_false;
   }
 
   const shape_type &shape() const { return m_shape; }
@@ -264,34 +259,34 @@ public:
  * @brief Partial specialization when the true argument is a value and the
  * false argument is a tensor. Values are broadcasted to an appropriate shape.
  */
-template <class Container, class Container1, class T, size_t Rank>
-class ternary_op_expr<Container, void, Container1, T, Rank>
-    : public expression<ternary_op_expr<Container, void, Container1, T, Rank>,
-                        T, Rank> {
+template <class BoolExpr, class Expr, class T>
+class ternary_op_expr<BoolExpr, detail::identity<T>, Expr>
+    : public abstract_tensor<
+          ternary_op_expr<BoolExpr, detail::identity<T>, Expr>,
+          typename Expr::value_type, Expr::rank> {
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
+  typedef typename Expr::value_type value_type;
+  static constexpr size_t rank = Expr::rank;
   typedef void pointer;
-  typedef T reference;
+  typedef value_type reference;
   typedef flat_iterator<
-      const ternary_op_expr<Container, void, Container1, T, Rank>, value_type,
-      rank, pointer, reference>
+      const ternary_op_expr<BoolExpr, detail::identity<T>, Expr>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Condition tensor argument.
-  const Container &m_cond;
+  const BoolExpr &m_cond;
 
   // True argument.
   T m_true;
 
   // False tensor argument.
-  const Container1 &m_false;
+  const Expr &m_false;
 
   // Common shape.
   shape_type m_shape;
@@ -302,8 +297,11 @@ private:
 public:
   /// Constructors.
 
-  ternary_op_expr(const expression<Container, bool, Rank> &condition,
-                  const T &x, const expression<Container1, T, Rank> &y)
+  ternary_op_expr(
+      const abstract_tensor<BoolExpr, typename BoolExpr::value_type,
+                            BoolExpr::rank> &condition,
+      const T &x,
+      const abstract_tensor<Expr, typename Expr::value_type, Expr::rank> &y)
       : m_cond(condition.self()), m_true(x), m_false(y.self()),
         m_shape(broadcast_shapes(condition.shape(), y.shape())),
         m_size(m_shape.prod()) {}
@@ -325,13 +323,10 @@ public:
 
   /// Indexing.
 
-  T operator[](const index_type &index) const {
-    index_type i, j;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (m_cond.shape(axis) > 1) ? index[axis] : 0;
-      j[axis] = (m_false.shape(axis) > 1) ? index[axis] : 0;
-    }
-    return m_cond[i] ? m_true : m_false[j];
+  value_type operator[](const index_type &index) const {
+    return m_cond[detail::broadcast_index(index, m_cond.shape())]
+               ? m_true
+               : m_false[detail::broadcast_index(index, m_false.shape())];
   }
 
   const shape_type &shape() const { return m_shape; }
@@ -347,27 +342,28 @@ public:
  * @brief Partial specialization when both true and false arguments are values.
  * Values are broadcasted to an appropriate shape.
  */
-template <class Container, class T, size_t Rank>
-class ternary_op_expr<Container, void, void, T, Rank>
-    : public expression<ternary_op_expr<Container, void, void, T, Rank>, T,
-                        Rank> {
+template <class BoolExpr, class T>
+class ternary_op_expr<BoolExpr, detail::identity<T>, detail::identity<T>>
+    : public abstract_tensor<
+          ternary_op_expr<BoolExpr, detail::identity<T>, detail::identity<T>>,
+          T, BoolExpr::rank> {
 public:
   /// Member types.
   typedef T value_type;
-  static constexpr size_t rank = Rank;
+  static constexpr size_t rank = BoolExpr::rank;
   typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<const ternary_op_expr<Container, void, void, T, Rank>,
-                        value_type, rank, pointer, reference>
+  typedef value_type reference;
+  typedef flat_iterator<
+      const ternary_op_expr<BoolExpr, detail::identity<T>, detail::identity<T>>>
       iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Condition tensor argument.
-  const Container &m_cond;
+  const BoolExpr &m_cond;
 
   // True argument.
   T m_true;
@@ -378,7 +374,8 @@ private:
 public:
   /// Constructors.
 
-  ternary_op_expr(const expression<Container, bool, Rank> &condition,
+  ternary_op_expr(const abstract_tensor<BoolExpr, typename BoolExpr::value_type,
+                                        BoolExpr::rank> &condition,
                   const T &x, const T &y)
       : m_cond(condition.self()), m_true(x), m_false(y) {}
 
@@ -399,7 +396,7 @@ public:
 
   /// Indexing.
 
-  T operator[](const index_type &index) const {
+  value_type operator[](const index_type &index) const {
     return m_cond[index] ? m_true : m_false;
   }
 

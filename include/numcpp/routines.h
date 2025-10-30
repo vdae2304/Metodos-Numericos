@@ -59,7 +59,7 @@ tensor<T, Rank> empty(const shape_t<Rank> &shape) {
 /**
  * @brief Return a new tensor with the same shape and type as a given tensor.
  *
- * @param like Tensor-like object defining the shape and data type.
+ * @param like An abstract tensor defining the shape and data type.
  *
  * @return A tensor of uninitialized data with the same shape and type as
  *         @a like.
@@ -67,8 +67,8 @@ tensor<T, Rank> empty(const shape_t<Rank> &shape) {
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> empty_like(const expression<Container, T, Rank> &like) {
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> empty_like(const abstract_tensor<Expr, T, Rank> &like) {
   return tensor<T, Rank>(like.shape());
 }
 
@@ -98,14 +98,14 @@ const_expr<T, Rank> zeros(const shape_t<Rank> &shape) {
  * @brief Return a tensor of zeros with the same shape and type as a given
  * tensor.
  *
- * @param like Tensor-like object defining the shape and data type.
+ * @param like An abstract tensor defining the shape and data type.
  *
  * @return A tensor of zeros with the same shape and type as @a like. This
  *         function does not create a new tensor, instead, an expression object
  *         is returned.
  */
-template <class Container, class T, size_t Rank>
-const_expr<T, Rank> zeros_like(const expression<Container, T, Rank> &like) {
+template <class Expr, class T, size_t Rank>
+const_expr<T, Rank> zeros_like(const abstract_tensor<Expr, T, Rank> &like) {
   return const_expr<T, Rank>(like.shape(), T());
 }
 
@@ -135,14 +135,14 @@ const_expr<T, Rank> ones(const shape_t<Rank> &shape) {
  * @brief Return a tensor of ones with the same shape and type as a given
  * tensor.
  *
- * @param like Tensor-like object defining the shape and data type.
+ * @param like An abstract tensor defining the shape and data type.
  *
  * @return A tensor of ones with the same shape and type as @a like. This
  *         function does not create a new tensor, instead, an expression object
  *         is returned.
  */
-template <class Container, class T, size_t Rank>
-const_expr<T, Rank> ones_like(const expression<Container, T, Rank> &like) {
+template <class Expr, class T, size_t Rank>
+const_expr<T, Rank> ones_like(const abstract_tensor<Expr, T, Rank> &like) {
   return const_expr<T, Rank>(like.shape(), T(1));
 }
 
@@ -164,16 +164,16 @@ const_expr<T, Rank> full(const shape_t<Rank> &shape, const T &val) {
  * @brief Return a tensor filled with @a val with the same shape and type as a
  * given tensor.
  *
- * @param like Tensor-like object defining the shape and data type.
+ * @param like An abstract tensor defining the shape and data type.
  * @param val Fill value.
  *
  * @return A tensor of @a val with the same shape and type as @a like. This
  *         function does not create a new tensor, instead, an expression object
  *         is returned.
  */
-template <class Container, class T, size_t Rank>
-const_expr<T, Rank> full_like(const expression<Container, T, Rank> &like,
-                              const typename Container::value_type &val) {
+template <class Expr, class T, size_t Rank>
+const_expr<T, Rank> full_like(const abstract_tensor<Expr, T, Rank> &like,
+                              const typename detail::identity<T>::type &val) {
   return const_expr<T, Rank>(like.shape(), val);
 }
 
@@ -321,10 +321,10 @@ identity_expr<T> eye(size_t m, size_t n, ptrdiff_t k = 0) {
  *         function does not create a new tensor, instead, an expression object
  *         is returned.
  */
-template <class Container, class T, size_t Rank>
-diagonal_expr<Container, T, Rank> diag(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+diagonal_expr<Expr, T, Rank> diag(const abstract_tensor<Expr, T, Rank> &a,
                                        ptrdiff_t k = 0) {
-  return diagonal_expr<Container, T, Rank>(a, k);
+  return diagonal_expr<Expr, T, Rank>(a, k);
 }
 
 /**
@@ -341,10 +341,10 @@ diagonal_expr<Container, T, Rank> diag(const expression<Container, T, Rank> &a,
  *         instead, an expression object is returned with the elements above the
  *         @a k -th diagonal zeroed.
  */
-template <class Container, class T, size_t Rank>
-triangular_expr<Container, T, Rank>
-tril(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
-  return triangular_expr<Container, T, Rank>(a, true, k);
+template <class Expr, class T, size_t Rank>
+triangular_expr<Expr, T, Rank>
+tril(const abstract_tensor<Expr, T, Rank> &a, ptrdiff_t k = 0) {
+  return triangular_expr<Expr, T, Rank>(a, true, k);
 }
 
 /**
@@ -361,10 +361,10 @@ tril(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
  *         instead, an expression object is returned with the elements below the
  *         @a k -th diagonal zeroed.
  */
-template <class Container, class T, size_t Rank>
-triangular_expr<Container, T, Rank>
-triu(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
-  return triangular_expr<Container, T, Rank>(a, false, k);
+template <class Expr, class T, size_t Rank>
+triangular_expr<Expr, T, Rank>
+triu(const abstract_tensor<Expr, T, Rank> &a, ptrdiff_t k = 0) {
+  return triangular_expr<Expr, T, Rank>(a, false, k);
 }
 
 /**
@@ -385,11 +385,11 @@ triu(const expression<Container, T, Rank> &a, ptrdiff_t k = 0) {
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T>
-tensor<T, 2> vander(const expression<Container, T, 1> &x);
+template <class Expr, class T>
+tensor<T, 2> vander(const abstract_tensor<Expr, T, 1> &x);
 
-template <class Container, class T>
-tensor<T, 2> vander(const expression<Container, T, 1> &x, size_t N,
+template <class Expr, class T>
+tensor<T, 2> vander(const abstract_tensor<Expr, T, 1> &x, size_t N,
                     bool increasing = false);
 
 /// Maximums and minimums.
@@ -403,8 +403,8 @@ tensor<T, 2> vander(const expression<Container, T, 1> &x, size_t N,
  *         occurrences of the maximum value, return the index corresponding to
  *         the first occurrence.
  */
-template <class Container, class T, size_t Rank>
-index_t<Rank> argmax(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+index_t<Rank> argmax(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the indices of the maximum value in the tensor along the given
@@ -422,16 +422,16 @@ index_t<Rank> argmax(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis);
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argmax(const abstract_tensor<Expr, T, Rank> &a,
                             const shape_t<1> &axis, keepdims_t);
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmax(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis, dropdims_t);
 
 /**
@@ -443,8 +443,8 @@ tensor<size_t, Rank - 1> argmax(const expression<Container, T, Rank> &a,
  *         occurrences of the minimum value, return the index corresponding to
  *         the first occurrence.
  */
-template <class Container, class T, size_t Rank>
-index_t<Rank> argmin(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+index_t<Rank> argmin(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the indices of the minimum value in the tensor along the given
@@ -462,16 +462,16 @@ index_t<Rank> argmin(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis);
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argmin(const abstract_tensor<Expr, T, Rank> &a,
                             const shape_t<1> &axis, keepdims_t);
 
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank - 1> argmin(const abstract_tensor<Expr, T, Rank> &a,
                                 const shape_t<1> &axis, dropdims_t);
 
 /**
@@ -481,8 +481,8 @@ tensor<size_t, Rank - 1> argmin(const expression<Container, T, Rank> &a,
  *
  * @return The maximum value in the tensor.
  */
-template <class Container, class T, size_t Rank>
-T amax(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T amax(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the maximum value contained in the tensor over the given axes.
@@ -499,16 +499,16 @@ T amax(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> amax(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amax(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -518,8 +518,8 @@ tensor<T, Rank - N> amax(const expression<Container, T, Rank> &a,
  *
  * @return The minimum value in the tensor.
  */
-template <class Container, class T, size_t Rank>
-T amin(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T amin(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the minimum value contained in the tensor over the given axes.
@@ -536,16 +536,16 @@ T amin(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> amin(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> amin(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> amin(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -571,17 +571,17 @@ maximum(const expression<Container1, T, Rank> &a,
   return binary_expr<ranges::maximum, Container1, T, Container2, T, Rank>(a, b);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::maximum, Container, T, void, T, Rank>
-maximum(const expression<Container, T, Rank> &a,
-        const typename Container::value_type &val) {
+maximum(const abstract_tensor<Expr, T, Rank> &a,
+        const typename detail::identity<T>::type &val) {
   binary_expr<ranges::maximum, Container, T, void, T, Rank>(a, val);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::maximum, void, T, Container, T, Rank>
-maximum(const typename Container::value_type &val,
-        const expression<Container, T, Rank> &b) {
+maximum(const typename detail::identity<T>::type &val,
+        const abstract_tensor<Expr, T, Rank> &b) {
   return binary_expr<ranges::maximum, void, T, Container, T, Rank>(val, b);
 }
 
@@ -608,17 +608,17 @@ minimum(const expression<Container1, T, Rank> &a,
   return binary_expr<ranges::minimum, Container1, T, Container2, T, Rank>(a, b);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::minimum, Container, T, void, T, Rank>
-minimum(const expression<Container, T, Rank> &a,
-        const typename Container::value_type &val) {
+minimum(const abstract_tensor<Expr, T, Rank> &a,
+        const typename detail::identity<T>::type &val) {
   binary_expr<ranges::minimum, Container, T, void, T, Rank>(a, val);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::minimum, void, T, Container, T, Rank>
-minimum(const typename Container::value_type &val,
-        const expression<Container, T, Rank> &b) {
+minimum(const typename detail::identity<T>::type &val,
+        const abstract_tensor<Expr, T, Rank> &b) {
   return binary_expr<ranges::minimum, void, T, Container, T, Rank>(val, b);
 }
 
@@ -639,11 +639,11 @@ minimum(const typename Container::value_type &val,
  *
  * @note The behavior is undefined if @a a_min is greater than @a a_max.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 unary_expr<ranges::clamp<T>, Container, T, Rank>
-clamp(const expression<Container, T, Rank> &a,
-      const typename Container::value_type &a_min,
-      const typename Container::value_type &a_max) {
+clamp(const abstract_tensor<Expr, T, Rank> &a,
+      const typename detail::identity<T>::type &a_min,
+      const typename detail::identity<T>::type &a_max) {
   return unary_expr<ranges::clamp<T>, Container, T, Rank>(
       ranges::clamp<T>(a_min, a_max), a);
 }
@@ -657,8 +657,8 @@ clamp(const expression<Container, T, Rank> &a,
  *
  * @return The sum of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T sum(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T sum(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the sum of the tensor elements over the given axes.
@@ -675,16 +675,16 @@ T sum(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> sum(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> sum(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -694,8 +694,8 @@ tensor<T, Rank - N> sum(const expression<Container, T, Rank> &a,
  *
  * @return The product of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T prod(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T prod(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the product of the tensor elements over the given axes.
@@ -712,16 +712,16 @@ T prod(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> prod(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> prod(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -736,8 +736,8 @@ tensor<T, Rank - N> prod(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> cumsum(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> cumsum(const abstract_tensor<Expr, T, Rank> &a,
                        size_t axis = 0);
 
 /**
@@ -754,8 +754,8 @@ tensor<T, Rank> cumsum(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> cumprod(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> cumprod(const abstract_tensor<Expr, T, Rank> &a,
                         size_t axis = 0);
 
 /// Logic functions.
@@ -841,8 +841,8 @@ tensor<bool, Rank - N> any(const expression<Container, bool, Rank> &a,
  *
  * @return The number of non-zero elements.
  */
-template <class Container, class T, size_t Rank>
-size_t count_nonzero(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+size_t count_nonzero(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Count the number of non-zero elements over the given axes.
@@ -859,16 +859,16 @@ size_t count_nonzero(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                        const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                    const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<size_t, Rank - N> count_nonzero(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<size_t, Rank - N> count_nonzero(const abstract_tensor<Expr, T, Rank> &a,
                                        const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -950,10 +950,10 @@ isclose(const expression<Container1, T, Rank> &a,
   return binary_expr<Closure, Container1, T, Container2, T, Rank>(f, a, b);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::isclose<T>, Container, T, void, T, Rank>
-isclose(const expression<Container, T, Rank> &a,
-        const typename Container::value_type &val,
+isclose(const abstract_tensor<Expr, T, Rank> &a,
+        const typename detail::identity<T>::type &val,
         const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
         const typename detail::complex_traits<T>::value_type &atol = 0) {
   typedef ranges::isclose<T> Closure;
@@ -961,10 +961,10 @@ isclose(const expression<Container, T, Rank> &a,
   return binary_expr<Closure, Container, T, void, T, Rank>(f, a, val);
 }
 
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 binary_expr<ranges::isclose<T>, void, T, Container, T, Rank>
-isclose(const typename Container::value_type &val,
-        const expression<Container, T, Rank> &b,
+isclose(const typename detail::identity<T>::type &val,
+        const abstract_tensor<Expr, T, Rank> &b,
         const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
         const typename detail::complex_traits<T>::value_type &atol = 0) {
   typedef ranges::isclose<T> Closure;
@@ -996,17 +996,17 @@ bool allclose(const expression<Container1, T, Rank> &a,
   return all(isclose(a, b, rtol, atol));
 }
 
-template <class Container, class T, size_t Rank>
-bool allclose(const expression<Container, T, Rank> &a,
-              const typename Container::value_type &val,
+template <class Expr, class T, size_t Rank>
+bool allclose(const abstract_tensor<Expr, T, Rank> &a,
+              const typename detail::identity<T>::type &val,
               const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
               const typename detail::complex_traits<T>::value_type &atol = 0) {
   return all(isclose(a, val, rtol, atol));
 }
 
-template <class Container, class T, size_t Rank>
-bool allclose(const typename Container::value_type &val,
-              const expression<Container, T, Rank> &b,
+template <class Expr, class T, size_t Rank>
+bool allclose(const typename detail::identity<T>::type &val,
+              const abstract_tensor<Expr, T, Rank> &b,
               const typename detail::complex_traits<T>::value_type &rtol = 1e-8,
               const typename detail::complex_traits<T>::value_type &atol = 0) {
   return all(isclose(val, b, atol, rtol));
@@ -1033,12 +1033,12 @@ bool allclose(const typename Container::value_type &val,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argsort(const abstract_tensor<Expr, T, Rank> &a);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a,
+tensor<index_t<Rank>, 1> argsort(const abstract_tensor<Expr, T, Rank> &a,
                                  Compare comp, bool stable = false);
 
 /**
@@ -1062,13 +1062,13 @@ tensor<index_t<Rank>, 1> argsort(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argsort(const abstract_tensor<Expr, T, Rank> &a,
                              size_t axis);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
+tensor<size_t, Rank> argsort(const abstract_tensor<Expr, T, Rank> &a,
                              size_t axis, Compare comp, bool stable = false);
 
 /**
@@ -1088,12 +1088,12 @@ tensor<size_t, Rank> argsort(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, 1> sort(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> sort(const abstract_tensor<Expr, T, Rank> &a);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<T, 1> sort(const expression<Container, T, Rank> &a, Compare comp,
+tensor<T, 1> sort(const abstract_tensor<Expr, T, Rank> &a, Compare comp,
                   bool stable = false);
 
 /**
@@ -1114,12 +1114,12 @@ tensor<T, 1> sort(const expression<Container, T, Rank> &a, Compare comp,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis);
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> sort(const abstract_tensor<Expr, T, Rank> &a, size_t axis);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis,
+tensor<T, Rank> sort(const abstract_tensor<Expr, T, Rank> &a, size_t axis,
                      Compare comp, bool stable = false);
 
 /**
@@ -1143,13 +1143,13 @@ tensor<T, Rank> sort(const expression<Container, T, Rank> &a, size_t axis,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                       size_t kth);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
+tensor<index_t<Rank>, 1> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                       size_t kth, Compare comp);
 
 /**
@@ -1176,13 +1176,13 @@ tensor<index_t<Rank>, 1> argpartition(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<size_t, Rank> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                   size_t kth, size_t axis);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
+tensor<size_t, Rank> argpartition(const abstract_tensor<Expr, T, Rank> &a,
                                   size_t kth, size_t axis, Compare comp);
 
 /**
@@ -1204,12 +1204,12 @@ tensor<size_t, Rank> argpartition(const expression<Container, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth);
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth,
+tensor<T, 1> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                        Compare comp);
 
 /**
@@ -1232,13 +1232,13 @@ tensor<T, 1> partition(const expression<Container, T, Rank> &a, size_t kth,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                           size_t axis);
 
-template <class Container, class T, size_t Rank, class Compare,
+template <class Expr, class T, size_t Rank, class Compare,
           detail::RequiresCallable<Compare, T, T> = 0>
-tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
+tensor<T, Rank> partition(const abstract_tensor<Expr, T, Rank> &a, size_t kth,
                           size_t axis, Compare comp);
 
 /**
@@ -1252,8 +1252,8 @@ tensor<T, Rank> partition(const expression<Container, T, Rank> &a, size_t kth,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<index_t<Rank>, 1> nonzero(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+tensor<index_t<Rank>, 1> nonzero(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return elements chosen from two tensors depending on @a condition.
@@ -1306,7 +1306,7 @@ where(const expression<Container, bool, Rank> &condition,
   return ternary_op_expr<Container, void, Container1, T, Rank>(condition, x, y);
 }
 
-template <class Container, class T, size_t Rank, detail::RequiresScalar<T> = 0>
+template <class Expr, class T, size_t Rank, detail::RequiresScalar<T> = 0>
 ternary_op_expr<Container, void, void, T, Rank>
 where(const expression<Container, bool, Rank> &condition, const T &x,
       const T &y) {
@@ -1327,15 +1327,15 @@ where(const expression<Container, bool, Rank> &condition, const T &x,
  *         expression object is returned with the elements of the tensor in
  *         reversed order.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 reverse_expr<Container, T, Rank, 1>
-reverse(const expression<Container, T, Rank> &a, size_t axis = Rank - 1) {
+reverse(const abstract_tensor<Expr, T, Rank> &a, size_t axis = Rank - 1) {
   return reverse_expr<Container, T, Rank, 1>(a, axis);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
+template <class Expr, class T, size_t Rank, size_t N>
 reverse_expr<Container, T, Rank, N>
-reverse(const expression<Container, T, Rank> &a, const shape_t<N> &axes) {
+reverse(const abstract_tensor<Expr, T, Rank> &a, const shape_t<N> &axes) {
   return reverse_expr<Container, T, Rank, N>(a, axes);
 }
 
@@ -1355,16 +1355,16 @@ reverse(const expression<Container, T, Rank> &a, const shape_t<N> &axes) {
  *         expression object is returned with the elements of the tensor shifted
  *         circularly.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 rotate_expr<Container, T, Rank, 1>
-rotate(const expression<Container, T, Rank> &a, size_t shift,
+rotate(const abstract_tensor<Expr, T, Rank> &a, size_t shift,
        size_t axis = Rank - 1) {
   return rotate_expr<Container, T, Rank, 1>(a, shift, axis);
 }
 
-template <class Container, class T, size_t Rank, size_t N>
+template <class Expr, class T, size_t Rank, size_t N>
 rotate_expr<Container, T, Rank, N>
-rotate(const expression<Container, T, Rank> &a, const index_t<N> &shift,
+rotate(const abstract_tensor<Expr, T, Rank> &a, const index_t<N> &shift,
        const shape_t<N> &axes) {
   return rotate_expr<Container, T, Rank, N>(a, shift, axes);
 }
@@ -1385,8 +1385,8 @@ rotate(const expression<Container, T, Rank> &a, const index_t<N> &shift,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank>
-tensor<T, 1> unique(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> unique(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Test whether a value is present in a tensor.
@@ -1399,7 +1399,7 @@ tensor<T, 1> unique(const expression<Container, T, Rank> &a);
  */
 template <class Container, class T>
 bool contains(const expression<Container, T, 1> &a,
-              const typename Container::value_type &val);
+              const typename detail::identity<T>::type &val);
 
 /**
  * @brief Test whether all the elements in a tensor are also present in another
@@ -1498,8 +1498,8 @@ tensor<T, 1> set_symmetric_difference(const expression<Container1, T, 1> &a,
  *
  * @return The average of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T mean(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T mean(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the average of the tensor elements over the given axes.
@@ -1516,16 +1516,16 @@ T mean(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> mean(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> mean(const abstract_tensor<Expr, T, Rank> &a,
                          const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -1539,8 +1539,8 @@ tensor<T, Rank - N> mean(const expression<Container, T, Rank> &a,
  *
  * @return The median of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T median(const expression<Container, T, Rank> &a);
+template <class Expr, class T, size_t Rank>
+T median(const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return the median of the tensor elements over the given axes.
@@ -1557,16 +1557,16 @@ T median(const expression<Container, T, Rank> &a);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> median(const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> median(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t);
 
 /**
@@ -1587,8 +1587,8 @@ tensor<T, Rank - N> median(const expression<Container, T, Rank> &a,
  *
  * @return The variance of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T var(const expression<Container, T, Rank> &a, bool bias = true);
+template <class Expr, class T, size_t Rank>
+T var(const abstract_tensor<Expr, T, Rank> &a, bool bias = true);
 
 /**
  * @brief Return the variance of the tensor elements over the given axes.
@@ -1607,16 +1607,16 @@ T var(const expression<Container, T, Rank> &a, bool bias = true);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, bool bias = true);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> var(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<N> &axes, bool bias, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> var(const abstract_tensor<Expr, T, Rank> &a,
                         const shape_t<N> &axes, bool bias, dropdims_t);
 
 /**
@@ -1637,8 +1637,8 @@ tensor<T, Rank - N> var(const expression<Container, T, Rank> &a,
  *
  * @return The standard deviation of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T stddev(const expression<Container, T, Rank> &a, bool bias = true);
+template <class Expr, class T, size_t Rank>
+T stddev(const abstract_tensor<Expr, T, Rank> &a, bool bias = true);
 
 /**
  * @brief Return the standard deviation of the tensor elements over the given
@@ -1658,16 +1658,16 @@ T stddev(const expression<Container, T, Rank> &a, bool bias = true);
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, bool bias = true);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> stddev(const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, bool bias, keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> stddev(const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, bool bias, dropdims_t);
 
 /**
@@ -1691,8 +1691,8 @@ tensor<T, Rank - N> stddev(const expression<Container, T, Rank> &a,
  *
  * @return The q-th quantile of the tensor elements.
  */
-template <class Container, class T, size_t Rank>
-T quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank>
+T quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
            const std::string &method = "linear");
 
 /**
@@ -1714,18 +1714,18 @@ T quantile(const expression<Container, T, Rank> &a, double q,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                              const shape_t<N> &axes,
                              const std::string &method = "linear");
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                          const shape_t<N> &axes, const std::string &method,
                          keepdims_t);
 
-template <class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N> quantile(const expression<Container, T, Rank> &a, double q,
+template <class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> quantile(const abstract_tensor<Expr, T, Rank> &a, double q,
                              const shape_t<N> &axes, const std::string &method,
                              dropdims_t);
 

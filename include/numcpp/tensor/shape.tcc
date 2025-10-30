@@ -193,6 +193,19 @@ shape_t<Rank - 1> remove_axes(const shape_t<Rank> &shape, size_t axis) {
 }
 
 /**
+ * @brief Broadcast an index to match output shape.
+ */
+template <size_t Rank>
+index_t<Rank> broadcast_index(index_t<Rank> index, const shape_t<Rank> &shape) {
+  for (size_t i = 0; i < Rank; ++i) {
+    if (shape[i] == 1) {
+      index[i] = 0;
+    }
+  }
+  return index;
+}
+
+/**
  * @brief Broadcast input shapes into a common shape.
  */
 template <size_t Rank> void broadcast_shapes_impl(shape_t<Rank> &) {}
