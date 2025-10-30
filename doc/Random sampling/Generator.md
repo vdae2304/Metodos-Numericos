@@ -1,4 +1,4 @@
-# Generator
+# [Generator](readme.md)
 
 Defined in header [`numcpp/random.h`](/include/numcpp/random.h)
 
