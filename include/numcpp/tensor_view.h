@@ -1,5 +1,5 @@
 /*
- * File: include/numcpp/tensor.h
+ * File: include/numcpp/tensor_view.h
  * Repository: https://github.com/vdae2304/Metodos-Numericos
  * 
  * Copyright (C) 2026 vdae2304
@@ -18,8 +18,8 @@
  * this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NUMCPP_TENSOR_H_INCLUDED
-#define NUMCPP_TENSOR_H_INCLUDED
+#ifndef NUMCPP_TENSOR_VIEW_H_INCLUDED
+#define NUMCPP_TENSOR_VIEW_H_INCLUDED
 
 #if __cplusplus < 201103L
 #error This file requires compiler and library support for the ISO C++ 2011 \
@@ -28,38 +28,30 @@ compiler options.
 #else
 
 #include "numcpp/shape.h"
-#include "numcpp/classes/slice.h"
 #include "numcpp/classes/dense_tensor.h"
-#include "numcpp/tensor_view.h"
 #include "numcpp/classes/indirect_tensor.h"
 #include "numcpp/classes/mask_tensor.h"
 #include "numcpp/expressions/unary_expr.h"
 #include "numcpp/expressions/binary_expr.h"
 
-#include <algorithm>
-
 namespace numcpp {
 /**
- * @brief Tensors are contiguous multidimensional sequence containers: they
- * hold a variable number of elements arranged in multiple axes. Unlike
- * @ref tensor_view, @ref tensor is always owner of its own data, which means
- * that the storage of the tensor is handled automatically.
- *
- * Tensors are designed to easily perform mathematical operations on them. Most
- * mathematical operations can be applied directly to tensor objects, including
- * arithmetic and comparison operators, affecting all its elements. It also
- * supports various forms of generalized subscript operators, slicing and
- * indirect access.
+ * @brief A @ref tensor_view is a view of a multidimensional array. It
+ * references the elements in the original array. The view itself does not own
+ * the data and any changes made to the view will affect the original array, and
+ * any changes made to the original array will affect the view.
  *
  * @tparam T Type of the elements contained in the tensor. This shall be an
  * arithmetic type or a class that behaves like one (such as @ref std::complex).
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
+class tensor_view
+    : public dense_tensor<tensor_view<T, Rank>,
+                          typename std::remove_cv<T>::type, Rank> {
 public:
   /// Member types.
-  typedef T value_type;
+  typedef typename std::remove_cv<T>::type value_type;
   static constexpr size_t rank = Rank;
   typedef T &reference;
   typedef const T &const_reference;
@@ -73,156 +65,73 @@ public:
   /// Constructors.
 
   /**
-   * @brief Default constructor. Constructs an empty tensor with no elements.
+   * @brief Default constructor. Constructs a tensor_view that does not
+   * reference any object.
    */
-  tensor() : m_shape{}, m_size(0), m_data(nullptr), m_layout(default_layout) {}
+  tensor_view() : m_shape{}, m_size(0), m_data(nullptr), m_stride{} {}
 
   /**
-   * @brief Size constructor. Constructs a tensor with given shape, each element
-   * is left uninitialized.
+   * @brief View constructor. Constructs a @ref tensor_view that references the
+   * elements of a multidimensional array.
    *
+   * @param data Pointer to the memory array used by the @ref tensor_view.
    * @param shape Number of elements along each axis. It can be a @ref shape_t
    * object or the elements of the shape passed as separate arguments.
    * @param layout Memory layout in which elements are stored. If set to
    * @ref layout_right, the last dimension is contiguous. If set to
    * @ref layout_left, the first dimension is contiguous. Defaults to
    * @ref default_layout.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   * throw an exception.
    */
   template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
-  explicit tensor(Sizes... sizes)
+  tensor_view(T* data, Sizes... sizes)
       : m_shape{static_cast<size_type>(sizes)...},
         m_size(m_shape.prod()),
-        m_data(new T[m_size]),
-        m_layout(default_layout) {}
+        m_data(data),
+        m_stride(make_strides(m_shape)) {}
 
-  explicit tensor(const shape_type& shape, layout_t layout = default_layout)
+  tensor_view(T* data, const shape_type& shape,
+              layout_t layout = default_layout)
       : m_shape(shape),
         m_size(shape.prod()),
-        m_data(new T[m_size]),
-        m_layout(layout) {}
+        m_data(data),
+        m_stride(make_strides(shape, layout)) {}
 
   /**
-   * @brief Fill constructor. Constructs a tensor with given shape, each element
-   * initialized to val.
+   * @brief Stride constructor. Constructs a @ref tensor_view that references a
+   * subset of elements from a multidimensional array.
    *
+   * @param data Pointer to the memory array used by the @ref tensor_view.
    * @param shape Number of elements along each axis.
-   * @param val Value to which each of the elements is initialized.
-   * @param layout Memory layout in which elements are stored. If set to
-   * @ref layout_right, the last dimension is contiguous. If set to
-   * @ref layout_left, the first dimension is contiguous. Defaults to
-   * @ref default_layout.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   * throw an exception.
+   * @param strides Span that separates the selected elements along each axis.
    */
-  tensor(const shape_type& shape, const T& val,
-         layout_t layout = default_layout)
-      : tensor(shape, layout) {
-    std::fill_n(m_data, m_size, val);
-  }
+  tensor_view(T* data, const shape_type& shape, const index_type& strides)
+      : m_shape(shape),
+        m_size(shape.prod()),
+        m_data(data),
+        m_stride(strides) {}
 
   /**
-   * @brief Range constructor. Constructs a tensor with given shape, with each
-   * element constructed from its corresponding element in the range starting at
-   * first, in the same order.
+   * @brief Copy constructor. Constructs a tensor_view as a copy of @ref other.
    *
-   * @param first Input iterator to the initial position in a range.
-   * @param shape Number of elements along each axis. It can be a @ref shape_t
-   * object or the elements of the shape passed as separate arguments.
-   * @param layout Memory layout in which elements are stored. If set to
-   * @ref layout_right, the last dimension is contiguous. If set to
-   * @ref layout_left, the first dimension is contiguous. Defaults to
-   * @ref default_layout.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   * throw an exception.
+   * @param other A @ref tensor_view of the same type and rank.
    */
-  template <class InputIterator, class... Sizes,
-            detail::RequiresInputIterator<InputIterator> = 0,
-            detail::RequiresNIntegers<Rank, Sizes...> = 0>
-  tensor(InputIterator first, Sizes... sizes) : tensor(sizes...) {
-    std::copy_n(first, m_size, m_data);
-  }
-
-  template <class InputIterator,
-            detail::RequiresInputIterator<InputIterator> = 0>
-  tensor(InputIterator first, const shape_type& shape,
-         layout_t layout = default_layout)
-      : tensor(shape, layout) {
-    std::copy_n(first, m_size, m_data);
-  }
-
-  /**
-   * @brief Copy constructor. Constructs a tensor with a copy of each of the
-   * elements in other, in the same order.
-   *
-   * @param other An abstract tensor of the same rank.
-   * @param layout Memory layout in which elements are stored. If set to
-   * @ref layout_right, the last dimension is contiguous. If set to
-   * @ref layout_left, the first dimension is contiguous. Defaults to the same
-   * layout as *this.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   * throw an exception.
-   */
-  tensor(const tensor& other) : tensor(other.m_shape, other.m_layout) {
-    std::copy_n(other.m_data, m_size, m_data);
-  }
-
-  template <class Expr, class U>
-  tensor(const abstract_tensor<Expr, U, Rank>& other)
-      : tensor(other, other.self().layout()) {}
-
-  template <class Expr, class U>
-  tensor(const abstract_tensor<Expr, U, Rank>& other, layout_t layout)
-      : tensor(other.self().shape(), layout) {
-    dense_tensor<tensor, T, Rank>::operator=(other);
-  }
-
-  /**
-   * @brief Move constructor. Constructs a tensor that acquires the elements of
-   * other.
-   *
-   * @param other A tensor of the same type and rank. The ownership is directly
-   * transferred from other. other is left in an empty state.
-   */
-  tensor(tensor&& other)
-      : m_shape(other.m_shape),
-        m_size(other.m_size),
-        m_data(other.m_data),
-        m_layout(other.m_layout) {
-    other.m_shape = shape_type();
-    other.m_size = 0;
-    other.m_data = nullptr;
-    other.m_layout = default_layout;
-  }
-
-  /**
-   * @brief Initializer list constructor. Constructs a tensor with a copy of
-   * each of the elements in @a il, in the same order.
-   *
-   * @param il An initializer_list object.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   * throw an exception.
-   */
-  tensor(typename detail::nested_initializer_list<T, Rank>::type il);
+  tensor_view(const tensor_view& other) = default;
+  tensor_view(tensor_view&& other) = default;
 
   /// Destructor.
-  ~tensor() { delete[] m_data; }
+  ~tensor_view() = default;
 
   /// Indexing.
 
   /**
    * @brief Call operator. Return a reference to the element at the given
-   * position.
+   * position. The elements in a @ref tensor_view are given by
+   *     data[index[0]*stride[0] + ... + index[rank-1]*stride[rank-1]]
+   * where data is the memory array.
    *
    * @param indices... Position of an element along each axis.
    *
-   * @return The element at the specified position. If the tensor is
+   * @return The element at the specified position. If the @ref tensor_view is
    * const-qualified, the function returns a reference to const T. Otherwise, it
    * returns a reference to T.
    *
@@ -245,21 +154,29 @@ public:
    * position.
    *
    * @param index An @ref index_t object with the position of an element in the
-   * tensor. Since C++23, the elements of the index can be passed as separate
-   * arguments.
+   * @ref tensor_view. Since C++23, the elements of the index can be passed as
+   * separate arguments.
    *
-   * @return The element at the specified position. If the tensor is
+   * @return The element at the specified position. If the @ref tensor_view is
    * const-qualified, the function returns a reference to const T. Otherwise, it
    * returns a reference to T.
    *
    * @note Undefined behaviour if index is out of bounds.
    */
   T& operator[](const index_type& index) {
-    return m_data[ravel_index(index, m_shape, m_layout)];
+    difference_type offset = 0;
+    for (size_t i = 0; i < Rank; ++i) {
+      offset += index[i] * m_stride[i];
+    }
+    return m_data[offset];
   }
 
   const T& operator[](const index_type& index) const {
-    return m_data[ravel_index(index, m_shape, m_layout)];
+    difference_type offset = 0;
+    for (size_t i = 0; i < Rank; ++i) {
+      offset += index[i] * m_stride[i];
+    }
+    return m_data[offset];
   }
 
 #ifdef __cpp_multidimensional_subscript
@@ -293,28 +210,12 @@ public:
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
             detail::RequiresSlicing<Indices...> = 0>
   tensor_view<T, detail::slicing_rank<Indices...>::value> operator()(
-      const Indices&... indices) {
-    constexpr size_t N = detail::slicing_rank<Indices...>::value;
-    index_type m_stride = make_strides(m_shape, m_layout);
-    shape_t<N> shape;
-    index_t<N> strides;
-    ptrdiff_t offset = __unpack_slices(m_shape, m_stride, shape.data(),
-                                       strides.data(), indices...);
-    return tensor_view<T, N>(m_data + offset, shape, strides);
-  }
+      const Indices&... indices);
 
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
             detail::RequiresSlicing<Indices...> = 0>
   tensor_view<const T, detail::slicing_rank<Indices...>::value> operator()(
-      const Indices&... indices) const {
-    constexpr size_t N = detail::slicing_rank<Indices...>::value;
-    index_type m_stride = make_strides(m_shape, m_layout);
-    shape_t<N> shape;
-    index_t<N> strides;
-    ptrdiff_t offset = __unpack_slices(m_shape, m_stride, shape.data(),
-                                       strides.data(), indices...);
-    return tensor_view<const T, N>(m_data + offset, shape, strides);
-  }
+      const Indices&... indices) const;
 
 #ifdef __cpp_multidimensional_subscript
   template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
@@ -343,15 +244,15 @@ public:
    * original tensor.
    */
   template <class IndexExpr, size_t N>
-  indirect_tensor<tensor, IndexExpr> operator[](
+  indirect_tensor<tensor_view, IndexExpr> operator[](
       const abstract_tensor<IndexExpr, index_type, N>& indices) {
-    return indirect_tensor<tensor, IndexExpr>(*this, indices.self());
+    return indirect_tensor<tensor_view, IndexExpr>(*this, indices.self());
   }
 
   template <class IndexExpr, size_t N>
-  indirect_tensor<const tensor, IndexExpr> operator[](
+  indirect_tensor<const tensor_view, IndexExpr> operator[](
       const abstract_tensor<IndexExpr, index_type, N>& indices) const {
-    return indirect_tensor<const tensor, IndexExpr>(*this, indices.self());
+    return indirect_tensor<const tensor_view, IndexExpr>(*this, indices.self());
   }
 
   /**
@@ -369,96 +270,95 @@ public:
    * it may throw an exception.
    */
   template <class MaskExpr>
-  mask_tensor<tensor, MaskExpr>
+  mask_tensor<tensor_view, MaskExpr>
   operator[](const abstract_tensor<MaskExpr, bool, Rank> &mask) {
-    return mask_tensor<tensor, MaskExpr>(*this, mask.self());
+    return mask_tensor<tensor_view, MaskExpr>(*this, mask.self());
   }
 
   template <class MaskExpr>
   tensor<T, 1> operator[](
       const abstract_tensor<MaskExpr, bool, Rank>& mask) const {
-    return mask_tensor<const tensor, MaskExpr>(*this, mask.self());
+    return mask_tensor<const tensor_view, MaskExpr>(*this, mask.self());
   }
 
   /**
-   * @brief Return the shape of the tensor.
+   * @brief Return the shape of the @ref tensor_view.
    */
   const shape_type& shape() const { return m_shape; }
 
   /**
-   * @brief Return the size of the tensor along the given axis.
+   * @brief Return the size of the @ref tensor_view along the given axis.
    */
   size_type shape(size_type axis) const { return m_shape[axis]; }
 
   /**
-   * @brief Return the number of elements in the tensor.
+   * @brief Return the number of elements in the @ref tensor_view.
    */
   size_type size() const { return m_size; }
 
   /**
-   * @brief Return whether the tensor is empty.
+   * @brief Return whether the @ref tensor_view is empty.
    */
   bool empty() const { return (m_size == 0); }
 
   /**
-   * @brief Return a pointer to the memory array used internally by the tensor.
-   * Because elements in the tensor are stored contiguously, the pointer
-   * retrieved can be offset to access any element in the tensor.
+   * @brief Return a pointer to the memory array used internally by the
+   * @ref tensor_view.
    *
-   * @return A pointer to the memory array used internally by the tensor. If the
-   * tensor is const-qualified, the function returns a pointer to const T.
-   * Otherwise, it returns a pointer to T.
+   * @return A pointer to the memory array used internally by the
+   * @ref tensor_view. If the @ref tensor_view is const-qualified, the function
+   * returns a pointer to const T. Otherwise, it returns a pointer to T.
    */
   T* data() { return m_data; }
   const T* data() const { return m_data; }
 
   /**
+   * @brief Return the span that separates the elements in the memory array.
+   */
+  const index_type& strides() const { return m_stride; }
+
+  /**
+   * @brief Return the span that separates the elements in the memory array
+   * along the given axis.
+   */
+  difference_type strides(size_type axis) const { return m_stride[axis]; }
+
+  /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const { return m_layout; }
+  layout_t layout() const;
 
   /// Assignment operator.
 
   /**
    * @brief Copy assignment. Assigns to each element the value of the
-   * corresponding element in @a other, after resizing the object (if
-   * necessary).
+   * corresponding element in @a other.
    *
    * @param other An abstract tensor of the same rank.
    *
    * @return *this
-   *
-   * @throw std::bad_alloc If the function needs to allocate storage and fails,
-   * it may throw an exception.
-   *
-   * @warning When the shapes do not mach, invalidates all iterators, references
-   * and views to elements of the tensor. Otherwise, valid iterators, references
-   * and views keep their validity.
    */
   template <class Expr>
-  tensor& operator=(const abstract_tensor<Expr, T, Rank>& other){
-    this->resize(other.self().shape());
-    dense_tensor<tensor, T, Rank>::operator=(other);
+  tensor_view& operator=(const abstract_tensor<Expr, T, Rank>& other) {
+    dense_tensor<tensor_view, T, Rank>::operator=(other);
     return *this;
   }
 
   template <class Expr, class U>
-  tensor& operator=(const abstract_tensor<Expr, U, Rank>& other) {
-    this->resize(other.self().shape());
-    dense_tensor<tensor, T, Rank>::operator=(other);
+  tensor_view& operator=(const abstract_tensor<Expr, U, Rank>& other) {
+    dense_tensor<tensor_view, T, Rank>::operator=(other);
     return *this;
   }
 
   /**
-   * @brief Fill assignment. Assigns @a val to every element. The size of the
-   * tensor is preserved.
+   * @brief Fill assignment. Assigns @a val to every element.
    *
-   * @param val Value assigned to all the elements in the tensor.
+   * @param val Value assigned to all the elements in the tensor_view.
    *
    * @return *this
    */
-  tensor& operator=(const T& val) {
-    std::fill_n(m_data, m_size, val);
+  tensor_view &operator=(const T &val) {
+    dense_tensor<tensor_view, T, Rank>::operator=(val);
     return *this;
   }
 
@@ -466,28 +366,12 @@ public:
    * @brief Move assignment. Acquires the contents of @a other, leaving @a other
    * in an empty state.
    *
-   * @param other A tensor of the same type and rank. The ownership is directly
-   * transferred from @a other. @a other is left in an empty state.
+   * @param other A tensor_view of the same type and rank. @a other is left in
+   * an empty state.
    *
    * @return *this
-   *
-   * @warning Invalidates all iterators, references and views to elements of the
-   * tensor.
    */
-  tensor& operator=(tensor&& other) {
-    if (this != &other) {
-      delete[] m_data;
-      m_shape = other.m_shape;
-      m_size = other.m_size;
-      m_data = other.m_data;
-      m_layout = other.m_layout;
-      other.m_shape = shape_type();
-      other.m_size = 0;
-      other.m_data = nullptr;
-      other.m_layout = default_layout;
-    }
-    return *this;
-  }
+  tensor_view& operator=(tensor_view&& other) = default;
 
   /// Public methods.
 
@@ -516,15 +400,15 @@ public:
   /**
    * @brief Return a view of the tensor collapsed into one dimension.
    *
-   * @return If the tensor is const-qualified, the function returns a
+   * @return If the tensor_view is const-qualified, the function returns a
    * tensor_view to const T. Otherwise, the function returns a tensor_view to
    * T, which has reference semantics to the original tensor.
+   *
+   * @throw std::runtime_error Thrown if the elements in the view cannot be
+   * flattened.
    */
-  tensor_view<T, 1> flatten() { return tensor_view<T, 1>(m_data, m_size); }
-
-  tensor_view<const T, 1> flatten() const {
-    return tensor_view<const T, 1>(m_data, m_size);
-  }
+  tensor_view<T, 1> flatten();
+  tensor_view<const T, 1> flatten() const;
 
   /**
    * @brief Return a tensor_view containing the same data with a new shape.
@@ -537,11 +421,13 @@ public:
    * @ref layout_left, the first dimension is contiguous. Defaults to the same
    * layout as *this.
    *
-   * @return If the tensor is const-qualified, the function returns a
+   * @return If the tensor_view is const-qualified, the function returns a
    * tensor_view to const T. Otherwise, the function returns a tensor_view to
    * T, which has reference semantics to the original tensor.
    *
    * @throw std::invalid_argument Thrown if the tensor could not reshaped.
+   * @throw std::runtime_error Thrown if the elements in the view are
+   * non-contiguous.
    */
   template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
   tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes) {
@@ -560,26 +446,6 @@ public:
   template <size_t N>
   tensor_view<const T, N> reshape(const shape_t<N>& shape,
                                   layout_t layout = no_layout) const;
-
-  /**
-   * @brief Resizes the tensor in-place to a given shape. If the new size is
-   * different from the number of elements stored in the tensor, a reallocation
-   * takes place to fit the new shape, losing the previous contents in the
-   * process. Otherwise, the contents of the tensor are preserved, but arranged
-   * to match the new shape.
-   *
-   * @param shape New shape of the tensor. It can be a shape_t object or the
-   * elements of the shape passed as separate arguments.
-   *
-   * @warning Invalidates all iterators, references and views to elements of the
-   * tensor.
-   */
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
-  void resize(Sizes... sizes) {
-    this->resize(shape_type{static_cast<size_type>(sizes)...});
-  }
-
-  void resize(const shape_type &shape);
 
   /**
    * @brief Return a view of the tensor with its axes transposed.
@@ -609,21 +475,6 @@ public:
   tensor_view<T, Rank> t(const shape_type &axes);
   tensor_view<const T, Rank> t(const shape_type &axes) const;
 
-  /**
-   * @brief Return a view of the tensor with the same data.
-   *
-   * @return If the tensor is const-qualified, the function returns a
-   * tensor_view to const T. Otherwise, the function returns a tensor_view to
-   * T, which has reference semantics to the original tensor.
-   */
-  tensor_view<T, Rank> view() {
-    return tensor_view<T, Rank>(m_data, m_shape, m_layout);
-  }
-
-  tensor_view<const T, Rank> view() const {
-    return tensor_view<const T, Rank>(m_data, m_shape, m_layout);
-  }
-
 private:
   // Number of elements along each axis.
   shape_type m_shape;
@@ -634,32 +485,22 @@ private:
   // Pointer to data.
   T *m_data;
 
-  // Memory layout.
-  layout_t m_layout;
+  // Strides of data in memory.
+  index_type m_stride;
 };
 
 /// Deduction guides
 #if __cplusplus >= 201703L
-template <class InputIterator, class... Sizes>
-tensor(InputIterator first, Sizes... sizes)
-    -> tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>;
+template <class T, class... Sizes>
+tensor_view(T *data, Sizes... sizes) -> tensor_view<T, sizeof...(Sizes)>;
 
-template <class InputIterator, size_t Rank>
-tensor(InputIterator first, const shape_t<Rank> &shape,
-       layout_t layout = default_layout)
-    -> tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>;
-
-template <class Expr, class T, size_t Rank>
-tensor(const abstract_tensor<Expr, T, Rank> &other) -> tensor<T, Rank>;
-
-template <class Expr, class T, size_t Rank>
-tensor(const abstract_tensor<Expr, T, Rank> &other, layout_t layout)
-    -> tensor<T, Rank>;
+template <class T, size_t Rank>
+tensor_view(T *data, const shape_t<Rank> &shape,
+            layout_t order = default_layout) -> tensor_view<T, Rank>;
 #endif // C++17
 } // namespace numcpp
 
-#include "numcpp/classes/tensor.tcc"
+#include "numcpp/classes/tensor_view.tcc"
 
 #endif // C++11
-#endif // NUMCPP_TENSOR_H_INCLUDED
+#endif // NUMCPP_TENSOR_VIEW_H_INCLUDED

@@ -1,149 +1,37 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/math/mathfwd.h
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
+ * 
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/math/mathfwd.h
- *  This header defines function objects for several mathematical functions.
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_MATHFWD_H_INCLUDED
 #define NUMCPP_MATHFWD_H_INCLUDED
 
 #include <cmath>
 #include <complex>
-#include <type_traits>
 #include <utility>
 
 namespace numcpp {
-/**
- * @brief Convert angles from radians to degrees.
- *
- * @param x Angle in radians.
- *
- * @return The corresponding angle in degrees.
- */
-double degrees(double x) {
-  const double inv_pi = 0.31830988618379067;
-  return 180.0 * x * inv_pi;
-}
-
-float degrees(float x) {
-  const float inv_pi = 0.318309886f;
-  return 180.0f * x * inv_pi;
-}
-
-long double degrees(long double x) {
-  const long double inv_pi = 0.318309886183790671537767526745028L;
-  return 180.0L * x * inv_pi;
-}
-
-template <class T>
-typename std::enable_if<std::is_integral<T>::value, double>::type degrees(T x) {
-  return degrees((double)x);
-}
-
-/**
- * @brief Convert angles from degrees to radians.
- *
- * @param x Angle in degrees.
- *
- * @return The corresponding angle in radians.
- */
-double radians(double x) {
-  const double pi = 3.14159265358979324;
-  return pi * x / 180.0;
-}
-
-float radians(float x) {
-  const float pi = 3.141592654f;
-  return pi * x / 180.0f;
-}
-
-long double radians(long double x) {
-  const long double pi = 3.141592653589793238462643383279502L;
-  return pi * x / 180.0L;
-}
-
-template <class T>
-typename std::enable_if<std::is_integral<T>::value, double>::type radians(T x) {
-  return radians((double)x);
-}
-
-/**
- * @brief Return the greatest common divisor of @a |m| and @a |n|.
- *
- * @param m An integer value.
- * @param n An integer value.
- *
- * @return The greatest common divisor of @a |m| and @a |n|. If both @a m and
- *         @a n are zero, return zero.
- */
-template <class T1, class T2>
-typename std::common_type<
-    typename std::enable_if<std::is_integral<T1>::value, T1>::type,
-    typename std::enable_if<std::is_integral<T2>::value, T2>::type>::type
-gcd(T1 m, T2 n) {
-  if (m < 0) {
-    m = -m;
-  }
-  if (n < 0) {
-    n = -n;
-  }
-  while (n != 0) {
-    typename std::common_type<T1, T2>::type t = m % n;
-    m = n;
-    n = t;
-  }
-  return m;
-}
-
-/**
- * @brief Return the least common multiple of @a |m| and @a |n|.
- *
- * @param m An integer value.
- * @param n An integer value.
- *
- * @return The least common multiple of @a |m| and @a |n|. If either @a m or
- *         @a n is zero, return zero.
- */
-template <class T1, class T2>
-typename std::common_type<
-    typename std::enable_if<std::is_integral<T1>::value, T1>::type,
-    typename std::enable_if<std::is_integral<T2>::value, T2>::type>::type
-lcm(T1 m, T2 n) {
-  if (m < 0) {
-    m = -m;
-  }
-  if (n < 0) {
-    n = -n;
-  }
-  if (m != 0 && n != 0) {
-    return (m / gcd(m, n)) * n;
-  } else {
-    return 0;
-  }
-}
-
 /// Namespace for mathematical functions.
 namespace math {
 /// Basic functions.
 
 /**
- * @brief Function object implementing @c std::abs.
+ * @brief Function object implementing @ref std::abs.
  */
 struct abs {
   template <class T>
@@ -153,7 +41,7 @@ struct abs {
 };
 
 /**
- * @brief Function object implementing @c std::fmod.
+ * @brief Function object implementing @ref std::fmod.
  */
 struct fmod {
   template <class T, class U>
@@ -163,7 +51,7 @@ struct fmod {
 };
 
 /**
- * @brief Function object implementing @c std::modf.
+ * @brief Function object implementing @ref std::modf.
  */
 struct modf {
   template <class T> std::pair<T, T> operator()(T x) const {
@@ -174,7 +62,7 @@ struct modf {
 };
 
 /**
- * @brief Function object implementing @c std::fmax.
+ * @brief Function object implementing @ref std::fmax.
  */
 struct fmax {
   template <class T, class U>
@@ -184,7 +72,7 @@ struct fmax {
 };
 
 /**
- * @brief Function object implementing @c std::fmin.
+ * @brief Function object implementing @ref std::fmin.
  */
 struct fmin {
   template <class T, class U>
@@ -196,7 +84,7 @@ struct fmin {
 /// Trigonometric functions.
 
 /**
- * @brief Function object implementing @c std::cos.
+ * @brief Function object implementing @ref std::cos.
  */
 struct cos {
   template <class T>
@@ -206,7 +94,7 @@ struct cos {
 };
 
 /**
- * @brief Function object implementing @c std::sin.
+ * @brief Function object implementing @ref std::sin.
  */
 struct sin {
   template <class T>
@@ -216,7 +104,7 @@ struct sin {
 };
 
 /**
- * @brief Function object implementing @c std::tan.
+ * @brief Function object implementing @ref std::tan.
  */
 struct tan {
   template <class T>
@@ -226,7 +114,7 @@ struct tan {
 };
 
 /**
- * @brief Function object implementing @c std::acos.
+ * @brief Function object implementing @ref std::acos.
  */
 struct acos {
   template <class T>
@@ -236,7 +124,7 @@ struct acos {
 };
 
 /**
- * @brief Function object implementing @c std::asin.
+ * @brief Function object implementing @ref std::asin.
  */
 struct asin {
   template <class T>
@@ -246,7 +134,7 @@ struct asin {
 };
 
 /**
- * @brief Function object implementing @c std::atan.
+ * @brief Function object implementing @ref std::atan.
  */
 struct atan {
   template <class T>
@@ -256,7 +144,7 @@ struct atan {
 };
 
 /**
- * @brief Function object implementing @c std::atan2.
+ * @brief Function object implementing @ref std::atan2.
  */
 struct atan2 {
   template <class T, class U>
@@ -266,7 +154,7 @@ struct atan2 {
 };
 
 /**
- * @brief Function object implementing @c std::hypot.
+ * @brief Function object implementing @ref std::hypot.
  */
 struct hypot {
   template <class T, class U>
@@ -275,30 +163,10 @@ struct hypot {
   }
 };
 
-/**
- * @brief Function object implementing @c np::degrees.
- */
-struct degrees {
-  template <class T>
-  auto operator()(T x) const -> decltype(numcpp::degrees(x)) {
-    return numcpp::degrees(x);
-  }
-};
-
-/**
- * @brief Function object implementing @c np::radians.
- */
-struct radians {
-  template <class T>
-  auto operator()(T x) const -> decltype(numcpp::radians(x)) {
-    return numcpp::radians(x);
-  }
-};
-
 /// Hyperbolic functions.
 
 /**
- * @brief Function object implementing @c std::cosh.
+ * @brief Function object implementing @ref std::cosh.
  */
 struct cosh {
   template <class T>
@@ -308,7 +176,7 @@ struct cosh {
 };
 
 /**
- * @brief Function object implementing @c std::sinh.
+ * @brief Function object implementing @ref std::sinh.
  */
 struct sinh {
   template <class T>
@@ -318,7 +186,7 @@ struct sinh {
 };
 
 /**
- * @brief Function object implementing @c std::tanh.
+ * @brief Function object implementing @ref std::tanh.
  */
 struct tanh {
   template <class T>
@@ -328,7 +196,7 @@ struct tanh {
 };
 
 /**
- * @brief Function object implementing @c std::acosh.
+ * @brief Function object implementing @ref std::acosh.
  */
 struct acosh {
   template <class T>
@@ -338,7 +206,7 @@ struct acosh {
 };
 
 /**
- * @brief Function object implementing @c std::asinh.
+ * @brief Function object implementing @ref std::asinh.
  */
 struct asinh {
   template <class T>
@@ -348,7 +216,7 @@ struct asinh {
 };
 
 /**
- * @brief Function object implementing @c std::atanh.
+ * @brief Function object implementing @ref std::atanh.
  */
 struct atanh {
   template <class T>
@@ -360,7 +228,7 @@ struct atanh {
 /// Exponential and logarithmic functions.
 
 /**
- * @brief Function object implementing @c std::exp.
+ * @brief Function object implementing @ref std::exp.
  */
 struct exp {
   template <class T>
@@ -370,7 +238,7 @@ struct exp {
 };
 
 /**
- * @brief Function object implementing @c std::log.
+ * @brief Function object implementing @ref std::log.
  */
 struct log {
   template <class T>
@@ -380,7 +248,7 @@ struct log {
 };
 
 /**
- * @brief Function object implementing @c std::log10.
+ * @brief Function object implementing @ref std::log10.
  */
 struct log10 {
   template <class T>
@@ -390,7 +258,7 @@ struct log10 {
 };
 
 /**
- * @brief Function object implementing @c std::exp2.
+ * @brief Function object implementing @ref std::exp2.
  */
 struct exp2 {
   template <class T> auto operator()(T x) const -> decltype(std::exp2(x)) {
@@ -399,7 +267,7 @@ struct exp2 {
 };
 
 /**
- * @brief Function object implementing @c std::log2.
+ * @brief Function object implementing @ref std::log2.
  */
 struct log2 {
   template <class T> auto operator()(T x) const -> decltype(std::log2(x)) {
@@ -408,7 +276,7 @@ struct log2 {
 };
 
 /**
- * @brief Function object implementing @c std::expm1.
+ * @brief Function object implementing @ref std::expm1.
  */
 struct expm1 {
   template <class T> auto operator()(T x) const -> decltype(std::expm1(x)) {
@@ -417,7 +285,7 @@ struct expm1 {
 };
 
 /**
- * @brief Function object implementing @c std::log1p.
+ * @brief Function object implementing @ref std::log1p.
  */
 struct log1p {
   template <class T> auto operator()(T x) const -> decltype(std::log1p(x)) {
@@ -428,7 +296,7 @@ struct log1p {
 /// Power functions.
 
 /**
- * @brief Function object implementing @c std::pow.
+ * @brief Function object implementing @ref std::pow.
  */
 struct pow {
   template <class T, class U>
@@ -439,7 +307,7 @@ struct pow {
 };
 
 /**
- * @brief Function object implementing @c std::sqrt.
+ * @brief Function object implementing @ref std::sqrt.
  */
 struct sqrt {
   template <class T>
@@ -449,7 +317,7 @@ struct sqrt {
 };
 
 /**
- * @brief Function object implementing @c std::cbrt.
+ * @brief Function object implementing @ref std::cbrt.
  */
 struct cbrt {
   template <class T> auto operator()(T x) const -> decltype(std::cbrt(x)) {
@@ -460,7 +328,7 @@ struct cbrt {
 /// Rounding.
 
 /**
- * @brief Function object implementing @c std::ceil.
+ * @brief Function object implementing @ref std::ceil.
  */
 struct ceil {
   template <class T> auto operator()(T x) const -> decltype(std::ceil(x)) {
@@ -469,7 +337,7 @@ struct ceil {
 };
 
 /**
- * @brief Function object implementing @c std::floor.
+ * @brief Function object implementing @ref std::floor.
  */
 struct floor {
   template <class T> auto operator()(T x) const -> decltype(std::floor(x)) {
@@ -478,7 +346,7 @@ struct floor {
 };
 
 /**
- * @brief Function object implementing @c std::trunc.
+ * @brief Function object implementing @ref std::trunc.
  */
 struct trunc {
   template <class T> auto operator()(T x) const -> decltype(std::trunc(x)) {
@@ -487,7 +355,7 @@ struct trunc {
 };
 
 /**
- * @brief Function object implementing @c std::round.
+ * @brief Function object implementing @ref std::round.
  */
 struct round {
   template <class T> auto operator()(T x) const -> decltype(std::round(x)) {
@@ -498,7 +366,7 @@ struct round {
 /// Floating-point manipulation functions.
 
 /**
- * @brief Function object implementing @c std::frexp.
+ * @brief Function object implementing @ref std::frexp.
  */
 struct frexp {
   template <class T>
@@ -511,7 +379,7 @@ struct frexp {
 };
 
 /**
- * @brief Function object implementing @c std::ldexp.
+ * @brief Function object implementing @ref std::ldexp.
  */
 struct ldexp {
   template <class T>
@@ -521,7 +389,7 @@ struct ldexp {
 };
 
 /**
- * @brief Function object implementing @c std::copysign.
+ * @brief Function object implementing @ref std::copysign.
  */
 struct copysign {
   template <class T, class U>
@@ -531,7 +399,7 @@ struct copysign {
 };
 
 /**
- * @brief Function object implementing @c std::nextafter.
+ * @brief Function object implementing @ref std::nextafter.
  */
 struct nextafter {
   template <class T, class U>
@@ -540,32 +408,10 @@ struct nextafter {
   }
 };
 
-/// Integer-valued functions.
-
-/**
- * @brief Function object implementing @c np::gcd.
- */
-struct gcd {
-  template <class T, class U>
-  auto operator()(T m, U n) const -> decltype(numcpp::gcd(m, n)) {
-    return numcpp::gcd(m, n);
-  }
-};
-
-/**
- * @brief Function object implementing @c np::lcm.
- */
-struct lcm {
-  template <class T, class U>
-  auto operator()(T m, U n) const -> decltype(numcpp::lcm(m, n)) {
-    return numcpp::lcm(m, n);
-  }
-};
-
 /// Complex numbers.
 
 /**
- * @brief Function object implementing @c std::real.
+ * @brief Function object implementing @ref std::real.
  */
 struct real {
   template <class T>
@@ -575,7 +421,7 @@ struct real {
 };
 
 /**
- * @brief Function object implementing @c std::imag.
+ * @brief Function object implementing @ref std::imag.
  */
 struct imag {
   template <class T>
@@ -585,7 +431,7 @@ struct imag {
 };
 
 /**
- * @brief Function object implementing @c std::conj.
+ * @brief Function object implementing @ref std::conj.
  */
 struct conj {
   template <class T>
@@ -595,7 +441,7 @@ struct conj {
 };
 
 /**
- * @brief Function object implementing @c std::arg.
+ * @brief Function object implementing @ref std::arg.
  */
 struct arg {
   template <class T>
@@ -607,28 +453,28 @@ struct arg {
 /// Clasification functions.
 
 /**
- * @brief Function object implementing @c std::isfinite.
+ * @brief Function object implementing @ref std::isfinite.
  */
 struct isfinite {
   template <class T> bool operator()(T x) const { return std::isfinite(x); }
 };
 
 /**
- * @brief Function object implementing @c std::isinf.
+ * @brief Function object implementing @ref std::isinf.
  */
 struct isinf {
   template <class T> bool operator()(T x) const { return std::isinf(x); }
 };
 
 /**
- * @brief Function object implementing @c std::isnan.
+ * @brief Function object implementing @ref std::isnan.
  */
 struct isnan {
   template <class T> bool operator()(T x) const { return std::isnan(x); }
 };
 
 /**
- * @brief Function object implementing @c std::signbit.
+ * @brief Function object implementing @ref std::signbit.
  */
 struct signbit {
   template <class T> bool operator()(T x) const { return std::signbit(x); }

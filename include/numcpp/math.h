@@ -1,90 +1,90 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/math.h
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/math.h
- *  This header defines mathematical functions for array and matrix classes.
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_MATH_H_INCLUDED
 #define NUMCPP_MATH_H_INCLUDED
 
-#include "numcpp/tensor/abstract_tensor.h"
-#include "numcpp/functional/lazy_expression.h"
+#include "numcpp/expressions/unary_expr.h"
+#include "numcpp/expressions/binary_expr.h"
 #include "numcpp/math/constants.h"
+#include "numcpp/math/degrees.h"
+#include "numcpp/math/gcd.h"
 #include "numcpp/math/mathfwd.h"
 
 namespace numcpp {
 /// Basic functions.
 using std::abs;
-using std::fmod;
-using std::modf;
 using std::fmax;
 using std::fmin;
+using std::fmod;
+using std::modf;
 
 /// Trigonometric functions.
-using std::cos;
-using std::sin;
-using std::tan;
 using std::acos;
 using std::asin;
 using std::atan;
 using std::atan2;
+using std::cos;
 using std::hypot;
+using std::sin;
+using std::tan;
 
 /// Hyperbolic functions.
-using std::cosh;
-using std::sinh;
-using std::tanh;
 using std::acosh;
 using std::asinh;
 using std::atanh;
+using std::cosh;
+using std::sinh;
+using std::tanh;
 
 /// Exponential and logarithmic functions.
 using std::exp;
+using std::exp2;
+using std::expm1;
 using std::log;
 using std::log10;
-using std::exp2;
-using std::log2;
-using std::expm1;
 using std::log1p;
+using std::log2;
 
 /// Power functions.
+using std::cbrt;
 using std::pow;
 using std::sqrt;
-using std::cbrt;
 
 /// Rounding.
 using std::ceil;
 using std::floor;
-using std::trunc;
 using std::round;
+using std::trunc;
 
 /// Floating-point manipulation functions.
+using std::copysign;
 using std::frexp;
 using std::ldexp;
-using std::copysign;
 using std::nextafter;
 
 /// Complex numbers.
-using std::real;
-using std::imag;
-using std::conj;
 using std::arg;
+using std::conj;
+using std::imag;
+using std::real;
 
 /// Clasification functions.
 using std::isfinite;
@@ -99,14 +99,14 @@ using std::signbit;
  *
  * @param x An abstact tensor with the values whose absolute value is computed.
  *
- * @return A light-weight object with the absolute value of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the absolute value of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::abs, Expr>
-abs(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::abs, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto abs(Expr&& x)
+    -> decltype(apply(math::abs(), std::forward<Expr>(x))) {
+  return apply(math::abs(), std::forward<Expr>(x));
 }
 
 /**
@@ -117,29 +117,31 @@ abs(const abstract_tensor<Expr, T, Rank> &x) {
  * @param x An abstract tensor with the values of the quotient numerator.
  * @param y An abstract tensor with the values of the quotient denominator.
  *
- * @return A light-weight object with the remainder of @a x/y, element-wise.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the remainder of @a x/y, element-wise. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::fmod, Expr1, Expr2>
-fmod(const abstract_tensor<Expr1, T, Rank> &x,
-     const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::fmod, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto fmod(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::fmod(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::fmod(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmod, Expr, detail::identity<T>>
-fmod(const abstract_tensor<Expr, T, Rank> &x,
-     const typename detail::identity<T>::type &y) {
-  return binary_expr<math::fmod, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmod(Expr&& x, const T& y)
+    -> decltype(apply2(math::fmod(), std::forward<Expr>(x), y)) {
+  return apply2(math::fmod(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmod, detail::identity<T>, Expr>
-fmod(const typename detail::identity<T>::type &x,
-     const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::fmod, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmod(const T& x, Expr&& y)
+    -> decltype(apply2(math::fmod(), x, std::forward<Expr>(y))) {
+  return apply2(math::fmod(), x, std::forward<Expr>(y));
 }
 
 /**
@@ -147,14 +149,14 @@ fmod(const typename detail::identity<T>::type &x,
  *
  * @param x An abstract tensor with the values to be decomposed.
  *
- * @return A light-weight object with the integral and fractional parts of each
- *         element in the tensor. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the integral and fractional parts of each
+ * element in the tensor. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::modf, Expr>
-modf(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::modf, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto modf(Expr&& x)
+    -> decltype(apply(math::modf(), std::forward<Expr>(x))) {
+  return apply(math::modf(), std::forward<Expr>(x));
 }
 
 /**
@@ -164,29 +166,31 @@ modf(const abstract_tensor<Expr, T, Rank> &x) {
  * @param x An abstract tensor with floating-point or integer values.
  * @param y An abstract tensor with floating-point or integer values.
  *
- * @return A light-weight object with the element-wise maximum. This function
- *         does not create a new tensor, instead, an expression object is
- *         returned (see lazy-evaluation).
+ * @return An abstract tensor with the element-wise maximum value. This function
+ * does not create a new tensor, instead, an expression object is returned (see
+ * lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::fmax, Expr1, Expr2>
-fmax(const abstract_tensor<Expr1, T, Rank> &x,
-     const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::fmax, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto fmax(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::fmax(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::fmax(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmax, Expr, detail::identity<T>>
-fmax(const abstract_tensor<Expr, T, Rank> &x,
-     const typename detail::identity<T>::type &y) {
-  return binary_expr<math::fmax, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmax(Expr&& x, const T& y)
+    -> decltype(apply2(math::fmax(), std::forward<Expr>(x), y)) {
+  return apply2(math::fmax(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmax, detail::identity<T>, Expr>
-fmax(const typename detail::identity<T>::type &x,
-     const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::fmax, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmax(const T& x, Expr&& y)
+    -> decltype(apply2(math::fmax(), x, std::forward<Expr>(y))) {
+  return apply2(math::fmax(), x, std::forward<Expr>(y));
 }
 
 /**
@@ -196,29 +200,31 @@ fmax(const typename detail::identity<T>::type &x,
  * @param x An abstract tensor with floating-point or integer values.
  * @param y An abstract tensor with floating-point or integer values.
  *
- * @return A light-weight object with the element-wise minimum. This function
- *         does not create a new tensor, instead, an expression object is
- *         returned (see lazy-evaluation).
+ * @return An abstract tensor with the element-wise minimum value. This function
+ * does not create a new tensor, instead, an expression object is returned (see
+ * lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::fmin, Expr1, Expr2>
-fmin(const abstract_tensor<Expr1, T, Rank> &x,
-     const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::fmin, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto fmin(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::fmin(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::fmin(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmin, Expr, detail::identity<T>>
-fmin(const abstract_tensor<Expr, T, Rank> &x,
-     const typename detail::identity<T>::type &y) {
-  return binary_expr<math::fmin, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmin(Expr&& x, const T& y)
+    -> decltype(apply2(math::fmin(), std::forward<Expr>(x), y)) {
+  return apply2(math::fmin(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::fmin, detail::identity<T>, Expr>
-fmin(const typename detail::identity<T>::type &x,
-     const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::fmin, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto fmin(const T& x, Expr&& y)
+    -> decltype(apply2(math::fmin(), x, std::forward<Expr>(y))) {
+  return apply2(math::fmin(), x, std::forward<Expr>(y));
 }
 
 /// Trigonometric functions.
@@ -228,14 +234,14 @@ fmin(const typename detail::identity<T>::type &x,
  *
  * @param x An abstract tensor with the angles in radians.
  *
- * @return A light-weight object with the cosine of each element in the tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the cosine of each element in the tensor.
+ * This function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::cos, Expr>
-cos(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::cos, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto cos(Expr&& x)
+    -> decltype(apply(math::cos(), std::forward<Expr>(x))) {
+  return apply(math::cos(), std::forward<Expr>(x));
 }
 
 /**
@@ -243,14 +249,14 @@ cos(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the angles in radians.
  *
- * @return A light-weight object with the sine of each element in the tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the sine of each element in the tensor. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::sin, Expr>
-sin(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::sin, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto sin(Expr&& x)
+    -> decltype(apply(math::sin(), std::forward<Expr>(x))) {
+  return apply(math::sin(), std::forward<Expr>(x));
 }
 
 /**
@@ -258,48 +264,48 @@ sin(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the angles in radians.
  *
- * @return A light-weight object with the tangent of each element in the tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the tangent of each element in the tensor.
+ * This function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::tan, Expr>
-tan(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::tan, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto tan(Expr&& x)
+    -> decltype(apply(math::tan(), std::forward<Expr>(x))) {
+  return apply(math::tan(), std::forward<Expr>(x));
 }
 
 /**
  * @brief Return the hypotenuse of a right-angled triangle whose legs are @a x
  * and @a y, element-wise.
  *
- * @param x An abstract tensor with one of the legs of the right-angle
- *          triangles.
- * @param y An abstract tensor with one of the legs of the right-angle
- *          triangles.
+ * @param x An abstract tensor with one of the legs of the right-angle triangle.
+ * @param y An abstract tensor with one of the legs of the right-angle triangle.
  *
- * @return A light-weight object with the hypotenuse of the triangles. This
- *         function does not create a new tensor, instead, an expression object
- *         is returned (see lazy-evaluation).
+ * @return An abstract tensor with the hypotenuse of the triangles,
+ * element-wise. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::hypot, Expr1, Expr2>
-hypot(const abstract_tensor<Expr1, T, Rank> &x,
-      const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::hypot, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto hypot(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::hypot(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::hypot(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::hypot, Expr, detail::identity<T>>
-hypot(const abstract_tensor<Expr, T, Rank> &x,
-      const typename detail::identity<T>::type &y) {
-  return binary_expr<math::hypot, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto hypot(Expr&& x, const T& y)
+    -> decltype(apply2(math::hypot(), std::forward<Expr>(x), y)) {
+  return apply2(math::hypot(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::hypot, detail::identity<T>, Expr>
-hypot(const typename detail::identity<T>::type &x,
-      const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::hypot, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto hypot(const T& x, Expr&& y)
+    -> decltype(apply2(math::hypot(), x, std::forward<Expr>(y))) {
+  return apply2(math::hypot(), x, std::forward<Expr>(y));
 }
 
 /**
@@ -307,14 +313,14 @@ hypot(const typename detail::identity<T>::type &x,
  *
  * @param x An abstract tensor with the values whose arc cosine is computed.
  *
- * @return A light-weight object with the arc cosine, in radians, of each value
- *         in the tensor. This function does not create a new tensor, instead,
- *         an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the arc cosine, in radians, of each element
+ * in the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::acos, Expr>
-acos(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::acos, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto acos(Expr&& x)
+    -> decltype(apply(math::acos(), std::forward<Expr>(x))) {
+  return apply(math::acos(), std::forward<Expr>(x));
 }
 
 /**
@@ -322,14 +328,14 @@ acos(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose arc sine is computed.
  *
- * @return A light-weight object with the arc sine, in radians, of each value in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the arc sine, in radians, of each element in
+ * the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::asin, Expr>
-asin(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::asin, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto asin(Expr&& x)
+    -> decltype(apply(math::asin(), std::forward<Expr>(x))) {
+  return apply(math::asin(), std::forward<Expr>(x));
 }
 
 /**
@@ -337,14 +343,14 @@ asin(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose arc tangent is computed.
  *
- * @return A light-weight object with the arc tangent, in radians, of each value
- *         in the tensor. This function does not create a new tensor, instead,
- *         an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the arc tangent, in radians, of each element
+ * in the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::atan, Expr>
-atan(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::atan, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto atan(Expr&& x)
+    -> decltype(apply(math::atan(), std::forward<Expr>(x))) {
+  return apply(math::atan(), std::forward<Expr>(x));
 }
 
 /**
@@ -355,29 +361,31 @@ atan(const abstract_tensor<Expr, T, Rank> &x) {
  * @param y An abstract tensor with the @a y -coordinates.
  * @param x An abstract tensor with the @a x -coordinates.
  *
- * @return A light-weight object with the arc tangent, in radians, of @a y/x.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the arc tangent, in radians, of @a y/x ,
+ * element-wise. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::atan2, Expr1, Expr2>
-atan2(const abstract_tensor<Expr1, T, Rank> &y,
-      const abstract_tensor<Expr2, T, Rank> &x) {
-  return binary_expr<math::atan2, Expr1, Expr2>(y, x);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto atan2(LhsExpr&& y, RhsExpr&& x)
+    -> decltype(apply2(math::atan2(), std::forward<LhsExpr>(y),
+                       std::forward<RhsExpr>(x))) {
+  return apply2(math::atan2(), std::forward<LhsExpr>(y),
+                std::forward<RhsExpr>(x));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::atan2, Expr, detail::identity<T>>
-atan2(const abstract_tensor<Expr, T, Rank> &y,
-      const typename detail::identity<T>::type &x) {
-  return binary_expr<math::atan2, Expr, detail::identity<T>>(y, x);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto atan2(Expr&& y, const T& x)
+    -> decltype(apply2(math::atan2(), std::forward<Expr>(y), x)) {
+  return apply2(math::atan2(), std::forward<Expr>(y), x);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::atan2, detail::identity<T>, Expr>
-atan2(const typename detail::identity<T>::type &y,
-      const abstract_tensor<Expr, T, Rank> &x) {
-  return binary_expr<math::atan2, detail::identity<T>, Expr>(y, x);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto atan2(const T& y, Expr&& x)
+    -> decltype(apply2(math::atan2(), y, std::forward<Expr>(x))) {
+  return apply2(math::atan2(), y, std::forward<Expr>(x));
 }
 
 /**
@@ -385,14 +393,14 @@ atan2(const typename detail::identity<T>::type &y,
  *
  * @param x An abstract tensor with the angles in radians.
  *
- * @return A light-weight object with the corresponding angles in degrees. This
- *         function does not create a new tensor, instead, an expression object
- *         is returned (see lazy-evaluation).
+ * @return An abstract tensor with the corresponding angle in degrees for each
+ * element in the tensor. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::degrees, Expr>
-degrees(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::degrees, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto degrees(Expr&& x)
+    -> decltype(apply(math::degrees(), std::forward<Expr>(x))) {
+  return apply(math::degrees(), std::forward<Expr>(x));
 }
 
 /**
@@ -400,14 +408,14 @@ degrees(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the angles in degrees.
  *
- * @return A light-weight object with the corresponding angles in radians. This
- *         function does not create a new tensor, instead, an expression object
- *         is returned (see lazy-evaluation).
+ * @return An abstract tensor with the corresponding angle in radians for each
+ * element in the tensor. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::radians, Expr>
-radians(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::radians, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto radians(Expr&& x)
+    -> decltype(apply(math::radians(), std::forward<Expr>(x))) {
+  return apply(math::radians(), std::forward<Expr>(x));
 }
 
 /// Hyperbolic functions.
@@ -417,14 +425,14 @@ radians(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the hyperbolic angles.
  *
- * @return A light-weight object with the hyperbolic cosine of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the hyperbolic cosine of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::cosh, Expr>
-cosh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::cosh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto cosh(Expr&& x)
+    -> decltype(apply(math::cosh(), std::forward<Expr>(x))) {
+  return apply(math::cosh(), std::forward<Expr>(x));
 }
 
 /**
@@ -432,14 +440,14 @@ cosh(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the hyperbolic angles.
  *
- * @return A light-weight object with the hyperbolic sine of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the hyperbolic sine of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::sinh, Expr>
-sinh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::sinh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto sinh(Expr&& x)
+    -> decltype(apply(math::sinh(), std::forward<Expr>(x))) {
+  return apply(math::sinh(), std::forward<Expr>(x));
 }
 
 /**
@@ -447,62 +455,62 @@ sinh(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the hyperbolic angles.
  *
- * @return A light-weight object with the hyperbolic tangent of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the hyperbolic tangent of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::tanh, Expr>
-tanh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::tanh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto tanh(Expr&& x)
+    -> decltype(apply(math::tanh(), std::forward<Expr>(x))) {
+  return apply(math::tanh(), std::forward<Expr>(x));
 }
 
 /**
  * @brief Return the inverse hyperbolic cosine, element-wise.
  *
  * @param x An abstract tensor with the values whose inverse hyperbolic cosine
- *          is computed.
+ * is computed.
  *
- * @return A light-weight object with the inverse hyperbolic cosine of each
- *         element in the tensor. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the inverse hyperbolic cosine of each element
+ * in the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::acosh, Expr>
-acosh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::acosh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto acosh(Expr&& x)
+    -> decltype(apply(math::acosh(), std::forward<Expr>(x))) {
+  return apply(math::acosh(), std::forward<Expr>(x));
 }
 
 /**
  * @brief Return the inverse hyperbolic sine, element-wise.
  *
  * @param x An abstract tensor with the values whose inverse hyperbolic sine is
- *          computed.
+ * computed.
  *
- * @return A light-weight object with the inverse hyperbolic sine of each
- *         element in the tensor. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the inverse hyperbolic sine of each element
+ * in the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::asinh, Expr>
-asinh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::asinh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto asinh(Expr&& x)
+    -> decltype(apply(math::asinh(), std::forward<Expr>(x))) {
+  return apply(math::asinh(), std::forward<Expr>(x));
 }
 
 /**
  * @brief Return the inverse hyperbolic tangent, element-wise.
  *
  * @param x An abstract tensor with the values whose inverse hyperbolic tangent
- *          is computed.
+ * is computed.
  *
- * @return A light-weight object with the inverse hyperbolic tangent of each
- *         element in the tensor. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the inverse hyperbolic tangent of each
+ * element in the tensor. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::atanh, Expr>
-atanh(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::atanh, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto atanh(Expr&& x)
+    -> decltype(apply(math::atanh(), std::forward<Expr>(x))) {
+  return apply(math::atanh(), std::forward<Expr>(x));
 }
 
 /// Exponential and logarithmic functions.
@@ -513,14 +521,14 @@ atanh(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values of the exponent.
  *
- * @return A light-weight object with the exponential of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the exponential of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::exp, Expr>
-exp(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::exp, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto exp(Expr&& x)
+    -> decltype(apply(math::exp(), std::forward<Expr>(x))) {
+  return apply(math::exp(), std::forward<Expr>(x));
 }
 
 /**
@@ -529,14 +537,14 @@ exp(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose logarithm is computed.
  *
- * @return A light weight-object with the natural logarithm of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the natural logarithm of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::log, Expr>
-log(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::log, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto log(Expr&& x)
+    -> decltype(apply(math::log(), std::forward<Expr>(x))) {
+  return apply(math::log(), std::forward<Expr>(x));
 }
 
 /**
@@ -544,14 +552,14 @@ log(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose logarithm is computed.
  *
- * @return A light-weight object with the common logarithm of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the common logarithm of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::log10, Expr>
-log10(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::log10, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto log10(Expr&& x)
+    -> decltype(apply(math::log10(), std::forward<Expr>(x))) {
+  return apply(math::log10(), std::forward<Expr>(x));
 }
 
 /**
@@ -560,14 +568,14 @@ log10(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values of the exponent.
  *
- * @return A light-weight object with the base-2 exponential of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the base-2 exponential of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::exp2, Expr>
-exp2(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::exp2, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto exp2(Expr&& x)
+    -> decltype(apply(math::exp2(), std::forward<Expr>(x))) {
+  return apply(math::exp2(), std::forward<Expr>(x));
 }
 
 /**
@@ -575,14 +583,14 @@ exp2(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose logarithm is computed.
  *
- * @return A light-weight object with the binary logarithm of each element in
- *         the tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the binary logarithm of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::log2, Expr>
-log2(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::log2, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto log2(Expr&& x)
+    -> decltype(apply(math::log2(), std::forward<Expr>(x))) {
+  return apply(math::log2(), std::forward<Expr>(x));
 }
 
 /**
@@ -592,14 +600,14 @@ log2(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values of the exponent.
  *
- * @return A light-weight object with the exponential minus one of each element
- *         in the tensor. This function does not create a new tensor, instead,
- *         an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the exponential minus one of each element in
+ * the tensor. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::expm1, Expr>
-expm1(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::expm1, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto expm1(Expr&& x)
+    -> decltype(apply(math::expm1(), std::forward<Expr>(x))) {
+  return apply(math::expm1(), std::forward<Expr>(x));
 }
 
 /**
@@ -608,14 +616,14 @@ expm1(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose logarithm is computed.
  *
- * @return A light-weight object with the natural logarithm of (1 + x) for each
- *         element in the tensor. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the natural logarithm of (1 + x) of each
+ * element in the tensor. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::log1p, Expr>
-log1p(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::log1p, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto log1p(Expr&& x)
+    -> decltype(apply(math::log1p(), std::forward<Expr>(x))) {
+  return apply(math::log1p(), std::forward<Expr>(x));
 }
 
 /// Power functions.
@@ -626,29 +634,31 @@ log1p(const abstract_tensor<Expr, T, Rank> &x) {
  * @param x An abstract tensor with the values of the base.
  * @param y An abstract tensor with the values of the exponent.
  *
- * @return A light-weight object with the result of raising @a x to the power
- *         @a y, element-wise. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the result of raising @a x to the power @a y,
+ * element-wise. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::pow, Expr1, Expr2>
-pow(const abstract_tensor<Expr1, T, Rank> &x,
-    const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::pow, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto pow(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::pow(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::pow(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::pow, Expr, detail::identity<T>>
-pow(const abstract_tensor<Expr, T, Rank> &x,
-    const typename detail::identity<T>::type &y) {
-  return binary_expr<math::pow, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto pow(Expr&& x, const T& y)
+    -> decltype(apply2(math::pow(), std::forward<Expr>(x), y)) {
+  return apply2(math::pow(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::pow, detail::identity<T>, Expr>
-pow(const typename detail::identity<T>::type &x,
-    const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::pow, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto pow(const T& x, Expr&& y)
+    -> decltype(apply2(math::pow(), x, std::forward<Expr>(y))) {
+  return apply2(math::pow(), x, std::forward<Expr>(y));
 }
 
 /**
@@ -656,14 +666,14 @@ pow(const typename detail::identity<T>::type &x,
  *
  * @param x An abstract tensor with the values whose square root is computed.
  *
- * @return A light-weight object with the square root of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the square root of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::sqrt, Expr>
-sqrt(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::sqrt, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto sqrt(Expr&& x)
+    -> decltype(apply(math::sqrt(), std::forward<Expr>(x))) {
+  return apply(math::sqrt(), std::forward<Expr>(x));
 }
 
 /**
@@ -671,14 +681,14 @@ sqrt(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values whose cubic root is computed.
  *
- * @return A light-weight object with the cubic root of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the cubic root of each element in the tensor.
+ * This function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::cbrt, Expr>
-cbrt(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::cbrt, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto cbrt(Expr&& x)
+    -> decltype(apply(math::cbrt(), std::forward<Expr>(x))) {
+  return apply(math::cbrt(), std::forward<Expr>(x));
 }
 
 /// Rounding.
@@ -689,14 +699,14 @@ cbrt(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values to round up.
  *
- * @return A light-weight object with the ceiling of each element in the tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the ceiling of each element in the tensor.
+ * This function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::ceil, Expr>
-ceil(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::ceil, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto ceil(Expr&& x)
+    -> decltype(apply(math::ceil(), std::forward<Expr>(x))) {
+  return apply(math::ceil(), std::forward<Expr>(x));
 }
 
 /**
@@ -705,14 +715,14 @@ ceil(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values to round down.
  *
- * @return A light-weight object with the floor of each element in the tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the floor of each element in the tensor. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::floor, Expr>
-floor(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::floor, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto floor(Expr&& x)
+    -> decltype(apply(math::floor(), std::forward<Expr>(x))) {
+  return apply(math::floor(), std::forward<Expr>(x));
 }
 
 /**
@@ -721,14 +731,14 @@ floor(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values to truncate.
  *
- * @return A light-weight object with the truncated value of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the truncated value of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::trunc, Expr>
-trunc(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::trunc, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto trunc(Expr&& x)
+    -> decltype(apply(math::trunc(), std::forward<Expr>(x))) {
+  return apply(math::trunc(), std::forward<Expr>(x));
 }
 
 /**
@@ -737,14 +747,14 @@ trunc(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values to round.
  *
- * @return A light-weight object with the rounded value of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the rounded value of each element in the
+ * tensor. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::round, Expr>
-round(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::round, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto round(Expr&& x)
+    -> decltype(apply(math::round(), std::forward<Expr>(x))) {
+  return apply(math::round(), std::forward<Expr>(x));
 }
 
 /// Floating-point manipulation functions.
@@ -755,15 +765,14 @@ round(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with the values to be decomposed.
  *
- * @return A light-weight object with the binary significand and the exponent of
- *         each element in the tensor. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with the binary significand and the exponent of
+ * each element in the tensor. This function does not create a new tensor,
+ * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::frexp, Expr>
-frexp(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::frexp, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto frexp(Expr&& x)
+    -> decltype(apply(math::frexp(), std::forward<Expr>(x))) {
+  return apply(math::frexp(), std::forward<Expr>(x));
 }
 
 /**
@@ -773,27 +782,31 @@ frexp(const abstract_tensor<Expr, T, Rank> &x) {
  * @param x An abstract tensor with the values of the significand.
  * @param exp An abstract tensor with the values of the exponent.
  *
- * @return A light-weight object with the result of @a x*2^exp, element-wise.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the result of @a x*2^exp, element-wise. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::ldexp, Expr1, Expr2>
-ldexp(const abstract_tensor<Expr1, T, Rank> &x,
-      const abstract_tensor<Expr2, int, Rank> &exp) {
-  return binary_expr<math::ldexp, Expr1, Expr2>(x, exp);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto ldexp(LhsExpr&& x, RhsExpr&& exp)
+    -> decltype(apply2(math::ldexp(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(exp))) {
+  return apply2(math::ldexp(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(exp));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::ldexp, Expr, detail::identity<int>>
-ldexp(const abstract_tensor<Expr, T, Rank> &x, int exp) {
-  return binary_expr<math::ldexp, Expr, detail::identity<int>>(x, exp);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto ldexp(Expr&& x, const T& exp)
+    -> decltype(apply2(math::ldexp(), std::forward<Expr>(x), exp)) {
+  return apply2(math::ldexp(), std::forward<Expr>(x), exp);
 }
 
-template <class Expr, class T, size_t Rank, detail::RequiresScalar<T> = 0>
-inline binary_expr<math::ldexp, detail::identity<T>, Expr>
-ldexp(const T &x, const abstract_tensor<Expr, int, Rank> &exp) {
-  return binary_expr<math::ldexp, detail::identity<T>, Expr>(x, exp);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto ldexp(const T& x, Expr&& exp)
+    -> decltype(apply2(math::ldexp(), x, std::forward<Expr>(exp))) {
+  return apply2(math::ldexp(), x, std::forward<Expr>(exp));
 }
 
 /**
@@ -803,30 +816,31 @@ ldexp(const T &x, const abstract_tensor<Expr, int, Rank> &exp) {
  * @param x An abstract tensor with the values to change the sign of.
  * @param y An abstract tensor with the values to copy the sign from.
  *
- * @return A light-weight object with the values from the first tensor and the
- *         signs from the second tensor. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with the values from the first tensor and the
+ * signs from the second tensor. This function does not create a new tensor,
+ * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::copysign, Expr1, Expr2>
-copysign(const abstract_tensor<Expr1, T, Rank> &x,
-         const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::copysign, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto copysign(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::copysign(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::copysign(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::copysign, Expr, detail::identity<T>>
-copysign(const abstract_tensor<Expr, T, Rank> &x,
-         const typename detail::identity<T>::type &y) {
-  return binary_expr<math::copysign, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto copysign(Expr&& x, const T& y)
+    -> decltype(apply2(math::copysign(), std::forward<Expr>(x), y)) {
+  return apply2(math::copysign(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::copysign, detail::identity<T>, Expr>
-copysign(const typename detail::identity<T>::type &x,
-         const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::copysign, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto copysign(const T& x, Expr&& y)
+    -> decltype(apply2(math::copysign(), x, std::forward<Expr>(y))) {
+  return apply2(math::copysign(), x, std::forward<Expr>(y));
 }
 
 /**
@@ -835,32 +849,34 @@ copysign(const typename detail::identity<T>::type &x,
  *
  * @param x An abstract tensor with the base values.
  * @param y An abstract tensor with the directions where to look for the next
- *          representable values.
+ * representable values.
  *
- * @return A light-weight object with the next representable value of each
- *         element in the first tensor in the direction of the second tensor.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the next representable value of each element
+ * in the first tensor in the direction of the second tensor. This function does
+ * not create a new tensor, instead, an expression object is returned (see
+ * lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::nextafter, Expr1, Expr2>
-nextafter(const abstract_tensor<Expr1, T, Rank> &x,
-          const abstract_tensor<Expr2, T, Rank> &y) {
-  return binary_expr<math::nextafter, Expr1, Expr2>(x, y);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto nextafter(LhsExpr&& x, RhsExpr&& y)
+    -> decltype(apply2(math::nextafter(), std::forward<LhsExpr>(x),
+                       std::forward<RhsExpr>(y))) {
+  return apply2(math::nextafter(), std::forward<LhsExpr>(x),
+                std::forward<RhsExpr>(y));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::nextafter, Expr, detail::identity<T>>
-nextafter(const abstract_tensor<Expr, T, Rank> &x,
-          const typename detail::identity<T>::type &y) {
-  return binary_expr<math::nextafter, Expr, detail::identity<T>>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto nextafter(Expr&& x, const T& y)
+    -> decltype(apply2(math::nextafter(), std::forward<Expr>(x), y)) {
+  return apply2(math::nextafter(), std::forward<Expr>(x), y);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::nextafter, detail::identity<T>, Expr>
-nextafter(const typename detail::identity<T>::type &x,
-          const abstract_tensor<Expr, T, Rank> &y) {
-  return binary_expr<math::nextafter, detail::identity<T>, Expr>(x, y);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto nextafter(const T& x, Expr&& y)
+    -> decltype(apply2(math::nextafter(), x, std::forward<Expr>(y))) {
+  return apply2(math::nextafter(), x, std::forward<Expr>(y));
 }
 
 /// Integer-valued functions.
@@ -871,30 +887,32 @@ nextafter(const typename detail::identity<T>::type &x,
  * @param m An abstract tensor with integer values.
  * @param n An abstract tensor with integer values.
  *
- * @return A light-weight object with the greatest common divisor of @a |m| and
- *         @a |n|, element-wise. If both @a m and @a n are zero, return zero.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the greatest common divisor of @a |m| and
+ * @a |n|, element-wise. If both @a m and @a n are zero, return zero. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::gcd, Expr1, Expr2>
-gcd(const abstract_tensor<Expr1, T, Rank> &m,
-    const abstract_tensor<Expr2, T, Rank> &n) {
-  return binary_expr<math::gcd, Expr1, Expr2>(m, n);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto gcd(LhsExpr&& m, RhsExpr&& n)
+    -> decltype(apply2(math::gcd(), std::forward<LhsExpr>(m),
+                       std::forward<RhsExpr>(n))) {
+  return apply2(math::gcd(), std::forward<LhsExpr>(m),
+                std::forward<RhsExpr>(n));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::gcd, Expr, detail::identity<T>>
-gcd(const abstract_tensor<Expr, T, Rank> &m,
-    const typename detail::identity<T>::type &n) {
-  return binary_expr<math::gcd, Expr, detail::identity<T>>(m, n);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto gcd(Expr&& m, const T& n)
+    -> decltype(apply2(math::gcd(), std::forward<Expr>(m), n)) {
+  return apply2(math::gcd(), std::forward<Expr>(m), n);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::gcd, detail::identity<T>, Expr>
-gcd(const typename detail::identity<T>::type &m,
-    const abstract_tensor<Expr, T, Rank> &n) {
-  return binary_expr<math::gcd, detail::identity<T>, Expr>(m, n);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto gcd(const T& m, Expr&& n)
+    -> decltype(apply2(math::gcd(), m, std::forward<Expr>(n))) {
+  return apply2(math::gcd(), m, std::forward<Expr>(n));
 }
 
 /**
@@ -903,30 +921,32 @@ gcd(const typename detail::identity<T>::type &m,
  * @param m An abstract tensor with integer values.
  * @param n An abstract tensor with integer values.
  *
- * @return A light-weight object with the least common multiple of @a |m| and
- *         @a |n|, element-wise. If either @a m or @a n is zero, return zero.
- *         This function does not create a new tensor, instead, an expression
- *         object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the least common multiple of @a |m| and
+ * @a |n|, element-wise. If either @a m or @a n is zero, return zero. This
+ * function does not create a new tensor, instead, an expression object is
+ * returned (see lazy-evaluation).
  */
-template <class Expr1, class Expr2, class T, size_t Rank>
-inline binary_expr<math::lcm, Expr1, Expr2>
-lcm(const abstract_tensor<Expr1, T, Rank> &m,
-    const abstract_tensor<Expr2, T, Rank> &n) {
-  return binary_expr<math::lcm, Expr1, Expr2>(m, n);
+template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
+          detail::RequiresTensor<RhsExpr> = 0>
+inline auto lcm(LhsExpr&& m, RhsExpr&& n)
+    -> decltype(apply2(math::lcm(), std::forward<LhsExpr>(m),
+                       std::forward<RhsExpr>(n))) {
+  return apply2(math::lcm(), std::forward<LhsExpr>(m),
+                std::forward<RhsExpr>(n));
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::lcm, Expr, detail::identity<T>>
-lcm(const abstract_tensor<Expr, T, Rank> &m,
-    const typename detail::identity<T>::type &n) {
-  return binary_expr<math::lcm, Expr, detail::identity<T>>(m, n);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto lcm(Expr&& m, const T& n)
+    -> decltype(apply2(math::lcm(), std::forward<Expr>(m), n)) {
+  return apply2(math::lcm(), std::forward<Expr>(m), n);
 }
 
-template <class Expr, class T, size_t Rank>
-inline binary_expr<math::lcm, detail::identity<T>, Expr>
-lcm(const typename detail::identity<T>::type &m,
-    const abstract_tensor<Expr, T, Rank> &n) {
-  return binary_expr<math::lcm, detail::identity<T>, Expr>(m, n);
+template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
+          detail::RequiresScalar<T> = 0>
+inline auto lcm(const T& m, Expr&& n)
+    -> decltype(apply2(math::lcm(), m, std::forward<Expr>(n))) {
+  return apply2(math::lcm(), m, std::forward<Expr>(n));
 }
 
 /// Complex numbers.
@@ -936,15 +956,37 @@ lcm(const typename detail::identity<T>::type &m,
  *
  * @param z An abstract tensor with complex values.
  *
- * @return A light-weight object with the real part of each element in the
- *         tensor. Non-complex types are treated as complex numbers with zero
- *         imaginary part component. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the real part of each element in the tensor.
+ * Non-complex types are treated as complex numbers with zero imaginary part
+ * component. This function does not create a new tensor, instead, an expression
+ * object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::real, Expr>
-real(const abstract_tensor<Expr, T, Rank> &z) {
-  return unary_expr<math::real, Expr>(z);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto real(Expr&& z)
+    -> decltype(apply(math::real(), std::forward<Expr>(z))) {
+  return apply(math::real(), std::forward<Expr>(z));
+}
+
+template <class T, size_t Rank>
+inline tensor_view<T, Rank> real(tensor<std::complex<T>, Rank>& z) {
+  T* data = reinterpret_cast<T*>(z.data());
+  shape_t<Rank> shape = z.shape();
+  index_t<Rank> strides = make_strides(shape, z.layout());
+  for (size_t i = 0; i < Rank; ++i) {
+    strides[i] *= 2;
+  }
+  return tensor_view<T, Rank>(data, shape, strides);
+}
+
+template <class T, size_t Rank>
+inline tensor_view<T, Rank> real(tensor_view<std::complex<T>, Rank>& z) {
+  T* data = reinterpret_cast<T*>(z.data());
+  shape_t<Rank> shape = z.shape();
+  index_t<Rank> strides = z.strides();
+  for (size_t i = 0; i < Rank; ++i) {
+    strides[i] *= 2;
+  }
+  return tensor_view<T, Rank>(data, shape, strides);
 }
 
 /**
@@ -952,15 +994,37 @@ real(const abstract_tensor<Expr, T, Rank> &z) {
  *
  * @param z An abstract tensor with complex values.
  *
- * @return A light-weight object with the imaginary part of each element in the
- *         tensor. Non-complex types are treated as complex numbers with zero
- *         imaginary part component. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the imaginary part of each element in the
+ * tensor. Non-complex types are treated as complex numbers with zero imaginary
+ * part component. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::imag, Expr>
-imag(const abstract_tensor<Expr, T, Rank> &z) {
-  return unary_expr<math::imag, Expr>(z);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto imag(Expr&& z)
+    -> decltype(apply(math::imag(), std::forward<Expr>(z))) {
+  return apply(math::imag(), std::forward<Expr>(z));
+}
+
+template <class T, size_t Rank>
+inline tensor_view<T, Rank> imag(tensor<std::complex<T>, Rank>& z) {
+  T* data = reinterpret_cast<T*>(z.data());
+  shape_t<Rank> shape = z.shape();
+  index_t<Rank> strides = make_strides(shape, z.layout());
+  for (size_t i = 0; i < Rank; ++i) {
+    strides[i] *= 2;
+  }
+  return tensor_view<T, Rank>(data + 1, shape, strides);
+}
+
+template <class T, size_t Rank>
+inline tensor_view<T, Rank> imag(tensor_view<std::complex<T>, Rank>& z) {
+  T* data = reinterpret_cast<T*>(z.data());
+  shape_t<Rank> shape = z.shape();
+  index_t<Rank> strides = z.strides();
+  for (size_t i = 0; i < Rank; ++i) {
+    strides[i] *= 2;
+  }
+  return tensor_view<T, Rank>(data + 1, shape, strides);
 }
 
 /**
@@ -968,44 +1032,33 @@ imag(const abstract_tensor<Expr, T, Rank> &z) {
  * number is obtained by changing the sign of its imaginary part.
  *
  * @param z An abstract tensor with the values whose complex conjugate is
- *          computed.
+ * computed.
  *
- * @return A light-weight object with the complex conjugate of each element in
- *         the tensor. Non-complex types are treated as complex numbers with
- *         zero imaginary part component. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with the complex conjugate of each element in the
+ * tensor. Non-complex types are treated as complex numbers with zero imaginary
+ * part component. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::conj, Expr>
-conj(const abstract_tensor<Expr, T, Rank> &z) {
-  return unary_expr<math::conj, Expr>(z);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto conj(Expr&& z)
+    -> decltype(apply(math::conj(), std::forward<Expr>(z))) {
+  return apply(math::conj(), std::forward<Expr>(z));
 }
-
-/**
- * @brief Return the absolute value, element-wise.
- *
- * @param z An abstract tensor with the values whose absolute value is computed.
- *
- * @return A light-weight object with the absolute value of each element in the
- *         tensor. This function does not create a new tensor, instead, an
- *         expression object is returned (see lazy-evaluation).
- */
 
 /**
  * @brief Return the phase angle (in radians) of a complex number, element-wise.
  *
  * @param z An abstract tensor with the values whose phase angle is computed.
  *
- * @return A light-weight object with the phase angle of each element in the
- *         tensor. Non-complex types are treated as complex numbers with zero
- *         imaginary part component. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with the phase angle of each element in the
+ * tensor. Non-complex types are treated as complex numbers with zero imaginary
+ * part component. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::arg, Expr>
-arg(const abstract_tensor<Expr, T, Rank> &z) {
-  return unary_expr<math::arg, Expr>(z);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto arg(Expr&& z)
+    -> decltype(apply(math::arg(), std::forward<Expr>(z))) {
+  return apply(math::arg(), std::forward<Expr>(z));
 }
 
 /// Clasification functions.
@@ -1016,15 +1069,14 @@ arg(const abstract_tensor<Expr, T, Rank> &z) {
  *
  * @param x An abstract tensor with floating-point values.
  *
- * @return A light-weight object with each element set to true where @a x is
- *         finite and false otherwise. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with each element set to true where @a x is finite
+ * and false otherwise. This function does not create a new tensor, instead, an
+ * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::isfinite, Expr>
-isfinite(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::isfinite, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto isfinite(Expr&& x)
+    -> decltype(apply(math::isfinite(), std::forward<Expr>(x))) {
+  return apply(math::isfinite(), std::forward<Expr>(x));
 }
 
 /**
@@ -1033,15 +1085,14 @@ isfinite(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with floating-point values.
  *
- * @return A light-weight object with each element set to true where @a x is
- *         infinity and false otherwise. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with each element set to true where @a x is
+ * infinity and false otherwise. This function does not create a new tensor,
+ * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::isinf, Expr>
-isinf(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::isinf, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto isinf(Expr&& x)
+    -> decltype(apply(math::isinf(), std::forward<Expr>(x))) {
+  return apply(math::isinf(), std::forward<Expr>(x));
 }
 
 /**
@@ -1052,14 +1103,14 @@ isinf(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with floating-point values.
  *
- * @return A light-weight object with each element set to true where @a x is NaN
- *         and false otherwise. This function does not create a new tensor,
- *         instead, an expression object is returned (see lazy-evaluation).
+ * @return An abstract tensor with each element set to true where @a x is
+ * NaN and false otherwise. This function does not create a new tensor, instead,
+ * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::isnan, Expr>
-isnan(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::isnan, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto isnan(Expr&& x)
+    -> decltype(apply(math::isnan(), std::forward<Expr>(x))) {
+  return apply(math::isnan(), std::forward<Expr>(x));
 }
 
 /**
@@ -1067,16 +1118,15 @@ isnan(const abstract_tensor<Expr, T, Rank> &x) {
  *
  * @param x An abstract tensor with floating-point or integer values.
  *
- * @return A light-weight object with each element set to true where @a x is
- *         negative and false otherwise. This function does not create a new
- *         tensor, instead, an expression object is returned (see
- *         lazy-evaluation).
+ * @return An abstract tensor with each element set to true where @a x is
+ * negative and false otherwise. This function does not create a new tensor,
+ * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, class T, size_t Rank>
-inline unary_expr<math::signbit, Expr>
-signbit(const abstract_tensor<Expr, T, Rank> &x) {
-  return unary_expr<math::signbit, Expr>(x);
+template <class Expr, detail::RequiresTensor<Expr> = 0>
+inline auto signbit(Expr&& x)
+    -> decltype(apply(math::signbit(), std::forward<Expr>(x))) {
+  return apply(math::signbit(), std::forward<Expr>(x));
 }
-} // namespace numcpp
+}  // namespace numcpp
 
-#endif // NUMCPP_MATH_H_INCLUDED
+#endif  // NUMCPP_MATH_H_INCLUDED
