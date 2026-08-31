@@ -408,6 +408,28 @@ struct nextafter {
   }
 };
 
+/// Integer-valued functions.
+
+/**
+ * @brief Function object implementing @ref std::gcd.
+ */
+struct gcd {
+  template <class T, class U>
+  auto operator()(T m, U n) const -> decltype(std::gcd(m, n)) {
+    return std::gcd(m, n);
+  }
+};
+
+/**
+ * @brief Function object implementing @ref std::lcm.
+ */
+struct lcm {
+  template <class T, class U>
+  auto operator()(T m, U n) const -> decltype(std::lcm(m, n)) {
+    return std::lcm(m, n);
+  }
+};
+
 /// Complex numbers.
 
 /**

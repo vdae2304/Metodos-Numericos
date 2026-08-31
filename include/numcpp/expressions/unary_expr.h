@@ -34,23 +34,16 @@ namespace numcpp {
  * whole expression is evaluated.
  *
  * @tparam Function Type of the applied function.
- * @tparam Expression Type of the tensor where the function is applied.
+ * @tparam TensorLike Type of the tensor where the function is applied.
  */
-template <class Function, class Expression>
-class unary_expr
-    : public abstract_tensor<
-          unary_expr<Function, Expression>,
-          detail::result_of_t<
-              Function, typename detail::tensor_traits<Expression>::value_type>,
-          detail::tensor_traits<Expression>::rank> {
+template <class Function, class TensorLike>
+class unary_expr {
  public:
   /// Member types.
   typedef detail::result_of_t<
-      Function, typename detail::tensor_traits<Expression>::value_type>
+      Function, typename std::remove_cvref_t<TensorLike>::value_type>
       value_type;
-  static constexpr size_t rank = detail::tensor_traits<Expression>::rank;
-  typedef value_type reference;
-  typedef void pointer;
+  static constexpr size_t rank = std::remove_cvref_t<TensorLike>::rank;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -61,7 +54,7 @@ class unary_expr
   Function m_fun;
 
   // Tensor where the function is applied.
-  Expression m_arg;
+  TensorLike m_arg;
 
  public:
   /// Constructors.
@@ -73,8 +66,8 @@ class unary_expr
    * @param f The function to apply.
    * @param a Abstract tensor.
    */
-  unary_expr(Function&& f, Expression&& a)
-      : m_fun(std::forward<Function>(f)), m_arg(std::forward<Expression>(a)) {}
+  unary_expr(Function&& f, TensorLike&& a)
+      : m_fun(std::forward<Function>(f)), m_arg(std::forward<TensorLike>(a)) {}
 
   /// Destructor.
   ~unary_expr() = default;
@@ -90,14 +83,15 @@ class unary_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) -> decltype(m_fun(m_arg(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) {
     return m_fun(m_arg(indices...));
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(m_fun(m_arg(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) const {
     return m_fun(m_arg(indices...));
   }
 
@@ -111,12 +105,11 @@ class unary_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  auto operator[](const index_type& index) -> decltype(m_fun(m_arg[index])) {
+  decltype(auto) operator[](const index_type& index) {
     return m_fun(m_arg[index]);
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_fun(m_arg[index])) {
+  decltype(auto) operator[](const index_type& index) const {
     return m_fun(m_arg[index]);
   }
 
@@ -159,43 +152,37 @@ class unary_expr
  * lazy-evaluation, which means that the function is called only when required,
  * i.e., when the whole expression is evaluated or assigned to a tensor.
  */
-template <class Function, class Expr, class T, size_t Rank>
-inline unary_expr<Function, const Expr&> apply(
-    Function&& f, const abstract_tensor<Expr, T, Rank>& a) {
-  return unary_expr<Function, const Expr&>(std::forward<Function>(f), a.self());
-}
-
-template <class Function, class Expr, class T, size_t Rank>
-inline unary_expr<Function, Expr> apply(Function&& f,
-                                        abstract_tensor<Expr, T, Rank>&& a) {
-  return unary_expr<Function, Expr>(std::forward<Function>(f),
-                                    std::move(a.self()));
+template <class Function, class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto apply(Function&& f, TensorLike&& a) {
+  return unary_expr<Function, TensorLike>(std::forward<Function>(f),
+                                          std::forward<TensorLike>(a));
 }
 
 /// Unary operators.
 
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto operator+(Expr&& a)
-    -> decltype(apply(unary_plus(), std::forward<Expr>(a))) {
-  return apply(unary_plus(), std::forward<Expr>(a));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator+(TensorLike&& a) {
+  return apply(unary_plus(), std::forward<TensorLike>(a));
 }
 
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto operator-(Expr&& a)
-    -> decltype(apply(negate(), std::forward<Expr>(a))) {
-  return apply(negate(), std::forward<Expr>(a));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator-(TensorLike&& a) {
+  return apply(negate(), std::forward<TensorLike>(a));
 }
 
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto operator~(Expr&& a)
-    -> decltype(apply(bit_not(), std::forward<Expr>(a))) {
-  return apply(bit_not(), std::forward<Expr>(a));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator~(TensorLike&& a) {
+  return apply(bit_not(), std::forward<TensorLike>(a));
 }
 
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto operator!(Expr&& a)
-    -> decltype(apply(logical_not(), std::forward<Expr>(a))) {
-  return apply(logical_not(), std::forward<Expr>(a));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator!(TensorLike&& a) {
+  return apply(logical_not(), std::forward<TensorLike>(a));
 }
 } // namespace numcpp
 

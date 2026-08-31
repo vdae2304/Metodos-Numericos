@@ -15,7 +15,7 @@ target_include_directories(numcpp
 
 target_compile_features(numcpp
     INTERFACE
-        cxx_std_17
+        cxx_std_20
 )
 
 # Tests

@@ -34,31 +34,22 @@ namespace numcpp {
  * whole expression is evaluated.
  *
  * @tparam Function Type of the applied function.
- * @tparam Expression1 Type of the first tensor where the function is applied.
- * @tparam Expression2 Type of the second tensor where the function is applied.
+ * @tparam TensorLike1 Type of the first tensor where the function is applied.
+ * @tparam TensorLike2 Type of the second tensor where the function is applied.
  */
-template <class Function, class Expression1, class Expression2>
-class outer_expr
-    : public abstract_tensor<
-          outer_expr<Function, Expression1, Expression2>,
-          detail::result_of_t<
-              Function, typename detail::tensor_traits<Expression1>::value_type,
-              typename detail::tensor_traits<Expression2>::value_type>,
-          detail::tensor_traits<Expression1>::rank +
-              detail::tensor_traits<Expression2>::rank> {
+template <class Function, class TensorLike1, class TensorLike2>
+class outer_expr {
  private:
-  static constexpr size_t rank1 = detail::tensor_traits<Expression1>::rank;
-  static constexpr size_t rank2 = detail::tensor_traits<Expression2>::rank;
+  static constexpr size_t rank1 = std::remove_cvref_t<TensorLike1>::rank;
+  static constexpr size_t rank2 = std::remove_cvref_t<TensorLike2>::rank;
 
  public:
   /// Member types.
   typedef detail::result_of_t<
-      Function, typename detail::tensor_traits<Expression1>::value_type,
-      typename detail::tensor_traits<Expression2>::value_type>
+      Function, typename std::remove_cvref_t<TensorLike1>::value_type,
+      typename std::remove_cvref_t<TensorLike2>::value_type>
       value_type;
   static constexpr size_t rank = rank1 + rank2;
-  typedef value_type reference;
-  typedef void pointer;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -69,10 +60,10 @@ class outer_expr
   Function m_fun;
 
   // First tensor argument.
-  Expression1 m_arg1;
+  TensorLike1 m_arg1;
 
   // Second tensor argument.
-  Expression2 m_arg2;
+  TensorLike2 m_arg2;
 
  public:
   /// Constructors.
@@ -85,10 +76,10 @@ class outer_expr
    * @param a First argument.
    * @param b Second argument.
    */
-  outer_expr(Function&& f, Expression1&& a, Expression2&& b)
+  outer_expr(Function&& f, TensorLike1&& a, TensorLike2&& b)
       : m_fun(std::forward<Function>(f)),
-        m_arg1(std::forward<Expression1>(a)),
-        m_arg2(std::forward<Expression2>(b)) {}
+        m_arg1(std::forward<TensorLike1>(a)),
+        m_arg2(std::forward<TensorLike2>(b)) {}
 
   /// Destructor.
   ~outer_expr() = default;
@@ -104,35 +95,21 @@ class outer_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-#if __cplusplus >= 201402L
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
   decltype(auto) operator()(Indices... indices) {
     return __split_call_impl(std::forward_as_tuple(indices...),
                              std::make_index_sequence<rank1>(),
                              std::make_index_sequence<rank2>());
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
   decltype(auto) operator()(Indices... indices) const {
     return __split_call_impl(std::forward_as_tuple(indices...),
                              std::make_index_sequence<rank1>(),
                              std::make_index_sequence<rank2>());
   }
-#else
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices)
-      -> decltype(this->operator[](index_type())) {
-    return this->operator[](
-        index_type{static_cast<difference_type>(indices)...});
-  }
-
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(this->operator[](index_type())) {
-    return this->operator[](
-        index_type{static_cast<difference_type>(indices)...});
-  }
-#endif // C++14
 
   /**
    * @brief Subscript operator. Returns the result of applying the function to
@@ -144,8 +121,7 @@ class outer_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  auto operator[](const index_type& index)
-      -> decltype(m_fun(m_arg1[index_t<rank1>()], m_arg2[index_t<rank2>()])) {
+  decltype(auto) operator[](const index_type& index) {
     index_t<rank1> i;
     index_t<rank2> j;
     std::copy_n(index.data(), rank1, i.data());
@@ -153,8 +129,7 @@ class outer_expr
     return m_fun(m_arg1[i], m_arg2[j]);
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_fun(m_arg1[index_t<rank1>()], m_arg2[index_t<rank2>()])) {
+  decltype(auto) operator[](const index_type& index) const {
     index_t<rank1> i;
     index_t<rank2> j;
     std::copy_n(index.data(), rank1, i.data());
@@ -191,25 +166,25 @@ class outer_expr
     return (layout1 == layout2) ? layout1 : no_layout;
   }
 
-#if __cplusplus >= 201402L
  private:
   /**
    * Implement call operator.
    */
   template <class Tuple, size_t... Is, size_t... Js>
-  decltype(auto) __split_call_impl(Tuple tuple, std::index_sequence<Is...>,
-                              std::index_sequence<Js...>) {
+  decltype(auto) __split_call_impl(const Tuple& tuple,
+                                   std::index_sequence<Is...>,
+                                   std::index_sequence<Js...>) {
     return m_fun(m_arg1(std::get<Is>(tuple)...),
                  m_arg2(std::get<Js + rank1>(tuple)...));
   }
 
   template <class Tuple, size_t... Is, size_t... Js>
-  decltype(auto) __split_call_impl(Tuple tuple, std::index_sequence<Is...>,
-                              std::index_sequence<Js...>) const {
+  decltype(auto) __split_call_impl(const Tuple& tuple,
+                                   std::index_sequence<Is...>,
+                                   std::index_sequence<Js...>) const {
     return m_fun(m_arg1(std::get<Is>(tuple)...),
                  m_arg2(std::get<Js + rank1>(tuple)...));
   }
-#endif // C++14
 };
 
 /**
@@ -233,40 +208,21 @@ class outer_expr
  * lazy-evaluation, which means that the function is called only when required,
  * i.e., when the whole expression is evaluated or assigned to a tensor.
  */
-template <class Function, class Expr1, class T, size_t Rank1, class Expr2,
-          class U, size_t Rank2>
-inline outer_expr<Function, const Expr1&, const Expr2&> outer(
-    Function&& f, const abstract_tensor<Expr1, T, Rank1>& a,
-    const abstract_tensor<Expr2, U, Rank2>& b) {
-  return outer_expr<Function, const Expr1&, const Expr2&>(
-      std::forward<Function>(f), a.self(), b.self());
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto outer(Function&& f, TensorLike1&& a, TensorLike2&& b) {
+  return outer_expr<Function, TensorLike1, TensorLike2>(
+      std::forward<Function>(f), std::forward<TensorLike1>(a),
+      std::forward<TensorLike2>(b));
 }
 
-template <class Function, class Expr1, class T, size_t Rank1, class Expr2,
-          class U, size_t Rank2>
-inline outer_expr<Function, Expr1, const Expr2&> outer(
-    Function&& f, abstract_tensor<Expr1, T, Rank1>&& a,
-    const abstract_tensor<Expr2, U, Rank2>& b) {
-  return outer_expr<Function, Expr1, const Expr2&>(
-      std::forward<Function>(f), std::move(a.self()), b.self());
-}
-
-template <class Function, class Expr1, class T, size_t Rank1, class Expr2,
-          class U, size_t Rank2>
-inline outer_expr<Function, const Expr1&, Expr2> outer(
-    Function&& f, const abstract_tensor<Expr1, T, Rank1>& a,
-    abstract_tensor<Expr2, U, Rank2>&& b) {
-  return outer_expr<Function, const Expr1&, Expr2>(
-      std::forward<Function>(f), a.self(), std::move(b.self()));
-}
-
-template <class Function, class Expr1, class T, size_t Rank1, class Expr2,
-          class U, size_t Rank2>
-inline outer_expr<Function, Expr1, Expr2> outer(
-    Function&& f, abstract_tensor<Expr1, T, Rank1>&& a,
-    abstract_tensor<Expr2, U, Rank2>&& b) {
-  return outer_expr<Function, Expr1, Expr2>(
-      std::forward<Function>(f), std::move(a.self()), std::move(b.self()));
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto outer(TensorLike1&& a, TensorLike2&& b) {
+  return outer(multiplies() std::forward<TensorLike1>(a),
+               std::forward<TensorLike2>(b));
 }
 } // namespace numcpp
 

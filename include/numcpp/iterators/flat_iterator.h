@@ -22,22 +22,23 @@
 #define NUMCPP_FLAT_ITERATOR_H_INCLUDED
 
 #include <iterator>
+#include "numcpp/shape.h"
 
 namespace numcpp {
 /**
  * @brief A generic random access iterator for tensor subclasses.
  *
- * @tparam Container Tensor subclass.
+ * @tparam Tensor Tensor subclass.
  * @tparam Reference Reference type.
  * @tparam Pointer Pointer type.
  */
-template <class Container, class Reference, class Pointer = void>
+template <class Tensor, class Reference, class Pointer = void>
 class flat_iterator {
  public:
   /// Member types.
   typedef ptrdiff_t difference_type;
-  typedef typename Container::value_type value_type;
-  static constexpr size_t rank = Container::rank;
+  typedef typename Tensor::value_type value_type;
+  static constexpr size_t rank = Tensor::rank;
   typedef Pointer pointer;
   typedef Reference reference;
   typedef std::random_access_iterator_tag iterator_category;
@@ -58,7 +59,7 @@ class flat_iterator {
    * @param layout Layout in which elements are iterated. Defaults to
    * @ref default_layout.
    */
-  flat_iterator(Container* ptr, difference_type offset = 0,
+  flat_iterator(Tensor* ptr, difference_type offset = 0,
                 layout_t layout = default_layout)
       : m_ptr(ptr),
         m_index(unravel_index(offset, ptr->shape(), layout)),
@@ -69,7 +70,7 @@ class flat_iterator {
 
   /**
    * @brief Pre-increments the iterator by one.
-   * 
+   *
    * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator& operator++() {
@@ -85,7 +86,7 @@ class flat_iterator {
 
   /**
    * @brief Pre-decrements the iterator by one.
-   * 
+   *
    * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator& operator--() {
@@ -103,7 +104,7 @@ class flat_iterator {
 
   /**
    * @brief Post-increments the iterator by one.
-   * 
+   *
    * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator operator++(int) {
@@ -114,7 +115,7 @@ class flat_iterator {
 
   /**
    * @brief Post-decrements the iterator by one.
-   * 
+   *
    * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator operator--(int) {
@@ -125,10 +126,10 @@ class flat_iterator {
 
   /**
    * @brief Advances the iterator by @a n.
-   * 
-   * @note Time complexity: O(rank) 
+   *
+   * @note Time complexity: O(rank)
    */
-  flat_iterator &operator+=(difference_type n) {
+  flat_iterator& operator+=(difference_type n) {
     if (n == 1) return ++(*this);
     if (n == -1) return --(*this);
     m_offset += n;
@@ -138,12 +139,10 @@ class flat_iterator {
 
   /**
    * @brief Advances the iterator by @a -n.
-   * 
+   *
    * @note Time complexity: O(rank)
    */
-  flat_iterator &operator-=(difference_type n) {
-    return (*this) += -n;
-  }
+  flat_iterator& operator-=(difference_type n) { return (*this) += -n; }
 
   /**
    * @brief Return a reference to the current element.
@@ -170,7 +169,7 @@ class flat_iterator {
   /**
    * @brief Accesses the underlying tensor.
    */
-  Container *base() const { return m_ptr; }
+  Tensor* base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index.
@@ -187,9 +186,9 @@ class flat_iterator {
    */
   layout_t layout() const { return m_layout; }
 
-private:
+ private:
   // Pointer to the tensor subclass.
-  Container *m_ptr;
+  Tensor* m_ptr;
 
   // Current index.
   index_t<rank> m_index;
@@ -203,73 +202,69 @@ private:
 
 /// Arithmetic operators for flat_iterator.
 
-template <class Container, class Reference, class Pointer>
-inline flat_iterator<Container, Reference, Pointer> operator+(
-    const flat_iterator<Container, Reference, Pointer>& lhs, ptrdiff_t rhs) {
-  flat_iterator<Container, Reference, Pointer> it = lhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator+(
+    const flat_iterator<Tensor, Reference, Pointer>& lhs, ptrdiff_t rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = lhs;
   return it += rhs;
 }
 
-template <class Container, class Reference, class Pointer>
-inline flat_iterator<Container, Reference, Pointer> operator+(
-    ptrdiff_t lhs, const flat_iterator<Container, Reference, Pointer>& rhs) {
-  flat_iterator<Container, Reference, Pointer> it = rhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator+(
+    ptrdiff_t lhs, const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = rhs;
   return it += lhs;
 }
 
-template <class Container, class Reference, class Pointer>
-inline flat_iterator<Container, Reference, Pointer> operator-(
-    const flat_iterator<Container, Reference, Pointer>& lhs, ptrdiff_t rhs) {
-  flat_iterator<Container, Reference, Pointer> it = lhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator-(
+    const flat_iterator<Tensor, Reference, Pointer>& lhs, ptrdiff_t rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = lhs;
   return it -= rhs;
 }
 
-template <class Container, class Reference, class Pointer>
+template <class Tensor, class Reference, class Pointer>
 inline ptrdiff_t operator-(
-    const flat_iterator<Container, Reference, Pointer>& lhs,
-    const flat_iterator<Container, Reference, Pointer>& rhs) {
+    const flat_iterator<Tensor, Reference, Pointer>& lhs,
+    const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return lhs.index() - rhs.index();
 }
 
 /// Relational operators for flat_iterator.
 
-template <class Container, class Reference, class Pointer>
-inline bool operator==(
-    const flat_iterator<Container, Reference, Pointer>& lhs,
-    const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator==(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return lhs.index() == rhs.index();
 }
 
-template <class Container, class Reference, class Pointer>
-inline bool operator!=(
-    const flat_iterator<Container, Reference, Pointer>& lhs,
-    const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator!=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return !(lhs == rhs);
 }
 
-template <class Container, class Reference, class Pointer>
-inline bool operator<(const flat_iterator<Container, Reference, Pointer>& lhs,
-                      const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator<(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                      const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return lhs.index() < rhs.index();
 }
 
-template <class Container, class Reference, class Pointer>
-inline bool operator>(const flat_iterator<Container, Reference, Pointer>& lhs,
-                      const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator>(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                      const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return (rhs < lhs);
 }
 
-template <class Container, class Reference, class Pointer>
-inline bool operator<=(
-    const flat_iterator<Container, Reference, Pointer>& lhs,
-    const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator<=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return !(rhs < lhs);
 }
 
-template <class Container, class Reference, class Pointer>
-inline bool operator>=(
-    const flat_iterator<Container, Reference, Pointer>& lhs,
-    const flat_iterator<Container, Reference, Pointer>& rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator>=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return !(lhs < rhs);
 }
 }  // namespace numcpp

@@ -41,21 +41,11 @@ enum layout_t {
   layout_right = 1,
 
   /**
-   * @brief Alias for layout_right.
-   */
-  row_major = layout_right,
-
-  /**
    * @brief Left layout. The first dimension is contiguous, and the memory
    * offset of each axis is a constant multiple of the previous axis. Default
    * style in Fortran/Matlab.
    */
   layout_left = 2,
-
-  /**
-   * @brief Alias for layout_left.
-   */
-  column_major = layout_left,
 
   /**
    * @brief Default layout.

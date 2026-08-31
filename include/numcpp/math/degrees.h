@@ -21,7 +21,7 @@
 #ifndef NUMCPP_DEGREES_H_INCLUDED
 #define NUMCPP_DEGREES_H_INCLUDED
 
-#include <type_traits>
+#include <concepts>
 
 namespace numcpp {
 /**
@@ -46,8 +46,8 @@ long double degrees(long double x) {
   return 180.0L * x * inv_pi;
 }
 
-template <class T>
-typename std::enable_if<std::is_integral<T>::value, double>::type degrees(T x) {
+template <std::integral T>
+double degrees(T x) {
   return degrees((double)x);
 }
 
@@ -73,8 +73,8 @@ long double radians(long double x) {
   return pi * x / 180.0L;
 }
 
-template <class T>
-typename std::enable_if<std::is_integral<T>::value, double>::type radians(T x) {
+template <std::integral T>
+double radians(T x) {
   return radians((double)x);
 }
 

@@ -22,6 +22,7 @@
 #define NUMCPP_MASK_TENSOR_H_INCLUDED
 
 #include "numcpp/shape.h"
+#include "numcpp/classes/abstract_tensor.h"
 #include "numcpp/iterators/index_sequence.h"
 #include "numcpp/utilities/operators.h"
 
@@ -34,29 +35,23 @@ namespace numcpp {
  * original array will affect the view.
  *
  * @tparam Tensor The tensor subclass whose elements are referenced.
- * @tparam MaskExpr The tensor subclass used for masking.
+ * @tparam BooleanMask The tensor subclass used for masking.
  */
-template <class Tensor, class MaskExpr>
+template <class Tensor, class BooleanMask>
 class mask_tensor {
- public:
-  static_assert(Tensor::rank == MaskExpr::rank,
-                "Expressions must have same dimension");
-
   /// Member types.
   typedef typename Tensor::value_type value_type;
-  static constexpr size_t rank = 1;
   typedef typename Tensor::reference reference;
   typedef typename Tensor::pointer pointer;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<1> shape_type;
 
  private:
   // Tensor elements being referenced.
   Tensor& m_data;
 
   // Boolean mask.
-  const MaskExpr& m_mask;
+  const BooleanMask& m_mask;
 
  public:
   /// Constructors.
@@ -70,11 +65,24 @@ class mask_tensor {
    * tensor and with its elements identifying whether each element is taken or
    * not.
    */
-  mask_tensor(Tensor& data, const MaskExpr& mask)
+  mask_tensor(Tensor& data, const BooleanMask& mask)
       : m_data(data), m_mask(mask) {}
 
   /// Destructor.
   ~mask_tensor() = default;
+
+  /// Public methods.
+
+  /**
+   * @brief Return the number of true values in the mask.
+   */
+  size_type count() const {
+    size_type n = 0;
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
+      if (m_mask[i]) ++n;
+    }
+    return n;
+  }
 
   /// Conversion operator.
 
@@ -83,17 +91,10 @@ class mask_tensor {
    */
   template <class T>
   operator tensor<T, 1>() const {
-    // Count true values in mask.
-    size_t n = 0;
-    for (auto i : make_index_sequence_for(m_data)) {
-      if (m_mask[i]) {
-        n++;
-      }
-    }
     // Allocate memory for n elements and fill elements in order.
-    tensor<T, 1> vec(n);
+    tensor<T, 1> vec(this->count());
     T* ptr = vec.data();
-    for (auto i : make_index_sequence_for(m_data, default_layout)) {
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
       if (m_mask[i]) {
         *ptr = m_data[i];
         ++ptr;
@@ -113,13 +114,14 @@ class mask_tensor {
    *
    * @return *this
    */
-  template <class Expr, class T>
-  mask_tensor& operator=(const abstract_tensor<Expr, T, 1>& other) {
-    const Expr& a = other.self();
-    size_t n = 0;
-    for (auto i : make_index_sequence_for(m_data, default_layout)) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator=(const TensorLike& other) {
+    index_t<1> j{0};
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
       if (m_mask[i]) {
-        m_data[i] = a[{n++}];
+        m_data[i] = other[j];
+        ++j[0];
       }
     }
     return *this;
@@ -133,7 +135,7 @@ class mask_tensor {
    * @return *this
    */
   mask_tensor& operator=(const value_type& val) {
-    for (auto i : make_index_sequence_for(m_data)) {
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
       if (m_mask[i]) {
         m_data[i] = val;
       }
@@ -160,120 +162,129 @@ class mask_tensor {
    *
    * @return *this
    */
-  template <class Expr, class T>
-  mask_tensor& operator+=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(plus(), rhs);
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator+=(const TensorLike& rhs) {
+    return this->assign(plus(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator-=(const TensorLike& rhs) {
+    return this->assign(minus(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator*=(const TensorLike& rhs) {
+    return this->assign(multiplies(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator/=(const TensorLike& rhs) {
+    return this->assign(divides(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator%=(const TensorLike& rhs) {
+    return this->assign(modulus(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator&=(const TensorLike& rhs) {
+    return this->assign(bit_and(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator|=(const TensorLike& rhs) {
+    return this->assign(bit_or(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator^=(const TensorLike& rhs) {
+    return this->assign(bit_xor(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator<<=(const TensorLike& rhs) {
+    return this->assign(left_shift(), rhs);
+  }
+
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& operator>>=(const TensorLike& rhs) {
+    return this->assign(right_shift(), rhs);
   }
 
   mask_tensor& operator+=(const value_type& val) {
-    return __apply(plus(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator-=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(minus(), rhs);
+    return this->assign(plus(), val);
   }
 
   mask_tensor& operator-=(const value_type& val) {
-    return __apply(minus(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator*=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(multiplies(), rhs);
+    return this->assign(minus(), val);
   }
 
   mask_tensor& operator*=(const value_type& val) {
-    return __apply(multiplies(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator/=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(divides(), rhs);
+    return this->assign(multiplies(), val);
   }
 
   mask_tensor& operator/=(const value_type& val) {
-    return __apply(divides(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator%=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(modulus(), rhs);
+    return this->assign(divides(), val);
   }
 
   mask_tensor& operator%=(const value_type& val) {
-    return __apply(modulus(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator&=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(bit_and(), rhs);
+    return this->assign(modulus(), val);
   }
 
   mask_tensor& operator&=(const value_type& val) {
-    return __apply(bit_and(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator|=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(bit_or(), rhs);
+    return this->assign(bit_and(), val);
   }
 
   mask_tensor& operator|=(const value_type& val) {
-    return __apply(bit_or(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator^=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(bit_xor(), rhs);
+    return this->assign(bit_or(), val);
   }
 
   mask_tensor& operator^=(const value_type& val) {
-    return __apply(bit_xor(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator<<=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(left_shift(), rhs);
+    return this->assign(bit_xor(), val);
   }
 
   mask_tensor& operator<<=(const value_type& val) {
-    return __apply(left_shift(), val);
-  }
-
-  template <class Expr, class T>
-  mask_tensor& operator>>=(const abstract_tensor<Expr, T, 1>& rhs) {
-    return __apply(right_shift(), rhs);
+    return this->assign(left_shift(), val);
   }
 
   mask_tensor& operator>>=(const value_type& val) {
-    return __apply(right_shift(), val);
+    return this->assign(right_shift(), val);
   }
 
  private:
   /**
-   * @brief Applies op element-wise using *this as left hand operand and rhs
-   * as right hand operand.
+   * @brief Compound assignment operator implementation.
    */
-  template <class Function, class Expr, class T>
-  mask_tensor& __apply(Function op, const abstract_tensor<Expr, T, 1>& rhs) {
-    const Expr& a = rhs.self();
-    size_t n = 0;
-    for (auto i : make_index_sequence_for(m_data, default_layout)) {
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == 1)
+  mask_tensor& assign(Operator op, const TensorLike& rhs) {
+    index_t<1> j{0};
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
       if (m_mask[i]) {
-        m_data[i] = op(m_data[i], a[{n++}]);
+        m_data[i] = op(m_data[i], rhs[j]);
+        ++j[0];
       }
     }
     return *this;
   }
 
   /**
-   * @brief Applies op element-wise using *this as left hand operand and val
-   * as right hand operand.
+   * @brief Compound assignment operator implementation.
    */
-  template <class Function>
-  mask_tensor& __apply(Function op, const value_type& val) {
-    for (auto i : make_index_sequence_for(m_data)) {
+  template <class Operator>
+  mask_tensor& assign(Operator op, const value_type& val) {
+    for (const index_t<Tensor::rank>& i : make_index_sequence(m_data.shape())) {
       if (m_mask[i]) {
         m_data[i] = op(m_data[i], val);
       }

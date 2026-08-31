@@ -32,7 +32,7 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class const_expr : public abstract_tensor<const_expr<T, Rank>, T, Rank> {
+class const_expr {
  public:
   /// Member types.
   typedef T value_type;
@@ -68,7 +68,8 @@ class const_expr : public abstract_tensor<const_expr<T, Rank>, T, Rank> {
    *
    * @return A constant value.
    */
-  template <class... Indices, detail::RequiresNIntegers<Rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == Rank)
   const T& operator()(Indices...) const {
     return m_val;
   }

@@ -22,8 +22,7 @@
 #define NUMCPP_INDIRECT_TENSOR_H_INCLUDED
 
 #include "numcpp/shape.h"
-#include "numcpp/classes/abstract_tensor.h"
-#include "numcpp/iterators/flat_iterator.h"
+#include "numcpp/classes/dense_tensor.h"
 
 namespace numcpp {
 /**
@@ -34,16 +33,16 @@ namespace numcpp {
  * to the original array will affect the view.
  *
  * @tparam Tensor The tensor subclass whose elements are referenced.
- * @tparam IndexExpr The tensor subclass used for indexing.
+ * @tparam IndexTensor The tensor subclass used for indexing.
  */
-template <class Tensor, class IndexExpr>
+template <class Tensor, class IndexTensor>
 class indirect_tensor
-    : public abstract_tensor<indirect_tensor<Tensor, IndexExpr>,
-                             typename Tensor::value_type, IndexExpr::rank> {
+    : public dense_tensor<indirect_tensor<Tensor, IndexTensor>,
+                          typename Tensor::value_type, IndexTensor::rank> {
  public:
   /// Member types.
   typedef typename Tensor::value_type value_type;
-  static constexpr size_t rank = IndexExpr::rank;
+  static constexpr size_t rank = IndexTensor::rank;
   typedef typename Tensor::reference reference;
   typedef typename Tensor::pointer pointer;
   typedef size_t size_type;
@@ -56,7 +55,7 @@ class indirect_tensor
   Tensor& m_data;
 
   // Array of indices.
-  const IndexExpr& m_index;
+  const IndexTensor& m_index;
 
  public:
   /// Constructors.
@@ -66,11 +65,11 @@ class indirect_tensor
    * the elements of a multidimensional array.
    *
    * @param data Tensor whose elements are referenced.
-   * @param indices An abstract tensor of @ref index_t with its elements
+   * @param index An abstract tensor of @ref index_t with its elements
    * identifying which elements of the input tensor are selected.
    */
-  indirect_tensor(Tensor& data, const IndexExpr& indices)
-      : m_data(data), m_index(indices) {}
+  indirect_tensor(Tensor& data, const IndexTensor& index)
+      : m_data(data), m_index(index) {}
 
   /// Destructor.
   ~indirect_tensor() = default;
@@ -85,14 +84,15 @@ class indirect_tensor
    *
    * @return The element at the specified position.
    */
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) -> decltype(m_data[m_index(indices...)]) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) {
     return m_data[m_index(indices...)];
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(m_data[m_index(indices...)]) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) const {
     return m_data[m_index(indices...)];
   }
 
@@ -105,12 +105,11 @@ class indirect_tensor
    *
    * @return The element at the specified position.
    */
-  auto operator[](const index_type& index) -> decltype(m_data[m_index[index]]) {
+  decltype(auto) operator[](const index_type& index) {
     return m_data[m_index[index]];
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_data[m_index[index]]) {
+  decltype(auto) operator[](const index_type& index) const {
     return m_data[m_index[index]];
   }
 
@@ -152,15 +151,10 @@ class indirect_tensor
    * @throw std::invalid_argument Thrown if the shapes are not compatible and
    * cannot be broadcasted according to broadcasting rules.
    */
-  template <class Expr, class U>
-  indirect_tensor &operator=(const abstract_tensor<Expr, U, rank> &other) {
-    typedef flat_iterator<const IndexExpr, index_t<Tensor::rank>, void>
-        iterator;
-    iterator begin(&m_index, 0), end(&m_index, m_index.size());
-    const Expr& a = other.self();
-    for (iterator it = begin; it != end; ++it) {
-      m_data[*it] = a[it.coords()];
-    }
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == rank)
+  indirect_tensor& operator=(const TensorLike& other) {
+    dense_tensor<indirect_tensor, value_type, rank>::operator=(other);
     return *this;
   }
 
@@ -172,12 +166,7 @@ class indirect_tensor
    * @return *this
    */
   indirect_tensor& operator=(const value_type& val) {
-    typedef flat_iterator<const IndexExpr, index_t<Tensor::rank>, void>
-        iterator;
-    iterator begin(&m_index, 0), end(&m_index, m_index.size());
-    for (iterator it = begin; it != end; ++it) {
-      m_data[*it] = val;
-    }
+    dense_tensor<indirect_tensor, value_type, rank>::operator=(val);
     return *this;
   }
 };

@@ -22,14 +22,19 @@
 #define NUMCPP_SHAPE_H_INCLUDED
 
 #include <algorithm>
+#include <concepts>
+#include <cstddef>
 #include <iosfwd>
 #include "numcpp/enums/layout_t.h"
-#include "numcpp/utilities/traits.h"
 
 namespace numcpp {
+using std::size_t;
+using std::ptrdiff_t;
+
 /**
  * @brief Base class for @ref shape_t and @ref index_t subclasses.
  *
+ * @tparam T Value type. It must be an integer type.
  * @tparam Rank Dimension of the shape. It must be a positive integer.
  */
 template <class T, size_t Rank>
@@ -100,7 +105,7 @@ using index_t = basic_shape<ptrdiff_t, Rank>;
  *
  * @return A shape with the given values.
  */
-template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+template <std::integral... Sizes>
 inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
   return shape_t<sizeof...(Sizes)>{static_cast<size_t>(sizes)...};
 }
@@ -113,7 +118,7 @@ inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
  *
  * @return An index with the given values.
  */
-template <class... Indices, detail::RequiresIntegral<Indices...> = 0>
+template <std::integral... Indices>
 inline index_t<sizeof...(Indices)> make_index(Indices... indices) {
   return index_t<sizeof...(Indices)>{static_cast<ptrdiff_t>(indices)...};
 }
@@ -225,8 +230,8 @@ shape_t<Rank> broadcast_shapes(const shape_t<Rank> &shape1,
  * @return The concatenated shape.
  */
 template <class T, size_t Rank, size_t... Ranks>
-basic_shape<T, detail::sum_value<size_t, Rank, Ranks...>::value> shape_cat(
-    const basic_shape<T, Rank> &shape1, const basic_shape<T, Ranks> &...shapes);
+basic_shape<T, (Rank + ... + Ranks)> shape_cat(
+    const basic_shape<T, Rank>& shape1, const basic_shape<T, Ranks>&... shapes);
 
 /**
  * @brief Compares if two shapes are equal. Returns true if they have the same

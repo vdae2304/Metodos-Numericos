@@ -22,6 +22,7 @@
 #define NUMCPP_INDEX_SEQUENCE_H_INCLUDED
 
 #include <iterator>
+#include "numcpp/shape.h"
 
 namespace numcpp {
 /**
@@ -122,11 +123,17 @@ class index_sequence {
   /**
    * @brief Layout constructor.
    *
-   * @param shape Number of elements along each axis.
+   * @param shape Number of elements along each axis. It can be a @ref shape_t
+   * object or the elements of the shape passed as separate arguments.
    * @param layout Memory layout in which elements are iterated. If set to
    * @ref layout_right, the last dimension is varying the fastest. If set to
    * @ref layout_left, the first dimension is varying the fastest.
    */
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
+  index_sequence(Sizes... sizes)
+      : index_sequence({static_cast<size_t>(sizes)...}) {}
+
   index_sequence(const shape_t<Rank>& shape, layout_t layout = default_layout)
       : m_shape(shape), m_size(shape.prod()) {
     if (layout == no_layout) layout = default_layout;
@@ -143,7 +150,7 @@ class index_sequence {
    * which elements shall be iterated, starting from the axis which is varying
    * the fastest.
    */
-  index_sequence(const shape_t<Rank>& shape, const index_t<Rank>& order)
+  index_sequence(const shape_t<Rank>& shape, const shape_t<Rank>& order)
       : m_shape(shape), m_size(shape.prod()), m_order(order) {}
 
   /**
@@ -179,7 +186,7 @@ class index_sequence {
   size_type m_size;
 
   // Order in which elements shall be iterated.
-  index_t<Rank> m_order;
+  shape_t<Rank> m_order;
 };
 
 /**
@@ -197,9 +204,9 @@ class index_sequence {
  * @return An index_sequence object which iterates over the indices of a tensor.
  * At each iteration, a new index is returned.
  */
-template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+template <std::integral... Sizes>
 inline index_sequence<sizeof...(Sizes)> make_index_sequence(Sizes... sizes) {
-  return index_sequence<sizeof...(Sizes)>({static_cast<size_t>(sizes)...});
+  return index_sequence<sizeof...(Sizes)>(sizes...);
 }
 
 template <size_t Rank>
@@ -210,34 +217,8 @@ inline index_sequence<Rank> make_index_sequence(
 
 template <size_t Rank>
 inline index_sequence<Rank> make_index_sequence(const shape_t<Rank>& shape,
-                                                const index_t<Rank> order) {
+                                                const shape_t<Rank>& order) {
   return index_sequence<Rank>(shape, order);
-}
-
-/**
- * @brief Create an index_sequence for given tensor.
- *
- * @param a An abstract tensor to iterate over.
- * @param layout Memory layout in which indices are computed. If set to
- * @ref layout_right, the last dimension is contiguous. If set to
- * @ref layout_left, the first dimension is contiguous.
- * @param order A permutation of {0, 1, 2, ..., Rank} specifying the order in
- * which elements shall be iterated, starting from the axis which is varying
- * the fastest.
- *
- * @return An index_sequence object which iterates over the indices of a tensor.
- * At each iteration, a new index is returned.
- */
-template <class Expr, class T, size_t Rank>
-inline index_sequence<Rank> make_index_sequence_for(
-    const abstract_tensor<Expr, T, Rank>& a, layout_t layout = default_layout) {
-  return index_sequence<Rank>(a.self().shape(), layout);
-}
-
-template <class Expr, class T, size_t Rank>
-inline index_sequence<Rank> make_index_sequence_for(
-    const abstract_tensor<Expr, T, Rank>& a, const index_t<Rank> order) {
-  return index_sequence<Rank>(a.self().shape(), order);
 }
 }  // namespace numcpp
 

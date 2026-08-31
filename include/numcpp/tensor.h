@@ -21,12 +21,6 @@
 #ifndef NUMCPP_TENSOR_H_INCLUDED
 #define NUMCPP_TENSOR_H_INCLUDED
 
-#if __cplusplus < 201103L
-#error This file requires compiler and library support for the ISO C++ 2011 \
-standard. This support must be enabled with the -std=c++11 or -std=gnu++11 \
-compiler options.
-#else
-
 #include "numcpp/shape.h"
 #include "numcpp/classes/slice.h"
 #include "numcpp/classes/dense_tensor.h"
@@ -57,7 +51,7 @@ namespace numcpp {
  */
 template <class T, size_t Rank>
 class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
-public:
+ public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
@@ -91,7 +85,8 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    * throw an exception.
    */
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
   explicit tensor(Sizes... sizes)
       : m_shape{static_cast<size_type>(sizes)...},
         m_size(m_shape.prod()),
@@ -140,16 +135,14 @@ public:
    * @throw std::bad_alloc If the function fails to allocate storage it may
    * throw an exception.
    */
-  template <class InputIterator, class... Sizes,
-            detail::RequiresInputIterator<InputIterator> = 0,
-            detail::RequiresNIntegers<Rank, Sizes...> = 0>
-  tensor(InputIterator first, Sizes... sizes) : tensor(sizes...) {
+  template <std::input_iterator Iterator, std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
+  tensor(Iterator first, Sizes... sizes) : tensor(sizes...) {
     std::copy_n(first, m_size, m_data);
   }
 
-  template <class InputIterator,
-            detail::RequiresInputIterator<InputIterator> = 0>
-  tensor(InputIterator first, const shape_type& shape,
+  template <std::input_iterator Iterator>
+  tensor(Iterator first, const shape_type& shape,
          layout_t layout = default_layout)
       : tensor(shape, layout) {
     std::copy_n(first, m_size, m_data);
@@ -172,13 +165,14 @@ public:
     std::copy_n(other.m_data, m_size, m_data);
   }
 
-  template <class Expr, class U>
-  tensor(const abstract_tensor<Expr, U, Rank>& other)
-      : tensor(other, other.self().layout()) {}
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor(const TensorLike& other) : tensor(other, other.layout()) {}
 
-  template <class Expr, class U>
-  tensor(const abstract_tensor<Expr, U, Rank>& other, layout_t layout)
-      : tensor(other.self().shape(), layout) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor(const TensorLike& other, layout_t layout)
+      : tensor(other.shape(), layout) {
     dense_tensor<tensor, T, Rank>::operator=(other);
   }
 
@@ -228,16 +222,16 @@ public:
    *
    * @note Undefined behaviour if index is out of bounds.
    */
-  template <class... Indices, detail::RequiresNIntegers<Rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == Rank)
   T& operator()(Indices... indices) {
-    return this->operator[](
-        index_type{static_cast<difference_type>(indices)...});
+    return (*this)[index_type{static_cast<difference_type>(indices)...}];
   }
 
-  template <class... Indices, detail::RequiresNIntegers<Rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == Rank)
   const T& operator()(Indices... indices) const {
-    return this->operator[](
-        index_type{static_cast<difference_type>(indices)...});
+    return (*this)[index_type{static_cast<difference_type>(indices)...}];
   }
 
   /**
@@ -262,13 +256,15 @@ public:
     return m_data[ravel_index(index, m_shape, m_layout)];
   }
 
-#ifdef __cpp_multidimensional_subscript
-  template <class... Indices, detail::RequiresNIntegers<Rank, Indices...> = 0>
+#if __cplusplus >= 202302L
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == Rank)
   T& operator[](Indices... indices) {
     return this->operator()(indices...);
   }
 
-  template <class... Indices, detail::RequiresNIntegers<Rank, Indices...> = 0>
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == Rank)
   const T& operator[](Indices... indices) const {
     return this->operator()(indices...);
   }
@@ -290,8 +286,9 @@ public:
    *
    * @throw std::out_of_range Thrown if an integral index is out of bounds.
    */
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresSlicing<Indices...> = 0>
+  template <class... Indices,
+            detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                                 detail::has_slicing<Indices...> > = 0>
   tensor_view<T, detail::slicing_rank<Indices...>::value> operator()(
       const Indices&... indices) {
     constexpr size_t N = detail::slicing_rank<Indices...>::value;
@@ -303,8 +300,9 @@ public:
     return tensor_view<T, N>(m_data + offset, shape, strides);
   }
 
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresSlicing<Indices...> = 0>
+  template <class... Indices,
+            detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                                 detail::has_slicing<Indices...> > = 0>
   tensor_view<const T, detail::slicing_rank<Indices...>::value> operator()(
       const Indices&... indices) const {
     constexpr size_t N = detail::slicing_rank<Indices...>::value;
@@ -317,15 +315,17 @@ public:
   }
 
 #ifdef __cpp_multidimensional_subscript
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresSlicing<Indices...> = 0>
+  template <class... Indices,
+            detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                                 detail::has_slicing<Indices...> > = 0>
   tensor_view<T, detail::slicing_rank<Indices...>::value> operator[](
       const Indices&... indices) {
     return this->operator()(indices...);
   }
 
-  template <class... Indices, detail::RequiresNArguments<Rank, Indices...> = 0,
-            detail::RequiresSlicing<Indices...> = 0>
+  template <class... Indices,
+            detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                                 detail::has_slicing<Indices...> > = 0>
   tensor_view<const T, detail::slicing_rank<Indices...>::value> operator[](
       const Indices&... indices) const {
     return this->operator()(indices...);
@@ -342,16 +342,17 @@ public:
    * @return An @ref indirect_tensor, which has reference semantics to the
    * original tensor.
    */
-  template <class IndexExpr, size_t N>
-  indirect_tensor<tensor, IndexExpr> operator[](
-      const abstract_tensor<IndexExpr, index_type, N>& indices) {
-    return indirect_tensor<tensor, IndexExpr>(*this, indices.self());
+  template <abstract_tensor TensorLike>
+    requires(std::same_as<typename TensorLike::value_type, index_type>)
+  indirect_tensor<tensor, TensorLike> operator[](const TensorLike& indices) {
+    return indirect_tensor<tensor, TensorLike>(*this, indices);
   }
 
-  template <class IndexExpr, size_t N>
-  indirect_tensor<const tensor, IndexExpr> operator[](
-      const abstract_tensor<IndexExpr, index_type, N>& indices) const {
-    return indirect_tensor<const tensor, IndexExpr>(*this, indices.self());
+  template <abstract_tensor TensorLike>
+    requires(std::same_as<typename TensorLike::value_type, index_type>)
+  indirect_tensor<const tensor, TensorLike> operator[](
+      const TensorLike& indices) const {
+    return indirect_tensor<const tensor, TensorLike>(*this, indices);
   }
 
   /**
@@ -368,16 +369,18 @@ public:
    * @throw std::bad_alloc If the function needs to allocate storage and fails,
    * it may throw an exception.
    */
-  template <class MaskExpr>
-  mask_tensor<tensor, MaskExpr>
-  operator[](const abstract_tensor<MaskExpr, bool, Rank> &mask) {
-    return mask_tensor<tensor, MaskExpr>(*this, mask.self());
+  template <abstract_tensor TensorLike>
+    requires(std::same_as<typename TensorLike::value_type, bool> &&
+             TensorLike::rank == Rank)
+  mask_tensor<tensor, TensorLike> operator[](const TensorLike& mask) {
+    return mask_tensor<tensor, TensorLike>(*this, mask);
   }
 
-  template <class MaskExpr>
-  tensor<T, 1> operator[](
-      const abstract_tensor<MaskExpr, bool, Rank>& mask) const {
-    return mask_tensor<const tensor, MaskExpr>(*this, mask.self());
+  template <abstract_tensor TensorLike>
+    requires(std::same_as<typename TensorLike::value_type, bool> &&
+             TensorLike::rank == rank)
+  tensor<T, 1> operator[](const TensorLike& mask) const {
+    return mask_tensor<const tensor, TensorLike>(*this, mask);
   }
 
   /**
@@ -435,16 +438,10 @@ public:
    * and views to elements of the tensor. Otherwise, valid iterators, references
    * and views keep their validity.
    */
-  template <class Expr>
-  tensor& operator=(const abstract_tensor<Expr, T, Rank>& other){
-    this->resize(other.self().shape());
-    dense_tensor<tensor, T, Rank>::operator=(other);
-    return *this;
-  }
-
-  template <class Expr, class U>
-  tensor& operator=(const abstract_tensor<Expr, U, Rank>& other) {
-    this->resize(other.self().shape());
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor& operator=(const TensorLike& other) {
+    this->resize(other.shape());
     dense_tensor<tensor, T, Rank>::operator=(other);
     return *this;
   }
@@ -506,7 +503,8 @@ public:
    * @throw std::invalid_argument Thrown if the tensor is not compatible with
    * the new shape according to broadcasting rules.
    */
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
   tensor_view<const T, Rank> broadcast_to(Sizes... sizes) const {
     return this->broadcast_to(shape_type{static_cast<size_type>(sizes)...});
   }
@@ -543,12 +541,12 @@ public:
    *
    * @throw std::invalid_argument Thrown if the tensor could not reshaped.
    */
-  template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+  template <std::integral... Sizes>
   tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes) {
     return this->reshape(make_shape(sizes...));
   }
 
-  template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
+  template <std::integral... Sizes>
   tensor_view<const T, sizeof...(Sizes)> reshape(Sizes... sizes) const {
     return this->reshape(make_shape(sizes...));
   }
@@ -574,7 +572,8 @@ public:
    * @warning Invalidates all iterators, references and views to elements of the
    * tensor.
    */
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
   void resize(Sizes... sizes) {
     this->resize(shape_type{static_cast<size_type>(sizes)...});
   }
@@ -596,18 +595,20 @@ public:
   tensor_view<T, Rank> t();
   tensor_view<const T, Rank> t() const;
 
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
   tensor_view<T, Rank> t(Sizes... axes) {
     return this->t(shape_type{static_cast<size_type>(axes)...});
   }
 
-  template <class... Sizes, detail::RequiresNIntegers<Rank, Sizes...> = 0>
+  template <std::integral... Sizes>
+    requires(sizeof...(Sizes) == Rank)
   tensor_view<const T, Rank> t(Sizes... axes) const {
     return this->t(shape_type{static_cast<size_type>(axes)...});
   }
 
-  tensor_view<T, Rank> t(const shape_type &axes);
-  tensor_view<const T, Rank> t(const shape_type &axes) const;
+  tensor_view<T, Rank> t(const shape_type& axes);
+  tensor_view<const T, Rank> t(const shape_type& axes) const;
 
   /**
    * @brief Return a view of the tensor with the same data.
@@ -637,29 +638,8 @@ private:
   // Memory layout.
   layout_t m_layout;
 };
-
-/// Deduction guides
-#if __cplusplus >= 201703L
-template <class InputIterator, class... Sizes>
-tensor(InputIterator first, Sizes... sizes)
-    -> tensor<typename std::iterator_traits<InputIterator>::value_type,
-              sizeof...(Sizes)>;
-
-template <class InputIterator, size_t Rank>
-tensor(InputIterator first, const shape_t<Rank> &shape,
-       layout_t layout = default_layout)
-    -> tensor<typename std::iterator_traits<InputIterator>::value_type, Rank>;
-
-template <class Expr, class T, size_t Rank>
-tensor(const abstract_tensor<Expr, T, Rank> &other) -> tensor<T, Rank>;
-
-template <class Expr, class T, size_t Rank>
-tensor(const abstract_tensor<Expr, T, Rank> &other, layout_t layout)
-    -> tensor<T, Rank>;
-#endif // C++17
 } // namespace numcpp
 
 #include "numcpp/classes/tensor.tcc"
 
-#endif // C++11
 #endif // NUMCPP_TENSOR_H_INCLUDED

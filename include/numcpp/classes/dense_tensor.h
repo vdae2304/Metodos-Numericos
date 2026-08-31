@@ -31,19 +31,19 @@ namespace numcpp {
 /**
  * @brief Base class for dense tensors such as tensor, tensor_view and
  * indirect_tensor. Unlike plain expressions, dense tensors allows to modify its
- * elements, and implements an assortment of methods which will be inherited to
+ * elements, and implements an assortment of methods which can be inherited to
  * all the subclasses.
  *
- * @tparam Derived Derived tensor subclass.
+ * @tparam Tensor Tensor subclass.
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
-template <class Derived, class T, size_t Rank>
-class dense_tensor : public abstract_tensor<Derived, T, Rank> {
-public:
+template <class Tensor, class T, size_t Rank>
+class dense_tensor {
+ public:
   /// Member types.
-  typedef flat_iterator<Derived, T&, T*> iterator;
-  typedef flat_iterator<const Derived, const T&, const T*> const_iterator;
+  typedef flat_iterator<Tensor, T&, T*> iterator;
+  typedef flat_iterator<const Tensor, const T&, const T*> const_iterator;
 
   /// Iterators.
 
@@ -60,7 +60,7 @@ public:
    * Otherwise, it returns an iterator.
    */
   iterator begin(layout_t layout = default_layout) {
-    Derived* ptr = static_cast<Derived*>(this);
+    Tensor* ptr = static_cast<Tensor*>(this);
     return iterator(ptr, 0, layout);
   }
 
@@ -83,7 +83,7 @@ public:
    * Otherwise, it returns an iterator.
    */
   iterator end(layout_t layout = default_layout) {
-    Derived* ptr = static_cast<Derived*>(this);
+    Tensor* ptr = static_cast<Tensor*>(this);
     return iterator(ptr, ptr->size(), layout);
   }
 
@@ -102,7 +102,7 @@ public:
    * @return A const_iterator to the beginning of the tensor.
    */
   const_iterator cbegin(layout_t layout = default_layout) const {
-    const Derived* ptr = static_cast<const Derived*>(this);
+    const Tensor* ptr = static_cast<const Tensor*>(this);
     return const_iterator(ptr, 0, layout);
   }
 
@@ -117,51 +117,17 @@ public:
    * @return A const_iterator to the element past the end of the tensor.
    */
   const_iterator cend(layout_t layout = default_layout) const {
-    const Derived* ptr = static_cast<const Derived*>(this);
+    const Tensor* ptr = static_cast<const Tensor*>(this);
     return const_iterator(ptr, ptr->size(), layout);
   }
 
   /// Indexing.
 
   /**
-   * @brief Return a reference to the element at the given position.
-   */
-  T& operator[](const index_t<Rank>& index) { return self()[index]; }
-
-  const T& operator[](const index_t<Rank>& index) const {
-    return self()[index];
-  }
-
-  /**
-   * @brief Return the shape of the tensor.
-   */
-  shape_t<Rank> shape() const { return self().shape(); }
-
-  /**
-   * @brief Return the size of the tensor along the given axis.
-   */
-  size_t shape(size_t axis) const { return self().shape(axis); }
-
-  /**
-   * @brief Return the number of elements in the tensor.
-   */
-  size_t size() const { return self().size(); }
-
-  /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return self().empty(); }
-
-  /**
-   * @brief Return the memory layout in which elements are stored.
-   */
-  layout_t layout() const { return self().layout(); }
-
-  /**
    * @brief Return the derived subclass.
    */
-  Derived& self() { return static_cast<Derived&>(*this); }
-  const Derived& self() const { return static_cast<const Derived&>(*this); }
+  Tensor& self() { return static_cast<Tensor&>(*this); }
+  const Tensor& self() const { return static_cast<const Tensor&>(*this); }
 
   /// Assignment operator.
 
@@ -173,22 +139,13 @@ public:
    *
    * @return *this
    */
-  template <class Expr>
-  Derived& operator=(const abstract_tensor<Expr, T, Rank>& other) {
-    Derived& self = this->self();
-    const Expr& a = other.self();
-    for (const index_t<Rank>& i : make_index_sequence_for(self)) {
-      self[i] = a[i];
-    }
-    return self;
-  }
-
-  template <class Expr, class U>
-  Derived& operator=(const abstract_tensor<Expr, U, Rank>& other) {
-    Derived& self = this->self();
-    const Expr& a = other.self();
-    for (const index_t<Rank>& i : make_index_sequence_for(self)) {
-      self[i] = static_cast<T>(a[i]);
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator=(const TensorLike& other) {
+    Tensor& self = this->self();
+    for (const index_t<Rank>& i :
+         make_index_sequence(self.shape(), self.layout())) {
+      self[i] = static_cast<T>(other[i]);
     }
     return self;
   }
@@ -200,9 +157,10 @@ public:
    *
    * @return *this
    */
-  Derived& operator=(const T& val) {
-    Derived& self = this->self();
-    for (const index_t<Rank>& i : make_index_sequence_for(self)) {
+  Tensor& operator=(const T& val) {
+    Tensor& self = this->self();
+    for (const index_t<Rank>& i :
+         make_index_sequence(self.shape(), self.layout())) {
       self[i] = val;
     }
     return self;
@@ -226,88 +184,97 @@ public:
    *
    * @return *this
    */
-  template <class Expr>
-  Derived& operator+=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator+=(const TensorLike& rhs) {
     return this->assign(plus(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator-=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator-=(const TensorLike& rhs) {
     return this->assign(minus(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator*=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator*=(const TensorLike& rhs) {
     return this->assign(multiplies(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator/=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator/=(const TensorLike& rhs) {
     return this->assign(divides(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator%=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator%=(const TensorLike& rhs) {
     return this->assign(modulus(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator&=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator&=(const TensorLike& rhs) {
     return this->assign(bit_and(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator|=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator|=(const TensorLike& rhs) {
     return this->assign(bit_or(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator^=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator^=(const TensorLike& rhs) {
     return this->assign(bit_xor(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator<<=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator<<=(const TensorLike& rhs) {
     return this->assign(left_shift(), rhs);
   }
 
-  template <class Expr>
-  Derived& operator>>=(const abstract_tensor<Expr, T, Rank>& rhs) {
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& operator>>=(const TensorLike& rhs) {
     return this->assign(right_shift(), rhs);
   }
 
-  Derived& operator+=(const T& val) { return this->assign(plus(), val); }
+  Tensor& operator+=(const T& val) { return this->assign(plus(), val); }
 
-  Derived& operator-=(const T& val) { return this->assign(minus(), val); }
+  Tensor& operator-=(const T& val) { return this->assign(minus(), val); }
 
-  Derived& operator*=(const T& val) { return this->assign(multiplies(), val); }
+  Tensor& operator*=(const T& val) { return this->assign(multiplies(), val); }
 
-  Derived& operator/=(const T& val) { return this->assign(divides(), val); }
+  Tensor& operator/=(const T& val) { return this->assign(divides(), val); }
 
-  Derived& operator%=(const T& val) { return this->assign(modulus(), val); }
+  Tensor& operator%=(const T& val) { return this->assign(modulus(), val); }
 
-  Derived& operator&=(const T& val) { return this->assign(bit_and(), val); }
+  Tensor& operator&=(const T& val) { return this->assign(bit_and(), val); }
 
-  Derived& operator|=(const T& val) { return this->assign(bit_or(), val); }
+  Tensor& operator|=(const T& val) { return this->assign(bit_or(), val); }
 
-  Derived& operator^=(const T& val) { return this->assign(bit_xor(), val); }
+  Tensor& operator^=(const T& val) { return this->assign(bit_xor(), val); }
 
-  Derived& operator<<=(const T& val) { return this->assign(left_shift(), val); }
+  Tensor& operator<<=(const T& val) { return this->assign(left_shift(), val); }
 
-  Derived& operator>>=(const T& val) {
-    return this->assign(right_shift(), val);
-  }
+  Tensor& operator>>=(const T& val) { return this->assign(right_shift(), val); }
 
  private:
   /**
    * @brief Compound assignment operator implementation.
    */
-  template <class Operator, class Expr>
-  Derived& assign(Operator op, const abstract_tensor<Expr, T, Rank>& rhs) {
-    Derived& self = this->self();
-    const Expr& a = rhs.self();
-    for (const index_t<Rank>& i : make_index_sequence_for(self)) {
-      self[i] = op(self[i], a[i]);
+  template <class Operator, abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  Tensor& assign(Operator op, const TensorLike& rhs) {
+    Tensor& self = this->self();
+    for (const index_t<Rank>& i :
+         make_index_sequence(self.shape(), self.layout())) {
+      self[i] = op(self[i], rhs[i]);
     }
     return self;
   }
@@ -316,9 +283,10 @@ public:
    * @brief Compound assignment operator implementation.
    */
   template <class Operator>
-  Derived& assign(Operator op, const T& val) {
-    Derived& self = this->self();
-    for (const index_t<Rank>& i : make_index_sequence_for(self)) {
+  Tensor& assign(Operator op, const T& val) {
+    Tensor& self = this->self();
+    for (const index_t<Rank>& i :
+         make_index_sequence(self.shape(), self.layout())) {
       self[i] = op(self[i], val);
     }
     return self;

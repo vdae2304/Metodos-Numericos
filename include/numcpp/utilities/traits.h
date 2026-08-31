@@ -26,53 +26,12 @@
 #include <iterator>
 #include <type_traits>
 
-#include "numcpp/config.h"
-
 namespace numcpp {
 /// Namespace for implementation details.
 namespace detail {
-#if __cplusplus >= 201703L
 using std::conjunction;
 using std::disjunction;
 using std::void_t;
-#else
-/**
- * @brief Variadic logical AND.
- */
-template <class... Bn>
-struct conjunction;
-
-template <>
-struct conjunction<> : std::true_type {};
-
-template <class B1>
-struct conjunction<B1> : B1 {};
-
-template <class B1, class... Bn>
-struct conjunction<B1, Bn...>
-    : std::conditional<bool(B1::value), conjunction<Bn...>, B1>::type {};
-
-/**
- * @brief Variadic logical OR.
- */
-template <class... Bn>
-struct disjunction;
-
-template <>
-struct disjunction<> : std::false_type {};
-
-template <class B1>
-struct disjunction<B1> : B1 {};
-
-template <class B1, class... Bn>
-struct disjunction<B1, Bn...>
-    : std::conditional<bool(B1::value), B1, disjunction<Bn...>>::type {};
-
-/**
- * @brief Always yields void.
- */
-template <class...> using void_t = void;
-#endif
 
 /**
  * @brief Return the sum of the arguments.
@@ -91,29 +50,15 @@ struct sum_value<T, N, Ns...> {
 };
 
 /**
- * @brief Return the maximum value or arguments.
- */
-template <class T, T... Ns>
-struct max_value;
-
-template <class T, T N>
-struct max_value<T, N> {
-  static constexpr T value = N;
-};
-
-template <class T, T N, T... Ns>
-struct max_value<T, N, Ns...> {
-  static constexpr T value =
-      (N < max_value<T, Ns...>::value) ? max_value<T, Ns...>::value : N;
-};
-
-/**
  * @brief Returns the type argument unchanged.
  */
 template <class T> struct identity {
   typedef T type;
 };
 
+/**
+ * Implementation of @ref promote.
+ */
 template <class T, bool = std::is_integral<T>::value>
 struct __promote {
   typedef double type;
@@ -173,66 +118,41 @@ using result_of_t = typename std::remove_reference<typename std::remove_cv<
     decltype(std::declval<Function>()(std::declval<Args>()...))>::type>::type;
 
 template <class Signature, typename = void>
-struct __is_callable : std::false_type {};
+struct __is_callable_impl : std::false_type {};
 
 template <class F, class... Args>
-struct __is_callable<F(Args...), void_t<result_of_t<F, Args...>>>
+struct __is_callable_impl<F(Args...), void_t<result_of_t<F, Args...>>>
     : std::true_type {};
 
-/**
- * @brief Checks whether a type is callable with given arguments.
- */
-template <class F, class... Args>
-struct is_callable : __is_callable<F(Args...)> {};
-
 /// Constraints.
+
+template <class... B>
+using requires_all =
+    typename std::enable_if<conjunction<B...>::value, int>::type;
 
 /**
  * @brief Type constraint to request N arguments.
  */
 template <size_t N, class... T>
-using RequiresNArguments =
-    typename std::enable_if<sizeof...(T) == N, int>::type;
+using n_arguments = std::integral_constant<bool, sizeof...(T) == N>;
 
 /**
- * @brief Type constraint to request integer arguments.
+ * @brief Type constraint to request integer argument.
  */
-template <class... T>
-using RequiresIntegral =
-    typename std::enable_if<conjunction<std::is_integral<T>...>::value,
-                            int>::type;
-
-/**
- * @brief Type constraint to request N integer arguments.
- */
-template <size_t N, class... T>
-using RequiresNIntegers = typename std::enable_if<
-    sizeof...(T) == N && conjunction<std::is_integral<T>...>::value, int>::type;
-
-/**
- * @brief Type constraint to request input iterator.
- */
-template <class Iterator>
-using RequiresInputIterator = typename std::enable_if<
-    std::is_convertible<
-        typename std::iterator_traits<Iterator>::iterator_category,
-        std::input_iterator_tag>::value,
-    int>::type;
+template <class T>
+using is_integral = std::is_integral<T>;
 
 /**
  * @brief Type constraint to request at least one slice argument.
  */
-template <class... Indices>
-using RequiresSlicing =
-    typename std::enable_if<disjunction<std::is_same<Indices, slice>...>::value,
-                            int>::type;
+template <class... T>
+using has_slicing = disjunction<std::is_same<T, slice>...>;
 
 /**
  * @brief Type constraint to request callable type.
  */
 template <class F, class... Args>
-using RequiresCallable =
-    typename std::enable_if<is_callable<F, Args...>::value, int>::type;
+struct is_callable : __is_callable_impl<F(Args...)> {};
 } // namespace detail
 } // namespace numcpp
 

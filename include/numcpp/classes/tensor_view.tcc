@@ -95,8 +95,9 @@ ptrdiff_t __unpack_slices(const shape_t<Rank>& in_shape,
 }
 
 template <class T, size_t Rank>
-template <class... Indices, detail::RequiresNArguments<Rank, Indices...>,
-          detail::RequiresSlicing<Indices...>>
+template <class... Indices,
+          detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                               detail::has_slicing<Indices...> > >
 tensor_view<T, detail::slicing_rank<Indices...>::value>
 tensor_view<T, Rank>::operator()(const Indices&... indices) {
   constexpr size_t N = detail::slicing_rank<Indices...>::value;
@@ -108,8 +109,9 @@ tensor_view<T, Rank>::operator()(const Indices&... indices) {
 }
 
 template <class T, size_t Rank>
-template <class... Indices, detail::RequiresNArguments<Rank, Indices...>,
-          detail::RequiresSlicing<Indices...>>
+template <class... Indices,
+          detail::requires_all<detail::n_arguments<Rank, Indices...>,
+                               detail::has_slicing<Indices...> > >
 tensor_view<const T, detail::slicing_rank<Indices...>::value>
 tensor_view<T, Rank>::operator()(const Indices&... indices) const {
   constexpr size_t N = detail::slicing_rank<Indices...>::value;

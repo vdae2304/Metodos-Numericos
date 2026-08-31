@@ -21,100 +21,101 @@
 #ifndef NUMCPP_ABSTRACT_TENSOR_H_INCLUDED
 #define NUMCPP_ABSTRACT_TENSOR_H_INCLUDED
 
-#include "numcpp/config.h"
+#if __cplusplus < 202002L
+#error This file requires compiler and library support for the ISO C++ 2020 \
+standard. This support must be enabled with the -std=c++20 or -std=gnu++20 \
+compiler options.
+#else
+#include "numcpp/shape.h"
+#include "numcpp/enums/layout_t.h"
+#include "numcpp/utilities/traits.h"
 
 namespace numcpp {
 /**
- * @brief Base class for all tensor subexpressions. All subclasses must inherit
- * from this class using the Curiously Recurring Template Pattern.
- *
- * @tparam Derived Derived tensor subclass.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
+ * @brief Concept for tensor expressions.
  */
-template <class Derived, class T, size_t Rank> class abstract_tensor {
-public:
+template <class T>
+concept abstract_tensor = requires(T t) {
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank;
+  typename T::value_type;
+  T::rank;
 
   /**
    * @brief Return the element at the given position.
    */
-  T operator[](const index_t<Rank>& index) const { return self()[index]; }
+  { t[index_t<T::rank>{}] } -> std::convertible_to<typename T::value_type>;
 
   /**
    * @brief Return the shape of the tensor.
    */
-  shape_t<Rank> shape() const { return self().shape(); }
+  { t.shape() } -> std::convertible_to<shape_t<T::rank>>;
 
   /**
    * @brief Return the size of the tensor along the given axis.
    */
-  size_t shape(size_t axis) const { return self().shape(axis); }
+  { t.shape(size_t{}) } -> std::convertible_to<size_t>;
 
   /**
    * @brief Return the number of elements in the tensor.
-   *
-   * @note Derived tensors are expected to implement this in O(1)
    */
-  size_t size() const { return self().size(); }
+  { t.size() } -> std::convertible_to<size_t>;
 
   /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const { return self().layout(); }
-
-  /**
-   * @brief Return the derived subclass.
-   */
-  Derived &self() { return static_cast<Derived &>(*this); }
-
-  const Derived &self() const { return static_cast<const Derived &>(*this); }
-};
-
-namespace detail {
-/**
- * @brief Implementation of @ref tensor_traits for scalar types.
- */
-template <class T, typename = void, typename = void>
-struct __tensor_traits {
-  typedef T value_type;
-  static constexpr size_t rank = 0;
+  { t.layout() } -> std::convertible_to<layout_t>;
 };
 
 /**
- * @brief Implementation of @ref tensor_traits for tensor subclasses.
+ * Concept for 1-dimensional tensor expressions.
  */
 template <class T>
-struct __tensor_traits<T, void_t<typename T::value_type>,
-                       void_t<decltype(T::rank)>> {
-  typedef typename T::value_type value_type;
-  static constexpr size_t rank = T::rank;
-};
+concept abstract_vector = abstract_tensor<T> && (T::rank == 1);
 
 /**
- * @brief Helper class to expose a tensor member types. Treat scalars as tensors
- * of rank 0.
+ * Concept for 2-dimensional tensor expressions.
  */
 template <class T>
-struct tensor_traits : __tensor_traits<typename std::remove_reference<
-                           typename std::remove_cv<T>::type>::type> {};
+concept abstract_matrix = abstract_tensor<T> && (T::rank == 2);
 
 /**
- * @brief Type constraint to request a scalar (non-tensor) argument.
+ * @brief Tensors are contiguous multidimensional sequence containers: they
+ * hold a variable number of elements arranged in multiple axes.
  */
-template <class T>
-using RequiresScalar =
-    typename std::enable_if<(tensor_traits<T>::rank == 0), int>::type;
+template <class T, size_t Rank>
+class tensor;
 
 /**
- * @brief Type constraint to request a tensor argument.
+ * 1-dimensional tensor.
  */
 template <class T>
-using RequiresTensor =
-    typename std::enable_if<(tensor_traits<T>::rank > 0), int>::type;
-}
+using vector = tensor<T, 1>;
+
+/**
+ * 2-dimensional tensor.
+ */
+template <class T>
+using matrix = tensor<T, 2>;
+
+/**
+ * @brief A @ref tensor_view is a view of a multidimensional array. It
+ * references the elements in the original array.
+ */
+template <class T, size_t Rank>
+class tensor_view;
+
+/**
+ * 1-dimensional tensor_view.
+ */
+template <class T>
+using vector_view = tensor_view<T, 1>;
+
+/**
+ * 2-dimensional tensor_view.
+ */
+template <class T>
+using matrix_view = tensor_view<T, 2>;
 } // namespace numcpp
 
+#endif // C++20
 #endif // NUMCPP_ABSTRACT_TENSOR_H_INCLUDED

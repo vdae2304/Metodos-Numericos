@@ -32,13 +32,11 @@ namespace numcpp {
  * @tparam T Type of the elements contained in the tensor.
  */
 template <class T>
-class sequence_expr : public abstract_tensor<sequence_expr<T>, T, 1> {
+class sequence_expr {
  public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = 1;
-  typedef T reference;
-  typedef void pointer;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -80,7 +78,7 @@ class sequence_expr : public abstract_tensor<sequence_expr<T>, T, 1> {
    * @return The element at the specified position.
    */
   T operator[](const index_type& index) const {
-    return this->operator()(index[0]);
+    return (*this)(index[0]);
   }
 
   /**

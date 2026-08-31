@@ -34,43 +34,32 @@ namespace numcpp {
  * whole expression is evaluated.
  *
  * @tparam Function Type of the applied function.
- * @tparam Expression1 Type of the first tensor where the function is applied.
- * @tparam Expression2 Type of the second tensor where the function is applied.
+ * @tparam TensorLike1 Type of the first tensor where the function is applied.
+ * @tparam TensorLike2 Type of the second tensor where the function is applied.
  */
-template <class Function, class Expression1, class Expression2>
-class binary_expr
-    : public abstract_tensor<
-          binary_expr<Function, Expression1, Expression2>,
-          detail::result_of_t<
-              Function, typename detail::tensor_traits<Expression1>::value_type,
-              typename detail::tensor_traits<Expression2>::value_type>,
-          detail::tensor_traits<Expression1>::rank> {
+template <class Function, class TensorLike1, class TensorLike2>
+class binary_expr {
  public:
   /// Member types.
   typedef detail::result_of_t<
-      Function, typename detail::tensor_traits<Expression1>::value_type,
-      typename detail::tensor_traits<Expression2>::value_type>
+      Function, typename std::remove_cvref_t<TensorLike1>::value_type,
+      typename std::remove_cvref_t<TensorLike2>::value_type>
       value_type;
-  static constexpr size_t rank = detail::tensor_traits<Expression1>::rank;
-  typedef value_type reference;
-  typedef void pointer;
+  static constexpr size_t rank = std::remove_cvref_t<TensorLike1>::rank;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
   typedef index_t<rank> index_type;
-
-  static_assert(rank == detail::tensor_traits<Expression2>::rank,
-                "Arguments must have equal rank");
 
  private:
   // Function to apply.
   Function m_fun;
 
   // First tensor argument.
-  Expression1 m_arg1;
+  TensorLike1 m_arg1;
 
   // Second tensor argument.
-  Expression2 m_arg2;
+  TensorLike2 m_arg2;
 
  public:
   /// Constructors.
@@ -85,10 +74,10 @@ class binary_expr
    *
    * @note Undefined behaviour if arguments does not have the same shape.
    */
-  binary_expr(Function&& f, Expression1&& a, Expression2&& b)
+  binary_expr(Function&& f, TensorLike1&& a, TensorLike2&& b)
       : m_fun(std::forward<Function>(f)),
-        m_arg1(std::forward<Expression1>(a)),
-        m_arg2(std::forward<Expression2>(b)) {}
+        m_arg1(std::forward<TensorLike1>(a)),
+        m_arg2(std::forward<TensorLike2>(b)) {}
 
   /// Destructor.
   ~binary_expr() = default;
@@ -104,15 +93,15 @@ class binary_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices)
-      -> decltype(m_fun(m_arg1(indices...), m_arg2(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) {
     return m_fun(m_arg1(indices...), m_arg2(indices...));
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(m_fun(m_arg1(indices...), m_arg2(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) const {
     return m_fun(m_arg1(indices...), m_arg2(indices...));
   }
 
@@ -126,13 +115,11 @@ class binary_expr
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  auto operator[](const index_type& index)
-      -> decltype(m_fun(m_arg1[index], m_arg2[index])) {
+  decltype(auto) operator[](const index_type& index) {
     return m_fun(m_arg1[index], m_arg2[index]);
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_fun(m_arg1[index], m_arg2[index])) {
+  decltype(auto) operator[](const index_type& index) const {
     return m_fun(m_arg1[index], m_arg2[index]);
   }
 
@@ -171,22 +158,14 @@ class binary_expr
 /**
  * Class specialization when second argument is a scalar.
  */
-template <class Function, class Expression, class T>
-class binary_expr<Function, Expression, detail::identity<T>>
-    : public abstract_tensor<
-          binary_expr<Function, Expression, detail::identity<T>>,
-          detail::result_of_t<
-              Function, typename detail::tensor_traits<Expression>::value_type,
-              T>,
-          detail::tensor_traits<Expression>::rank> {
+template <class Function, class TensorLike, class T>
+class binary_expr<Function, TensorLike, detail::identity<T>> {
  public:
   /// Member types.
   typedef detail::result_of_t<
-      Function, typename detail::tensor_traits<Expression>::value_type, T>
+      Function, typename std::remove_cvref_t<TensorLike>::value_type, T>
       value_type;
-  static constexpr size_t rank = detail::tensor_traits<Expression>::rank;
-  typedef value_type reference;
-  typedef void pointer;
+  static constexpr size_t rank = std::remove_cvref_t<TensorLike>::rank;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -197,7 +176,7 @@ class binary_expr<Function, Expression, detail::identity<T>>
   Function m_fun;
 
   // First tensor argument.
-  Expression m_arg;
+  TensorLike m_arg;
 
   // Second scalar argument.
   T m_val;
@@ -215,9 +194,9 @@ class binary_expr<Function, Expression, detail::identity<T>>
    *
    * @note Undefined behaviour if arguments does not have the same shape.
    */
-  binary_expr(Function&& f, Expression&& a, const T& val)
+  binary_expr(Function&& f, TensorLike&& a, const T& val)
       : m_fun(std::forward<Function>(f)),
-        m_arg(std::forward<Expression>(a)),
+        m_arg(std::forward<TensorLike>(a)),
         m_val(val) {}
 
   /// Destructor.
@@ -234,15 +213,15 @@ class binary_expr<Function, Expression, detail::identity<T>>
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices)
-      -> decltype(m_fun(m_arg(indices...), m_val)) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) {
     return m_fun(m_arg(indices...), m_val);
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(m_fun(m_arg(indices...), m_val)) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) const {
     return m_fun(m_arg(indices...), m_val);
   }
 
@@ -256,13 +235,11 @@ class binary_expr<Function, Expression, detail::identity<T>>
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  auto operator[](const index_type& index)
-      -> decltype(m_fun(m_arg[index], m_val)) {
+  decltype(auto) operator[](const index_type& index) {
     return m_fun(m_arg[index], m_val);
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_fun(m_arg[index], m_val)) {
+  decltype(auto) operator[](const index_type& index) const {
     return m_fun(m_arg[index], m_val);
   }
 
@@ -295,22 +272,14 @@ class binary_expr<Function, Expression, detail::identity<T>>
 /**
  * Class specialization when first argument is a scalar.
  */
-template <class Function, class Expression, class T>
-class binary_expr<Function, detail::identity<T>, Expression>
-    : public abstract_tensor<
-          binary_expr<Function, detail::identity<T>, Expression>,
-          detail::result_of_t<
-              Function, T,
-              typename detail::tensor_traits<Expression>::value_type>,
-          detail::tensor_traits<Expression>::rank> {
+template <class Function, class TensorLike, class T>
+class binary_expr<Function, detail::identity<T>, TensorLike> {
  public:
   /// Member types.
   typedef detail::result_of_t<
-      Function, T, typename detail::tensor_traits<Expression>::value_type>
+      Function, T, typename std::remove_cvref_t<TensorLike>::value_type>
       value_type;
-  static constexpr size_t rank = detail::tensor_traits<Expression>::rank;
-  typedef value_type reference;
-  typedef void pointer;
+  static constexpr size_t rank = std::remove_cvref_t<TensorLike>::rank;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef shape_t<rank> shape_type;
@@ -324,7 +293,7 @@ class binary_expr<Function, detail::identity<T>, Expression>
   T m_val;
 
   // Second tensor argument.
-  Expression m_arg;
+  TensorLike m_arg;
 
  public:
   /// Constructors.
@@ -339,10 +308,10 @@ class binary_expr<Function, detail::identity<T>, Expression>
    *
    * @note Undefined behaviour if arguments does not have the same shape.
    */
-  binary_expr(Function&& f, const T& val, Expression& b)
+  binary_expr(Function&& f, const T& val, TensorLike&& b)
       : m_fun(std::forward<Function>(f)),
         m_val(val),
-        m_arg(std::forward<Expression>(b)) {}
+        m_arg(std::forward<TensorLike>(b)) {}
 
   /// Destructor.
   ~binary_expr() = default;
@@ -358,15 +327,15 @@ class binary_expr<Function, detail::identity<T>, Expression>
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices)
-      -> decltype(m_fun(m_val, m_arg(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) {
     return m_fun(m_val, m_arg(indices...));
   }
 
-  template <class... Indices, detail::RequiresNIntegers<rank, Indices...> = 0>
-  auto operator()(Indices... indices) const
-      -> decltype(m_fun(m_val, m_arg(indices...))) {
+  template <std::integral... Indices>
+    requires(sizeof...(Indices) == rank)
+  decltype(auto) operator()(Indices... indices) const {
     return m_fun(m_val, m_arg(indices...));
   }
 
@@ -380,13 +349,11 @@ class binary_expr<Function, detail::identity<T>, Expression>
    * @return The result of the function evaluation at the specified position in
    * the tensor.
    */
-  auto operator[](const index_type& index)
-      -> decltype(m_fun(m_val, m_arg[index])) {
+  decltype(auto) operator[](const index_type& index) {
     return m_fun(m_val, m_arg[index]);
   }
 
-  auto operator[](const index_type& index) const
-      -> decltype(m_fun(m_val, m_arg[index])) {
+  decltype(auto) operator[](const index_type& index) const {
     return m_fun(m_val, m_arg[index]);
   }
 
@@ -430,492 +397,396 @@ class binary_expr<Function, detail::identity<T>, Expression>
  * lazy-evaluation, which means that the function is called only when required,
  * i.e., when the whole expression is evaluated or assigned to a tensor.
  */
-template <class Function, class Expr1, class T, class Expr2, class U,
-          size_t Rank>
-inline binary_expr<Function, const Expr1&, const Expr2&> apply2(
-    Function&& f, const abstract_tensor<Expr1, T, Rank>& a,
-    const abstract_tensor<Expr2, U, Rank>& b) {
-  return binary_expr<Function, const Expr1&, const Expr2&>(
-      std::forward<Function>(f), a.self(), b.self());
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto apply2(Function&& f, TensorLike1&& a, TensorLike2&& b) {
+  static_assert(a.rank == b.rank, "Tensor arguments must have equal rank");
+  return binary_expr<Function, TensorLike1, TensorLike2>(
+      std::forward<Function>(f), std::forward<TensorLike1>(a),
+      std::forward<TensorLike2>(b));
 }
 
-template <class Function, class Expr1, class T, class Expr2, class U,
-          size_t Rank>
-inline binary_expr<Function, Expr1, const Expr2&> apply2(
-    Function&& f, abstract_tensor<Expr1, T, Rank>&& a,
-    const abstract_tensor<Expr2, U, Rank>& b) {
-  return binary_expr<Function, Expr1, const Expr2&>(
-      std::forward<Function>(f), std::move(a.self()), b.self());
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto apply2(Function&& f, TensorLike&& a, const T& val) {
+  return binary_expr<Function, TensorLike, detail::identity<T>>(
+      std::forward<Function>(f), std::forward<TensorLike>(a), val);
 }
 
-template <class Function, class Expr1, class T, class Expr2, class U,
-          size_t Rank>
-inline binary_expr<Function, const Expr1&, Expr2> apply2(
-    Function&& f, const abstract_tensor<Expr1, T, Rank>& a,
-    abstract_tensor<Expr2, U, Rank>&& b) {
-  return binary_expr<Function, const Expr1&, Expr2>(
-      std::forward<Function>(f), a.self(), std::move(b.self()));
-}
-
-template <class Function, class Expr1, class T, class Expr2, class U,
-          size_t Rank>
-inline binary_expr<Function, Expr1, Expr2> apply2(
-    Function&& f, abstract_tensor<Expr1, T, Rank>&& a,
-    abstract_tensor<Expr2, U, Rank>&& b) {
-  return binary_expr<Function, Expr1, Expr2>(
-      std::forward<Function>(f), std::move(a.self()), std::move(b.self()));
-}
-
-template <class Function, class Expr, class T, class U, size_t Rank,
-          detail::RequiresScalar<U> = 0>
-inline binary_expr<Function, const Expr&, detail::identity<U>> apply2(
-    Function&& f, const abstract_tensor<Expr, T, Rank>& a, const U& val) {
-  return binary_expr<Function, const Expr&, detail::identity<U>>(
-      std::forward<Function>(f), a.self(), val);
-}
-
-template <class Function, class Expr, class T, class U, size_t Rank,
-          detail::RequiresScalar<U> = 0>
-inline binary_expr<Function, Expr, detail::identity<U>> apply2(
-    Function&& f, abstract_tensor<Expr, T, Rank>&& a, const U& val) {
-  return binary_expr<Function, Expr, detail::identity<U>>(
-      std::forward<Function>(f), std::move(a.self()), val);
-}
-
-template <class Function, class Expr, class T, class U, size_t Rank,
-          detail::RequiresScalar<T> = 0>
-inline binary_expr<Function, detail::identity<T>, const Expr&> apply2(
-    Function&& f, const T& val, const abstract_tensor<Expr, U, Rank>& b) {
-  return binary_expr<Function, detail::identity<T>, const Expr&>(
-      std::forward<Function>(f), val, b.self());
-}
-
-template <class Function, class Expr, class T, class U, size_t Rank,
-          detail::RequiresScalar<T> = 0>
-inline binary_expr<Function, detail::identity<T>, Expr> apply2(
-    Function&& f, const T& val, abstract_tensor<Expr, U, Rank>&& b) {
-  return binary_expr<Function, detail::identity<T>, Expr>(
-      std::forward<Function>(f), val, std::move(b.self()));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto apply2(Function&& f, const T& val, TensorLike&& b) {
+  return binary_expr<Function, detail::identity<T>, TensorLike>(
+      std::forward<Function>(f), val, std::forward<TensorLike>(b));
 }
 
 /// Arithmetic operators.
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator+(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(plus(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(plus(), std::forward<LhsExpr>(lhs), std::forward<RhsExpr>(rhs));
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator+(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(plus(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator+(Expr&& lhs, const T& val)
-    -> decltype(apply2(plus(), std::forward<Expr>(lhs), val)) {
-  return apply2(plus(), std::forward<Expr>(lhs), val);
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator+(TensorLike&& lhs, const T& val) {
+  return apply2(plus(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator+(const T& val, Expr&& rhs)
-    -> decltype(apply2(plus(), val, std::forward<Expr>(rhs))) {
-  return apply2(plus(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator+(const T& val, TensorLike&& rhs) {
+  return apply2(plus(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator-(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(minus(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(minus(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator-(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(minus(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator-(Expr&& lhs, const T& val)
-    -> decltype(apply2(minus(), std::forward<Expr>(lhs), val)) {
-  return apply2(minus(), std::forward<Expr>(lhs), val);
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator-(TensorLike&& lhs, const T& val) {
+  return apply2(minus(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator-(const T& val, Expr&& rhs)
-    -> decltype(apply2(minus(), val, std::forward<Expr>(rhs))) {
-  return apply2(minus(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator-(const T& val, TensorLike&& rhs) {
+  return apply2(minus(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator*(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(multiplies(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(multiplies(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator*(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(multiplies(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator*(Expr&& lhs, const T& val)
-    -> decltype(apply2(multiplies(), std::forward<Expr>(lhs), val)) {
-  return apply2(multiplies(), std::forward<Expr>(lhs), val);
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator*(TensorLike&& lhs, const T& val) {
+  return apply2(multiplies(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator*(const T& val, Expr&& rhs)
-    -> decltype(apply2(multiplies(), val, std::forward<Expr>(rhs))) {
-  return apply2(multiplies(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator*(const T& val, TensorLike&& rhs) {
+  return apply2(multiplies(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator/(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(divides(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(divides(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator/(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(divides(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator/(Expr&& lhs, const T& val)
-    -> decltype(apply2(divides(), std::forward<Expr>(lhs), val)) {
-  return apply2(divides(), std::forward<Expr>(lhs), val);
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator/(TensorLike&& lhs, const T& val) {
+  return apply2(divides(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator/(const T& val, Expr&& rhs)
-    -> decltype(apply2(divides(), val, std::forward<Expr>(rhs))) {
-  return apply2(divides(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator/(const T& val, TensorLike&& rhs) {
+  return apply2(divides(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator%(Expr&& lhs, const T& val)
-    -> decltype(apply2(modulus(), std::forward<Expr>(lhs), val)) {
-  return apply2(modulus(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator%(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(modulus(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator%(const T& val, Expr&& rhs)
-    -> decltype(apply2(modulus(), val, std::forward<Expr>(rhs))) {
-  return apply2(modulus(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator%(TensorLike&& lhs, const T& val) {
+  return apply2(modulus(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator%(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(modulus(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(modulus(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator%(const T& val, TensorLike&& rhs) {
+  return apply2(modulus(), val, std::forward<TensorLike>(rhs));
 }
 
 /// Bitwise operators.
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator&(Expr&& lhs, const T& val)
-    -> decltype(apply2(bit_and(), std::forward<Expr>(lhs), val)) {
-  return apply2(bit_and(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator&(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(bit_and(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator&(const T& val, Expr&& rhs)
-    -> decltype(apply2(bit_and(), val, std::forward<Expr>(rhs))) {
-  return apply2(bit_and(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator&(TensorLike&& lhs, const T& val) {
+  return apply2(bit_and(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator&(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(bit_and(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(bit_and(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator&(const T& val, TensorLike&& rhs) {
+  return apply2(bit_and(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator|(Expr&& lhs, const T& val)
-    -> decltype(apply2(bit_or(), std::forward<Expr>(lhs), val)) {
-  return apply2(bit_or(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator|(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(bit_or(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator|(const T& val, Expr&& rhs)
-    -> decltype(apply2(bit_or(), val, std::forward<Expr>(rhs))) {
-  return apply2(bit_or(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator|(TensorLike&& lhs, const T& val) {
+  return apply2(bit_or(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator|(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(bit_or(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(bit_or(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator|(const T& val, TensorLike&& rhs) {
+  return apply2(bit_or(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator^(Expr&& lhs, const T& val)
-    -> decltype(apply2(bit_xor(), std::forward<Expr>(lhs), val)) {
-  return apply2(bit_xor(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator^(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(bit_xor(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator^(const T& val, Expr&& rhs)
-    -> decltype(apply2(bit_xor(), val, std::forward<Expr>(rhs))) {
-  return apply2(bit_xor(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator^(TensorLike&& lhs, const T& val) {
+  return apply2(bit_xor(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator^(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(bit_xor(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(bit_xor(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator^(const T& val, TensorLike&& rhs) {
+  return apply2(bit_xor(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<<(Expr&& lhs, const T& val)
-    -> decltype(apply2(left_shift(), std::forward<Expr>(lhs), val)) {
-  return apply2(left_shift(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator<<(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(left_shift(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<<(const T& val, Expr&& rhs)
-    -> decltype(apply2(left_shift(), val, std::forward<Expr>(rhs))) {
-  return apply2(left_shift(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<<(TensorLike&& lhs, const T& val) {
+  return apply2(left_shift(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator<<(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(left_shift(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(left_shift(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<<(const T& val, TensorLike&& rhs) {
+  return apply2(left_shift(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>>(Expr&& lhs, const T& val)
-    -> decltype(apply2(right_shift(), std::forward<Expr>(lhs), val)) {
-  return apply2(right_shift(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator>>(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(right_shift(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>>(const T& val, Expr&& rhs)
-    -> decltype(apply2(right_shift(), val, std::forward<Expr>(rhs))) {
-  return apply2(right_shift(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>>(TensorLike&& lhs, const T& val) {
+  return apply2(right_shift(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator>>(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(right_shift(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(right_shift(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>>(const T& val, TensorLike&& rhs) {
+  return apply2(right_shift(), val, std::forward<TensorLike>(rhs));
 }
 
 /// Logical operators.
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator&&(Expr&& lhs, const T& val)
-    -> decltype(apply2(logical_and(), std::forward<Expr>(lhs), val)) {
-  return apply2(logical_and(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator&&(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(logical_and(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator&&(const T& val, Expr&& rhs)
-    -> decltype(apply2(logical_and(), val, std::forward<Expr>(rhs))) {
-  return apply2(logical_and(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator&&(TensorLike&& lhs, const T& val) {
+  return apply2(logical_and(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator&&(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(logical_and(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(logical_and(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator&&(const T& val, TensorLike&& rhs) {
+  return apply2(logical_and(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator||(Expr&& lhs, const T& val)
-    -> decltype(apply2(logical_or(), std::forward<Expr>(lhs), val)) {
-  return apply2(logical_or(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator||(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(logical_or(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator||(const T& val, Expr&& rhs)
-    -> decltype(apply2(logical_or(), val, std::forward<Expr>(rhs))) {
-  return apply2(logical_or(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator||(TensorLike&& lhs, const T& val) {
+  return apply2(logical_or(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator||(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(logical_or(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(logical_or(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator||(const T& val, TensorLike&& rhs) {
+  return apply2(logical_or(), val, std::forward<TensorLike>(rhs));
 }
 
 /// Relational operators.
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator==(Expr&& lhs, const T& val)
-    -> decltype(apply2(equal_to(), std::forward<Expr>(lhs), val)) {
-  return apply2(equal_to(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator==(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(equal_to(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator==(const T& val, Expr&& rhs)
-    -> decltype(apply2(equal_to(), val, std::forward<Expr>(rhs))) {
-  return apply2(equal_to(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator==(TensorLike&& lhs, const T& val) {
+  return apply2(equal_to(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator==(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(equal_to(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(equal_to(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator==(const T& val, TensorLike&& rhs) {
+  return apply2(equal_to(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator!=(Expr&& lhs, const T& val)
-    -> decltype(apply2(not_equal_to(), std::forward<Expr>(lhs), val)) {
-  return apply2(not_equal_to(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator!=(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(not_equal_to(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator!=(const T& val, Expr&& rhs)
-    -> decltype(apply2(not_equal_to(), val, std::forward<Expr>(rhs))) {
-  return apply2(not_equal_to(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator!=(TensorLike&& lhs, const T& val) {
+  return apply2(not_equal_to(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator!=(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(not_equal_to(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(not_equal_to(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator!=(const T& val, TensorLike&& rhs) {
+  return apply2(not_equal_to(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<(Expr&& lhs, const T& val)
-    -> decltype(apply2(less(), std::forward<Expr>(lhs), val)) {
-  return apply2(less(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator<(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(less(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<(const T& val, Expr&& rhs)
-    -> decltype(apply2(less(), val, std::forward<Expr>(rhs))) {
-  return apply2(less(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<(TensorLike&& lhs, const T& val) {
+  return apply2(less(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator<(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(less(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(less(), std::forward<LhsExpr>(lhs), std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<(const T& val, TensorLike&& rhs) {
+  return apply2(less(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>(Expr&& lhs, const T& val)
-    -> decltype(apply2(greater(), std::forward<Expr>(lhs), val)) {
-  return apply2(greater(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator>(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(greater(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>(const T& val, Expr&& rhs)
-    -> decltype(apply2(greater(), val, std::forward<Expr>(rhs))) {
-  return apply2(greater(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>(TensorLike&& lhs, const T& val) {
+  return apply2(greater(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator>(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(greater(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(greater(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>(const T& val, TensorLike&& rhs) {
+  return apply2(greater(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<=(Expr&& lhs, const T& val)
-    -> decltype(apply2(less_equal(), std::forward<Expr>(lhs), val)) {
-  return apply2(less_equal(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator<=(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(less_equal(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator<=(const T& val, Expr&& rhs)
-    -> decltype(apply2(less_equal(), val, std::forward<Expr>(rhs))) {
-  return apply2(less_equal(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<=(TensorLike&& lhs, const T& val) {
+  return apply2(less_equal(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator<=(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(less_equal(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(less_equal(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator<=(const T& val, TensorLike&& rhs) {
+  return apply2(less_equal(), val, std::forward<TensorLike>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>=(Expr&& lhs, const T& val)
-    -> decltype(apply2(greater_equal(), std::forward<Expr>(lhs), val)) {
-  return apply2(greater_equal(), std::forward<Expr>(lhs), val);
+template <class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto operator>=(TensorLike1&& lhs, TensorLike2&& rhs) {
+  return apply2(greater_equal(), std::forward<TensorLike1>(lhs),
+                std::forward<TensorLike2>(rhs));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto operator>=(const T& val, Expr&& rhs)
-    -> decltype(apply2(greater_equal(), val, std::forward<Expr>(rhs))) {
-  return apply2(greater_equal(), val, std::forward<Expr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>=(TensorLike&& lhs, const T& val) {
+  return apply2(greater_equal(), std::forward<TensorLike>(lhs), val);
 }
 
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto operator>=(LhsExpr&& lhs, RhsExpr&& rhs)
-    -> decltype(apply2(greater_equal(), std::forward<LhsExpr>(lhs),
-                       std::forward<RhsExpr>(rhs))) {
-  return apply2(greater_equal(), std::forward<LhsExpr>(lhs),
-                std::forward<RhsExpr>(rhs));
+template <class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto operator>=(const T& val, TensorLike&& rhs) {
+  return apply2(greater_equal(), val, std::forward<TensorLike>(rhs));
 }
 }  // namespace numcpp
 

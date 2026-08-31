@@ -21,11 +21,12 @@
 #ifndef NUMCPP_MATH_H_INCLUDED
 #define NUMCPP_MATH_H_INCLUDED
 
+#include <numeric>
+#include "numcpp/classes/abstract_tensor.h"
 #include "numcpp/expressions/unary_expr.h"
 #include "numcpp/expressions/binary_expr.h"
 #include "numcpp/math/constants.h"
 #include "numcpp/math/degrees.h"
-#include "numcpp/math/gcd.h"
 #include "numcpp/math/mathfwd.h"
 
 namespace numcpp {
@@ -80,6 +81,10 @@ using std::frexp;
 using std::ldexp;
 using std::nextafter;
 
+/// Integer-valued functions.
+using std::gcd;
+using std::lcm;
+
 /// Complex numbers.
 using std::arg;
 using std::conj;
@@ -103,10 +108,10 @@ using std::signbit;
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto abs(Expr&& x)
-    -> decltype(apply(math::abs(), std::forward<Expr>(x))) {
-  return apply(math::abs(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto abs(TensorLike&& x) {
+  return apply(math::abs(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -121,27 +126,24 @@ inline auto abs(Expr&& x)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto fmod(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::fmod(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::fmod(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto fmod(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::fmod(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmod(Expr&& x, const T& y)
-    -> decltype(apply2(math::fmod(), std::forward<Expr>(x), y)) {
-  return apply2(math::fmod(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmod(TensorLike&& x, const T& y) {
+  return apply2(math::fmod(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmod(const T& x, Expr&& y)
-    -> decltype(apply2(math::fmod(), x, std::forward<Expr>(y))) {
-  return apply2(math::fmod(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmod(const T& x, TensorLike&& y) {
+  return apply2(math::fmod(), x, std::forward<TensorLike>(y));
 }
 
 /**
@@ -153,10 +155,10 @@ inline auto fmod(const T& x, Expr&& y)
  * element in the tensor. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto modf(Expr&& x)
-    -> decltype(apply(math::modf(), std::forward<Expr>(x))) {
-  return apply(math::modf(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto modf(TensorLike&& x) {
+  return apply(math::modf(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -170,27 +172,24 @@ inline auto modf(Expr&& x)
  * does not create a new tensor, instead, an expression object is returned (see
  * lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto fmax(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::fmax(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::fmax(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto fmax(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::fmax(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmax(Expr&& x, const T& y)
-    -> decltype(apply2(math::fmax(), std::forward<Expr>(x), y)) {
-  return apply2(math::fmax(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmax(TensorLike&& x, const T& y) {
+  return apply2(math::fmax(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmax(const T& x, Expr&& y)
-    -> decltype(apply2(math::fmax(), x, std::forward<Expr>(y))) {
-  return apply2(math::fmax(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmax(const T& x, TensorLike&& y) {
+  return apply2(math::fmax(), x, std::forward<TensorLike>(y));
 }
 
 /**
@@ -204,27 +203,24 @@ inline auto fmax(const T& x, Expr&& y)
  * does not create a new tensor, instead, an expression object is returned (see
  * lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto fmin(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::fmin(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::fmin(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto fmin(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::fmin(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmin(Expr&& x, const T& y)
-    -> decltype(apply2(math::fmin(), std::forward<Expr>(x), y)) {
-  return apply2(math::fmin(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmin(TensorLike&& x, const T& y) {
+  return apply2(math::fmin(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto fmin(const T& x, Expr&& y)
-    -> decltype(apply2(math::fmin(), x, std::forward<Expr>(y))) {
-  return apply2(math::fmin(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto fmin(const T& x, TensorLike&& y) {
+  return apply2(math::fmin(), x, std::forward<TensorLike>(y));
 }
 
 /// Trigonometric functions.
@@ -238,10 +234,10 @@ inline auto fmin(const T& x, Expr&& y)
  * This function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto cos(Expr&& x)
-    -> decltype(apply(math::cos(), std::forward<Expr>(x))) {
-  return apply(math::cos(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto cos(TensorLike&& x) {
+  return apply(math::cos(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -253,10 +249,10 @@ inline auto cos(Expr&& x)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto sin(Expr&& x)
-    -> decltype(apply(math::sin(), std::forward<Expr>(x))) {
-  return apply(math::sin(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto sin(TensorLike&& x) {
+  return apply(math::sin(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -268,10 +264,10 @@ inline auto sin(Expr&& x)
  * This function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto tan(Expr&& x)
-    -> decltype(apply(math::tan(), std::forward<Expr>(x))) {
-  return apply(math::tan(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto tan(TensorLike&& x) {
+  return apply(math::tan(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -285,27 +281,24 @@ inline auto tan(Expr&& x)
  * element-wise. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto hypot(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::hypot(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::hypot(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto hypot(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::hypot(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto hypot(Expr&& x, const T& y)
-    -> decltype(apply2(math::hypot(), std::forward<Expr>(x), y)) {
-  return apply2(math::hypot(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto hypot(TensorLike&& x, const T& y) {
+  return apply2(math::hypot(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto hypot(const T& x, Expr&& y)
-    -> decltype(apply2(math::hypot(), x, std::forward<Expr>(y))) {
-  return apply2(math::hypot(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto hypot(const T& x, TensorLike&& y) {
+  return apply2(math::hypot(), x, std::forward<TensorLike>(y));
 }
 
 /**
@@ -317,10 +310,10 @@ inline auto hypot(const T& x, Expr&& y)
  * in the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto acos(Expr&& x)
-    -> decltype(apply(math::acos(), std::forward<Expr>(x))) {
-  return apply(math::acos(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto acos(TensorLike&& x) {
+  return apply(math::acos(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -332,10 +325,10 @@ inline auto acos(Expr&& x)
  * the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto asin(Expr&& x)
-    -> decltype(apply(math::asin(), std::forward<Expr>(x))) {
-  return apply(math::asin(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto asin(TensorLike&& x) {
+  return apply(math::asin(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -347,10 +340,10 @@ inline auto asin(Expr&& x)
  * in the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto atan(Expr&& x)
-    -> decltype(apply(math::atan(), std::forward<Expr>(x))) {
-  return apply(math::atan(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto atan(TensorLike&& x) {
+  return apply(math::atan(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -365,27 +358,24 @@ inline auto atan(Expr&& x)
  * element-wise. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto atan2(LhsExpr&& y, RhsExpr&& x)
-    -> decltype(apply2(math::atan2(), std::forward<LhsExpr>(y),
-                       std::forward<RhsExpr>(x))) {
-  return apply2(math::atan2(), std::forward<LhsExpr>(y),
-                std::forward<RhsExpr>(x));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto atan2(TensorLike1&& y, TensorLike2&& x) {
+  return apply2(math::atan2(), std::forward<TensorLike1>(y),
+                std::forward<TensorLike2>(x));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto atan2(Expr&& y, const T& x)
-    -> decltype(apply2(math::atan2(), std::forward<Expr>(y), x)) {
-  return apply2(math::atan2(), std::forward<Expr>(y), x);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto atan2(TensorLike&& y, const T& x) {
+  return apply2(math::atan2(), std::forward<TensorLike>(y), x);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto atan2(const T& y, Expr&& x)
-    -> decltype(apply2(math::atan2(), y, std::forward<Expr>(x))) {
-  return apply2(math::atan2(), y, std::forward<Expr>(x));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto atan2(const T& y, TensorLike&& x) {
+  return apply2(math::atan2(), y, std::forward<TensorLike>(x));
 }
 
 /**
@@ -397,10 +387,10 @@ inline auto atan2(const T& y, Expr&& x)
  * element in the tensor. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto degrees(Expr&& x)
-    -> decltype(apply(math::degrees(), std::forward<Expr>(x))) {
-  return apply(math::degrees(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto degrees(TensorLike&& x) {
+  return apply(math::degrees(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -412,10 +402,10 @@ inline auto degrees(Expr&& x)
  * element in the tensor. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto radians(Expr&& x)
-    -> decltype(apply(math::radians(), std::forward<Expr>(x))) {
-  return apply(math::radians(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto radians(TensorLike&& x) {
+  return apply(math::radians(), std::forward<TensorLike>(x));
 }
 
 /// Hyperbolic functions.
@@ -429,10 +419,10 @@ inline auto radians(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto cosh(Expr&& x)
-    -> decltype(apply(math::cosh(), std::forward<Expr>(x))) {
-  return apply(math::cosh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto cosh(TensorLike&& x) {
+  return apply(math::cosh(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -444,10 +434,10 @@ inline auto cosh(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto sinh(Expr&& x)
-    -> decltype(apply(math::sinh(), std::forward<Expr>(x))) {
-  return apply(math::sinh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto sinh(TensorLike&& x) {
+  return apply(math::sinh(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -459,10 +449,10 @@ inline auto sinh(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto tanh(Expr&& x)
-    -> decltype(apply(math::tanh(), std::forward<Expr>(x))) {
-  return apply(math::tanh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto tanh(TensorLike&& x) {
+  return apply(math::tanh(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -475,10 +465,10 @@ inline auto tanh(Expr&& x)
  * in the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto acosh(Expr&& x)
-    -> decltype(apply(math::acosh(), std::forward<Expr>(x))) {
-  return apply(math::acosh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto acosh(TensorLike&& x) {
+  return apply(math::acosh(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -491,10 +481,10 @@ inline auto acosh(Expr&& x)
  * in the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto asinh(Expr&& x)
-    -> decltype(apply(math::asinh(), std::forward<Expr>(x))) {
-  return apply(math::asinh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto asinh(TensorLike&& x) {
+  return apply(math::asinh(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -507,10 +497,10 @@ inline auto asinh(Expr&& x)
  * element in the tensor. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto atanh(Expr&& x)
-    -> decltype(apply(math::atanh(), std::forward<Expr>(x))) {
-  return apply(math::atanh(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto atanh(TensorLike&& x) {
+  return apply(math::atanh(), std::forward<TensorLike>(x));
 }
 
 /// Exponential and logarithmic functions.
@@ -525,10 +515,10 @@ inline auto atanh(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto exp(Expr&& x)
-    -> decltype(apply(math::exp(), std::forward<Expr>(x))) {
-  return apply(math::exp(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto exp(TensorLike&& x) {
+  return apply(math::exp(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -541,10 +531,10 @@ inline auto exp(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto log(Expr&& x)
-    -> decltype(apply(math::log(), std::forward<Expr>(x))) {
-  return apply(math::log(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto log(TensorLike&& x) {
+  return apply(math::log(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -556,10 +546,10 @@ inline auto log(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto log10(Expr&& x)
-    -> decltype(apply(math::log10(), std::forward<Expr>(x))) {
-  return apply(math::log10(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto log10(TensorLike&& x) {
+  return apply(math::log10(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -572,10 +562,10 @@ inline auto log10(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto exp2(Expr&& x)
-    -> decltype(apply(math::exp2(), std::forward<Expr>(x))) {
-  return apply(math::exp2(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto exp2(TensorLike&& x) {
+  return apply(math::exp2(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -587,10 +577,10 @@ inline auto exp2(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto log2(Expr&& x)
-    -> decltype(apply(math::log2(), std::forward<Expr>(x))) {
-  return apply(math::log2(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto log2(TensorLike&& x) {
+  return apply(math::log2(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -604,10 +594,10 @@ inline auto log2(Expr&& x)
  * the tensor. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto expm1(Expr&& x)
-    -> decltype(apply(math::expm1(), std::forward<Expr>(x))) {
-  return apply(math::expm1(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto expm1(TensorLike&& x) {
+  return apply(math::expm1(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -620,10 +610,10 @@ inline auto expm1(Expr&& x)
  * element in the tensor. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto log1p(Expr&& x)
-    -> decltype(apply(math::log1p(), std::forward<Expr>(x))) {
-  return apply(math::log1p(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto log1p(TensorLike&& x) {
+  return apply(math::log1p(), std::forward<TensorLike>(x));
 }
 
 /// Power functions.
@@ -638,27 +628,24 @@ inline auto log1p(Expr&& x)
  * element-wise. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto pow(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::pow(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::pow(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto pow(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::pow(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto pow(Expr&& x, const T& y)
-    -> decltype(apply2(math::pow(), std::forward<Expr>(x), y)) {
-  return apply2(math::pow(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto pow(TensorLike&& x, const T& y) {
+  return apply2(math::pow(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto pow(const T& x, Expr&& y)
-    -> decltype(apply2(math::pow(), x, std::forward<Expr>(y))) {
-  return apply2(math::pow(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto pow(const T& x, TensorLike&& y) {
+  return apply2(math::pow(), x, std::forward<TensorLike>(y));
 }
 
 /**
@@ -670,10 +657,10 @@ inline auto pow(const T& x, Expr&& y)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto sqrt(Expr&& x)
-    -> decltype(apply(math::sqrt(), std::forward<Expr>(x))) {
-  return apply(math::sqrt(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto sqrt(TensorLike&& x) {
+  return apply(math::sqrt(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -685,10 +672,10 @@ inline auto sqrt(Expr&& x)
  * This function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto cbrt(Expr&& x)
-    -> decltype(apply(math::cbrt(), std::forward<Expr>(x))) {
-  return apply(math::cbrt(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto cbrt(TensorLike&& x) {
+  return apply(math::cbrt(), std::forward<TensorLike>(x));
 }
 
 /// Rounding.
@@ -703,10 +690,10 @@ inline auto cbrt(Expr&& x)
  * This function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto ceil(Expr&& x)
-    -> decltype(apply(math::ceil(), std::forward<Expr>(x))) {
-  return apply(math::ceil(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto ceil(TensorLike&& x) {
+  return apply(math::ceil(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -719,10 +706,10 @@ inline auto ceil(Expr&& x)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto floor(Expr&& x)
-    -> decltype(apply(math::floor(), std::forward<Expr>(x))) {
-  return apply(math::floor(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto floor(TensorLike&& x) {
+  return apply(math::floor(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -735,10 +722,10 @@ inline auto floor(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto trunc(Expr&& x)
-    -> decltype(apply(math::trunc(), std::forward<Expr>(x))) {
-  return apply(math::trunc(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto trunc(TensorLike&& x) {
+  return apply(math::trunc(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -751,10 +738,10 @@ inline auto trunc(Expr&& x)
  * tensor. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto round(Expr&& x)
-    -> decltype(apply(math::round(), std::forward<Expr>(x))) {
-  return apply(math::round(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto round(TensorLike&& x) {
+  return apply(math::round(), std::forward<TensorLike>(x));
 }
 
 /// Floating-point manipulation functions.
@@ -769,10 +756,10 @@ inline auto round(Expr&& x)
  * each element in the tensor. This function does not create a new tensor,
  * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto frexp(Expr&& x)
-    -> decltype(apply(math::frexp(), std::forward<Expr>(x))) {
-  return apply(math::frexp(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto frexp(TensorLike&& x) {
+  return apply(math::frexp(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -786,27 +773,24 @@ inline auto frexp(Expr&& x)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto ldexp(LhsExpr&& x, RhsExpr&& exp)
-    -> decltype(apply2(math::ldexp(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(exp))) {
-  return apply2(math::ldexp(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(exp));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto ldexp(TensorLike1&& x, TensorLike2&& exp) {
+  return apply2(math::ldexp(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(exp));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto ldexp(Expr&& x, const T& exp)
-    -> decltype(apply2(math::ldexp(), std::forward<Expr>(x), exp)) {
-  return apply2(math::ldexp(), std::forward<Expr>(x), exp);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto ldexp(TensorLike&& x, const T& exp) {
+  return apply2(math::ldexp(), std::forward<TensorLike>(x), exp);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto ldexp(const T& x, Expr&& exp)
-    -> decltype(apply2(math::ldexp(), x, std::forward<Expr>(exp))) {
-  return apply2(math::ldexp(), x, std::forward<Expr>(exp));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto ldexp(const T& x, TensorLike&& exp) {
+  return apply2(math::ldexp(), x, std::forward<TensorLike>(exp));
 }
 
 /**
@@ -820,27 +804,24 @@ inline auto ldexp(const T& x, Expr&& exp)
  * signs from the second tensor. This function does not create a new tensor,
  * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto copysign(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::copysign(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::copysign(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto copysign(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::copysign(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto copysign(Expr&& x, const T& y)
-    -> decltype(apply2(math::copysign(), std::forward<Expr>(x), y)) {
-  return apply2(math::copysign(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto copysign(TensorLike&& x, const T& y) {
+  return apply2(math::copysign(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto copysign(const T& x, Expr&& y)
-    -> decltype(apply2(math::copysign(), x, std::forward<Expr>(y))) {
-  return apply2(math::copysign(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto copysign(const T& x, TensorLike&& y) {
+  return apply2(math::copysign(), x, std::forward<TensorLike>(y));
 }
 
 /**
@@ -856,27 +837,24 @@ inline auto copysign(const T& x, Expr&& y)
  * not create a new tensor, instead, an expression object is returned (see
  * lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto nextafter(LhsExpr&& x, RhsExpr&& y)
-    -> decltype(apply2(math::nextafter(), std::forward<LhsExpr>(x),
-                       std::forward<RhsExpr>(y))) {
-  return apply2(math::nextafter(), std::forward<LhsExpr>(x),
-                std::forward<RhsExpr>(y));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto nextafter(TensorLike1&& x, TensorLike2&& y) {
+  return apply2(math::nextafter(), std::forward<TensorLike1>(x),
+                std::forward<TensorLike2>(y));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto nextafter(Expr&& x, const T& y)
-    -> decltype(apply2(math::nextafter(), std::forward<Expr>(x), y)) {
-  return apply2(math::nextafter(), std::forward<Expr>(x), y);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto nextafter(TensorLike&& x, const T& y) {
+  return apply2(math::nextafter(), std::forward<TensorLike>(x), y);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto nextafter(const T& x, Expr&& y)
-    -> decltype(apply2(math::nextafter(), x, std::forward<Expr>(y))) {
-  return apply2(math::nextafter(), x, std::forward<Expr>(y));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto nextafter(const T& x, TensorLike&& y) {
+  return apply2(math::nextafter(), x, std::forward<TensorLike>(y));
 }
 
 /// Integer-valued functions.
@@ -892,27 +870,24 @@ inline auto nextafter(const T& x, Expr&& y)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto gcd(LhsExpr&& m, RhsExpr&& n)
-    -> decltype(apply2(math::gcd(), std::forward<LhsExpr>(m),
-                       std::forward<RhsExpr>(n))) {
-  return apply2(math::gcd(), std::forward<LhsExpr>(m),
-                std::forward<RhsExpr>(n));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto gcd(TensorLike1&& m, TensorLike2&& n) {
+  return apply2(math::gcd(), std::forward<TensorLike1>(m),
+                std::forward<TensorLike2>(n));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto gcd(Expr&& m, const T& n)
-    -> decltype(apply2(math::gcd(), std::forward<Expr>(m), n)) {
-  return apply2(math::gcd(), std::forward<Expr>(m), n);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto gcd(TensorLike&& m, const T& n) {
+  return apply2(math::gcd(), std::forward<TensorLike>(m), n);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto gcd(const T& m, Expr&& n)
-    -> decltype(apply2(math::gcd(), m, std::forward<Expr>(n))) {
-  return apply2(math::gcd(), m, std::forward<Expr>(n));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto gcd(const T& m, TensorLike&& n) {
+  return apply2(math::gcd(), m, std::forward<TensorLike>(n));
 }
 
 /**
@@ -926,27 +901,24 @@ inline auto gcd(const T& m, Expr&& n)
  * function does not create a new tensor, instead, an expression object is
  * returned (see lazy-evaluation).
  */
-template <class LhsExpr, class RhsExpr, detail::RequiresTensor<LhsExpr> = 0,
-          detail::RequiresTensor<RhsExpr> = 0>
-inline auto lcm(LhsExpr&& m, RhsExpr&& n)
-    -> decltype(apply2(math::lcm(), std::forward<LhsExpr>(m),
-                       std::forward<RhsExpr>(n))) {
-  return apply2(math::lcm(), std::forward<LhsExpr>(m),
-                std::forward<RhsExpr>(n));
+template <class Function, class TensorLike1, class TensorLike2>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike1>> &&
+           abstract_tensor<std::remove_cvref_t<TensorLike2>>
+inline auto lcm(TensorLike1&& m, TensorLike2&& n) {
+  return apply2(math::lcm(), std::forward<TensorLike1>(m),
+                std::forward<TensorLike2>(n));
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto lcm(Expr&& m, const T& n)
-    -> decltype(apply2(math::lcm(), std::forward<Expr>(m), n)) {
-  return apply2(math::lcm(), std::forward<Expr>(m), n);
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto lcm(TensorLike&& m, const T& n) {
+  return apply2(math::lcm(), std::forward<TensorLike>(m), n);
 }
 
-template <class Expr, class T, detail::RequiresTensor<Expr> = 0,
-          detail::RequiresScalar<T> = 0>
-inline auto lcm(const T& m, Expr&& n)
-    -> decltype(apply2(math::lcm(), m, std::forward<Expr>(n))) {
-  return apply2(math::lcm(), m, std::forward<Expr>(n));
+template <class Function, class TensorLike, class T>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto lcm(const T& m, TensorLike&& n) {
+  return apply2(math::lcm(), m, std::forward<TensorLike>(n));
 }
 
 /// Complex numbers.
@@ -961,10 +933,10 @@ inline auto lcm(const T& m, Expr&& n)
  * component. This function does not create a new tensor, instead, an expression
  * object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto real(Expr&& z)
-    -> decltype(apply(math::real(), std::forward<Expr>(z))) {
-  return apply(math::real(), std::forward<Expr>(z));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto real(TensorLike&& z) {
+  return apply(math::real(), std::forward<TensorLike>(z));
 }
 
 template <class T, size_t Rank>
@@ -999,10 +971,10 @@ inline tensor_view<T, Rank> real(tensor_view<std::complex<T>, Rank>& z) {
  * part component. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto imag(Expr&& z)
-    -> decltype(apply(math::imag(), std::forward<Expr>(z))) {
-  return apply(math::imag(), std::forward<Expr>(z));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto imag(TensorLike&& z) {
+  return apply(math::imag(), std::forward<TensorLike>(z));
 }
 
 template <class T, size_t Rank>
@@ -1039,10 +1011,10 @@ inline tensor_view<T, Rank> imag(tensor_view<std::complex<T>, Rank>& z) {
  * part component. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto conj(Expr&& z)
-    -> decltype(apply(math::conj(), std::forward<Expr>(z))) {
-  return apply(math::conj(), std::forward<Expr>(z));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto conj(TensorLike&& z) {
+  return apply(math::conj(), std::forward<TensorLike>(z));
 }
 
 /**
@@ -1055,10 +1027,10 @@ inline auto conj(Expr&& z)
  * part component. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto arg(Expr&& z)
-    -> decltype(apply(math::arg(), std::forward<Expr>(z))) {
-  return apply(math::arg(), std::forward<Expr>(z));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto arg(TensorLike&& z) {
+  return apply(math::arg(), std::forward<TensorLike>(z));
 }
 
 /// Clasification functions.
@@ -1073,10 +1045,10 @@ inline auto arg(Expr&& z)
  * and false otherwise. This function does not create a new tensor, instead, an
  * expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto isfinite(Expr&& x)
-    -> decltype(apply(math::isfinite(), std::forward<Expr>(x))) {
-  return apply(math::isfinite(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto isfinite(TensorLike&& x) {
+  return apply(math::isfinite(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -1089,10 +1061,10 @@ inline auto isfinite(Expr&& x)
  * infinity and false otherwise. This function does not create a new tensor,
  * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto isinf(Expr&& x)
-    -> decltype(apply(math::isinf(), std::forward<Expr>(x))) {
-  return apply(math::isinf(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto isinf(TensorLike&& x) {
+  return apply(math::isinf(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -1107,10 +1079,10 @@ inline auto isinf(Expr&& x)
  * NaN and false otherwise. This function does not create a new tensor, instead,
  * an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto isnan(Expr&& x)
-    -> decltype(apply(math::isnan(), std::forward<Expr>(x))) {
-  return apply(math::isnan(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto isnan(TensorLike&& x) {
+  return apply(math::isnan(), std::forward<TensorLike>(x));
 }
 
 /**
@@ -1122,10 +1094,10 @@ inline auto isnan(Expr&& x)
  * negative and false otherwise. This function does not create a new tensor,
  * instead, an expression object is returned (see lazy-evaluation).
  */
-template <class Expr, detail::RequiresTensor<Expr> = 0>
-inline auto signbit(Expr&& x)
-    -> decltype(apply(math::signbit(), std::forward<Expr>(x))) {
-  return apply(math::signbit(), std::forward<Expr>(x));
+template <class TensorLike>
+  requires abstract_tensor<std::remove_cvref_t<TensorLike>>
+inline auto signbit(TensorLike&& x) {
+  return apply(math::signbit(), std::forward<TensorLike>(x));
 }
 }  // namespace numcpp
 
