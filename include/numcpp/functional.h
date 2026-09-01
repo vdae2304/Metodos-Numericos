@@ -26,7 +26,6 @@
 #include "numcpp/config.h"
 #include "numcpp/functional/lazy_expression.h"
 #include "numcpp/functional/operators.h"
-#include "numcpp/functional/vectorize.h"
 
 namespace numcpp {
 /// Functional programming.
@@ -35,7 +34,7 @@ namespace numcpp {
  * @brief Apply a function element-wise.
  *
  * @param f The function to apply.
- * @param a A tensor-like object with the values where the function will be
+ * @param a An abstract tensor with the values where the function will be
  *          invoked.
  *
  * @return A light-weight object which stores the result of invoking the
@@ -45,10 +44,10 @@ namespace numcpp {
  *         required, i.e., when the whole expression is evaluated or assigned to
  *         a tensor object.
  */
-template <class Function, class Container, class T, size_t Rank>
-unary_expr<Function, Container, T, Rank>
-apply(Function &&f, const expression<Container, T, Rank> &a) {
-  return unary_expr<Function, Container, T, Rank>(std::forward<Function>(f), a);
+template <class Function, class Expr, class T, size_t Rank>
+unary_expr<Function, Expr> apply(Function &&f,
+                                 const abstract_tensor<Expr, T, Rank> &a) {
+  return unary_expr<Function, Expr>(std::forward<Function>(f), a);
 }
 
 /**
@@ -56,23 +55,23 @@ apply(Function &&f, const expression<Container, T, Rank> &a) {
  *
  * @param out A location into which the result is stored.
  * @param f The function to apply.
- * @param a A tensor-like object with the values where the function will be
+ * @param a An abstract tensor with the values where the function will be
  *          invoked.
  *
  * @throw std::invalid_argument Thrown if the shape of @a out does not match the
  *                              shape of @a a.
  */
-template <class OutContainer, class R, class Function, class Container, class T,
+template <class OutExpr, class R, class Function, class Expr, class T,
           size_t Rank>
-void apply(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-           const expression<Container, T, Rank> &a);
+void apply(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+           const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Apply a binary function element-wise.
  *
  * @param f The function to apply.
- * @param a A tensor-like object with the values to pass as first argument.
- * @param b A tensor-like object with the values to pass as second argument.
+ * @param a An abstract tensor with the values to pass as first argument.
+ * @param b An abstract tensor with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  *
@@ -87,28 +86,27 @@ void apply(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
  *                              cannot be broadcasted according to broadcasting
  *                              rules.
  */
-template <class Function, class Container1, class T, class Container2, class U,
+template <class Function, class Expr1, class T, class Expr2, class U,
           size_t Rank>
-binary_expr<Function, Container1, T, Container2, U, Rank>
-apply2(Function &&f, const expression<Container1, T, Rank> &a,
-       const expression<Container2, U, Rank> &b) {
-  return binary_expr<Function, Container1, T, Container2, U, Rank>(
-      std::forward<Function>(f), a, b);
+binary_expr<Function, Expr1, Expr2>
+apply2(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+       const abstract_tensor<Expr2, U, Rank> &b) {
+  return binary_expr<Function, Expr1, Expr2>(std::forward<Function>(f), a, b);
 }
 
-template <class Function, class Container, class T, class U, size_t Rank,
+template <class Function, class Expr, class T, class U, size_t Rank,
           detail::RequiresScalar<U> = 0>
-binary_expr<Function, Container, T, void, U, Rank>
-apply2(Function &&f, const expression<Container, T, Rank> &a, const U &val) {
-  return binary_expr<Function, Container, T, void, U, Rank>(
+binary_expr<Function, Expr, detail::identity<U>>
+apply2(Function &&f, const abstract_tensor<Expr, T, Rank> &a, const U &val) {
+  return binary_expr<Function, Expr, detail::identity<U>>(
       std::forward<Function>(f), a, val);
 }
 
-template <class Function, class T, class Container, class U, size_t Rank,
+template <class Function, class Expr, class T, class U, size_t Rank,
           detail::RequiresScalar<T> = 0>
-binary_expr<Function, void, T, Container, U, Rank>
-apply2(Function &&f, const T &val, const expression<Container, U, Rank> &b) {
-  return binary_expr<Function, void, T, Container, U, Rank>(
+binary_expr<Function, detail::identity<T>, Expr>
+apply2(Function &&f, const T &val, const abstract_tensor<Expr, U, Rank> &b) {
+  return binary_expr<Function, detail::identity<T>, Expr>(
       std::forward<Function>(f), val, b);
 }
 
@@ -117,8 +115,8 @@ apply2(Function &&f, const T &val, const expression<Container, U, Rank> &b) {
  *
  * @param out A location into which the result is stored.
  * @param f The function to apply.
- * @param a A tensor-like object with the values to pass as first argument.
- * @param b A tensor-like object with the values to pass as second argument.
+ * @param a An abstract tensor with the values to pass as first argument.
+ * @param b An abstract tensor with the values to pass as second argument.
  * @param val Value to use either as first argument or second argument. Values
  *            are broadcasted to an appropriate shape.
  *
@@ -127,21 +125,69 @@ apply2(Function &&f, const T &val, const expression<Container, U, Rank> &b) {
  *                              rules, or if the shape of @a out does not match
  *                              the broadcasting shape.
  */
-template <class OutContainer, class R, class Function, class Container1,
-          class T, class Container2, class U, size_t Rank>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const expression<Container1, T, Rank> &a,
-            const expression<Container2, U, Rank> &b);
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          class Expr2, class U, size_t Rank>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr1, T, Rank> &a,
+            const abstract_tensor<Expr2, U, Rank> &b);
 
-template <class OutContainer, class R, class Function, class Container, class T,
-          class U, size_t Rank, detail::RequiresScalar<U> = 0>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const expression<Container, T, Rank> &a, const U &val);
+template <class OutExpr, class R, class Function, class Expr, class T, class U,
+          size_t Rank, detail::RequiresScalar<U> = 0>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr, T, Rank> &a, const U &val);
 
-template <class OutContainer, class R, class Function, class T, class Container,
-          class U, size_t Rank, detail::RequiresScalar<T> = 0>
-void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
-            const T &val, const expression<Container, U, Rank> &b);
+template <class OutExpr, class R, class Function, class Expr, class T, class U,
+          size_t Rank, detail::RequiresScalar<T> = 0>
+void apply2(dense_tensor<OutExpr, R, Rank> &out, Function &&f, const T &val,
+            const abstract_tensor<Expr, U, Rank> &b);
+
+#if __cplusplus >= 201402L
+/**
+ * @brief Apply a function element-wise.
+ *
+ * @param f The function to apply.
+ * @param a, b... Abstract tensors with the values to pass as each argument in
+ *                the function.
+ *
+ * @return A light-weight object which stores the result of invoking the
+ *         function on each element. This function does not create a new tensor,
+ *         instead, an expression object is returned. The returned object uses
+ *         lazy-evaluation, which means that the function is called only when
+ *         required, i.e., when the whole expression is evaluated or assigned to
+ *         a tensor object.
+ *
+ * @throw std::invalid_argument Thrown if the shapes are not compatible and
+ *                              cannot be broadcasted according to broadcasting
+ *                              rules.
+ */
+template <class Function, class Expr1, class T, class... Expr2, class... U,
+          size_t Rank>
+element_wise_expr<Function, Expr1, Expr2...>
+applyn(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+       const abstract_tensor<Expr2, U, Rank> &...b) {
+  return element_wise_expr<Function, Expr1, Expr2...>(std::forward<Function>(f),
+                                                      a, b...);
+}
+
+/**
+ * @brief Apply a function element-wise.
+ *
+ * @param out A location into which the result is stored.
+ * @param f The function to apply.
+ * @param a, b... Abstract tensors with the values to pass as each argument in
+ *                the function.
+ *
+ * @throw std::invalid_argument Thrown if the shapes are not compatible and
+ *                              cannot be broadcasted according to broadcasting
+ *                              rules, or if the shape of @a out does not match
+ *                              the broadcasting shape.
+ */
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          class... Expr2, class... U, size_t Rank>
+void applyn(dense_tensor<OutExpr, R, Rank> &out, Function &&f,
+            const abstract_tensor<Expr1, T, Rank> &a,
+            const abstract_tensor<Expr2, U, Rank> &...b);
+#endif // C++14
 
 /**
  * @brief Reduce the tensor's dimension by cumulatively applying a function to
@@ -150,7 +196,7 @@ void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
  * @param f The function to apply. A binary function taking the current
  *          accumulated value as first argument and an element in the tensor as
  *          second argument, and returning a value.
- * @param a A tensor-like object with the values where the reduction will be
+ * @param a An abstract tensor with the values where the reduction will be
  *          performed.
  * @param init Initial value. If not provided, the first element is used.
  * @param where A boolean tensor which indicates the elements to include in the
@@ -161,18 +207,17 @@ void apply2(dense_tensor<OutContainer, R, Rank> &out, Function &&f,
  * @throw std::invalid_argument Thrown if the tensor is empty and @a init is not
  *                              provided.
  */
-template <class Function, class Container, class T, size_t Rank>
-T reduce(Function &&f, const expression<Container, T, Rank> &a);
+template <class Function, class Expr, class T, size_t Rank>
+T reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a);
 
-template <class Function, class Container, class T, size_t Rank>
-T reduce(Function &&f, const expression<Container, T, Rank> &a,
-         typename Container::value_type init);
+template <class Function, class Expr, class T, size_t Rank>
+T reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
+         typename detail::identity<T>::type init);
 
-template <class Function, class Container1, class T, size_t Rank,
-          class Container2>
-T reduce(Function &&f, const expression<Container1, T, Rank> &a,
-         typename Container1::value_type init,
-         const expression<Container2, bool, Rank> &where);
+template <class Function, class Expr1, class T, size_t Rank, class Expr2>
+T reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+         typename detail::identity<T>::type init,
+         const abstract_tensor<Expr2, bool, Rank> &where);
 
 /**
  * @brief Reduce the tensor's dimension by cumulatively applying a function over
@@ -181,7 +226,7 @@ T reduce(Function &&f, const expression<Container1, T, Rank> &a,
  * @param f The function to apply. A binary function taking the current
  *          accumulated value as first argument and an element in the tensor as
  *          second argument, and returning a value.
- * @param a A tensor-like object with the values where the reduction will be
+ * @param a An abstract tensor with the values where the reduction will be
  *          performed.
  * @param axes Axes along which the reduction is performed.
  * @param keepdims If set to @a keepdims, the axes which are reduced are left as
@@ -197,55 +242,57 @@ T reduce(Function &&f, const expression<Container1, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes);
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container, T, Rank> &a,
-       const shape_t<N> &axes, typename Container::value_type init);
+reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
+       const shape_t<N> &axes, typename detail::identity<T>::type init);
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
 tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container1, T, Rank> &a,
-       const shape_t<N> &axes, typename Container1::value_type init,
-       const expression<Container2, bool, Rank> &where);
+reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
+       const shape_t<N> &axes, typename detail::identity<T>::type init,
+       const abstract_tensor<Expr2, bool, Rank> &where);
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
+template <class Function, class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t);
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank> reduce(Function &&f, const expression<Container, T, Rank> &a,
+template <class Function, class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
-                       typename Container::value_type init);
+                       typename detail::identity<T>::type init);
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
-tensor<T, Rank> reduce(Function &&f, const expression<Container1, T, Rank> &a,
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
+tensor<T, Rank> reduce(Function &&f, const abstract_tensor<Expr1, T, Rank> &a,
                        const shape_t<N> &axes, keepdims_t,
-                       typename Container1::value_type init,
-                       const expression<Container2, bool, Rank> &where);
+                       typename detail::identity<T>::type init,
+                       const abstract_tensor<Expr2, bool, Rank> &where);
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
+template <class Function, class Expr, class T, size_t Rank, size_t N>
 tensor<T, Rank - N> reduce(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            const shape_t<N> &axes, dropdims_t);
 
-template <class Function, class Container, class T, size_t Rank, size_t N>
-tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container, T, Rank> &a,
-       const shape_t<N> &axes, dropdims_t, typename Container::value_type init);
+template <class Function, class Expr, class T, size_t Rank, size_t N>
+tensor<T, Rank - N> reduce(Function &&f,
+                           const abstract_tensor<Expr, T, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t,
+                           typename detail::identity<T>::type init);
 
-template <class Function, class Container1, class T, size_t Rank, size_t N,
-          class Container2>
-tensor<T, Rank - N>
-reduce(Function &&f, const expression<Container1, T, Rank> &a,
-       const shape_t<N> &axes, dropdims_t, typename Container1::value_type init,
-       const expression<Container2, bool, Rank> &where);
+template <class Function, class Expr1, class T, size_t Rank, size_t N,
+          class Expr2>
+tensor<T, Rank - N> reduce(Function &&f,
+                           const abstract_tensor<Expr1, T, Rank> &a,
+                           const shape_t<N> &axes, dropdims_t,
+                           typename detail::identity<T>::type init,
+                           const abstract_tensor<Expr2, bool, Rank> &where);
 
 /**
  * @brief Accumulate the result of applying a function along an axis.
@@ -253,7 +300,7 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
  * @param f The function to apply. A binary function taking the current
  *          accumulated value as first argument and an element in the tensor as
  *          second argument, and returning a value.
- * @param a A tensor-like object with the values where the accumulation will be
+ * @param a An abstract tensor with the values where the accumulation will be
  *          performed.
  * @param axis Axis along which to apply the accumulation. Default is zero.
  *
@@ -262,9 +309,9 @@ reduce(Function &&f, const expression<Container1, T, Rank> &a,
  * @throw std::bad_alloc If the function fails to allocate storage it may throw
  *                       an exception.
  */
-template <class Function, class Container, class T, size_t Rank>
+template <class Function, class Expr, class T, size_t Rank>
 tensor<T, Rank> accumulate(Function &&f,
-                           const expression<Container, T, Rank> &a,
+                           const abstract_tensor<Expr, T, Rank> &a,
                            size_t axis = 0);
 
 /**
@@ -280,8 +327,8 @@ tensor<T, Rank> accumulate(Function &&f,
  * @f]
  *
  * @param f The function to apply.
- * @param a A tensor-like object with the values to pass as first argument.
- * @param b A tensor-like object with the values to pass as second argument.
+ * @param a An abstract tensor with the values to pass as first argument.
+ * @param b An abstract tensor with the values to pass as second argument.
  *
  * @return A light-weight object which stores the result of invoking the
  *         function to all pairs of elements. This function does not create a
@@ -290,13 +337,12 @@ tensor<T, Rank> accumulate(Function &&f,
  *         only when required, i.e., when the whole expression is evaluated or
  *         assigned to a tensor object.
  */
-template <class Function, class Container1, class T, size_t Rank1,
-          class Container2, class U, size_t Rank2>
-outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>
-outer(Function &&f, const expression<Container1, T, Rank1> &a,
-      const expression<Container2, U, Rank2> &b) {
-  return outer_expr<Function, Container1, T, Rank1, Container2, U, Rank2>(
-      std::forward<Function>(f), a, b);
+template <class Function, class Expr1, class T, size_t Rank1, class Expr2,
+          class U, size_t Rank2>
+outer_expr<Function, Expr1, Expr2>
+outer(Function &&f, const abstract_tensor<Expr1, T, Rank1> &a,
+      const abstract_tensor<Expr2, U, Rank2> &b) {
+  return outer_expr<Function, Expr1, Expr2>(std::forward<Function>(f), a, b);
 }
 
 /**
@@ -305,32 +351,17 @@ outer(Function &&f, const expression<Container1, T, Rank1> &a,
  *
  * @param out A location into which the result is stored.
  * @param f The function to apply.
- * @param a A tensor-like object with the values to pass as first argument.
- * @param b A tensor-like object with the values to pass as second argument.
+ * @param a An abstract tensor with the values to pass as first argument.
+ * @param b An abstract tensor with the values to pass as second argument.
  *
  * @throw std::invalid_argument Thrown if the shape of @a out does not match the
  *                              concatenated shape of @a a and @a b.
  */
-template <class OutContainer, class R, class Function, class Container1,
-          class T, size_t Rank1, class Container2, class U, size_t Rank2>
-void outer(dense_tensor<OutContainer, R, Rank1 + Rank2> &out, Function &&f,
-           const expression<Container1, T, Rank1> &a,
-           const expression<Container2, U, Rank2> &b);
-
-/**
- * @brief Vectorize a function.
- * 
- * @details A vectorized function is a wrapper for a function that operates on
- * tensors in an element-by-element fashion, supporting broadcasting.
- *
- * @param f Function to vectorize.
- *
- * @return A vectorized function that operates on tensors in an
- *         element-by-element fashion.
- */
-template <class Function> vectorized_expr<Function> vectorize(Function &&f) {
-  return vectorized_expr<Function>(std::forward<Function>(f));
-}
+template <class OutExpr, class R, class Function, class Expr1, class T,
+          size_t Rank1, class Expr2, class U, size_t Rank2>
+void outer(dense_tensor<OutExpr, R, Rank1 + Rank2> &out, Function &&f,
+           const abstract_tensor<Expr1, T, Rank1> &a,
+           const abstract_tensor<Expr2, U, Rank2> &b);
 } // namespace numcpp
 
 #include "numcpp/functional/functional.tcc"

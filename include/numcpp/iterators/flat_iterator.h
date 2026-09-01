@@ -1,48 +1,44 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/iterators/flat_iterator.h
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
+ * 
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/iterators/flat_iterator.h
- *  This header defines a generic iterator for tensor subclasses.
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_FLAT_ITERATOR_H_INCLUDED
 #define NUMCPP_FLAT_ITERATOR_H_INCLUDED
 
 #include <iterator>
+#include "numcpp/shape.h"
 
 namespace numcpp {
 /**
  * @brief A generic random access iterator for tensor subclasses.
  *
- * @tparam Container Tensor subclass.
- * @tparam T Value type.
- * @tparam Rank Dimension of the tensor.
- * @tparam Pointer Pointer type.
+ * @tparam Tensor Tensor subclass.
  * @tparam Reference Reference type.
+ * @tparam Pointer Pointer type.
  */
-template <class Container, class T, size_t Rank, class Pointer = T *,
-          class Reference = T &>
+template <class Tensor, class Reference, class Pointer = void>
 class flat_iterator {
-public:
+ public:
   /// Member types.
-  typedef typename std::remove_cv<Container>::type container_type;
   typedef ptrdiff_t difference_type;
-  typedef T value_type;
+  typedef typename Tensor::value_type value_type;
+  static constexpr size_t rank = Tensor::rank;
   typedef Pointer pointer;
   typedef Reference reference;
   typedef std::random_access_iterator_tag iterator_category;
@@ -52,100 +48,111 @@ public:
   /**
    * @brief Default constructor.
    */
-  flat_iterator() : m_ptr(NULL), m_index(0), m_order(default_layout) {}
+  flat_iterator()
+      : m_ptr(nullptr), m_index{}, m_offset(0), m_layout(default_layout) {}
 
   /**
-   * @brief Flat index constructor.
+   * @brief Constructor.
    *
    * @param ptr Pointer to the tensor to iterate over.
-   * @param index Flat index into the tensor. Defaults to 0 (the start of the
-   *              tensor).
-   * @param order Order in which elements are iterated. Defaults to row-major
-   *              order.
+   * @param offset Offset from beginning. Defaults to 0.
+   * @param layout Layout in which elements are iterated. Defaults to
+   * @ref default_layout.
    */
-  flat_iterator(Container *ptr, size_t index = 0,
-                layout_t order = default_layout)
-      : m_ptr(ptr), m_index(index), m_order(order) {}
-
-  /**
-   * @brief Copy constructor.
-   */
-  flat_iterator(const flat_iterator &other)
-      : m_ptr(other.m_ptr), m_index(other.m_index), m_order(other.m_order) {}
-
-  /// Assignment operator.
-
-  /**
-   * @brief Copy assignment.
-   */
-  flat_iterator &operator=(const flat_iterator &other) {
-    m_ptr = other.m_ptr;
-    m_index = other.m_index;
-    m_order = other.m_order;
-    return *this;
-  }
+  flat_iterator(Tensor* ptr, difference_type offset = 0,
+                layout_t layout = default_layout)
+      : m_ptr(ptr),
+        m_index(unravel_index(offset, ptr->shape(), layout)),
+        m_offset(offset),
+        m_layout(layout) {}
 
   /// Operator overloading.
 
   /**
    * @brief Pre-increments the iterator by one.
+   *
+   * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
-  flat_iterator &operator++() {
-    ++m_index;
+  flat_iterator& operator++() {
+    for (size_t i = 0; i < rank; ++i) {
+      size_t axis = (m_layout == layout_right) ? rank - 1 - i : i;
+      ++m_index[axis];
+      if (m_index[axis] < m_ptr->shape(axis)) break;
+      m_index[axis] = 0;
+    }
+    ++m_offset;
     return *this;
   }
 
   /**
    * @brief Pre-decrements the iterator by one.
+   *
+   * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
-  flat_iterator &operator--() {
-    --m_index;
+  flat_iterator& operator--() {
+    for (size_t i = 0; i < rank; ++i) {
+      size_t axis = (m_layout == layout_right) ? rank - 1 - i : i;
+      if (m_index[axis] > 0) {
+        --m_index[axis];
+        break;
+      }
+      m_index[axis] = m_ptr->shape(axis) - 1;
+    }
+    --m_offset;
     return *this;
   }
 
   /**
    * @brief Post-increments the iterator by one.
+   *
+   * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator operator++(int) {
     flat_iterator it = *this;
-    ++m_index;
+    ++(*this);
     return it;
   }
 
   /**
    * @brief Post-decrements the iterator by one.
+   *
+   * @note Time complexity: O(1) amortized. Worst case: O(rank)
    */
   flat_iterator operator--(int) {
     flat_iterator it = *this;
-    --m_index;
+    --(*this);
     return it;
   }
 
   /**
    * @brief Advances the iterator by @a n.
+   *
+   * @note Time complexity: O(rank)
    */
-  flat_iterator &operator+=(difference_type n) {
-    m_index += n;
+  flat_iterator& operator+=(difference_type n) {
+    if (n == 1) return ++(*this);
+    if (n == -1) return --(*this);
+    m_offset += n;
+    m_index = unravel_index(m_offset, m_ptr->shape(), m_layout);
     return *this;
   }
 
   /**
    * @brief Advances the iterator by @a -n.
+   *
+   * @note Time complexity: O(rank)
    */
-  flat_iterator &operator-=(difference_type n) {
-    m_index -= n;
-    return *this;
-  }
+  flat_iterator& operator-=(difference_type n) { return (*this) += -n; }
 
   /**
    * @brief Return a reference to the current element.
    */
-  reference operator*() const { return m_ptr->operator[](this->coords()); }
+  reference operator*() const { return (*m_ptr)[m_index]; }
 
   /**
    * @brief Return a pointer to the current element.
    */
-  pointer operator->() const { return &(this->operator*()); }
+  pointer operator->() const { return &(**this); }
 
   /**
    * @brief Return a reference to the element located @a n positions away from
@@ -162,112 +169,104 @@ public:
   /**
    * @brief Accesses the underlying tensor.
    */
-  Container *base() const { return m_ptr; }
+  Tensor* base() const { return m_ptr; }
 
   /**
    * @brief Returns the current flat index.
    */
-  size_t index() const { return m_index; }
+  difference_type index() const { return m_offset; }
 
   /**
    * @brief Returns an index_t object with the current coordinates.
    */
-  index_t<Rank> coords() const {
-    return unravel_index(m_index, m_ptr->shape(), m_order);
-  }
+  const index_t<rank>& coords() const { return m_index; }
 
   /**
    * @brief Returns the order in which elements are iterated.
    */
-  layout_t layout() const { return m_order; }
+  layout_t layout() const { return m_layout; }
 
-private:
-  // Pointer to the associated tensor subclass.
-  Container *m_ptr;
+ private:
+  // Pointer to the tensor subclass.
+  Tensor* m_ptr;
 
-  // Flat index.
-  size_t m_index;
+  // Current index.
+  index_t<rank> m_index;
 
-  // Layout order iteration.
-  layout_t m_order;
+  // Offset from beginning.
+  difference_type m_offset;
+
+  // Layout in which elements are iterated.
+  layout_t m_layout;
 };
 
 /// Arithmetic operators for flat_iterator.
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline flat_iterator<Container, T, Rank, Pointer, Reference>
-operator+(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-          ptrdiff_t rhs) {
-  flat_iterator<Container, T, Rank, Pointer, Reference> it = lhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator+(
+    const flat_iterator<Tensor, Reference, Pointer>& lhs, ptrdiff_t rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = lhs;
   return it += rhs;
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline flat_iterator<Container, T, Rank, Pointer, Reference>
-operator+(ptrdiff_t lhs,
-          const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  flat_iterator<Container, T, Rank, Pointer, Reference> it = rhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator+(
+    ptrdiff_t lhs, const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = rhs;
   return it += lhs;
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline flat_iterator<Container, T, Rank, Pointer, Reference>
-operator-(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-          ptrdiff_t rhs) {
-  flat_iterator<Container, T, Rank, Pointer, Reference> it = lhs;
+template <class Tensor, class Reference, class Pointer>
+inline flat_iterator<Tensor, Reference, Pointer> operator-(
+    const flat_iterator<Tensor, Reference, Pointer>& lhs, ptrdiff_t rhs) {
+  flat_iterator<Tensor, Reference, Pointer> it = lhs;
   return it -= rhs;
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline ptrdiff_t
-operator-(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-          const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  return (ptrdiff_t)lhs.index() - (ptrdiff_t)rhs.index();
+template <class Tensor, class Reference, class Pointer>
+inline ptrdiff_t operator-(
+    const flat_iterator<Tensor, Reference, Pointer>& lhs,
+    const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  return lhs.index() - rhs.index();
 }
 
 /// Relational operators for flat_iterator.
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator==(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-           const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator==(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return lhs.index() == rhs.index();
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator!=(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-           const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  return lhs.index() != rhs.index();
+template <class Tensor, class Reference, class Pointer>
+inline bool operator!=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  return !(lhs == rhs);
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator<(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-          const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
+template <class Tensor, class Reference, class Pointer>
+inline bool operator<(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                      const flat_iterator<Tensor, Reference, Pointer>& rhs) {
   return lhs.index() < rhs.index();
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator>(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-          const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  return lhs.index() > rhs.index();
+template <class Tensor, class Reference, class Pointer>
+inline bool operator>(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                      const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  return (rhs < lhs);
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator<=(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-           const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  return lhs.index() <= rhs.index();
+template <class Tensor, class Reference, class Pointer>
+inline bool operator<=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  return !(rhs < lhs);
 }
 
-template <class Container, class T, size_t Rank, class Pointer, class Reference>
-inline bool
-operator>=(const flat_iterator<Container, T, Rank, Pointer, Reference> &lhs,
-           const flat_iterator<Container, T, Rank, Pointer, Reference> &rhs) {
-  return lhs.index() >= rhs.index();
+template <class Tensor, class Reference, class Pointer>
+inline bool operator>=(const flat_iterator<Tensor, Reference, Pointer>& lhs,
+                       const flat_iterator<Tensor, Reference, Pointer>& rhs) {
+  return !(lhs < rhs);
 }
-} // namespace numcpp
+}  // namespace numcpp
 
 #endif // NUMCPP_FLAT_ITERATOR_H_INCLUDED

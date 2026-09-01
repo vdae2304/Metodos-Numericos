@@ -14,7 +14,7 @@
  * giving enough credit to its creators.
  */
 
-/** @file include/numcpp/broadcasting/assert.h
+/** @file include/numcpp/utilities/assert.h
  *  This is an internal header file, included by other library headers.
  *  Do not attempt to use it directly. @headername{numcpp/broadcasting.h}
  */
@@ -33,8 +33,8 @@ namespace detail {
  * @brief Asserts whether an index is within the bounds of a tensor. Throws a
  * std::out_of_range exception if assertion fails.
  */
-inline void assert_within_bounds(size_t size, size_t i) {
-  if (i >= size) {
+inline void assert_within_bounds(size_t size, ptrdiff_t i) {
+  if (i < 0 || i >= size) {
     std::ostringstream error;
     error << "index " << i << " is out of bounds with size " << size;
     throw std::out_of_range(error.str());
@@ -42,10 +42,10 @@ inline void assert_within_bounds(size_t size, size_t i) {
 }
 
 template <size_t Rank>
-inline void assert_within_bounds(const shape_t<Rank> &shape,
-                                 const index_t<Rank> &index) {
+void assert_within_bounds(const shape_t<Rank>& shape,
+                          const index_t<Rank>& index) {
   for (size_t i = 0; i < Rank; ++i) {
-    if (index[i] >= shape[i]) {
+    if (index[i] < 0 || index[i] >= shape[i]) {
       std::ostringstream error;
       error << "index " << index << " is out of bounds with size " << shape;
       throw std::out_of_range(error.str());
@@ -53,8 +53,8 @@ inline void assert_within_bounds(const shape_t<Rank> &shape,
   }
 }
 
-inline void assert_within_bounds(size_t size, size_t index, size_t axis) {
-  if (index >= size) {
+inline void assert_within_bounds(size_t size, ptrdiff_t index, size_t axis) {
+  if (index < 0 || index >= size) {
     std::ostringstream error;
     error << "index " << index << " is out of bounds for axis " << axis
           << " with size " << size;
@@ -77,7 +77,7 @@ void assert_output_shape(const shape_t<Rank> &output,
   }
 }
 
-void assert_output_shape(size_t output, size_t input) {
+inline void assert_output_shape(size_t output, size_t input) {
   if (output != input) {
     std::ostringstream error;
     error << "non-broadcastable output operand with shape " << output
@@ -129,7 +129,7 @@ void assert_mask_shape(const shape_t<Rank> &shape,
   }
 }
 
-void assert_mask_shape(size_t size, size_t mask_size, size_t axis) {
+inline void assert_mask_shape(size_t size, size_t mask_size, size_t axis) {
   if (size != mask_size) {
     std::ostringstream error;
     error << "boolean index did not match indexed tensor along dimension "

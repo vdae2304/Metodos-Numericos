@@ -1,195 +1,205 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/shape.h
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
+ * 
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/shape.h
- *  This header defines the shape_t and index_t classes.
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_SHAPE_H_INCLUDED
 #define NUMCPP_SHAPE_H_INCLUDED
 
+#include <algorithm>
+#include <concepts>
+#include <cstddef>
 #include <iosfwd>
-#include "numcpp/config.h"
+#include "numcpp/enums/layout_t.h"
 
 namespace numcpp {
+using std::size_t;
+using std::ptrdiff_t;
+
 /**
- * @brief A shape_t is a class that identifies the size of a tensor along each
- * dimension.
+ * @brief Base class for @ref shape_t and @ref index_t subclasses.
  *
+ * @tparam T Value type. It must be an integer type.
  * @tparam Rank Dimension of the shape. It must be a positive integer.
  */
-template <size_t Rank> class shape_t {
-public:
-  static_assert(0 < Rank  && Rank <= 10, "Rank must be between 1 and 10");
-
+template <class T, size_t Rank>
+struct basic_shape {
   /// Member types.
-  typedef size_t size_type;
+  typedef T value_type;
   static constexpr size_t rank = Rank;
 
-  /// Constructors.
-
-  /**
-   * @brief Default constructor. Constructs a shape_t object with its elements
-   * initialized to zero.
-   */
-  shape_t();
-
-  /**
-   * @brief Initialization constructor. Initializes each element with the
-   * corresponding element in @a sizes.
-   *
-   * @param sizes... Size along each axis.
-   */
-  template <class... Sizes, detail::RequiresNArguments<Rank, Sizes...> = 0,
-            detail::RequiresIntegral<Sizes...> = 0>
-  shape_t(Sizes... sizes);
-
-  /**
-   * @brief Copy constructor. The object is initialized with the contents of
-   * @a other.
-   *
-   * @param other A shape_t object with the same dimension to copy.
-   */
-  shape_t(const shape_t &other);
-
-  /// Assignment operator.
-
-  /**
-   * @brief Copy assignment.
-   *
-   * @param other A shape_t object with the same dimension to copy.
-   *
-   * @return *this
-   */
-  shape_t &operator=(const shape_t &other);
+  /// No constructors/destructor defined to allow aggregate-initialization.
 
   /// Public methods.
 
   /**
-   * @brief Return the product of the sizes along all the axes.
+   * @brief Return the product of the elements of the shape.
    */
-  size_type prod() const;
+  T prod() const {
+    T size = 1;
+    for (size_t i = 0; i < Rank; ++i) {
+      size *= m_shape[i];
+    }
+    return size;
+  }
 
   /**
    * @brief Return a pointer to the block of memory containing the elements of
    * the shape.
    */
-  size_type *data();
-  const size_type *data() const;
+  T* data() { return m_shape; }
+  const T* data() const { return m_shape; }
 
   /// Operator overloading.
 
   /**
-   * @brief Return the size of the i-th axis.
+   * @brief Return the value along the i-th axis.
    *
    * @param i Axis index.
    *
-   * @return The size along the i-th axis. If the shape_t is const-qualified,
-   *         the function returns a reference to const size_t. Otherwise, it
-   *         returns a reference to size_t.
+   * @return The value along the i-th axis. If the shape is const-qualified,
+   * the function returns a reference to const value_type. Otherwise, it
+   * returns a reference to value_type.
    */
-  size_type &operator[](size_type i);
-  const size_type &operator[](size_type i) const;
+  T& operator[](size_t i) { return m_shape[i]; }
+  const T& operator[](size_t i) const { return m_shape[i]; }
 
-  /**
-   * @brief Integer conversion. Dimension must be one.
-   */
-  template <class IntegralType, detail::RequiresIntegral<IntegralType> = 0>
-  explicit operator IntegralType() const;
-
-private:
   // Shape elements.
-  size_type m_shape[Rank];
+  T m_shape[Rank];
 };
 
-/// Deduction guides
-#if __cplusplus >= 201703L
-template <class... Sizes> shape_t(Sizes... sizes) -> shape_t<sizeof...(Sizes)>;
-#endif // C++17
+/**
+ * @brief A shape_t is a class that identifies the size of a tensor along each
+ * dimension.
+ */
+template <size_t Rank>
+using shape_t = basic_shape<size_t, Rank>;
 
 /**
- * @brief Create a shape_t object deducing its dimension from the number of
- * arguments.
+ * @brief An index_t is a class that identifies the position of the elements in
+ * a tensor along each dimension.
+ */
+template <size_t Rank>
+using index_t = basic_shape<ptrdiff_t, Rank>;
+
+/**
+ * @brief Create a @ref shape_t instance deducing its dimension from the number
+ * of arguments.
  *
  * @param sizes... Size along each axis.
  *
  * @return A shape with the given values.
  */
-template <class... Sizes, detail::RequiresIntegral<Sizes...> = 0>
-inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes);
+template <std::integral... Sizes>
+inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
+  return shape_t<sizeof...(Sizes)>{static_cast<size_t>(sizes)...};
+}
 
 /**
- * @brief Create an index_t object deducing its dimension from the number of
- * arguments.
- *
- * @note index_t is just an alias of shape_t defined to distinguish between
- * shapes and indices, improving readability.
+ * @brief Create an @ref index_t instance deducing its dimension from the number
+ * of arguments.
  *
  * @param indices... Index along each axis.
  *
  * @return An index with the given values.
  */
-template <class... Indices, detail::RequiresIntegral<Indices...> = 0>
-inline index_t<sizeof...(Indices)> make_index(Indices... indices);
+template <std::integral... Indices>
+inline index_t<sizeof...(Indices)> make_index(Indices... indices) {
+  return index_t<sizeof...(Indices)>{static_cast<ptrdiff_t>(indices)...};
+}
 
 /**
  * @brief Return a tuple of strides to offset a contiguous memory array as a
- * multidimensional array. The elements in the array can be offset by
+ * multidimensional array.
+ * 
+ * @details The elements in the array can be offset by
  *     data[index[0]*stride[0] + ... + index[N-1]*stride[N-1]]
  * where data is the memory array.
  *
  * @param shape The shape of the tensor.
- * @param order Determines whether the strides should be computed for row-major
- *              or column-major order. Defaults to row-major order.
+ * @param layout If set to @ref layout_right, the last dimension is contiguous.
+ * If set to @ref layout_left, the first dimension is contiguous. Defaults to
+ * @ref default_layout.
  *
  * @return The strides for each dimension.
  */
 template <size_t Rank>
-shape_t<Rank> make_strides(const shape_t<Rank> &shape,
-                           layout_t order = default_layout);
+index_t<Rank> make_strides(const shape_t<Rank>& shape,
+                           layout_t layout = default_layout) {
+  if (layout == no_layout) layout = default_layout;
+  index_t<Rank> strides;
+  size_t size = 1;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    strides[k] = size;
+    size *= shape[k];
+  }
+  return strides;
+}
 
 /**
  * @brief Converts a tuple of indices into a flat index.
  *
  * @param index A tuple of indices to flatten.
  * @param shape The shape of the tensor used for raveling.
- * @param order Determines whether the indices should be viewed as indexing in
- *              row-major or column-major order. Defaults to row-major order.
+ * @param layout If set to @ref layout_right, the last dimension is contiguous.
+ * If set to @ref layout_left, the first dimension is contiguous. Defaults to
+ * @ref default_layout.
  *
  * @return The flattened index.
  */
 template <size_t Rank>
-size_t ravel_index(const index_t<Rank> &index, const shape_t<Rank> &shape,
-                   layout_t order = default_layout);
+ptrdiff_t ravel_index(const index_t<Rank>& index, const shape_t<Rank>& shape,
+                      layout_t layout = default_layout) {
+  if (layout == no_layout) layout = default_layout;
+  ptrdiff_t offset = 0;
+  size_t size = 1;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    offset += size * index[k];
+    size *= shape[k];
+  }
+  return offset;
+}
 
 /**
  * @brief Converts a flat index into a tuple of indices.
  *
- * @param index Index to unravel.
+ * @param offset Index to unravel.
  * @param shape The shape of the tensor used for unraveling.
- * @param order Determines whether the indices should be viewed as indexing in
- *              row-major or column-major order. Defaults to row-major order.
+ * @param layout If set to @ref layout_right, the last dimension is contiguous.
+ * If set to @ref layout_left, the first dimension is contiguous. Defaults to
+ * @ref default_layout.
  *
  * @return The unraveled index.
  */
 template <size_t Rank>
-index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
-                            layout_t order = default_layout);
+index_t<Rank> unravel_index(ptrdiff_t offset, const shape_t<Rank>& shape,
+                            layout_t layout = default_layout) {
+  if (layout == no_layout) layout = default_layout;
+  index_t<Rank> index;
+  for (size_t i = 0; i < Rank; ++i) {
+    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    index[k] = offset % shape[k];
+    offset /= shape[k];
+  }
+  return index;
+}
 
 /**
  * @brief Broadcast input shapes into a common shape.
@@ -200,54 +210,60 @@ index_t<Rank> unravel_index(size_t index, const shape_t<Rank> &shape,
  * The size of the resulting broadcasting is the size that is not 1 along each
  * axis of the shapes.
  *
- * @param shape1, shape2... The shapes to be broadcast against each other. The
- *                          shapes must have the same dimension.
+ * @param shapes... The shapes to be broadcast against each other. The shapes
+ * must have the same dimension.
  *
  * @return Broadcasted shape.
  *
  * @throw std::invalid_argument Thrown if the shapes are not compatible and
- *                              cannot be broadcasted according to broadcasting
- *                              rules.
+ * cannot be broadcasted according to broadcasting rules.
  */
-template <size_t Rank, class... Shapes>
+template <size_t Rank, size_t... Ranks>
 shape_t<Rank> broadcast_shapes(const shape_t<Rank> &shape1,
-                               const Shapes &...shape2);
+                               const shape_t<Ranks> &...shapes);
 
 /**
- * @brief Constructs a shape that is the concatenation of one or more shapes.
+ * @brief Constructs a shape as the concatenation of one or more shapes.
  *
- * @param shape1, shape2... The shapes to concatenate.
+ * @param shapes... The shapes to concatenate.
  *
  * @return The concatenated shape.
  */
-template <size_t Rank, class... Shapes>
-shape_t<detail::concatenation_rank<shape_t<Rank>, Shapes...>::value>
-shape_cat(const shape_t<Rank> &shape1, const Shapes &...shape2);
+template <class T, size_t Rank, size_t... Ranks>
+basic_shape<T, (Rank + ... + Ranks)> shape_cat(
+    const basic_shape<T, Rank>& shape1, const basic_shape<T, Ranks>&... shapes);
 
 /**
  * @brief Compares if two shapes are equal. Returns true if they have the same
  * dimension and the same size along each axis.
  */
-template <size_t Rank1, size_t Rank2>
-inline bool operator==(const shape_t<Rank1> &shape1,
-                       const shape_t<Rank2> &shape2);
+template <class T, size_t Rank1, size_t Rank2>
+inline bool operator==(const basic_shape<T, Rank1> &shape1,
+                       const basic_shape<T, Rank2> &shape2) {
+  const T *first1 = shape1.data(), *last1 = first1 + Rank1;
+  const T *first2 = shape2.data();
+  return (Rank1 == Rank2 && std::equal(first1, last1, first2));
+}
 
 /**
  * @brief Compares if two shapes are not equal. Returns true if they have
  * different dimensions or if they have different sizes along an axis.
  */
-template <size_t Rank1, size_t Rank2>
-inline bool operator!=(const shape_t<Rank1> &shape1,
-                       const shape_t<Rank2> &shape2);
+template <class T, size_t Rank1, size_t Rank2>
+inline bool operator!=(const basic_shape<T, Rank1> &shape1,
+                       const basic_shape<T, Rank2> &shape2) {
+  return !(shape1 == shape2);
+}
 
 /**
- * @brief Overloads input stream for shape_t objects.
+ * @brief Reads a shape from input stream. 
+ * 
+ * @details For a 1-dimensional shape, the supported formats are:
+ *   - size
+ *   - (size,)
+ * For a n-dimensional shape, n > 1, the supported formats are:
+ *   - (size_1, size_2, ..., size_n)
  *
- * @details For 1-dimensional shapes, the supported formats are
- *     - (size,)
- *     - size
- * For @a n -dimensional shapes, @a n > 1, the supported formats are
- *     - (size_1, size_2, ..., size_n)
  * If an error occurs, calls istr.setstate(std::ios_base::failbit).
  *
  * @param istr Input stream object.
@@ -255,36 +271,24 @@ inline bool operator!=(const shape_t<Rank1> &shape1,
  *
  * @return istr
  */
-template <class charT, class traits, size_t Rank>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<Rank> &shape);
-
-template <class charT, class traits>
-std::basic_istream<charT, traits> &
-operator>>(std::basic_istream<charT, traits> &istr, shape_t<1> &shape);
+template <class charT, class traits, class T, size_t Rank>
+std::basic_istream<charT, traits>& operator>>(
+    std::basic_istream<charT, traits> &istr, basic_shape<T, Rank> &shape);
 
 /**
- * @brief Overloads output stream for shape_t objects.
- *
- * @details For 1-dimensional shapes, the format used is
- *     - (size,)
- * For @a n -dimensional shapes, @a n > 1, the format used is
- *     - (size_1, size_2, ..., size_n)
+ * @brief Writes to output stream a shape in the form
+ * (size_1, size_2, ..., size_n)
  *
  * @param ostr Output stream object.
  * @param shape Shape to be inserted into the output stream.
  *
  * @return ostr
  */
-template <class charT, class traits, size_t Rank>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<Rank> &shape);
-
-template <class charT, class traits>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &ostr, const shape_t<1> &shape);
+template <class charT, class traits, class T, size_t Rank>
+std::basic_ostream<charT, traits>& operator<<(
+    std::basic_ostream<charT, traits> &ostr, const basic_shape<T, Rank> &shape);
 } // namespace numcpp
 
-#include "numcpp/tensor/shape.tcc"
+#include "numcpp/classes/shape.tcc"
 
 #endif // NUMCPP_SHAPE_H_INCLUDED

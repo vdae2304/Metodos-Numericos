@@ -25,6 +25,7 @@
 #define NUMCPP_NEW_H_INCLUDED
 
 #include "numcpp/shape.h"
+#include "numcpp/tensor/abstract_tensor.h"
 #include "numcpp/iterators/flat_iterator.h"
 
 namespace numcpp {
@@ -35,20 +36,18 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class const_expr : public expression<const_expr<T, Rank>, T, Rank> {
+class const_expr : public abstract_tensor<const_expr<T, Rank>, T, Rank> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
   typedef const T *pointer;
   typedef const T &reference;
-  typedef flat_iterator<const const_expr<T, Rank>, value_type, rank, pointer,
-                        reference>
-      iterator;
+  typedef flat_iterator<const const_expr<T, Rank>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Number of elements along each axis.
@@ -150,20 +149,18 @@ public:
  * @tparam T Type of the elements contained in the tensor.
  */
 template <class T>
-class sequence_expr : public expression<sequence_expr<T>, T, 1> {
+class sequence_expr : public abstract_tensor<sequence_expr<T>, T, 1> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = 1;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const sequence_expr<T>, value_type, rank, pointer,
-                        reference>
-      iterator;
+  typedef flat_iterator<const sequence_expr<T>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<1> shape_type;
-  typedef index_t<1> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Starting value of the sequence.
@@ -247,8 +244,7 @@ public:
    * @return The element at the specified position.
    */
   T operator[](const index_type &index) const {
-    size_type i = index[0];
-    T val = m_start + T(i) * m_step;
+    T val = m_start + T(m_index[0]) * m_step;
     return (m_base != NULL) ? std::pow(*m_base, val) : val;
   }
 
@@ -282,20 +278,18 @@ public:
  * @tparam T Type of the elements contained in the tensor.
  */
 template <class T>
-class identity_expr : public expression<identity_expr<T>, T, 2> {
+class identity_expr : public abstract_tensor<identity_expr<T>, T, 2> {
 public:
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = 2;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const identity_expr<T>, value_type, rank, pointer,
-                        reference>
-      iterator;
+  typedef flat_iterator<const identity_expr<T>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<2> shape_type;
-  typedef index_t<2> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Number of elements along each axis.
@@ -398,34 +392,181 @@ public:
 };
 
 /**
+ * @brief A light-weight object with given values on the diagonal and zeros
+ * elsewhere. This class represents a new tensor with the input tensor on the
+ * diagonal.
+ *
+ * @tparam Expression Type of the tensor whose elements are referenced.
+ */
+template <class Expression>
+class diagflat_expr : public abstract_tensor<diagflat_expr<Expression>,
+                                             typename Expression::value_type,
+                                             Expression::rank + 1> {
+public:
+  /// Member types.
+  typedef typename Expression::value_type value_type;
+  static constexpr size_t rank = Expression::rank + 1;
+  typedef void pointer;
+  typedef value_type reference;
+  typedef flat_iterator<const diagflat_expr<Expression>> iterator;
+  typedef size_t size_type;
+  typedef ptrdiff_t difference_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
+
+private:
+  // Elements on the diagonal.
+  const Expression &m_arg;
+
+  // Number of elements along each axis.
+  shape_type m_shape;
+
+  // Number of elements.
+  size_type m_size;
+
+  // Offset from the main diagonal.
+  difference_type m_offset;
+
+public:
+  /// Constructors.
+
+  /**
+   * @brief Constructs a diagonal matrix with given values on the diagonal and
+   * zeros elsewhere.
+   *
+   * @param a Tensor with the elements on the diagonal.
+   * @param k Offset of the diagonal from the main diagonal.
+   */
+  diagflat_expr(
+      const abstract_tensor<Expression, typename Expression::value_type,
+                            Expression::rank> &a,
+      difference_type k = 0)
+      : m_arg(a.self()), m_shape(detail::insert_axes(a.shape(), a.rank)),
+        m_offset(k) {
+    size_type axis1 = rank - 2, axis2 = rank - 1;
+    m_shape[axis1] = (k >= 0) ? a.shape(axis1) + k : a.shape(axis1) - k;
+    m_shape[axis2] = m_shape[axis1];
+    m_size = m_shape.prod();
+  }
+
+  /// Destructor.
+  ~diagflat_expr() = default;
+
+  /// Iterators.
+
+  /**
+   * @brief Return an iterator pointing to the first element in the tensor.
+   *
+   * @param order It is an optional parameter that changes the order in which
+   *              elements are iterated. In row-major order, the last index is
+   *              varying the fastest. In column-major order, the first index is
+   *              varying the fastest. The default is to use the same layout as
+   *              stored in memory.
+   *
+   * @return A random access iterator to the beginning of the tensor.
+   */
+  iterator begin() const { return this->begin(this->layout()); }
+
+  iterator begin(layout_t order) const { return iterator(this, 0, order); }
+
+  /**
+   * @brief Return an iterator pointing to the past-the-end element in the
+   * tensor. It does not point to any element, and thus shall not be
+   * dereferenced.
+   *
+   * @param order It is an optional parameter that changes the order in which
+   *              elements are iterated. In row-major order, the last index is
+   *              varying the fastest. In column-major order, the first index is
+   *              varying the fastest. The default is to use the same layout as
+   *              stored in memory.
+   *
+   * @return A random access iterator to the element past the end of the tensor.
+   */
+  iterator end() const { return this->end(this->layout()); }
+
+  iterator end(layout_t order) const {
+    return iterator(this, this->size(), order);
+  }
+
+  /// Indexing.
+
+  /**
+   * @brief Subscript operator. Returns the element at the given position.
+   *
+   * @param index An @c index_t object with the position of an element in the
+   *              tensor.
+   *
+   * @return The element at the specified position.
+   */
+  reference operator[](const index_type &index) const {
+    size_type axis1 = rank - 2, axis2 = rank - 1;
+    if (m_offset >= 0) {
+      if (index[axis1] + m_offset != index[axis2]) {
+        return value_type();
+      }
+    } else {
+      if (index[axis1] != index[axis2] - m_offset) {
+        return value_type();
+      }
+    }
+    index_t<rank - 1> a_index = detail::remove_axes(index, axis2);
+    a_index[axis1] = (m_offset >= 0) ? index[axis1] : index[axis2];
+    return m_arg[index];
+  }
+
+  /**
+   * @brief Return the shape of the tensor.
+   *
+   * @param axis It is an optional parameter that changes the return value. If
+   *             provided, returns the size along the given axis. Otherwise,
+   *             returns a shape_t object with the shape of the tensor along all
+   *             axes.
+   */
+  const shape_type &shape() const { return m_shape; }
+
+  size_type shape(size_type axis) const { return m_shape[axis]; }
+
+  /**
+   * @brief Return the number of elements in the tensor (i.e., the product of
+   * the sizes along all the axes).
+   */
+  size_type size() const { return m_size; }
+
+  /**
+   * @brief Return the memory layout in which elements are stored.
+   */
+  layout_t layout() const { return m_arg.layout(); }
+};
+
+/**
  * @brief A light-weight object with its elements extracted from the diagonal
  * of a tensor. This class represents a readonly view of the elements in the
  * diagonal of another tensor.
  *
- * @tparam Container Type of the tensor whose elements are referenced.
- * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor.
+ * @tparam Expression Type of the tensor whose elements are referenced.
  */
-template <class Container, class T, size_t Rank>
-class diagonal_expr
-    : public expression<diagonal_expr<Container, T, Rank>, T, Rank - 1> {
+template <class Expression>
+class diagonal_expr : public abstract_tensor<diagonal_expr<Expression>,
+                                             typename Expression::value_type,
+                                             Expression::rank - 1> {
+  static_assert(Expression::rank >= 2,
+                "Input tensor must be at least 2-dimensional");
+
 public:
   /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = Rank - 1;
+  typedef typename Expression::value_type value_type;
+  static constexpr size_t rank = Expression::rank - 1;
   typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<const diagonal_expr<Container, T, Rank>, value_type,
-                        rank, pointer, reference>
-      iterator;
+  typedef value_type reference;
+  typedef flat_iterator<const diagonal_expr<Expression>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank - 1> shape_type;
-  typedef index_t<Rank - 1> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Elements to extract the diagonal from.
-  const Container &m_arg;
+  const Expression &m_arg;
 
   // Number of elements along each axis.
   shape_type m_shape;
@@ -446,10 +587,13 @@ public:
    * @param a Tensor with the elements to extract the diagonal from.
    * @param k Offset of the diagonal from the main diagonal.
    */
-  diagonal_expr(const expression<Container, T, Rank> &a, difference_type k = 0)
-      : m_arg(a.self()), m_offset(k) {
-    size_type axis1 = Rank - 2, axis2 = Rank - 1;
-    m_shape = detail::remove_axes(a.shape(), axis2);
+  diagonal_expr(
+      const abstract_tensor<Expression, typename Expression::value_type,
+                            Expression::rank> &a,
+      difference_type k = 0)
+      : m_arg(a.self()), m_shape(detail::remove_axes(a.shape(), a.rank - 1)),
+        m_offset(k) {
+    size_type axis1 = rank - 1, axis2 = rank;
     m_shape[axis1] = 0;
     if (k >= 0) {
       if (size_type(k) < a.shape(axis2)) {
@@ -512,9 +656,9 @@ public:
    *
    * @return The element at the specified position.
    */
-  T operator[](const index_type &index) const {
-    size_type axis1 = Rank - 2, axis2 = Rank - 1;
-    index_t<Rank> a_index = detail::insert_axes(index, axis2);
+  reference operator[](const index_type &index) const {
+    size_type axis1 = rank - 1, axis2 = rank;
+    index_t<rank + 1> a_index = detail::insert_axes(index, axis2);
     if (m_offset >= 0) {
       a_index[axis1] = index[axis1];
       a_index[axis2] = index[axis1] + m_offset;
@@ -550,151 +694,18 @@ public:
 };
 
 /**
- * @brief A light-weight object with given values on the diagonal and zeros
- * elsewhere. This class represents a readonly view of the elements of another
- * tensor arranged as a 2-dimensional expression.
- *
- * @tparam Container Type of the tensor whose elements are referenced.
- * @tparam T Type of the elements contained in the tensor.
- */
-template <class Container, class T>
-class diagonal_expr<Container, T, 1>
-    : public expression<diagonal_expr<Container, T, 1>, T, 2> {
-public:
-  /// Member types.
-  typedef T value_type;
-  static constexpr size_t rank = 2;
-  typedef void pointer;
-  typedef T reference;
-  typedef flat_iterator<const diagonal_expr<Container, T, 1>, value_type, rank,
-                        pointer, reference>
-      iterator;
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef shape_t<2> shape_type;
-  typedef index_t<2> index_type;
-
-private:
-  // Elements on the diagonal.
-  const Container &m_arg;
-
-  // Number of elements along each axis.
-  shape_type m_shape;
-
-  // Number of elements.
-  size_type m_size;
-
-  // Offset from the main diagonal.
-  difference_type m_offset;
-
-public:
-  /// Constructors.
-
-  /**
-   * @brief Constructs a diagonal matrix with given values on the diagonal and
-   * zeros elsewhere.
-   *
-   * @param a 1-dimensional tensor with the elements on the diagonal.
-   * @param k Offset of the diagonal from the main diagonal.
-   */
-  diagonal_expr(const expression<Container, T, 1> &a, difference_type k = 0)
-      : m_arg(a.self()), m_offset(k) {
-    m_shape[0] = (k >= 0) ? m_arg.size() + k : m_arg.size() - k;
-    m_shape[1] = m_shape[0];
-    m_size = m_shape.prod();
-  }
-
-  /// Destructor.
-  ~diagonal_expr() = default;
-
-  /// Iterators.
-
-  /**
-   * @brief Return an iterator pointing to the first element in the tensor.
-   *
-   * @param order It is an optional parameter that changes the order in which
-   *              elements are iterated. In row-major order, the last index is
-   *              varying the fastest. In column-major order, the first index is
-   *              varying the fastest. The default is to use the same layout as
-   *              stored in memory.
-   *
-   * @return A random access iterator to the beginning of the tensor.
-   */
-  iterator begin(layout_t = default_layout) const { return iterator(this, 0); }
-
-  /**
-   * @brief Return an iterator pointing to the past-the-end element in the
-   * tensor. It does not point to any element, and thus shall not be
-   * dereferenced.
-   *
-   * @param order It is an optional parameter that changes the order in which
-   *              elements are iterated. In row-major order, the last index is
-   *              varying the fastest. In column-major order, the first index is
-   *              varying the fastest. The default is to use the same layout as
-   *              stored in memory.
-   *
-   * @return A random access iterator to the element past the end of the tensor.
-   */
-  iterator end(layout_t = default_layout) const {
-    return iterator(this, this->size());
-  }
-
-  /// Indexing.
-
-  /**
-   * @brief Subscript operator. Returns the element at the given position.
-   *
-   * @param index An @c index_t object with the position of an element in the
-   *              tensor.
-   *
-   * @return The element at the specified position.
-   */
-  T operator[](const index_type &index) const {
-    size_type i = index[0], j = index[1];
-    if (m_offset >= 0) {
-      return (i + m_offset == j) ? m_arg[i] : T();
-    } else {
-      return (i == j - m_offset) ? m_arg[j] : T();
-    }
-  }
-
-  /**
-   * @brief Return the shape of the tensor.
-   *
-   * @param axis It is an optional parameter that changes the return value. If
-   *             provided, returns the size along the given axis. Otherwise,
-   *             returns a shape_t object with the shape of the tensor along all
-   *             axes.
-   */
-  const shape_type &shape() const { return m_shape; }
-
-  size_type shape(size_type axis) const { return m_shape[axis]; }
-
-  /**
-   * @brief Return the number of elements in the tensor (i.e., the product of
-   * the sizes along all the axes).
-   */
-  size_type size() const { return m_size; }
-
-  /**
-   * @brief Return the memory layout in which elements are stored.
-   */
-  layout_t layout() const { return default_layout; }
-};
-
-/**
  * @brief A light-weight object with given values below the diagonal and zeros
  * elsewhere (a lower triangular matrix), or with given values above the
  * diagonal and zeros elsewhere (an upper diagonal matrix). This class
  * represents a readonly view of the elements of another tensor.
  *
- * @tparam Container Type of the tensor whose elements are referenced.
+ * @tparam Expr Type of the tensor whose elements are referenced.
  * @tparam T Type of the elements contained in the tensor.
  * @tparam Rank Dimension of the tensor.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 class triangular_expr
-    : public expression<triangular_expr<Container, T, Rank>, T, Rank> {
+    : public abstract_tensor<triangular_expr<Expr, T, Rank>, T, Rank> {
 public:
   static_assert(Rank >= 2, "Input tensor must be at least 2-dimensional");
 
@@ -703,17 +714,15 @@ public:
   static constexpr size_t rank = Rank;
   typedef void pointer;
   typedef T reference;
-  typedef flat_iterator<const triangular_expr<Container, T, Rank>, value_type,
-                        rank, pointer, reference>
-      iterator;
+  typedef flat_iterator<const triangular_expr<Expr, T, Rank>> iterator;
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
-  typedef shape_t<Rank> shape_type;
-  typedef index_t<Rank> index_type;
+  typedef shape_t<rank> shape_type;
+  typedef index_t<rank> index_type;
 
 private:
   // Elements below/above the diagonal.
-  const Container &m_arg;
+  const Expr &m_arg;
 
   // Whether to extract the lower or upper triangle.
   bool m_lower;
@@ -732,7 +741,7 @@ public:
    * @param lower Whether to extract the lower triangle or the upper triangle.
    * @param k Offset of the diagonal from the main diagonal.
    */
-  triangular_expr(const expression<Container, T, Rank> &a, bool lower = true,
+  triangular_expr(const abstract_tensor<Expr, T, Rank> &a, bool lower = true,
                   difference_type k = 0)
       : m_arg(a.self()), m_lower(lower), m_offset(k) {}
 

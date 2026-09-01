@@ -25,7 +25,7 @@
 
 #include <cstdint>
 #include <iosfwd>
-#include "numcpp/config.h"
+#include "numcpp/tensor/abstract_tensor.h"
 
 namespace numcpp {
 /// Context manager for setting print options.
@@ -123,12 +123,12 @@ template <class T, size_t Rank> tensor<T, Rank> load(std::istream &file);
  *
  * @throw std::ios_base::failure Thrown if the output file cannot be written.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 void save(const std::string &filename,
-          const expression<Container, T, Rank> &data);
+          const abstract_tensor<Expr, T, Rank> &data);
 
-template <class Container, class T, size_t Rank>
-void save(std::ostream &file, const expression<Container, T, Rank> &data);
+template <class Expr, class T, size_t Rank>
+void save(std::ostream &file, const abstract_tensor<Expr, T, Rank> &data);
 
 /// Text files.
 
@@ -181,14 +181,14 @@ tensor<T, Rank> loadtxt(std::istream &file, char delimiter = ' ',
  *
  * @throw std::ios_base::failure Thrown if the output file cannot be written.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 void savetxt(const std::string &filename,
-             const expression<Container, T, Rank> &data, char delimiter = ' ',
+             const abstract_tensor<Expr, T, Rank> &data, char delimiter = ' ',
              char newline = '\n', const std::string &header = "",
              const std::string &footer = "");
 
-template <class Container, class T, size_t Rank>
-void savetxt(std::ostream &file, const expression<Container, T, Rank> &data,
+template <class Expr, class T, size_t Rank>
+void savetxt(std::ostream &file, const abstract_tensor<Expr, T, Rank> &data,
              char delimiter = ' ', char newline = '\n',
              const std::string &header = "", const std::string &footer = "");
 
@@ -209,10 +209,10 @@ void savetxt(std::ostream &file, const expression<Container, T, Rank> &data,
  *      [a21, a22, a23, ..., a2n],
  *      ...,
  *      [am1, am2, am3, ..., amn]]
- * 
+ *
  * String values must be delimited by either single quotes (') or double quotes
  * (").
- * 
+ *
  * If extraction fails, an empty tensor is written and failbit flag is set.
  *
  * @param istr Input stream object.
@@ -232,21 +232,21 @@ operator>>(std::basic_istream<charT, traits> &istr, tensor<T, Rank> &a);
  *
  * @details The format for output insertion is the same as input extraction,
  * i.e., a list of values separated by commas and delimited by brackets.
- * 
+ *
  * Floating-point values are formatted according to @c precision and
  * @c floatmode options (see printoptions).
- * 
+ *
  * String values are enclosed with double quotes (").
  *
  * @param ostr Output stream object.
- * @param a A tensor-like object to be inserted into the output stream.
+ * @param a An abstract tensor to be inserted into the output stream.
  *
  * @return ostr
  */
-template <class charT, class traits, class Container, class T, size_t Rank>
+template <class charT, class traits, class Expr, class T, size_t Rank>
 std::basic_ostream<charT, traits> &
 operator<<(std::basic_ostream<charT, traits> &ostr,
-           const expression<Container, T, Rank> &a);
+           const abstract_tensor<Expr, T, Rank> &a);
 
 /**
  * @brief Return a string representation of a tensor.
@@ -274,9 +274,9 @@ operator<<(std::basic_ostream<charT, traits> &ostr,
  *
  * @return String representation of the tensor.
  */
-template <class Container, class T, size_t Rank>
+template <class Expr, class T, size_t Rank>
 std::string
-to_string(const expression<Container, T, Rank> &a,
+to_string(const abstract_tensor<Expr, T, Rank> &a,
           size_t precision = printoptions::precision,
           size_t threshold = printoptions::threshold,
           size_t edgeitems = printoptions::edgeitems,
@@ -286,10 +286,10 @@ to_string(const expression<Container, T, Rank> &a,
           const std::string &prefix = "[", const std::string &suffix = "]",
           const std::string &separator = ", ");
 
-template <class Container, class T, size_t Rank, class Function,
+template <class Expr, class T, size_t Rank, class Function,
           detail::RequiresCallable<Function, T> = 0>
 std::string
-to_string(const expression<Container, T, Rank> &a, Function formatter,
+to_string(const abstract_tensor<Expr, T, Rank> &a, Function formatter,
           size_t threshold = printoptions::threshold,
           size_t edgeitems = printoptions::edgeitems,
           size_t linewidth = printoptions::linewidth,

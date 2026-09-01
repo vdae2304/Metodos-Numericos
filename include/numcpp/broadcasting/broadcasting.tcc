@@ -249,40 +249,36 @@ tensor_view<T, Rank - N> squeeze(tensor_view<T, Rank> &a,
 
 /// Basic manipulation routines.
 
-template <class Container1, class T, size_t Rank, class Container2, class U>
-void copyto(dense_tensor<Container1, T, Rank> &dest,
-            const expression<Container2, U, Rank> &src) {
+template <class Expr1, class Expr2, class T, class U, size_t Rank>
+void copyto(dense_tensor<Expr1, T, Rank> &dest,
+            const abstract_tensor<Expr2, U, Rank> &src) {
   detail::assert_output_shape(dest.shape(),
                               broadcast_shapes(dest.shape(), src.shape()));
   for (index_t<Rank> index : make_index_sequence_for(dest)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (src.shape(axis) > 1) ? index[axis] : 0;
-    }
-    dest[index] = src[i];
+    dest[index] = src[detail::broadcast_index(index, src.shape())];
   }
 }
 
-template <class Container, class T, size_t Rank>
-inline tensor<T, Rank> copy(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+inline tensor<T, Rank> copy(const abstract_tensor<Expr, T, Rank> &a) {
   return copy(a, a.layout());
 }
 
-template <class Container, class T, size_t Rank>
-inline tensor<T, Rank> copy(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+inline tensor<T, Rank> copy(const abstract_tensor<Expr, T, Rank> &a,
                             layout_t order) {
   tensor<T, Rank> out(a.shape(), order);
   copyto(out, a);
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-inline tensor<T, 1> flatten(const expression<Container, T, Rank> &a) {
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> flatten(const abstract_tensor<Expr, T, Rank> &a) {
   return flatten(a, a.layout());
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, 1> flatten(const expression<Container, T, Rank> &a, layout_t order) {
+template <class Expr, class T, size_t Rank>
+tensor<T, 1> flatten(const abstract_tensor<Expr, T, Rank> &a, layout_t order) {
   tensor<T, 1> out(a.size());
   size_t n = 0;
   for (index_t<Rank> i : make_index_sequence(a.shape(), order)) {
@@ -301,10 +297,10 @@ namespace detail {
  */
 template <size_t Rank> void concatenation_shape(shape_t<Rank> &, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Container2>
+template <class Expr1, class... Expr2, class T, size_t Rank>
 void concatenation_shape(shape_t<Rank> &out_shape, size_t axis,
-                         const expression<Container1, T, Rank> &a,
-                         const expression<Container2, T, Rank> &...b) {
+                         const abstract_tensor<Expr1, T, Rank> &a,
+                         const abstract_tensor<Expr2, T, Rank> &...b) {
   for (size_t i = 0; i < Rank; ++i) {
     if (a.shape(i) != out_shape[i] && i != axis) {
       std::ostringstream error;
@@ -325,10 +321,10 @@ void concatenation_shape(shape_t<Rank> &out_shape, size_t axis,
 template <class T, size_t Rank>
 void concatenate_impl(tensor<T, Rank> &, size_t, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Container2>
+template <class Expr1, class... Expr2, class T, size_t Rank>
 void concatenate_impl(tensor<T, Rank> &out, size_t axis, size_t offset,
-                      const expression<Container1, T, Rank> &a,
-                      const expression<Container2, T, Rank> &...b) {
+                      const abstract_tensor<Expr1, T, Rank> &a,
+                      const abstract_tensor<Expr2, T, Rank> &...b) {
   for (index_t<Rank> i : make_index_sequence_for(a)) {
     index_t<Rank> out_index = i;
     out_index[axis] += offset;
@@ -344,10 +340,10 @@ void concatenate_impl(tensor<T, Rank> &out, size_t axis, size_t offset,
 template <class T, size_t Rank>
 void stack_impl(tensor<T, Rank> &, size_t, size_t) {}
 
-template <class Container1, class T, size_t Rank, class... Container2>
+template <class Expr1, class... Expr2, class T, size_t Rank>
 void stack_impl(tensor<T, Rank + 1> &out, size_t axis, size_t offset,
-                const expression<Container1, T, Rank> &a,
-                const expression<Container2, T, Rank> &...b) {
+                const abstract_tensor<Expr1, T, Rank> &a,
+                const abstract_tensor<Expr2, T, Rank> &...b) {
   shape_t<Rank> shape = detail::remove_axes(out.shape(), axis);
   if (shape != a.shape()) {
     throw std::invalid_argument("all the tensors must have the same shape");
@@ -360,17 +356,16 @@ void stack_impl(tensor<T, Rank + 1> &out, size_t axis, size_t offset,
 }
 } // namespace detail
 
-template <class Container1, class T, size_t Rank, class... Container2>
+template <class Expr1, class... Expr2, class T, size_t Rank>
 inline tensor<T, Rank>
-concatenate(const expression<Container1, T, Rank> &a,
-            const expression<Container2, T, Rank> &...b) {
+concatenate(const abstract_tensor<Expr1, T, Rank> &a,
+            const abstract_tensor<Expr2, T, Rank> &...b) {
   return concatenate<0>(a, b...);
 }
 
-template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Container2>
-tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
-                            const expression<Container2, T, Rank> &...b) {
+template <size_t Axis, class Expr1, class... Expr2, class T, size_t Rank>
+tensor<T, Rank> concatenate(const abstract_tensor<Expr1, T, Rank> &a,
+                            const abstract_tensor<Expr2, T, Rank> &...b) {
   shape_t<Rank> shape = a.shape();
   detail::concatenation_shape(shape, Axis, b...);
   tensor<T, Rank> out(shape);
@@ -378,16 +373,15 @@ tensor<T, Rank> concatenate(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class... Container2>
-inline tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                                 const expression<Container2, T, Rank> &...b) {
+template <class Expr1, class... Expr2, class T, size_t Rank>
+inline tensor<T, Rank + 1> stack(const abstract_tensor<Expr1, T, Rank> &a,
+                                 const abstract_tensor<Expr2, T, Rank> &...b) {
   return stack<0>(a, b...);
 }
 
-template <size_t Axis, class Container1, class T, size_t Rank,
-          class... Container2>
-tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
-                          const expression<Container2, T, Rank> &...b) {
+template <size_t Axis, class Expr1, class... Expr2, class T, size_t Rank>
+tensor<T, Rank + 1> stack(const abstract_tensor<Expr1, T, Rank> &a,
+                          const abstract_tensor<Expr2, T, Rank> &...b) {
   shape_t<Rank + 1> shape = detail::insert_axes(a.shape(), Axis, 1);
   shape[Axis] += sizeof...(b);
   tensor<T, Rank + 1> out(shape);
@@ -397,8 +391,8 @@ tensor<T, Rank + 1> stack(const expression<Container1, T, Rank> &a,
 
 /// Tiling.
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> tile(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> tile(const abstract_tensor<Expr, T, Rank> &a,
                      const shape_t<Rank> &reps) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < Rank; ++i) {
@@ -415,8 +409,8 @@ tensor<T, Rank> tile(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> repeat(const expression<Container, T, Rank> &a, size_t reps,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> repeat(const abstract_tensor<Expr, T, Rank> &a, size_t reps,
                        size_t axis) {
   shape_t<Rank> shape = a.shape();
   shape[axis] *= reps;
@@ -429,10 +423,10 @@ tensor<T, Rank> repeat(const expression<Container, T, Rank> &a, size_t reps,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class IntegralType, detail::RequiresIntegral<IntegralType>>
-tensor<T, Rank> repeat(const expression<Container1, T, Rank> &a,
-                       const expression<Container2, IntegralType, 1> &reps,
+template <class Expr1, class Expr2, class T, class IntegralType, size_t Rank,
+          detail::RequiresIntegral<IntegralType>>
+tensor<T, Rank> repeat(const abstract_tensor<Expr1, T, Rank> &a,
+                       const abstract_tensor<Expr2, IntegralType, 1> &reps,
                        size_t axis) {
   detail::assert_output_shape(a.shape(axis), reps.size());
   shape_t<Rank> shape = a.shape();
@@ -455,8 +449,8 @@ tensor<T, Rank> repeat(const expression<Container1, T, Rank> &a,
 
 /// Padding.
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank> pad(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<Rank> &before, const shape_t<Rank> &after) {
   shape_t<Rank> shape = a.shape();
   for (size_t i = 0; i < Rank; ++i) {
@@ -473,8 +467,8 @@ tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank, class Function, class... Args>
-tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
+template <class Expr, class T, size_t Rank, class Function, class... Args>
+tensor<T, Rank> pad(const abstract_tensor<Expr, T, Rank> &a,
                     const shape_t<Rank> &before, const shape_t<Rank> &after,
                     Function func, Args &&...args) {
   tensor<T, Rank> out = pad(a, before, after);
@@ -496,9 +490,9 @@ tensor<T, Rank> pad(const expression<Container, T, Rank> &a,
 
 /// Indexing routines.
 
-template <class Container1, class T, size_t Rank, class Container2, size_t N>
-tensor<T, N> take(const expression<Container1, T, Rank> &a,
-                  const expression<Container2, index_t<Rank>, N> &indices) {
+template <class Expr1, class Expr2, class T, size_t Rank, size_t N>
+tensor<T, N> take(const abstract_tensor<Expr1, T, Rank> &a,
+                  const abstract_tensor<Expr2, index_t<Rank>, N> &indices) {
   tensor<T, N> out(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     out[i] = a[indices[i]];
@@ -506,10 +500,10 @@ tensor<T, N> take(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, class Container2, class IntegralType,
-          size_t N, detail::RequiresIntegral<IntegralType>>
-tensor<T, N> take(const expression<Container1, T, 1> &a,
-                  const expression<Container2, IntegralType, N> &indices) {
+template <class Expr1, class Expr2, class T, class IntegralType, size_t N,
+          detail::RequiresIntegral<IntegralType>>
+tensor<T, N> take(const abstract_tensor<Expr1, T, 1> &a,
+                  const abstract_tensor<Expr2, IntegralType, N> &indices) {
   tensor<T, N> out(indices.shape(), indices.layout());
   for (index_t<N> i : make_index_sequence_for(indices)) {
     out[i] = a[indices[i]];
@@ -517,10 +511,10 @@ tensor<T, N> take(const expression<Container1, T, 1> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class IntegralType, detail::RequiresIntegral<IntegralType>>
-tensor<T, Rank> take(const expression<Container1, T, Rank> &a,
-                     const expression<Container2, IntegralType, 1> &indices,
+template <class Expr1, class Expr2, class T, class IntegralType, size_t Rank,
+          detail::RequiresIntegral<IntegralType>>
+tensor<T, Rank> take(const abstract_tensor<Expr1, T, Rank> &a,
+                     const abstract_tensor<Expr2, IntegralType, 1> &indices,
                      size_t axis) {
   shape_t<Rank> shape = a.shape();
   shape[axis] = indices.size();
@@ -533,8 +527,8 @@ tensor<T, Rank> take(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container, class T, size_t Rank>
-tensor<T, Rank - 1> take(const expression<Container, T, Rank> &a, size_t index,
+template <class Expr, class T, size_t Rank>
+tensor<T, Rank - 1> take(const abstract_tensor<Expr, T, Rank> &a, size_t index,
                          size_t axis) {
   shape_t<Rank - 1> shape = detail::remove_axes(a.shape(), axis);
   tensor<T, Rank - 1> out(shape);
@@ -545,11 +539,11 @@ tensor<T, Rank - 1> take(const expression<Container, T, Rank> &a, size_t index,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class IntegralType, detail::RequiresIntegral<IntegralType>>
+template <class Expr1, class Expr2, class T, class IntegralType, size_t Rank,
+          detail::RequiresIntegral<IntegralType>>
 tensor<T, Rank>
-take_along_axis(const expression<Container1, T, Rank> &a,
-                const expression<Container2, IntegralType, Rank> &indices,
+take_along_axis(const abstract_tensor<Expr1, T, Rank> &a,
+                const abstract_tensor<Expr2, IntegralType, Rank> &indices,
                 size_t axis) {
   detail::assert_index_along_axis_shape(a.shape(), indices.shape(), axis);
   tensor<T, Rank> out(indices.shape(), indices.layout());
@@ -561,80 +555,67 @@ take_along_axis(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2, size_t N,
-          class Container3>
-void put(dense_tensor<Container1, T, Rank> &a,
-         const expression<Container2, index_t<Rank>, N> &indices,
-         const expression<Container3, T, N> &values) {
+template <class Expr1, class Expr2, class Expr3, class T, size_t Rank, size_t N>
+void put(dense_tensor<Expr1, T, Rank> &a,
+         const abstract_tensor<Expr2, index_t<Rank>, N> &indices,
+         const abstract_tensor<Expr3, T, N> &values) {
   detail::assert_output_shape(
       indices.shape(), broadcast_shapes(indices.shape(), values.shape()));
-  for (index_t<N> index : make_index_sequence_for(indices)) {
-    index_t<N> i;
-    for (size_t axis = 0; axis < N; ++axis) {
-      i[axis] = (values.shape(axis) > 1) ? index[axis] : 0;
-    }
-    a[indices[index]] = values[i];
+  for (index_t<N> i : make_index_sequence_for(indices)) {
+    a[indices[i]] = values[detail::broadcast_index(i, values.shape())];
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2, size_t N>
-void put(dense_tensor<Container1, T, Rank> &a,
-         const expression<Container2, index_t<Rank>, N> &indices,
-         const typename Container1::value_type &value) {
+template <class Expr1, class Expr2, class T, size_t Rank, size_t N>
+void put(dense_tensor<Expr1, T, Rank> &a,
+         const abstract_tensor<Expr2, index_t<Rank>, N> &indices,
+         const typename detail::identity<T>::type &value) {
   for (index_t<N> i : make_index_sequence_for(indices)) {
     a[indices[i]] = value;
   }
 }
 
-template <class Container1, class T, class Container2, class IntegralType,
-          size_t N, class Container3, detail::RequiresIntegral<IntegralType>>
-void put(dense_tensor<Container1, T, 1> &a,
-         const expression<Container2, IntegralType, N> &indices,
-         const expression<Container3, T, N> &values) {
-  detail::assert_output_shape(
-      indices.shape(), broadcast_shapes(indices.shape(), values.shape()));
-  for (index_t<N> index : make_index_sequence_for(indices)) {
-    index_t<N> i;
-    for (size_t axis = 0; axis < N; ++axis) {
-      i[axis] = (values.shape(axis) > 1) ? index[axis] : 0;
-    }
-    a[indices[index]] = values[i];
-  }
-}
-
-template <class Container1, class T, class Container2, class IntegralType,
+template <class Expr1, class Expr2, class Expr3, class T, class IntegralType,
           size_t N, detail::RequiresIntegral<IntegralType>>
-void put(dense_tensor<Container1, T, 1> &a,
-         const expression<Container2, IntegralType, N> &indices,
-         const typename Container1::value_type &value) {
+void put(dense_tensor<Expr1, T, 1> &a,
+         const abstract_tensor<Expr2, IntegralType, N> &indices,
+         const abstract_tensor<Expr3, T, N> &values) {
+  detail::assert_output_shape(
+      indices.shape(), broadcast_shapes(indices.shape(), values.shape()));
+  for (index_t<N> i : make_index_sequence_for(indices)) {
+    a[indices[i]] = values[detail::broadcast_index(i, values.shape())];
+  }
+}
+
+template <class Expr1, class Expr2, class T, class IntegralType, size_t N,
+          detail::RequiresIntegral<IntegralType>>
+void put(dense_tensor<Expr1, T, 1> &a,
+         const abstract_tensor<Expr2, IntegralType, N> &indices,
+         const typename detail::identity<T>::type &value) {
   for (index_t<N> i : make_index_sequence_for(indices)) {
     a[indices[i]] = value;
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class IntegralType, class Container3,
-          detail::RequiresIntegral<IntegralType>>
-void put_along_axis(dense_tensor<Container1, T, Rank> &a,
-                    const expression<Container2, IntegralType, Rank> &indices,
-                    const expression<Container3, T, Rank> &values,
+template <class Expr1, class Expr2, class Expr3, class T, class IntegralType,
+          size_t Rank, detail::RequiresIntegral<IntegralType>>
+void put_along_axis(dense_tensor<Expr1, T, Rank> &a,
+                    const abstract_tensor<Expr2, IntegralType, Rank> &indices,
+                    const abstract_tensor<Expr3, T, Rank> &values,
                     size_t axis) {
   detail::assert_index_along_axis_shape(a.shape(), indices.shape(), axis);
   detail::assert_output_shape(
       indices.shape(), broadcast_shapes(indices.shape(), values.shape()));
   for (index_t<Rank> index : make_index_sequence_for(indices)) {
-    index_t<Rank> i;
-    for (size_t axis = 0; axis < Rank; ++axis) {
-      i[axis] = (values.shape(axis) > 1) ? index[axis] : 0;
-    }
-    index[axis] = indices[index];
-    a[index] = values[i];
+    index_t<Rank> a_index = index;
+    a_index[axis] = indices[index];
+    a[a_index] = values[detail::broadcast_index(index, values.shape())];
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2>
-tensor<T, 1> compress(const expression<Container1, T, Rank> &a,
-                      const expression<Container2, bool, Rank> &condition) {
+template <class Expr1, class Expr2, class T, size_t Rank>
+tensor<T, 1> compress(const abstract_tensor<Expr1, T, Rank> &a,
+                      const abstract_tensor<Expr2, bool, Rank> &condition) {
   detail::assert_mask_shape(a.shape(), condition.shape());
   size_t size =
       std::count(condition.self().begin(), condition.self().end(), true);
@@ -648,9 +629,9 @@ tensor<T, 1> compress(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2>
-tensor<T, Rank> compress(const expression<Container1, T, Rank> &a,
-                         const expression<Container2, bool, 1> &condition,
+template <class Expr1, class Expr2, class T, size_t Rank>
+tensor<T, Rank> compress(const abstract_tensor<Expr1, T, Rank> &a,
+                         const abstract_tensor<Expr2, bool, 1> &condition,
                          size_t axis) {
   detail::assert_mask_shape(a.shape(axis), condition.size(), axis);
   shape_t<Rank> shape = a.shape();
@@ -671,11 +652,10 @@ tensor<T, Rank> compress(const expression<Container1, T, Rank> &a,
   return out;
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class Container3>
-void place(dense_tensor<Container1, T, Rank> &a,
-           const expression<Container2, bool, Rank> &condition,
-           const expression<Container3, T, 1> &values) {
+template <class Expr1, class Expr2, class Expr3, class T, size_t Rank>
+void place(dense_tensor<Expr1, T, Rank> &a,
+           const abstract_tensor<Expr2, bool, Rank> &condition,
+           const abstract_tensor<Expr3, T, 1> &values) {
   detail::assert_mask_shape(a.shape(), condition.shape());
   size_t n = 0;
   for (index_t<Rank> i : make_index_sequence_for(condition)) {
@@ -685,10 +665,10 @@ void place(dense_tensor<Container1, T, Rank> &a,
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2>
-void place(dense_tensor<Container1, T, Rank> &a,
-           const expression<Container2, bool, Rank> &condition,
-           const typename Container1::value_type &value) {
+template <class Expr1, class Expr2, class T, size_t Rank>
+void place(dense_tensor<Expr1, T, Rank> &a,
+           const abstract_tensor<Expr1, bool, Rank> &condition,
+           const typename detail::identity<T>::type &value) {
   detail::assert_mask_shape(a.shape(), condition.shape());
   for (index_t<Rank> i : make_index_sequence_for(condition)) {
     if (condition[i]) {
@@ -697,21 +677,16 @@ void place(dense_tensor<Container1, T, Rank> &a,
   }
 }
 
-template <class Container1, class T, size_t Rank, class Container2,
-          class Container3>
-void putmask(dense_tensor<Container1, T, Rank> &a,
-             const expression<Container2, bool, Rank> &condition,
-             const expression<Container3, T, Rank> &values) {
+template <class Expr1, class Expr2, class Expr3, class T, size_t Rank>
+void putmask(dense_tensor<Expr1, T, Rank> &a,
+             const abstract_tensor<Expr2, bool, Rank> &condition,
+             const abstract_tensor<Expr3, T, Rank> &values) {
   detail::assert_output_shape(a.shape(),
                               broadcast_shapes(a.shape(), values.shape()));
   detail::assert_mask_shape(a.shape(), condition.shape());
-  for (index_t<Rank> index : make_index_sequence_for(condition)) {
-    if (condition[index]) {
-      index_t<Rank> i;
-      for (size_t axis = 0; axis < Rank; ++axis) {
-        i[axis] = (values.shape(axis) > 1) ? index[axis] : 0;
-      }
-      a[index] = values[i];
+  for (index_t<Rank> i : make_index_sequence_for(condition)) {
+    if (condition[i]) {
+      a[i] = values[detail::broadcast_index(i, values.shape())];
     }
   }
 }

@@ -1,4 +1,4 @@
-# Random sampling
+# [Random sampling](readme.md)
 
 Defined in header [`numcpp/random.h`](/include/numcpp/random.h)
 

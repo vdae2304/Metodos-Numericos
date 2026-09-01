@@ -6,6 +6,7 @@ Defined in header [`numcpp/functional.h`](/include/numcpp/functional.h)
   - [Element-wise functions](#element-wise-functions)
     - [`apply`](#apply)
     - [`apply2`](#apply2)
+    - [`applyn` (Since C++14)](#applyn-since-c14)
 
 ## Element-wise functions
 
@@ -154,7 +155,7 @@ int main() {
     // Returns an expression equivalent to vector<double>
     std::cout << "true_divide:\n" << np::apply2(true_divide, x, y) << "\n";
     // Returns an expression equivalent to vector<int>
-    std::cout << "integer_pow:\n" << np::apply2(integer_pow, x, y) << "\n";
+    std::cout << "integer_pow:\n" << np::apply2(integer_pow, y, x) << "\n";
     return 0;
 }
 ```
@@ -173,7 +174,7 @@ true_divide:
 [       0.5, 0.33333333, 0.66666667,       0.25,        0.5,       0.75, 
         0.2,        0.4,        0.6,        0.8]
 integer_pow:
-[   1,    1,    8,    1,   16,   81,    1,   32,  243, 1024]
+[  2,   3,   9,   4,  16,  64,   5,  25, 125, 625]
 ```
 
 <h3><code>apply2</code></h3>
@@ -200,6 +201,161 @@ Parameters
 * `a` A tensor-like object with the values to pass as first argument.
 * `b` A tensor-like object with the values to pass as second argument.
 * `val` Value to use either as first argument or second argument. Values are broadcasted to an appropriate shape.
+
+Returns
+
+* None
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes are not compatible and cannot be broadcasted according to [broadcasting rules](/doc/Tensor%20class/Shapes/Non-member%20functions.md#broadcast_shapes), or if the shape of `out` does not match the broadcasting shape.
+
+### `applyn` (Since C++14)
+
+Apply a function element-wise.
+```cpp
+template <class Function, class T, class... U, size_t Rank>
+tensor</*Result type*/, Rank> applyn(Function &&f, const tensor<T, Rank> &a,
+                                     const tensor<U, Rank> &...b);
+```
+
+Parameters
+
+* `f` The function to apply.
+* `a, b...` Tensor-like objects with the values to pass as each argument in the function.
+
+Returns
+
+* A light-weight object which stores the result of invoking the function on each element. This function does not create a new tensor, instead, an expression object is returned. The returned object uses lazy-evaluation, which means that the function is called only when required, i.e., when the whole expression is evaluated or assigned to a tensor object.
+
+Exceptions
+
+* `std::invalid_argument` Thrown if the shapes are not compatible and cannot be broadcasted according to broadcasting rules.
+
+Example
+
+```cpp
+#include <iostream>
+#include <numcpp/tensor.h>
+#include <numcpp/functional.h>
+#include <numcpp/io.h>
+namespace np = numcpp;
+
+int square(int x) {
+    return x*x;
+}
+
+int main() {
+    np::vector<int> x;
+    std::cin >> x;
+    // Return an expression equivalent to vector<int>
+    std::cout << "square:\n" << np::applyn(square, x) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+```
+
+Output
+
+```
+square:
+[  1,   4,   9,  16,  25,  36,  49,  64,  81, 100]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include <numcpp/tensor.h>
+#include <numcpp/functional.h>
+#include <numcpp/io.h>
+namespace np = numcpp;
+
+double true_divide(int x, int y) {
+    return (double)x / (double) y;
+}
+
+int main() {
+    np::vector<int> x, y;
+    std::cin >> x >> y;
+    // Return an expression equivalent to vector<double>
+    std::cout << "true_divide:\n" << np::applyn(true_divide, x, y) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[1, 1, 2, 1, 2, 3, 1, 2, 3, 4]
+[2, 3, 3, 4, 4, 4, 5, 5, 5, 5]
+```
+
+Output
+
+```
+true_divide:
+[       0.5, 0.33333333, 0.66666667,       0.25,        0.5,       0.75, 
+        0.2,        0.4,        0.6,        0.8]
+```
+
+Example
+
+```cpp
+#include <iostream>
+#include <numcpp/tensor.h>
+#include <numcpp/functional.h>
+#include <numcpp/io.h>
+namespace np = numcpp;
+
+double line(int m, int b, double x) {
+    return m*x + b;
+}
+
+int main() {
+    np::vector<int> m, b;
+    np::vector<double> x;
+    std::cin >> m >> b >> x;
+    // Return an expression equivalent to vector<double>
+    std::cout << "line:\n" << np::applyn(line, m, b, x) << "\n";
+    return 0;
+}
+```
+
+Input
+
+```
+[ 2, 2, 2,  3,  3,  3,  5, 5, 5]
+[ 1, 1, 1, -1, -1, -1,  2, 2, 2]
+[-1, 0, 1, -1,  0,  1, -1, 0, 1]
+```
+
+Output
+
+```
+line:
+[-1,  1,  3, -4, -1,  2, -3,  2,  7]
+```
+
+<h3><code>applyn</code> (Since C++14)</h3>
+
+Apply a function element-wise.
+```cpp
+template <class R, class Function, class T, class... U, size_t Rank>
+void applyn(tensor<R, Rank> &out, Function &&f, const tensor<T, Rank> &a,
+            const tensor<U, Rank> &...b);
+```
+
+Parameters
+
+* `out` A location into which the result is stored.
+* `f` The function to apply.
+* `a, b...` Tensor-like objects with the values to pass as each argument in the function.
 
 Returns
 
