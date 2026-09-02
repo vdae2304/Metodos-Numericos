@@ -21,7 +21,6 @@
 #ifndef NUMCPP_TRAITS_H_INCLUDED
 #define NUMCPP_TRAITS_H_INCLUDED
 
-#include <complex>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
@@ -32,22 +31,6 @@ namespace detail {
 using std::conjunction;
 using std::disjunction;
 using std::void_t;
-
-/**
- * @brief Return the sum of the arguments.
- */
-template <class T, T... Ns>
-struct sum_value;
-
-template <class T>
-struct sum_value<T> {
-  static constexpr T value = 0;
-};
-
-template <class T, T N, T... Ns>
-struct sum_value<T, N, Ns...> {
-  static constexpr T value = N + sum_value<T, Ns...>::value;
-};
 
 /**
  * @brief Returns the type argument unchanged.
@@ -106,9 +89,9 @@ struct nested_initializer_list<T, 0> {
 /**
  * @brief Number of slice arguments in slice indexing.
  */
-template <class... Indices>
-using slicing_rank =
-    detail::sum_value<size_t, std::is_same<Indices, slice>::value...>;
+template <class... T>
+constexpr size_t slicing_rank =
+    (static_cast<size_t>(std::is_same_v<T, slice>) + ...);
 
 /**
  * @brief Result type of function call.
@@ -123,36 +106,6 @@ struct __is_callable_impl : std::false_type {};
 template <class F, class... Args>
 struct __is_callable_impl<F(Args...), void_t<result_of_t<F, Args...>>>
     : std::true_type {};
-
-/// Constraints.
-
-template <class... B>
-using requires_all =
-    typename std::enable_if<conjunction<B...>::value, int>::type;
-
-/**
- * @brief Type constraint to request N arguments.
- */
-template <size_t N, class... T>
-using n_arguments = std::integral_constant<bool, sizeof...(T) == N>;
-
-/**
- * @brief Type constraint to request integer argument.
- */
-template <class T>
-using is_integral = std::is_integral<T>;
-
-/**
- * @brief Type constraint to request at least one slice argument.
- */
-template <class... T>
-using has_slicing = disjunction<std::is_same<T, slice>...>;
-
-/**
- * @brief Type constraint to request callable type.
- */
-template <class F, class... Args>
-struct is_callable : __is_callable_impl<F(Args...)> {};
 } // namespace detail
 } // namespace numcpp
 

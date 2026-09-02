@@ -50,7 +50,7 @@ namespace numcpp {
  * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
 template <class T, size_t Rank>
-class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
+class tensor : public dense_tensor<tensor<T, Rank>, T> {
  public:
   /// Member types.
   typedef T value_type;
@@ -173,7 +173,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
     requires(TensorLike::rank == Rank)
   tensor(const TensorLike& other, layout_t layout)
       : tensor(other.shape(), layout) {
-    dense_tensor<tensor, T, Rank>::operator=(other);
+    dense_tensor<tensor, T>::operator=(other);
   }
 
   /**
@@ -260,13 +260,13 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
   template <std::integral... Indices>
     requires(sizeof...(Indices) == Rank)
   T& operator[](Indices... indices) {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 
   template <std::integral... Indices>
     requires(sizeof...(Indices) == Rank)
   const T& operator[](Indices... indices) const {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 #endif  // C++23
 
@@ -286,12 +286,12 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
    *
    * @throw std::out_of_range Thrown if an integral index is out of bounds.
    */
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<T, detail::slicing_rank<Indices...>::value> operator()(
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) {
-    constexpr size_t N = detail::slicing_rank<Indices...>::value;
+    constexpr size_t N = detail::slicing_rank<Indices...>;
     index_type m_stride = make_strides(m_shape, m_layout);
     shape_t<N> shape;
     index_t<N> strides;
@@ -300,12 +300,12 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
     return tensor_view<T, N>(m_data + offset, shape, strides);
   }
 
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<const T, detail::slicing_rank<Indices...>::value> operator()(
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<const T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) const {
-    constexpr size_t N = detail::slicing_rank<Indices...>::value;
+    constexpr size_t N = detail::slicing_rank<Indices...>;
     index_type m_stride = make_strides(m_shape, m_layout);
     shape_t<N> shape;
     index_t<N> strides;
@@ -314,21 +314,21 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
     return tensor_view<const T, N>(m_data + offset, shape, strides);
   }
 
-#ifdef __cpp_multidimensional_subscript
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<T, detail::slicing_rank<Indices...>::value> operator[](
+#if __cplusplus >= 202302L
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<const T, detail::slicing_rank<Indices...>::value> operator[](
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<const T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) const {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 #endif  // C++23
 
@@ -442,7 +442,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T, Rank> {
     requires(TensorLike::rank == Rank)
   tensor& operator=(const TensorLike& other) {
     this->resize(other.shape());
-    dense_tensor<tensor, T, Rank>::operator=(other);
+    dense_tensor<tensor, T>::operator=(other);
     return *this;
   }
 

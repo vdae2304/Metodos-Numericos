@@ -41,7 +41,7 @@ namespace numcpp {
  */
 template <class T, size_t Rank>
 class tensor_view
-    : public dense_tensor<tensor_view<T, Rank>, std::remove_cv_t<T>, Rank> {
+    : public dense_tensor<tensor_view<T, Rank>, std::remove_cv_t<T>> {
  public:
   /// Member types.
   typedef std::remove_cv_t<T> value_type;
@@ -177,13 +177,13 @@ class tensor_view
   template <std::integral... Indices>
     requires(sizeof...(Indices) == Rank)
   T& operator[](Indices... indices) {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 
   template <std::integral... Indices>
     requires(sizeof...(Indices) == Rank)
   const T& operator[](Indices... indices) const {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 #endif  // C++23
 
@@ -203,33 +203,33 @@ class tensor_view
    *
    * @throw std::out_of_range Thrown if an integral index is out of bounds.
    */
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<T, detail::slicing_rank<Indices...>::value> operator()(
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices);
 
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<const T, detail::slicing_rank<Indices...>::value> operator()(
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<const T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) const;
 
-#ifdef __cpp_multidimensional_subscript
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<T, detail::slicing_rank<Indices...>::value> operator[](
+#if __cplusplus >= 202302L
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 
-  template <class... Indices,
-            detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                                 detail::has_slicing<Indices...> > = 0>
-  tensor_view<const T, detail::slicing_rank<Indices...>::value> operator[](
+  template <integer_or_slice... Indices>
+    requires((sizeof...(Indices) == Rank) &&
+             (std::is_same_v<Indices, slice> || ...))
+  tensor_view<const T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) const {
-    return this->operator()(indices...);
+    return (*this)(indices...);
   }
 #endif  // C++23
 
@@ -345,7 +345,7 @@ class tensor_view
   template <abstract_tensor TensorLike>
     requires(TensorLike::rank == Rank)
   tensor_view& operator=(const TensorLike& other) {
-    dense_tensor<tensor_view, value_type, Rank>::operator=(other);
+    dense_tensor<tensor_view, value_type>::operator=(other);
     return *this;
   }
 
@@ -357,7 +357,7 @@ class tensor_view
    * @return *this
    */
   tensor_view &operator=(const T &val) {
-    dense_tensor<tensor_view, value_type, Rank>::operator=(val);
+    dense_tensor<tensor_view, value_type>::operator=(val);
     return *this;
   }
 

@@ -23,31 +23,24 @@
 #ifndef NUMCPP_SLICE_H_INCLUDED
 #define NUMCPP_SLICE_H_INCLUDED
 
+#include <concepts>
 #include <cstdint>
+#include <optional>
 
 namespace numcpp {
-/// Namespace for placeholders.
-namespace placeholders {
-/**
- * @brief Placeholder used on slice constructor.
- */
-inline struct underscore {
-} _;
-} // namespace placeholders
-
 /**
  * @brief A slice is a class that identifies a subset of elements in an array.
  * It holds three values: the starting index, the stop index and the stride.
  */
 class slice {
-public:
+ public:
   /// Constructors.
 
   /**
    * @brief Default constructor. Constructs an empty slice that includes all
    * the elements in an array.
    */
-  slice() : m_start(PTRDIFF_MAX), m_stop(PTRDIFF_MAX), m_stride(1) {}
+  slice() : m_start(0), m_stop(), m_stride(1) {}
 
   /**
    * @brief Slice constructor. Constructs a slice with values within the
@@ -56,7 +49,7 @@ public:
    * @param stop The position at which the slice ends. The slice does not
    * include this position.
    */
-  explicit slice(ptrdiff_t stop) : slice(0, stop, 1) {}
+  explicit slice(ptrdiff_t stop) : m_start(0), m_stop(stop), m_stride(1) {}
 
   /**
    * @brief Slice constructor. Constructs a slice with values within the
@@ -66,7 +59,8 @@ public:
    * @param stop The position at which the slice ends. The slice does not
    * include this position.
    */
-  explicit slice(ptrdiff_t start, ptrdiff_t stop) : slice(start, stop, 1) {}
+  explicit slice(std::optional<ptrdiff_t> start, std::optional<ptrdiff_t> stop)
+      : m_start(start), m_stop(stop), m_stride(1) {}
 
   /**
    * @brief Slice constructor. Constructs a slice with values within the
@@ -77,76 +71,34 @@ public:
    * include this position.
    * @param stride The span that separates the elements selected by the slice.
    */
-  explicit slice(ptrdiff_t start, ptrdiff_t stop, ptrdiff_t stride)
-      : m_start(start), m_stop(stop), m_stride(stride) {}
-
-  /**
-   * @brief Placeholder constructor. Equivalent to slice(0, size)
-   */
-  explicit slice(placeholders::underscore start, placeholders::underscore stop)
-      : slice() {}
-
-  /**
-   * @brief Placeholder constructor. Equivalent to slice(0, stop)
-   */
-  explicit slice(placeholders::underscore start, ptrdiff_t stop)
-      : slice(start, stop, 1) {}
-
-  /**
-   * @brief Placeholder constructor. Equivalent to slice(start, size)
-   */
-  explicit slice(ptrdiff_t start, placeholders::underscore stop)
-      : slice(start, stop, 1) {}
-
-  /**
-   * @brief Placeholder constructor.
-   * If stride > 0, it is equivalent to slice(0, size, stride).
-   * If stride < 0, it is equivalent to slice(size - 1, -1, stride).
-   */
-  explicit slice(placeholders::underscore, placeholders::underscore,
+  explicit slice(std::optional<ptrdiff_t> start, std::optional<ptrdiff_t> stop,
                  ptrdiff_t stride)
-      : m_start(PTRDIFF_MAX), m_stop(PTRDIFF_MAX), m_stride(stride) {}
-
-  /**
-   * @brief Placeholder constructor.
-   * If stride > 0, it is equivalent to slice(0, stop, stride).
-   * If stride < 0, it is equivalent to slice(size - 1, stop, stride).
-   */
-  explicit slice(placeholders::underscore, ptrdiff_t stop, ptrdiff_t stride)
-      : m_start(PTRDIFF_MAX), m_stop(stop), m_stride(stride) {}
-
-  /**
-   * @brief Placeholder constructor.
-   * If stride > 0, it is equivalent to slice(start, size, stride).
-   * If stride < 0, it is equivalent to slice(start, -1, stride).
-   */
-  explicit slice(ptrdiff_t start, placeholders::underscore, ptrdiff_t stride)
-      : m_start(start), m_stop(PTRDIFF_MAX), m_stride(stride) {}
+      : m_start(start), m_stop(stop), m_stride(stride) {}
 
   /// Public methods.
 
   /**
    * @brief Return whether the slice has a start value.
    */
-  bool has_start() const { return (m_start != PTRDIFF_MAX); }
+  bool has_start() const { return m_start.has_value(); }
 
   /**
-   * @brief Return the first element in the slice. Undefined behaviour if the
-   * slice doesn't have a start value.
+   * @brief Return the first element in the slice. Throws a std::bad_optional
+   * exception if the slice doesn't have a start value.
    */
-  ptrdiff_t start() const { return m_start; }
+  ptrdiff_t start() const { return *m_start; }
 
   /**
    * @brief Return whether the slice has a stop value.
    */
-  bool has_stop() const { return (m_stop != PTRDIFF_MAX); }
+  bool has_stop() const { return m_stop.has_value(); }
 
   /**
    * @brief Return the past-the-end element in the slice. The slice does not
-   * include this position. Undefined behaviour if the slice doesn't have a
-   * stop value.
+   * include this position. Throws a std::bad_optional exception if the slice
+   * doesn't have a stop value.
    */
-  ptrdiff_t stop() const { return m_stop; }
+  ptrdiff_t stop() const { return *m_stop; }
 
   /**
    * @brief Return the separation of the elements in the slice.
@@ -156,7 +108,7 @@ public:
   /**
    * @brief Return a slice with start and stop values computed from the size
    * of an array.
-   * 
+   *
    * @details If the slice does not have start and stop values, they are
    * computed from the size of the array as follows:
    * - slice(_, _, stride) converts to slice(0, size, stride) if stride > 0
@@ -165,13 +117,13 @@ public:
    * and to slice(size - 1, stop, stride) if stride < 0.
    * - slice(start, _, stride) converts to slice(start, size, stride) if
    * stride > 0 and to slice(start, -1, stride) if stride < 0.
-   * 
+   *
    * @param size Size of the array to slice.
    */
   slice bind_array(size_t size) const {
     ptrdiff_t start, stop;
     if (has_start()) {
-      start = m_start;
+      start = *m_start;
       if (start < 0) {
         start += size;
       }
@@ -180,14 +132,13 @@ public:
     }
 
     if (has_stop()) {
-      stop = m_stop;
-      if (stop < 0) {
-        stop += size;
-      }
-      if (stop > size) {
-        stop = size;
-      } else if (stop < 0) {
+      stop = *m_stop;
+      if (stop + size < 0) {
         stop = 0;
+      } else if (stop < 0) {
+        stop += size;
+      } else if (stop > size) {
+        stop = size;
       }
     } else {
       stop = (m_stride >= 0) ? size : -1;
@@ -197,9 +148,21 @@ public:
   }
 
  private:
-  // Start, stop and stride.
-  ptrdiff_t m_start, m_stop, m_stride;
+  // Start.
+  std::optional<ptrdiff_t> m_start;
+
+  // Stop
+  std::optional<ptrdiff_t> m_stop;
+
+  // Stride.
+  ptrdiff_t m_stride;
 };
-} // namespace numcpp
+
+/**
+ * Concept for integer or slice.
+ */
+template <class T>
+concept integer_or_slice = std::is_same_v<T, slice> || std::integral<T>;
+}  // namespace numcpp
 
 #endif // NUMCPP_SLICE_H_INCLUDED

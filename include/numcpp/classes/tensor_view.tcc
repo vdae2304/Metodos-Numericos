@@ -95,12 +95,12 @@ ptrdiff_t __unpack_slices(const shape_t<Rank>& in_shape,
 }
 
 template <class T, size_t Rank>
-template <class... Indices,
-          detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                               detail::has_slicing<Indices...> > >
-tensor_view<T, detail::slicing_rank<Indices...>::value>
+template <integer_or_slice... Indices>
+  requires((sizeof...(Indices) == Rank) &&
+           (std::is_same_v<Indices, slice> || ...))
+tensor_view<T, detail::slicing_rank<Indices...>>
 tensor_view<T, Rank>::operator()(const Indices&... indices) {
-  constexpr size_t N = detail::slicing_rank<Indices...>::value;
+  constexpr size_t N = detail::slicing_rank<Indices...>;
   shape_t<N> shape;
   index_t<N> strides;
   ptrdiff_t offset = __unpack_slices(m_shape, m_stride, shape.data(),
@@ -109,12 +109,12 @@ tensor_view<T, Rank>::operator()(const Indices&... indices) {
 }
 
 template <class T, size_t Rank>
-template <class... Indices,
-          detail::requires_all<detail::n_arguments<Rank, Indices...>,
-                               detail::has_slicing<Indices...> > >
-tensor_view<const T, detail::slicing_rank<Indices...>::value>
+template <integer_or_slice... Indices>
+  requires((sizeof...(Indices) == Rank) &&
+           (std::is_same_v<Indices, slice> || ...))
+tensor_view<const T, detail::slicing_rank<Indices...>>
 tensor_view<T, Rank>::operator()(const Indices&... indices) const {
-  constexpr size_t N = detail::slicing_rank<Indices...>::value;
+  constexpr size_t N = detail::slicing_rank<Indices...>;
   shape_t<N> shape;
   index_t<N> strides;
   ptrdiff_t offset = __unpack_slices(m_shape, m_stride, shape.data(),
@@ -255,8 +255,8 @@ tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
 template <class T, size_t Rank> tensor_view<T, Rank> tensor_view<T, Rank>::t() {
   shape_type shape = m_shape;
   index_type strides = m_stride;
-  std::reverse(shape.data(), shape.data() + Rank);
-  std::reverse(strides.data(), strides.data() + Rank);
+  std::reverse(shape.begin(), shape.end());
+  std::reverse(strides.begin(), strides.end());
   return tensor_view<T, Rank>(m_data, shape, strides);
 }
 
@@ -264,8 +264,8 @@ template <class T, size_t Rank>
 tensor_view<const T, Rank> tensor_view<T, Rank>::t() const {
   shape_type shape = m_shape;
   index_type strides = m_stride;
-  std::reverse(shape.data(), shape.data() + Rank);
-  std::reverse(strides.data(), strides.data() + Rank);
+  std::reverse(shape.begin(), shape.end());
+  std::reverse(strides.begin(), strides.end());
   return tensor_view<const T, Rank>(m_data, shape, strides);
 }
 

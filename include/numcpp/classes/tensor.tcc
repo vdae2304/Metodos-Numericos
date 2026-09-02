@@ -142,7 +142,7 @@ inline void tensor<T, Rank>::resize(const shape_type &shape) {
 template <class T, size_t Rank> tensor_view<T, Rank> tensor<T, Rank>::t() {
   shape_type shape = m_shape;
   layout_t layout = (m_layout == layout_left) ? layout_right : layout_left;
-  std::reverse(shape.data(), shape.data() + Rank);
+  std::reverse(shape.begin(), shape.end());
   return tensor_view<T, Rank>(m_data, shape, layout);
 }
 
@@ -150,7 +150,7 @@ template <class T, size_t Rank>
 tensor_view<const T, Rank> tensor<T, Rank>::t() const {
   shape_type shape = m_shape;
   layout_t layout = (m_layout == layout_left) ? layout_right : layout_left;
-  std::reverse(shape.data(), shape.data() + Rank);
+  std::reverse(shape.begin(), shape.end());
   return tensor_view<const T, Rank>(m_data, shape, layout);
 }
 

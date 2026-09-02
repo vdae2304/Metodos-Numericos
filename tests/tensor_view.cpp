@@ -61,12 +61,11 @@ TEST(TensorView, MatrixLayoutLeft) {
 }
 
 TEST(TensorView, VectorSlicing) {
-  using namespace np::placeholders;
-
   int data[10] = {-4, 16, 14, 9, 18, 3, 7, 2, 1, 4};
   np::vector_view<int> vec(data, 10);
 
   // Select first 5 elements.
+  const auto _ = std::nullopt;
   np::vector_view<int> view = vec(np::slice(5));
   ASSERT_EQ(view.size(), 5);
   ASSERT_EQ(view.shape(0), 5);
@@ -112,12 +111,11 @@ TEST(TensorView, VectorSlicing) {
 }
 
 TEST(TensorView, MatrixSlicing) {
-  using namespace np::placeholders;
-
   int data[12] = {0, 10, -4, 5, 6, 10, 8, 12, 2, 11, 0, -1};
   np::matrix_view<int> mat(data, 3, 4);
 
   // Select first row.
+  const auto _ = std::nullopt;
   np::vector_view<int> view = mat(0, np::slice(_, _));
   ASSERT_EQ(view.rank, 1);
   ASSERT_EQ(view.size(), 4);
@@ -142,7 +140,8 @@ TEST(TensorView, MatrixSlicing) {
   }
 
   // Flip horizontally.
-  np::matrix_view<int> view2d = mat(np::slice(_, _), np::slice(_, _, -1));
+  np::matrix_view<int> view2d = mat(np::slice(_, _),
+                                    np::slice(_, _, -1));
   ASSERT_EQ(view2d.rank, 2);
   ASSERT_EQ(view2d.size(), 12);
   ASSERT_EQ(view2d.shape(0), 3);
