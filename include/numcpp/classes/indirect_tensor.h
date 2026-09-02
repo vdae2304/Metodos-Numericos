@@ -38,7 +38,7 @@ namespace numcpp {
 template <class Tensor, class IndexTensor>
 class indirect_tensor
     : public dense_tensor<indirect_tensor<Tensor, IndexTensor>,
-                          typename Tensor::value_type, IndexTensor::rank> {
+                          typename Tensor::value_type> {
  public:
   /// Member types.
   typedef typename Tensor::value_type value_type;
@@ -154,7 +154,7 @@ class indirect_tensor
   template <abstract_tensor TensorLike>
     requires(TensorLike::rank == rank)
   indirect_tensor& operator=(const TensorLike& other) {
-    dense_tensor<indirect_tensor, value_type, rank>::operator=(other);
+    dense_tensor<indirect_tensor, value_type>::operator=(other);
     return *this;
   }
 
@@ -166,7 +166,7 @@ class indirect_tensor
    * @return *this
    */
   indirect_tensor& operator=(const value_type& val) {
-    dense_tensor<indirect_tensor, value_type, rank>::operator=(val);
+    dense_tensor<indirect_tensor, value_type>::operator=(val);
     return *this;
   }
 };

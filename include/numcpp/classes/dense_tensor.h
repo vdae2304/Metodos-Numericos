@@ -36,14 +36,13 @@ namespace numcpp {
  *
  * @tparam Tensor Tensor subclass.
  * @tparam T Type of the elements contained in the tensor.
- * @tparam Rank Dimension of the tensor. It must be a positive integer.
  */
-template <class Tensor, class T, size_t Rank>
+template <class Tensor, class T>
 class dense_tensor {
  public:
   /// Member types.
-  typedef flat_iterator<Tensor, T&, T*> iterator;
-  typedef flat_iterator<const Tensor, const T&, const T*> const_iterator;
+  typedef flat_iterator<Tensor> iterator;
+  typedef flat_iterator<const Tensor> const_iterator;
 
   /// Iterators.
 
@@ -60,8 +59,8 @@ class dense_tensor {
    * Otherwise, it returns an iterator.
    */
   iterator begin(layout_t layout = default_layout) {
-    Tensor* ptr = static_cast<Tensor*>(this);
-    return iterator(ptr, 0, layout);
+    Tensor& self = this->self();
+    return iterator(&self, 0, layout);
   }
 
   const_iterator begin(layout_t layout = default_layout) const {
@@ -83,8 +82,8 @@ class dense_tensor {
    * Otherwise, it returns an iterator.
    */
   iterator end(layout_t layout = default_layout) {
-    Tensor* ptr = static_cast<Tensor*>(this);
-    return iterator(ptr, ptr->size(), layout);
+    Tensor& self = this->self();
+    return iterator(&self, self.size(), layout);
   }
 
   const_iterator end(layout_t layout = default_layout) const {
@@ -102,12 +101,13 @@ class dense_tensor {
    * @return A const_iterator to the beginning of the tensor.
    */
   const_iterator cbegin(layout_t layout = default_layout) const {
-    const Tensor* ptr = static_cast<const Tensor*>(this);
-    return const_iterator(ptr, 0, layout);
+    const Tensor& self = this->self();
+    return const_iterator(&self, 0, layout);
   }
 
   /**
    * @brief Return a const_iterator pointing to the past-the-end element in the
+   * tensor.
    * 
    * @param layout Memory layout in which elements are iterated. If set to
    * @ref layout_right, the last dimension is varying the fastest. If set to
@@ -117,8 +117,8 @@ class dense_tensor {
    * @return A const_iterator to the element past the end of the tensor.
    */
   const_iterator cend(layout_t layout = default_layout) const {
-    const Tensor* ptr = static_cast<const Tensor*>(this);
-    return const_iterator(ptr, ptr->size(), layout);
+    const Tensor& self = this->self();
+    return const_iterator(&self, self.size(), layout);
   }
 
   /// Indexing.
@@ -140,10 +140,11 @@ class dense_tensor {
    * @return *this
    */
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator=(const TensorLike& other) {
+    static_assert(TensorLike::rank == Tensor::rank,
+                  "Tensor arguments must have equal rank");
     Tensor& self = this->self();
-    for (const index_t<Rank>& i :
+    for (const index_t<Tensor::rank>& i :
          make_index_sequence(self.shape(), self.layout())) {
       self[i] = static_cast<T>(other[i]);
     }
@@ -159,7 +160,7 @@ class dense_tensor {
    */
   Tensor& operator=(const T& val) {
     Tensor& self = this->self();
-    for (const index_t<Rank>& i :
+    for (const index_t<Tensor::rank>& i :
          make_index_sequence(self.shape(), self.layout())) {
       self[i] = val;
     }
@@ -185,61 +186,51 @@ class dense_tensor {
    * @return *this
    */
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator+=(const TensorLike& rhs) {
     return this->assign(plus(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator-=(const TensorLike& rhs) {
     return this->assign(minus(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator*=(const TensorLike& rhs) {
     return this->assign(multiplies(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator/=(const TensorLike& rhs) {
     return this->assign(divides(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator%=(const TensorLike& rhs) {
     return this->assign(modulus(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator&=(const TensorLike& rhs) {
     return this->assign(bit_and(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator|=(const TensorLike& rhs) {
     return this->assign(bit_or(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator^=(const TensorLike& rhs) {
     return this->assign(bit_xor(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator<<=(const TensorLike& rhs) {
     return this->assign(left_shift(), rhs);
   }
 
   template <abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& operator>>=(const TensorLike& rhs) {
     return this->assign(right_shift(), rhs);
   }
@@ -269,10 +260,11 @@ class dense_tensor {
    * @brief Compound assignment operator implementation.
    */
   template <class Operator, abstract_tensor TensorLike>
-    requires(TensorLike::rank == Rank)
   Tensor& assign(Operator op, const TensorLike& rhs) {
+    static_assert(TensorLike::rank == Tensor::rank,
+                  "Tensor arguments must have equal rank");
     Tensor& self = this->self();
-    for (const index_t<Rank>& i :
+    for (const index_t<Tensor::rank>& i :
          make_index_sequence(self.shape(), self.layout())) {
       self[i] = op(self[i], rhs[i]);
     }
@@ -285,7 +277,7 @@ class dense_tensor {
   template <class Operator>
   Tensor& assign(Operator op, const T& val) {
     Tensor& self = this->self();
-    for (const index_t<Rank>& i :
+    for (const index_t<Tensor::rank>& i :
          make_index_sequence(self.shape(), self.layout())) {
       self[i] = op(self[i], val);
     }
