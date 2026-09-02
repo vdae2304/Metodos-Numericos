@@ -21,7 +21,6 @@
 #ifndef NUMCPP_MATH_H_INCLUDED
 #define NUMCPP_MATH_H_INCLUDED
 
-#include <numeric>
 #include "numcpp/classes/abstract_tensor.h"
 #include "numcpp/expressions/unary_expr.h"
 #include "numcpp/expressions/binary_expr.h"

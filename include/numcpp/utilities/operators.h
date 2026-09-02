@@ -27,8 +27,9 @@ namespace numcpp {
 /**
  * @brief Function object implementing static_cast.
  */
-template <class From, class To> struct cast_to {
-  constexpr To operator()(const From &arg) const {
+template <class From, class To>
+struct cast_to {
+  constexpr To operator()(const From& arg) const {
     return static_cast<To>(arg);
   }
 };
@@ -38,7 +39,7 @@ template <class From, class To> struct cast_to {
  */
 struct unary_plus {
   template <class T>
-  constexpr auto operator()(T &&arg) const -> decltype(+std::forward<T>(arg)) {
+  constexpr auto operator()(T&& arg) const -> decltype(+std::forward<T>(arg)) {
     return +std::forward<T>(arg);
   }
 };
@@ -48,7 +49,7 @@ struct unary_plus {
  */
 struct negate {
   template <class T>
-  constexpr auto operator()(T &&arg) const -> decltype(-std::forward<T>(arg)) {
+  constexpr auto operator()(T&& arg) const -> decltype(-std::forward<T>(arg)) {
     return -std::forward<T>(arg);
   }
 };
@@ -58,7 +59,7 @@ struct negate {
  */
 struct plus {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) + std::forward<U>(rhs)) {
     return std::forward<T>(lhs) + std::forward<U>(rhs);
   }
@@ -69,7 +70,7 @@ struct plus {
  */
 struct minus {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) - std::forward<U>(rhs)) {
     return std::forward<T>(lhs) - std::forward<U>(rhs);
   }
@@ -80,7 +81,7 @@ struct minus {
  */
 struct multiplies {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) * std::forward<U>(rhs)) {
     return std::forward<T>(lhs) * std::forward<U>(rhs);
   }
@@ -91,7 +92,7 @@ struct multiplies {
  */
 struct divides {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) / std::forward<U>(rhs)) {
     return std::forward<T>(lhs) / std::forward<U>(rhs);
   }
@@ -102,7 +103,7 @@ struct divides {
  */
 struct modulus {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) % std::forward<U>(rhs)) {
     return std::forward<T>(lhs) % std::forward<U>(rhs);
   }
@@ -113,7 +114,7 @@ struct modulus {
  */
 struct bit_not {
   template <class T>
-  constexpr auto operator()(T &&arg) const -> decltype(~std::forward<T>(arg)) {
+  constexpr auto operator()(T&& arg) const -> decltype(~std::forward<T>(arg)) {
     return ~std::forward<T>(arg);
   }
 };
@@ -123,7 +124,7 @@ struct bit_not {
  */
 struct bit_and {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) & std::forward<U>(rhs)) {
     return std::forward<T>(lhs) & std::forward<U>(rhs);
   }
@@ -134,7 +135,7 @@ struct bit_and {
  */
 struct bit_or {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) | std::forward<U>(rhs)) {
     return std::forward<T>(lhs) | std::forward<U>(rhs);
   }
@@ -145,7 +146,7 @@ struct bit_or {
  */
 struct bit_xor {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) ^ std::forward<U>(rhs)) {
     return std::forward<T>(lhs) ^ std::forward<U>(rhs);
   }
@@ -156,7 +157,7 @@ struct bit_xor {
  */
 struct left_shift {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) << std::forward<U>(rhs)) {
     return std::forward<T>(lhs) << std::forward<U>(rhs);
   }
@@ -167,7 +168,7 @@ struct left_shift {
  */
 struct right_shift {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) >> std::forward<U>(rhs)) {
     return std::forward<T>(lhs) >> std::forward<U>(rhs);
   }
@@ -178,7 +179,7 @@ struct right_shift {
  */
 struct logical_not {
   template <class T>
-  constexpr auto operator()(T &&arg) const -> decltype(!std::forward<T>(arg)) {
+  constexpr auto operator()(T&& arg) const -> decltype(!std::forward<T>(arg)) {
     return !std::forward<T>(arg);
   }
 };
@@ -188,7 +189,7 @@ struct logical_not {
  */
 struct logical_and {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) && std::forward<U>(rhs)) {
     return std::forward<T>(lhs) && std::forward<U>(rhs);
   }
@@ -199,7 +200,7 @@ struct logical_and {
  */
 struct logical_or {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) || std::forward<U>(rhs)) {
     return std::forward<T>(lhs) || std::forward<U>(rhs);
   }
@@ -210,7 +211,7 @@ struct logical_or {
  */
 struct equal_to {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) == std::forward<U>(rhs)) {
     return std::forward<T>(lhs) == std::forward<U>(rhs);
   }
@@ -221,7 +222,7 @@ struct equal_to {
  */
 struct not_equal_to {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) != std::forward<U>(rhs)) {
     return std::forward<T>(lhs) != std::forward<U>(rhs);
   }
@@ -232,7 +233,7 @@ struct not_equal_to {
  */
 struct less {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) < std::forward<U>(rhs)) {
     return std::forward<T>(lhs) < std::forward<U>(rhs);
   }
@@ -243,7 +244,7 @@ struct less {
  */
 struct greater {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) > std::forward<U>(rhs)) {
     return std::forward<T>(lhs) > std::forward<U>(rhs);
   }
@@ -254,7 +255,7 @@ struct greater {
  */
 struct less_equal {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) <= std::forward<U>(rhs)) {
     return std::forward<T>(lhs) <= std::forward<U>(rhs);
   }
@@ -265,7 +266,7 @@ struct less_equal {
  */
 struct greater_equal {
   template <class T, class U>
-  constexpr auto operator()(T &&lhs, U &&rhs) const
+  constexpr auto operator()(T&& lhs, U&& rhs) const
       -> decltype(std::forward<T>(lhs) >= std::forward<U>(rhs)) {
     return std::forward<T>(lhs) >= std::forward<U>(rhs);
   }

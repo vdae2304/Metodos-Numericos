@@ -23,6 +23,7 @@
 
 #include <cmath>
 #include <complex>
+#include <numeric>
 #include <utility>
 
 namespace numcpp {
@@ -35,7 +36,7 @@ namespace math {
  */
 struct abs {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::abs(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::abs(std::forward<T>(x))) {
     return std::abs(std::forward<T>(x));
   }
 };
@@ -45,8 +46,9 @@ struct abs {
  */
 struct fmod {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::fmod(x, y)) {
-    return std::fmod(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::fmod(std::forward<T>(x), std::forward<U>(y))) {
+    return std::fmod(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -54,7 +56,8 @@ struct fmod {
  * @brief Function object implementing @ref std::modf.
  */
 struct modf {
-  template <class T> std::pair<T, T> operator()(T x) const {
+  template <class T>
+  std::pair<T, T> operator()(T x) const {
     T intpart;
     T fracpart = std::modf(x, &intpart);
     return std::make_pair(intpart, fracpart);
@@ -66,8 +69,9 @@ struct modf {
  */
 struct fmax {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::fmax(x, y)) {
-    return std::fmax(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::fmax(std::forward<T>(x), std::forward<U>(y))) {
+    return std::fmax(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -76,8 +80,9 @@ struct fmax {
  */
 struct fmin {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::fmin(x, y)) {
-    return std::fmin(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::fmin(std::forward<T>(x), std::forward<U>(y))) {
+    return std::fmin(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -88,7 +93,7 @@ struct fmin {
  */
 struct cos {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::cos(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::cos(std::forward<T>(x))) {
     return std::cos(std::forward<T>(x));
   }
 };
@@ -98,7 +103,7 @@ struct cos {
  */
 struct sin {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::sin(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::sin(std::forward<T>(x))) {
     return std::sin(std::forward<T>(x));
   }
 };
@@ -108,7 +113,7 @@ struct sin {
  */
 struct tan {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::tan(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::tan(std::forward<T>(x))) {
     return std::tan(std::forward<T>(x));
   }
 };
@@ -118,7 +123,7 @@ struct tan {
  */
 struct acos {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::acos(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::acos(std::forward<T>(x))) {
     return std::acos(std::forward<T>(x));
   }
 };
@@ -128,7 +133,7 @@ struct acos {
  */
 struct asin {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::asin(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::asin(std::forward<T>(x))) {
     return std::asin(std::forward<T>(x));
   }
 };
@@ -138,7 +143,7 @@ struct asin {
  */
 struct atan {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::atan(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::atan(std::forward<T>(x))) {
     return std::atan(std::forward<T>(x));
   }
 };
@@ -148,8 +153,9 @@ struct atan {
  */
 struct atan2 {
   template <class T, class U>
-  auto operator()(T y, U x) const -> decltype(std::atan2(y, x)) {
-    return std::atan2(y, x);
+  auto operator()(T&& y, U&& x) const
+      -> decltype(std::atan2(std::forward<U>(y), std::forward<T>(x))) {
+    return std::atan2(std::forward<U>(y), std::forward<T>(x));
   }
 };
 
@@ -158,8 +164,9 @@ struct atan2 {
  */
 struct hypot {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::hypot(x, y)) {
-    return std::hypot(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::hypot(std::forward<T>(x), std::forward<U>(y))) {
+    return std::hypot(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -170,7 +177,7 @@ struct hypot {
  */
 struct cosh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::cosh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::cosh(std::forward<T>(x))) {
     return std::cosh(std::forward<T>(x));
   }
 };
@@ -180,7 +187,7 @@ struct cosh {
  */
 struct sinh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::sinh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::sinh(std::forward<T>(x))) {
     return std::sinh(std::forward<T>(x));
   }
 };
@@ -190,7 +197,7 @@ struct sinh {
  */
 struct tanh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::tanh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::tanh(std::forward<T>(x))) {
     return std::tanh(std::forward<T>(x));
   }
 };
@@ -200,7 +207,7 @@ struct tanh {
  */
 struct acosh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::acosh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::acosh(std::forward<T>(x))) {
     return std::acosh(std::forward<T>(x));
   }
 };
@@ -210,7 +217,7 @@ struct acosh {
  */
 struct asinh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::asinh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::asinh(std::forward<T>(x))) {
     return std::asinh(std::forward<T>(x));
   }
 };
@@ -220,7 +227,7 @@ struct asinh {
  */
 struct atanh {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::atanh(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::atanh(std::forward<T>(x))) {
     return std::atanh(std::forward<T>(x));
   }
 };
@@ -232,7 +239,7 @@ struct atanh {
  */
 struct exp {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::exp(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::exp(std::forward<T>(x))) {
     return std::exp(std::forward<T>(x));
   }
 };
@@ -242,7 +249,7 @@ struct exp {
  */
 struct log {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::log(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::log(std::forward<T>(x))) {
     return std::log(std::forward<T>(x));
   }
 };
@@ -252,7 +259,7 @@ struct log {
  */
 struct log10 {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::log10(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::log10(std::forward<T>(x))) {
     return std::log10(std::forward<T>(x));
   }
 };
@@ -261,8 +268,9 @@ struct log10 {
  * @brief Function object implementing @ref std::exp2.
  */
 struct exp2 {
-  template <class T> auto operator()(T x) const -> decltype(std::exp2(x)) {
-    return std::exp2(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::exp2(std::forward<T>(x))) {
+    return std::exp2(std::forward<T>(x));
   }
 };
 
@@ -270,8 +278,9 @@ struct exp2 {
  * @brief Function object implementing @ref std::log2.
  */
 struct log2 {
-  template <class T> auto operator()(T x) const -> decltype(std::log2(x)) {
-    return std::log2(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::log2(std::forward<T>(x))) {
+    return std::log2(std::forward<T>(x));
   }
 };
 
@@ -279,8 +288,9 @@ struct log2 {
  * @brief Function object implementing @ref std::expm1.
  */
 struct expm1 {
-  template <class T> auto operator()(T x) const -> decltype(std::expm1(x)) {
-    return std::expm1(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::expm1(std::forward<T>(x))) {
+    return std::expm1(std::forward<T>(x));
   }
 };
 
@@ -288,8 +298,9 @@ struct expm1 {
  * @brief Function object implementing @ref std::log1p.
  */
 struct log1p {
-  template <class T> auto operator()(T x) const -> decltype(std::log1p(x)) {
-    return std::log1p(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::log1p(std::forward<T>(x))) {
+    return std::log1p(std::forward<T>(x));
   }
 };
 
@@ -300,7 +311,7 @@ struct log1p {
  */
 struct pow {
   template <class T, class U>
-  auto operator()(T &&x, U &&y) const
+  auto operator()(T&& x, U&& y) const
       -> decltype(std::pow(std::forward<T>(x), std::forward<U>(y))) {
     return std::pow(std::forward<T>(x), std::forward<U>(y));
   }
@@ -311,7 +322,7 @@ struct pow {
  */
 struct sqrt {
   template <class T>
-  auto operator()(T &&x) const -> decltype(std::sqrt(std::forward<T>(x))) {
+  auto operator()(T&& x) const -> decltype(std::sqrt(std::forward<T>(x))) {
     return std::sqrt(std::forward<T>(x));
   }
 };
@@ -320,8 +331,9 @@ struct sqrt {
  * @brief Function object implementing @ref std::cbrt.
  */
 struct cbrt {
-  template <class T> auto operator()(T x) const -> decltype(std::cbrt(x)) {
-    return std::cbrt(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::cbrt(std::forward<T>(x))) {
+    return std::cbrt(std::forward<T>(x));
   }
 };
 
@@ -331,8 +343,9 @@ struct cbrt {
  * @brief Function object implementing @ref std::ceil.
  */
 struct ceil {
-  template <class T> auto operator()(T x) const -> decltype(std::ceil(x)) {
-    return std::ceil(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::ceil(std::forward<T>(x))) {
+    return std::ceil(std::forward<T>(x));
   }
 };
 
@@ -340,8 +353,9 @@ struct ceil {
  * @brief Function object implementing @ref std::floor.
  */
 struct floor {
-  template <class T> auto operator()(T x) const -> decltype(std::floor(x)) {
-    return std::floor(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::floor(std::forward<T>(x))) {
+    return std::floor(std::forward<T>(x));
   }
 };
 
@@ -349,8 +363,9 @@ struct floor {
  * @brief Function object implementing @ref std::trunc.
  */
 struct trunc {
-  template <class T> auto operator()(T x) const -> decltype(std::trunc(x)) {
-    return std::trunc(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::trunc(std::forward<T>(x))) {
+    return std::trunc(std::forward<T>(x));
   }
 };
 
@@ -358,8 +373,9 @@ struct trunc {
  * @brief Function object implementing @ref std::round.
  */
 struct round {
-  template <class T> auto operator()(T x) const -> decltype(std::round(x)) {
-    return std::round(x);
+  template <class T>
+  auto operator()(T&& x) const -> decltype(std::round(std::forward<T>(x))) {
+    return std::round(std::forward<T>(x));
   }
 };
 
@@ -371,7 +387,7 @@ struct round {
 struct frexp {
   template <class T>
   auto operator()(T x) const
-      -> std::pair<decltype(std::frexp(x, std::declval<int *>())), int> {
+      -> std::pair<decltype(std::frexp(x, std::declval<int*>())), int> {
     int exp;
     auto mantissa = std::frexp(x, &exp);
     return std::make_pair(mantissa, exp);
@@ -393,8 +409,9 @@ struct ldexp {
  */
 struct copysign {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::copysign(x, y)) {
-    return std::copysign(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::copysign(std::forward<T>(x), std::forward<U>(y))) {
+    return std::copysign(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -403,8 +420,9 @@ struct copysign {
  */
 struct nextafter {
   template <class T, class U>
-  auto operator()(T x, U y) const -> decltype(std::nextafter(x, y)) {
-    return std::nextafter(x, y);
+  auto operator()(T&& x, U&& y) const
+      -> decltype(std::nextafter(std::forward<T>(x), std::forward<U>(y))) {
+    return std::nextafter(std::forward<T>(x), std::forward<U>(y));
   }
 };
 
@@ -415,8 +433,9 @@ struct nextafter {
  */
 struct gcd {
   template <class T, class U>
-  auto operator()(T m, U n) const -> decltype(std::gcd(m, n)) {
-    return std::gcd(m, n);
+  auto operator()(T&& m, U&& n) const
+      -> decltype(std::gcd(std::forward<T>(m), std::forward<U>(n))) {
+    return std::gcd(std::forward<T>(m), std::forward<U>(n));
   }
 };
 
@@ -425,8 +444,9 @@ struct gcd {
  */
 struct lcm {
   template <class T, class U>
-  auto operator()(T m, U n) const -> decltype(std::lcm(m, n)) {
-    return std::lcm(m, n);
+  auto operator()(T&& m, U&& n) const
+      -> decltype(std::lcm(std::forward<T>(m), std::forward<U>(n))) {
+    return std::lcm(std::forward<T>(m), std::forward<U>(n));
   }
 };
 
@@ -437,7 +457,7 @@ struct lcm {
  */
 struct real {
   template <class T>
-  auto operator()(T &&z) const -> decltype(std::real(std::forward<T>(z))) {
+  auto operator()(T&& z) const -> decltype(std::real(std::forward<T>(z))) {
     return std::real(std::forward<T>(z));
   }
 };
@@ -447,7 +467,7 @@ struct real {
  */
 struct imag {
   template <class T>
-  auto operator()(T &&z) const -> decltype(std::imag(std::forward<T>(z))) {
+  auto operator()(T&& z) const -> decltype(std::imag(std::forward<T>(z))) {
     return std::imag(std::forward<T>(z));
   }
 };
@@ -457,7 +477,7 @@ struct imag {
  */
 struct conj {
   template <class T>
-  auto operator()(T &&z) const -> decltype(std::conj(std::forward<T>(z))) {
+  auto operator()(T&& z) const -> decltype(std::conj(std::forward<T>(z))) {
     return std::conj(std::forward<T>(z));
   }
 };
@@ -467,7 +487,7 @@ struct conj {
  */
 struct arg {
   template <class T>
-  auto operator()(T &&z) const -> decltype(std::arg(std::forward<T>(z))) {
+  auto operator()(T&& z) const -> decltype(std::arg(std::forward<T>(z))) {
     return std::arg(std::forward<T>(z));
   }
 };
@@ -478,28 +498,40 @@ struct arg {
  * @brief Function object implementing @ref std::isfinite.
  */
 struct isfinite {
-  template <class T> bool operator()(T x) const { return std::isfinite(x); }
+  template <class T>
+  bool operator()(T&& x) const {
+    return std::isfinite(std::forward<T>(x));
+  }
 };
 
 /**
  * @brief Function object implementing @ref std::isinf.
  */
 struct isinf {
-  template <class T> bool operator()(T x) const { return std::isinf(x); }
+  template <class T>
+  bool operator()(T&& x) const {
+    return std::isinf(std::forward<T>(x));
+  }
 };
 
 /**
  * @brief Function object implementing @ref std::isnan.
  */
 struct isnan {
-  template <class T> bool operator()(T x) const { return std::isnan(x); }
+  template <class T>
+  bool operator()(T&& x) const {
+    return std::isnan(std::forward<T>(x));
+  }
 };
 
 /**
  * @brief Function object implementing @ref std::signbit.
  */
 struct signbit {
-  template <class T> bool operator()(T x) const { return std::signbit(x); }
+  template <class T>
+  bool operator()(T&& x) const {
+    return std::signbit(std::forward<T>(x));
+  }
 };
 } // namespace math
 } // namespace numcpp
