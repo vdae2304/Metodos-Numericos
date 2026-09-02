@@ -42,10 +42,47 @@ struct basic_shape {
   /// Member types.
   typedef T value_type;
   static constexpr size_t rank = Rank;
+  typedef T& reference;
+  typedef const T& const_reference;
+  typedef T* iterator;
+  typedef const T* const_iterator;
+  typedef size_t size_type;
 
   /// No constructors/destructor defined to allow aggregate-initialization.
 
   /// Public methods.
+
+  /**
+   * @brief Return an iterator pointing to the first element in the shape.
+   */
+  T* begin() { return m_shape; }
+  const T* begin() const { return m_shape; }
+
+  /**
+   * @brief Return an iterator pointing to the past-the-end element in the
+   * shape. It does not point to any element, and thus shall not be
+   * dereferenced.
+   */
+  T* end() { return m_shape + Rank; }
+  const T* end() const { return m_shape + Rank; }
+
+  /**
+   * @brief Return a const_iterator pointing to the first element in the shape.
+   */
+  const T* cbegin() const { return m_shape; }
+
+  /**
+   * @brief Return a const_iterator pointing to the past-the-end element in the
+   * shape.
+   */
+  const T* cend() const { return m_shape + Rank; }
+
+  /**
+   * @brief Return a pointer to the block of memory containing the elements of
+   * the shape.
+   */
+  T* data() { return m_shape; }
+  const T* data() const { return m_shape; }
 
   /**
    * @brief Return the product of the elements of the shape.
@@ -58,13 +95,6 @@ struct basic_shape {
     return size;
   }
 
-  /**
-   * @brief Return a pointer to the block of memory containing the elements of
-   * the shape.
-   */
-  T* data() { return m_shape; }
-  const T* data() const { return m_shape; }
-
   /// Operator overloading.
 
   /**
@@ -76,8 +106,8 @@ struct basic_shape {
    * the function returns a reference to const value_type. Otherwise, it
    * returns a reference to value_type.
    */
-  T& operator[](size_t i) { return m_shape[i]; }
-  const T& operator[](size_t i) const { return m_shape[i]; }
+  T& operator[](size_type i) { return m_shape[i]; }
+  const T& operator[](size_type i) const { return m_shape[i]; }
 
   // Shape elements.
   T m_shape[Rank];
@@ -141,11 +171,10 @@ inline index_t<sizeof...(Indices)> make_index(Indices... indices) {
 template <size_t Rank>
 index_t<Rank> make_strides(const shape_t<Rank>& shape,
                            layout_t layout = default_layout) {
-  if (layout == no_layout) layout = default_layout;
   index_t<Rank> strides;
   size_t size = 1;
   for (size_t i = 0; i < Rank; ++i) {
-    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    size_t k = (layout == layout_left) ? i : Rank - 1 - i;
     strides[k] = size;
     size *= shape[k];
   }
@@ -166,11 +195,10 @@ index_t<Rank> make_strides(const shape_t<Rank>& shape,
 template <size_t Rank>
 ptrdiff_t ravel_index(const index_t<Rank>& index, const shape_t<Rank>& shape,
                       layout_t layout = default_layout) {
-  if (layout == no_layout) layout = default_layout;
   ptrdiff_t offset = 0;
   size_t size = 1;
   for (size_t i = 0; i < Rank; ++i) {
-    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    size_t k = (layout == layout_left) ? i : Rank - 1 - i;
     offset += size * index[k];
     size *= shape[k];
   }
@@ -191,10 +219,9 @@ ptrdiff_t ravel_index(const index_t<Rank>& index, const shape_t<Rank>& shape,
 template <size_t Rank>
 index_t<Rank> unravel_index(ptrdiff_t offset, const shape_t<Rank>& shape,
                             layout_t layout = default_layout) {
-  if (layout == no_layout) layout = default_layout;
   index_t<Rank> index;
   for (size_t i = 0; i < Rank; ++i) {
-    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
+    size_t k = (layout == layout_left) ? i : Rank - 1 - i;
     index[k] = offset % shape[k];
     offset /= shape[k];
   }
@@ -238,11 +265,10 @@ basic_shape<T, (Rank + ... + Ranks)> shape_cat(
  * dimension and the same size along each axis.
  */
 template <class T, size_t Rank1, size_t Rank2>
-inline bool operator==(const basic_shape<T, Rank1> &shape1,
-                       const basic_shape<T, Rank2> &shape2) {
-  const T *first1 = shape1.data(), *last1 = first1 + Rank1;
-  const T *first2 = shape2.data();
-  return (Rank1 == Rank2 && std::equal(first1, last1, first2));
+inline bool operator==(const basic_shape<T, Rank1>& shape1,
+                       const basic_shape<T, Rank2>& shape2) {
+  return (Rank1 == Rank2) &&
+         std::equal(shape1.begin(), shape1.end(), shape2.begin());
 }
 
 /**

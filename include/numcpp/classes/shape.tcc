@@ -64,7 +64,7 @@ void __shape_cat_impl(T*) {}
 template <class T, size_t Rank, size_t... Ranks>
 void __shape_cat_impl(T* out, const basic_shape<T, Rank> &shape1,
                       const basic_shape<T, Ranks> &...shapes) {
-  out = std::copy_n(shape1.data(), Rank, out);
+  out = std::copy(shape1.begin(), shape1.end(), out);
   __shape_cat_impl(out, shapes...);
 }
 
