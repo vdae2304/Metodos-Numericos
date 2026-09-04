@@ -97,14 +97,9 @@ class sequence_expr {
   size_type size() const { return m_shape[0]; }
 
   /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (m_shape[0] == 0); }
-
-  /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const { return default_layout; }
+  layout_t layout() const { return layout_left | layout_right; }
 
  private:
   // Starting value of the sequence.

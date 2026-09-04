@@ -139,20 +139,9 @@ class binary_expr {
   size_type size() const { return m_arg1.size(); }
 
   /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (size() == 0); }
-
-  /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const {
-    layout_t layout1 = m_arg1.layout();
-    layout_t layout2 = m_arg2.layout();
-    if (layout1 == no_layout) return layout2;
-    if (layout2 == no_layout) return layout1;
-    return (layout1 == layout2) ? layout1 : no_layout;
-  }
+  layout_t layout() const { return m_arg1.layout() & m_arg2.layout(); }
 };
 
 /**
@@ -257,11 +246,6 @@ class binary_expr<Function, TensorLike, detail::identity<T>> {
    * @brief Return the number of elements in the tensor.
    */
   size_type size() const { return m_arg.size(); }
-
-  /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (size() == 0); }
 
   /**
    * @brief Return the memory layout in which elements are stored.
@@ -371,11 +355,6 @@ class binary_expr<Function, detail::identity<T>, TensorLike> {
    * @brief Return the number of elements in the tensor.
    */
   size_type size() const { return m_arg.size(); }
-
-  /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (size() == 0); }
 
   /**
    * @brief Return the memory layout in which elements are stored.

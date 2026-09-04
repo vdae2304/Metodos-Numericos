@@ -1,25 +1,22 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/classes/tensor_view.tcc
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
+ * 
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/tensor/tensor_view.tcc
- *  This is an internal header file, included by other library headers.
- *  Do not attempt to use it directly. @headername{numcpp/tensor.h}
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_TENSOR_VIEW_TCC_INCLUDED
 #define NUMCPP_TENSOR_VIEW_TCC_INCLUDED
@@ -97,7 +94,7 @@ ptrdiff_t __unpack_slices(const shape_t<Rank>& in_shape,
 template <class T, size_t Rank>
 template <integer_or_slice... Indices>
   requires((sizeof...(Indices) == Rank) &&
-           (std::is_same_v<Indices, slice> || ...))
+           (std::same_as<Indices, slice> || ...))
 tensor_view<T, detail::slicing_rank<Indices...>>
 tensor_view<T, Rank>::operator()(const Indices&... indices) {
   constexpr size_t N = detail::slicing_rank<Indices...>;
@@ -111,7 +108,7 @@ tensor_view<T, Rank>::operator()(const Indices&... indices) {
 template <class T, size_t Rank>
 template <integer_or_slice... Indices>
   requires((sizeof...(Indices) == Rank) &&
-           (std::is_same_v<Indices, slice> || ...))
+           (std::same_as<Indices, slice> || ...))
 tensor_view<const T, detail::slicing_rank<Indices...>>
 tensor_view<T, Rank>::operator()(const Indices&... indices) const {
   constexpr size_t N = detail::slicing_rank<Indices...>;
@@ -123,32 +120,33 @@ tensor_view<T, Rank>::operator()(const Indices&... indices) const {
 }
 
 /**
- * Returns true if the strides can be flattened into a 1-dimensional strided
- * view.
+ * Returns true if the strides corresponds to a contiguous view in given
+ * memory layout.
  */
 template <size_t Rank>
-bool __is_almost_contiguous(const shape_t<Rank>& shape,
-                            const index_t<Rank>& strides, layout_t layout) {
-  ptrdiff_t current = (layout == layout_right) ? strides[Rank - 1] : strides[0];
+bool __is_contiguous(const shape_t<Rank>& shape, const index_t<Rank>& strides,
+                     layout_t layout) {
+  size_t size = 1;
   for (size_t i = 0; i < Rank; ++i) {
-    size_t k = (layout == layout_right) ? Rank - 1 - i : i;
-    if (shape[k] != 1 && strides[k] != current) {
+    size_t k = (layout == layout_left) ? i : Rank - 1 - i;
+    if (shape[k] != 1 && strides[k] != size) {
       return false;
     }
-    current *= shape[k];
+    size *= shape[k];
   }
   return true;
 }
 
 template <class T, size_t Rank>
 inline layout_t tensor_view<T, Rank>::layout() const {
-  if (__is_almost_contiguous(m_shape, m_stride, layout_right)) {
-    return layout_right;
+  layout_t layout = static_cast<layout_t>(0);
+  if (__is_contiguous(m_shape, m_stride, layout_right)) {
+    layout = layout | layout_right;
   }
-  if (__is_almost_contiguous(m_shape, m_stride, layout_left)) {
-    return layout_left;
+  if (__is_contiguous(m_shape, m_stride, layout_left)) {
+    layout = layout | layout_left;
   }
-  return no_layout;
+  return layout;
 }
 
 template <class T, size_t Rank>
@@ -170,26 +168,18 @@ tensor_view<const T, Rank> tensor_view<T, Rank>::broadcast_to(
 
 template <class T, size_t Rank>
 inline tensor_view<T, 1> tensor_view<T, Rank>::flatten() {
-  switch (this->layout()) {
-    case layout_right:
-      return tensor_view<T, 1>(m_data, {m_size}, {m_stride[Rank - 1]});
-    case layout_left:
-      return tensor_view<T, 1>(m_data, {m_size}, {m_stride[0]});
-    default:
-      throw std::runtime_error("view cannot be flattened");
+  if (!this->layout()) {
+    throw std::runtime_error("cannot flatten a non-contiguous view");
   }
+  return vector_view<T>(m_data, m_size);
 }
 
 template <class T, size_t Rank>
 inline tensor_view<const T, 1> tensor_view<T, Rank>::flatten() const {
-  switch (this->layout()) {
-    case layout_right:
-      return tensor_view<const T, 1>(m_data, {m_size}, {m_stride[Rank - 1]});
-    case layout_left:
-      return tensor_view<const T, 1>(m_data, {m_size}, {m_stride[0]});
-    default:
-      throw std::runtime_error("view cannot be flattened");
+  if (!this->layout()) {
+    throw std::runtime_error("cannot flatten a non-contiguous view");
   }
+  return vector_view<const T>(m_data, m_size);
 }
 
 template <class T, size_t Rank>
@@ -202,29 +192,15 @@ tensor_view<T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
           << shape;
     throw std::invalid_argument(error.str());
   }
-  ptrdiff_t base_stride;
-  switch (this->layout()) {
-    case layout_right:
-      if (layout == no_layout) layout = layout_right;
-      base_stride = m_stride[Rank - 1];
-      break;
-    case layout_left:
-      if (layout == no_layout) layout = layout_left;
-      base_stride = m_stride[0];
-      break;
-    default:
-      throw std::runtime_error("view cannot reshaped");
+  if (!this->layout()) {
+    throw std::runtime_error("cannot reshape a non-contiguous view");
   }
-  index_t<N> strides = make_strides(shape, layout);
-  for (size_t i = 0; i < Rank; ++i) {
-    strides[i] *= base_stride;
-  }
-  return tensor_view<T, N>(m_data, shape, strides);
+  return tensor_view<T, N>(m_data, shape, make_strides(shape, layout));
 }
 
 template <class T, size_t Rank>
 template <size_t N>
-tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
+tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N>& shape,
                                                       layout_t layout) const {
   if (m_size != shape.prod()) {
     std::ostringstream error;
@@ -232,24 +208,10 @@ tensor_view<const T, N> tensor_view<T, Rank>::reshape(const shape_t<N> &shape,
           << shape;
     throw std::invalid_argument(error.str());
   }
-  ptrdiff_t base_stride;
-  switch (this->layout()) {
-    case layout_right:
-      if (layout == no_layout) layout = layout_right;
-      base_stride = m_stride[Rank - 1];
-      break;
-    case layout_left:
-      if (layout == no_layout) layout = layout_left;
-      base_stride = m_stride[0];
-      break;
-    default:
-      throw std::runtime_error("view cannot reshaped");
+  if (!this->layout()) {
+    throw std::runtime_error("cannot reshape a non-contiguous view");
   }
-  index_t<N> strides = make_strides(shape, layout);
-  for (size_t i = 0; i < Rank; ++i) {
-    strides[i] *= base_stride;
-  }
-  return tensor_view<const T, N>(m_data, shape, strides);
+  return tensor_view<const T, N>(m_data, shape, make_strides(shape, layout));
 }
 
 template <class T, size_t Rank> tensor_view<T, Rank> tensor_view<T, Rank>::t() {

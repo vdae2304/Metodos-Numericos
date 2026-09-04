@@ -69,7 +69,7 @@ class index_sequence {
      * @note Time complexity: O(1) amortized. Worst case: O(Rank)
      */
     iterator& operator++() {
-      layout = m_ptr->layout();
+      layout_t layout = m_ptr->layout();
       for (size_t i = 0; i < Rank; ++i) {
         size_t axis = (layout == layout_left) ? i : Rank - 1 - i;
         ++m_index[axis];

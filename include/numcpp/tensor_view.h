@@ -205,20 +205,20 @@ class tensor_view
    */
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices);
 
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<const T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) const;
 
 #if __cplusplus >= 202302L
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) {
     return (*this)(indices...);
@@ -226,7 +226,7 @@ class tensor_view
 
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<const T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) const {
     return (*this)(indices...);
@@ -301,11 +301,6 @@ class tensor_view
   size_type size() const { return m_size; }
 
   /**
-   * @brief Return whether the @ref tensor_view is empty.
-   */
-  bool empty() const { return (m_size == 0); }
-
-  /**
    * @brief Return a pointer to the memory array used internally by the
    * @ref tensor_view.
    *
@@ -346,6 +341,13 @@ class tensor_view
     requires(TensorLike::rank == Rank)
   tensor_view& operator=(const TensorLike& other) {
     dense_tensor<tensor_view, value_type>::operator=(other);
+    return *this;
+  }
+
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor_view& operator=(TensorLike&& other) {
+    dense_tensor<tensor_view, value_type>::operator=(std::move(other));
     return *this;
   }
 
@@ -404,11 +406,11 @@ class tensor_view
    * tensor_view to const T. Otherwise, the function returns a tensor_view to
    * T, which has reference semantics to the original tensor.
    *
-   * @throw std::runtime_error Thrown if the elements in the view cannot be
-   * flattened.
+   * @throw std::runtime_error Thrown if the elements in the view are
+   * non-contiguous
    */
-  tensor_view<T, 1> flatten();
-  tensor_view<const T, 1> flatten() const;
+  vector_view<T> flatten();
+  vector_view<const T> flatten() const;
 
   /**
    * @brief Return a tensor_view containing the same data with a new shape.
@@ -426,8 +428,6 @@ class tensor_view
    * T, which has reference semantics to the original tensor.
    *
    * @throw std::invalid_argument Thrown if the tensor could not reshaped.
-   * @throw std::runtime_error Thrown if the elements in the view are
-   * non-contiguous.
    */
   template <std::integral... Sizes>
   tensor_view<T, sizeof...(Sizes)> reshape(Sizes... sizes) {
@@ -440,12 +440,21 @@ class tensor_view
   }
 
   template <size_t N>
-  tensor_view<T, N> reshape(const shape_t<N>& shape,
-                            layout_t layout = no_layout);
+  tensor_view<T, N> reshape(const shape_t<N>& shape) {
+    return this->reshape(shape, this->layout());
+  }
+
+  template <size_t N>
+  tensor_view<const T, N> reshape(const shape_t<N>& shape) const {
+    return this->reshape(shape, this->layout());
+  }
+
+  template <size_t N>
+  tensor_view<T, N> reshape(const shape_t<N>& shape, layout_t layout);
 
   template <size_t N>
   tensor_view<const T, N> reshape(const shape_t<N>& shape,
-                                  layout_t layout = no_layout) const;
+                                  layout_t layout) const;
 
   /**
    * @brief Return a view of the tensor with its axes transposed.

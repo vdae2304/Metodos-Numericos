@@ -156,7 +156,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
    * @param layout Memory layout in which elements are stored. If set to
    * @ref layout_right, the last dimension is contiguous. If set to
    * @ref layout_left, the first dimension is contiguous. Defaults to the same
-   * layout as *this.
+   * layout as other.
    *
    * @throw std::bad_alloc If the function fails to allocate storage it may
    * throw an exception.
@@ -171,9 +171,19 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
 
   template <abstract_tensor TensorLike>
     requires(TensorLike::rank == Rank)
+  tensor(TensorLike&& other) : tensor(std::move(other), other.layout()) {}
+
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
   tensor(const TensorLike& other, layout_t layout)
       : tensor(other.shape(), layout) {
     dense_tensor<tensor, T>::operator=(other);
+  }
+
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor(TensorLike&& other, layout_t layout) : tensor(other.shape(), layout) {
+    dense_tensor<tensor, T>::operator=(std::move(other));
   }
 
   /**
@@ -288,7 +298,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
    */
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) {
     constexpr size_t N = detail::slicing_rank<Indices...>;
@@ -302,7 +312,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
 
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<const T, detail::slicing_rank<Indices...>> operator()(
       const Indices&... indices) const {
     constexpr size_t N = detail::slicing_rank<Indices...>;
@@ -317,7 +327,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
 #if __cplusplus >= 202302L
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) {
     return (*this)(indices...);
@@ -325,7 +335,7 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
 
   template <integer_or_slice... Indices>
     requires((sizeof...(Indices) == Rank) &&
-             (std::is_same_v<Indices, slice> || ...))
+             (std::same_as<Indices, slice> || ...))
   tensor_view<const T, detail::slicing_rank<Indices...>> operator[](
       const Indices&... indices) const {
     return (*this)(indices...);
@@ -399,11 +409,6 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
   size_type size() const { return m_size; }
 
   /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (m_size == 0); }
-
-  /**
    * @brief Return a pointer to the memory array used internally by the tensor.
    * Because elements in the tensor are stored contiguously, the pointer
    * retrieved can be offset to access any element in the tensor.
@@ -443,6 +448,14 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
   tensor& operator=(const TensorLike& other) {
     this->resize(other.shape());
     dense_tensor<tensor, T>::operator=(other);
+    return *this;
+  }
+
+  template <abstract_tensor TensorLike>
+    requires(TensorLike::rank == Rank)
+  tensor& operator=(TensorLike&& other) {
+    this->resize(other.shape());
+    dense_tensor<tensor, T>::operator=(std::move(other));
     return *this;
   }
 
@@ -518,10 +531,10 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
    * tensor_view to const T. Otherwise, the function returns a tensor_view to
    * T, which has reference semantics to the original tensor.
    */
-  tensor_view<T, 1> flatten() { return tensor_view<T, 1>(m_data, m_size); }
+  vector_view<T> flatten() { return vector_view<T>(m_data, m_size); }
 
-  tensor_view<const T, 1> flatten() const {
-    return tensor_view<const T, 1>(m_data, m_size);
+  vector_view<const T> flatten() const {
+    return vector_view<const T>(m_data, m_size);
   }
 
   /**
@@ -552,12 +565,21 @@ class tensor : public dense_tensor<tensor<T, Rank>, T> {
   }
 
   template <size_t N>
-  tensor_view<T, N> reshape(const shape_t<N>& shape,
-                            layout_t layout = no_layout);
+  tensor_view<T, N> reshape(const shape_t<N>& shape) {
+    return this->reshape(shape, m_layout);
+  }
+
+  template <size_t N>
+  tensor_view<const T, N> reshape(const shape_t<N>& shape) const {
+    return this->reshape(shape, m_layout);
+  }
+
+  template <size_t N>
+  tensor_view<T, N> reshape(const shape_t<N>& shape, layout_t layout);
 
   template <size_t N>
   tensor_view<const T, N> reshape(const shape_t<N>& shape,
-                                  layout_t layout = no_layout) const;
+                                  layout_t layout) const;
 
   /**
    * @brief Resizes the tensor in-place to a given shape. If the new size is

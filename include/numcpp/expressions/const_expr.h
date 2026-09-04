@@ -100,14 +100,9 @@ class const_expr {
   size_type size() const { return m_size; }
 
   /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (m_size == 0); }
-
-  /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const { return no_layout; }
+  layout_t layout() const { return layout_left | layout_right; }
 
  private:
   // Number of elements along each axis.

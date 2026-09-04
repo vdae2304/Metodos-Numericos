@@ -29,11 +29,6 @@ namespace numcpp {
  */
 enum layout_t {
   /**
-   * @brief Undefined layout or not specified.
-   */
-  no_layout = 0,
-
-  /**
    * @brief Right layout. The last dimension is contiguous, and the memory
    * offset of each axis is a constant multiple of the following axis. Default
    * style in C/C++.
@@ -52,5 +47,15 @@ enum layout_t {
    */
   default_layout = layout_right
 };
+
+inline layout_t operator&(layout_t layout1, layout_t layout2) {
+  return static_cast<layout_t>(static_cast<int>(layout1) &
+                               static_cast<int>(layout2));
+}
+
+inline layout_t operator|(layout_t layout1, layout_t layout2) {
+  return static_cast<layout_t>(static_cast<int>(layout1) |
+                               static_cast<int>(layout2));
+}
 }
 #endif // NUMCPP_LAYOUT_T_H_INCLUDED

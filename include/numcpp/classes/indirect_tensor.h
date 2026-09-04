@@ -129,14 +129,9 @@ class indirect_tensor
   size_type size() const { return m_index.size(); }
 
   /**
-   * @brief Return whether the @ref indirect_tensor is empty.
-   */
-  bool empty() const { return m_index.empty(); }
-
-  /**
    * @brief Return the memory layout in which elements are stored.
    */
-  layout_t layout() const { return m_data.layout(); }
+  layout_t layout() const { return m_index.layout(); }
 
   /// Assignment operator.
 

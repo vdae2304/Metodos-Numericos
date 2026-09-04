@@ -129,11 +129,6 @@ class unary_expr {
   size_type size() const { return m_arg.size(); }
 
   /**
-   * @brief Return whether the tensor is empty.
-   */
-  bool empty() const { return (size() == 0); }
-
-  /**
    * @brief Return the memory layout in which elements are stored.
    */
   layout_t layout() const { return m_arg.layout(); }

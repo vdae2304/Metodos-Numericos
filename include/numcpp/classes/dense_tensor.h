@@ -121,7 +121,15 @@ class dense_tensor {
     return const_iterator(&self, self.size(), layout);
   }
 
-  /// Indexing.
+  /// Public methods.
+
+  /**
+   * @brief Return whether the tensor is empty.
+   */
+  bool empty() const {
+    const Tensor& self = this->self();
+    return (self.size() == 0);
+  }
 
   /**
    * @brief Return the derived subclass.
@@ -141,6 +149,18 @@ class dense_tensor {
    */
   template <abstract_tensor TensorLike>
   Tensor& operator=(const TensorLike& other) {
+    static_assert(TensorLike::rank == Tensor::rank,
+                  "Tensor arguments must have equal rank");
+    Tensor& self = this->self();
+    for (const index_t<Tensor::rank>& i :
+         make_index_sequence(self.shape(), self.layout())) {
+      self[i] = static_cast<T>(other[i]);
+    }
+    return self;
+  }
+
+  template <abstract_tensor TensorLike>
+  Tensor& operator=(TensorLike&& other) {
     static_assert(TensorLike::rank == Tensor::rank,
                   "Tensor arguments must have equal rank");
     Tensor& self = this->self();

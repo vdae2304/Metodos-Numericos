@@ -91,7 +91,7 @@ struct nested_initializer_list<T, 0> {
  */
 template <class... T>
 constexpr size_t slicing_rank =
-    (static_cast<size_t>(std::is_same_v<T, slice>) + ...);
+    (static_cast<size_t>(std::same_as<T, slice>) + ...);
 
 /**
  * @brief Result type of function call.
