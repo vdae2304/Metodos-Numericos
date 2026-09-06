@@ -1,1486 +1,940 @@
 /*
- * This file is part of the NumCpp project.
+ * File: include/numcpp/random.h
+ * Repository: https://github.com/vdae2304/Metodos-Numericos
+ * 
+ * Copyright (C) 2026 vdae2304
  *
- * NumCPP is a package for scientific computing in C++. It is a C++ library that
- * provides support for multidimensional arrays, and defines an assortment of
- * routines for fast operations on them, including mathematical, logical,
- * sorting, selecting, I/O and much more.
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
  *
- * NumCPP comes from Numeric C++ and, as the name suggests, is a package
- * inspired by the NumPy package for Python, although it is completely
- * independent from its Python counterpart.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
  *
- * This program is free software: you can redistribute it and/or modify it by
- * giving enough credit to its creators.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
-/** @file include/numcpp/random.h
- *  This header defines routines for sampling pseudo random numbers.
- */
-
-// Written by Victor Daniel Alvarado Estrella (https://github.com/vdae2304).
 
 #ifndef NUMCPP_RANDOM_H_INCLUDED
 #define NUMCPP_RANDOM_H_INCLUDED
 
-#include "numcpp/config.h"
-#include "numcpp/random/distributions.h"
+#include "numcpp/shape.h"
+#include "numcpp/classes/abstract_tensor.h"
+#include "numcpp/expressions/random_gen.h"
+#include "numcpp/math/distributions.h"
 
 namespace numcpp {
+namespace random {
 /**
- * @brief A Generator is a wrapper class of a random number engine that
- * transforms sequence of random bits into a sequence of numbers that follow a
- * specific probability distribution (such as uniform, normal or binomial).
+ * @brief Sample values from a given distribution.
+ * 
+ * @param rvs Random distribution.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
  *
- * @tparam bit_generator Random number engine to use. Must meet the requirements
- *                       listed by Uniform Random Bit Generator and Random
- *                       Number Engine. Common examples are
- *                       @c std::default_random_engine and
- *                       @c std::random_device.
- *
- * @cite For more details, see
- * [Uniform Random Bit Generator]
- * (https://en.cppreference.com/w/cpp/named_req/UniformRandomBitGenerator)
- * [Random Number Engine]
- * (https://en.cppreference.com/w/cpp/named_req/RandomNumberEngine)
+ * @return An abstract tensor with a random sample. This function does not
+ * create a new tensor, instead, a generator expression is returned. Each
+ * evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
  */
-template <class bit_generator> class Generator {
-public:
-  /// Constructors.
-
-  /**
-   * @brief Default constructor. Constructs a Generator with default seed.
-   */
-  Generator();
-
-  /**
-   * @brief Seed constructor. Constructs a Generator from a seed value or a seed
-   * sequence.
-   *
-   * @param s Seed value or seed sequence to use.
-   */
-  template <class Sseq> Generator(Sseq &&s);
-
-  /// Destructor.
-  ~Generator() = default;
-
-  /// Seeding.
-
-  /**
-   * @brief Reinitializes the internal state of the random-number engine
-   * using a new seed value.
-   *
-   * @param s Seed value or seed sequence to use.
-   */
-  template <class Sseq> void seed(Sseq &&s);
-
-  /// Sample random data.
-
-  /**
-   * @brief Return random integers from @a low to @a high (inclusive).
-   *
-   * @param low Lowest integer to be drawn.
-   * @param high Largest integer to be drawn.
-   *
-   * @return A random integer.
-   */
-  template <class T, class U>
-  typename std::common_type<T, U>::type integers(T low, U high);
-
-  /**
-   * @brief Return a tensor of random integers from @a low to @a high
-   * (inclusive).
-   *
-   * @param low Lowest integer to be drawn.
-   * @param high Largest integer to be drawn.
-   * @param size Output shape.
-   *
-   * @return A tensor of random integers.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename std::common_type<T, U>::type, 1> integers(T low, U high,
-                                                            size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename std::common_type<T, U>::type, Rank>
-  integers(T low, U high, const shape_t<Rank> &size);
-
-  /**
-   * @brief Return random floating-point numbers in the half-open interval
-   * [0, 1).
-   *
-   * @return A random floating-point number.
-   */
-  template <class T = double> T random();
-
-  /**
-   * @brief Return a tensor of random floating-point numbers in the half-open
-   * interval [0, 1).
-   *
-   * @param size Output shape.
-   *
-   * @return A tensor of random floating-point numbers.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = double> tensor<T, 1> random(size_t size);
-
-  template <class T = double, size_t Rank>
-  tensor<T, Rank> random(const shape_t<Rank> &size);
-
-  /**
-   * @brief Generates a random sample from a given sequence.
-   *
-   * @param population A 1-dimensional tensor with the values to sample from.
-   * @param weights A 1-dimensional tensor with the weights associated to each
-   *                entry of @a population. If not provided, the sample assumes
-   *                a uniform distribution over all entries of @a population.
-   *
-   * @return The generated random sample.
-   *
-   * @throw std::invalid_argument Thrown if the population size is 0 or if
-   *                              @a population and @a weights have different
-   *                              sizes.
-   */
-  template <class Expr, class T>
-  T choice(const abstract_tensor<Expr, T, 1> &population);
-
-  template <class Expr1, class T, class Expr2, class U>
-  T choice(const abstract_tensor<Expr1, T, 1> &population,
-           const abstract_tensor<Expr2, U, 1> &weights);
-
-  /**
-   * @brief Generates a random sample from a given sequence.
-   *
-   * @param population A 1-dimensional tensor with the values to sample from.
-   * @param size Output shape.
-   * @param weights A 1-dimensional tensor with the weights associated to each
-   *                entry of @a population. If not provided, the sample assumes
-   *                a uniform distribution over all entries of @a population.
-   * @param replace Whether the sample is with or without replacement. Default
-   *                is true, meaning that a value can be selected multiple
-   *                times.
-   * @param shuffle Whether the sample is shuffled when sampling without
-   *                replacement. Default is true.
-   *
-   * @return A tensor with the generated random samples.
-   *
-   * @throw std::invalid_argument Thrown if the population size is 0, if
-   *                              @a population and @a weights have different
-   *                              sizes or if @a replace=false and the sample
-   *                              size is greater than the population size.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class Expr, class T>
-  tensor<T, 1> choice(const abstract_tensor<Expr, T, 1> &population,
-                      size_t size, bool replace = true, bool shuffle = true);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> choice(const abstract_tensor<Expr, T, 1> &population,
-                         const shape_t<Rank> &size, bool replace = true,
-                         bool shuffle = true);
-
-  template <class Expr1, class T, class Expr2, class U>
-  tensor<T, 1> choice(const abstract_tensor<Expr1, T, 1> &population,
-                      size_t size, const abstract_tensor<Expr2, U, 1> &weights,
-                      bool replace = true);
-
-  template <class Expr1, class T, size_t Rank, class Expr2, class U>
-  tensor<T, Rank> choice(const abstract_tensor<Expr1, T, 1> &population,
-                         const shape_t<Rank> &size,
-                         const abstract_tensor<Expr2, U, 1> &weights,
-                         bool replace = true);
-
-  /// Permutations.
-
-  /**
-   * @brief Modify a tensor in-place by shuffling its contents.
-   *
-   * @param a The tensor to be shuffled.
-   * @param axis Axis along which to shuffle. Defaults to Rank - 1, which means
-   *             shuffle along the last axis.
-   */
-  template <class Expr, class T, size_t Rank>
-  void shuffle(dense_tensor<Expr, T, Rank> &a, size_t axis = Rank - 1);
-
-  /**
-   * @brief Return a permuted range.
-   *
-   * @param n Randomly permute the range 0, 1, 2, ..., @a n - 1.
-   *
-   * @return The permuted range.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, detail::RequiresIntegral<T> = 0>
-  tensor<T, 1> permutation(T n);
-
-  /**
-   * @brief Randomly permute a tensor.
-   *
-   * @param a Make a copy of the tensor and shuffle the elements randomly.
-   * @param axis Axis along which to permute. If not provided, the flattened
-   *             tensor is used.
-   *
-   * @return The permuted tensor.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class Expr, class T, size_t Rank>
-  tensor<T, 1> permutation(const abstract_tensor<Expr, T, Rank> &a);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> permutation(const abstract_tensor<Expr, T, Rank> &a,
-                              size_t axis);
-
-  /// Continuous distributions.
-
-  /**
-   * @brief Draw samples from a Beta distribution.
-   *
-   * @details The probability density function for the Beta distribution
-   * is
-   * @f[
-   *   f(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}
-   *     {\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1}
-   * @f]
-   * for @f$0 \leq x \leq 1@f$, where @f$\alpha@f$ and @f$\beta@f$ are shape
-   * parameters.
-   *
-   * @param shape1 Shape parameter. This shall be a positive value.
-   * @param shape2 Shape parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type beta(T shape1, U shape2);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> beta(const abstract_tensor<Expr1, T, Rank> &shape1,
-                       const abstract_tensor<Expr2, T, Rank> &shape2);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> beta(const abstract_tensor<Expr, T, Rank> &shape1,
-                       typename detail::identity<T>::type shape2);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> beta(typename detail::identity<T>::type shape1,
-                       const abstract_tensor<Expr, T, Rank> &shape2);
-
-  /**
-   * @brief Draw samples from a Beta distribution.
-   *
-   * @param shape1 Shape parameter. This shall be a positive value.
-   * @param shape2 Shape parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> beta(T shape1, U shape2,
-                                                       size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  beta(T shape1, U shape2, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Cauchy distribution.
-   *
-   * @details The probability density function for the Cauchy distribution is
-   * @f[
-   *   f(x;x_0,\gamma) = \frac{1}
-   *     {\pi\gamma\left[1+\left(\frac{x-x_0}{\gamma}\right)^2\right]}
-   * @f]
-   * for all @a x, where @f$x_0@f$ and @f$\gamma@f$ are location and scale
-   * parameters.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type cauchy(T loc, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> cauchy(const abstract_tensor<Expr1, T, Rank> &loc,
-                         const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> cauchy(const abstract_tensor<Expr, T, Rank> &loc,
-                         typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> cauchy(typename detail::identity<T>::type loc,
-                         const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Cauchy distribution.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> cauchy(T loc, U scale,
-                                                         size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  cauchy(T loc, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a chi-squared distribution.
-   *
-   * @details The probability density function for the chi-squared distribution
-   * is
-   * @f[
-   *   f(x;k) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2}
-   * @f]
-   * for @f$x \geq 0@f$, where @a k is the degrees of freedom.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> typename detail::promote<T>::type chisquare(T df);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> chisquare(const abstract_tensor<Expr, T, Rank> &df);
-
-  /**
-   * @brief Draw samples from a chi-squared distribution.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<typename detail::promote<T>::type, 1> chisquare(T df, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<typename detail::promote<T>::type, Rank>
-  chisquare(T df, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from an exponential distribution.
-   *
-   * @details The probability density function for the exponential distribution
-   * is
-   * @f[
-   *   f(x;\lambda) = \lambda e^{-\lambda x}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$\lambda@f$ is the rate parameter.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> typename detail::promote<T>::type exponential(T rate);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> exponential(const abstract_tensor<Expr, T, Rank> &rate);
-
-  /**
-   * @brief Draw samples from an exponential distribution.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<typename detail::promote<T>::type, 1> exponential(T rate, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<typename detail::promote<T>::type, Rank>
-  exponential(T rate, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Fisher F-distribution.
-   *
-   * @details The probability density function for the F distribution is
-   * @f[
-   *   f(x;d_1,d_2) = \frac{\Gamma\left(\frac{d_1+d_2}{2}\right)}
-   *     {\Gamma\left(\frac{d_1}{2}\right)\Gamma\left(\frac{d_2}{2}\right)}
-   *     \frac{\left(\frac{d_1x}{d_2}\right)^{d_1/2}}
-   *     {x\left(1+\frac{d_1x}{d_2}\right)^{(d_1+d_2)/2}}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$d_1@f$ and @f$d_2@f$ are the degrees of
-   * freedom.
-   *
-   * @param df1 Degrees of freedom. This shall be a positive value.
-   * @param df2 Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type fisher_f(T df1, U df2);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> fisher_f(const abstract_tensor<Expr1, T, Rank> &df1,
-                           const abstract_tensor<Expr2, T, Rank> &df2);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> fisher_f(const abstract_tensor<Expr, T, Rank> &df1,
-                           typename detail::identity<T>::type df2);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> fisher_f(typename detail::identity<T>::type df1,
-                           const abstract_tensor<Expr, T, Rank> &df2);
-
-  /**
-   * @brief Draw samples from a Fisher F-distribution.
-   *
-   * @param df1 Degrees of freedom. This shall be a positive value.
-   * @param df2 Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> fisher_f(T df1, U df2,
-                                                           size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  fisher_f(T df1, U df2, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Gamma distribution.
-   *
-   * @details The probability density function for the Gamma distribution is
-   * @f[
-   *   f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}} x^{\alpha-1}
-   *     e^{-x/\beta}
-   * @f]
-   * for @f$x > 0@f$, where @f$\alpha@f$ is the shape parameter and @f$\beta@f$
-   * is the scale parameter.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type gamma(T shape, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> gamma(const abstract_tensor<Expr1, T, Rank> &shape,
-                        const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> gamma(const abstract_tensor<Expr, T, Rank> &shape,
-                        typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> gamma(typename detail::identity<T>::type shape,
-                        const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Gamma distribution.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> gamma(T shape, U scale,
-                                                        size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  gamma(T shape, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Gumbel distribution.
-   *
-   * @details The probability density function for the Gumbel distribution is
-   * @f[
-   *   f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b}
-   * @f]
-   * for all @a x, where @a a is the location parameter and @a b is the scale
-   * parameter.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type gumbel(T loc, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> gumbel(const abstract_tensor<Expr1, T, Rank> &loc,
-                         const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> gumbel(const abstract_tensor<Expr, T, Rank> &loc,
-                         typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> gumbel(typename detail::identity<T>::type loc,
-                         const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Gumbel distribution.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> gumbel(T loc, U scale,
-                                                         size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  gumbel(T loc, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Laplace distribution.
-   *
-   * @details The probability density function for the Laplace distribution is
-   * @f[
-   *   f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)
-   * @f]
-   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
-   * scale parameter.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type laplace(T loc, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> laplace(const abstract_tensor<Expr1, T, Rank> &loc,
-                          const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> laplace(const abstract_tensor<Expr, T, Rank> &loc,
-                          typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> laplace(typename detail::identity<T>::type loc,
-                          const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Laplace distribution.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> laplace(T loc, U scale,
-                                                          size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  laplace(T loc, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a logistic distribution.
-   *
-   * @details The probability density function for the logistic distribution is
-   * @f[
-   *   f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}
-   * @f]
-   * for all @a x, where @f$\mu@f$ is the location parameter and @f$s@f$ is the
-   * scale parameter.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type logistic(T loc, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> logistic(const abstract_tensor<Expr1, T, Rank> &loc,
-                           const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> logistic(const abstract_tensor<Expr, T, Rank> &loc,
-                           typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> logistic(typename detail::identity<T>::type loc,
-                           const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a logistic distribution.
-   *
-   * @param loc Location parameter.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> logistic(T loc, U scale,
-                                                           size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  logistic(T loc, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a log-normal distribution.
-   *
-   * @details The probability density function for the log-normal distribution
-   * is
-   * @f[
-   *   f(x;\mu,\sigma) = \frac{1}{x\sigma\sqrt{2\pi}}
-   *     \exp\left(-\frac{(\log x-\mu)^2}{2\sigma^2}\right)
-   * @f]
-   * for @f$x > 0@f$, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
-   * deviation of the underlying normal distribution formed by the logarithm
-   * transformation.
-   *
-   * @param logmean Mean of the underlying normal distribution.
-   * @param logscale Standard deviation of the underlying normal distribution.
-   *                 This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type lognormal(T logmean, U logscale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> lognormal(const abstract_tensor<Expr1, T, Rank> &logmean,
-                            const abstract_tensor<Expr2, T, Rank> &logscale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> lognormal(const abstract_tensor<Expr, T, Rank> &logmean,
-                            typename detail::identity<T>::type logscale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> lognormal(typename detail::identity<T>::type logmean,
-                            const abstract_tensor<Expr, T, Rank> &logscale);
-
-  /**
-   * @brief Draw samples from a log-normal distribution.
-   *
-   * @param logmean Mean of the underlying normal distribution.
-   * @param logscale Standard deviation of the underlying normal distribution.
-   *                 This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1>
-  lognormal(T logmean, U logscale, size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  lognormal(T logmean, U logscale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a normal distribution.
-   *
-   * @details The probability density function for the normal distribution is
-   * @f[
-   *   f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
-   *     \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
-   * @f]
-   * for all @a x, where @f$\mu@f$ and @f$\sigma@f$ are the mean and standard
-   * deviation.
-   *
-   * @param mean Mean of the distribution.
-   * @param stddev Standard deviation of the distribution. This shall be a
-   *               positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type normal(T mean, U stddev);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> normal(const abstract_tensor<Expr1, T, Rank> &mean,
-                         const abstract_tensor<Expr2, T, Rank> &stddev);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> normal(const abstract_tensor<Expr, T, Rank> &mean,
-                         typename detail::identity<T>::type stddev);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> normal(typename detail::identity<T>::type mean,
-                         const abstract_tensor<Expr, T, Rank> &stddev);
-
-  /**
-   * @brief Draw samples from a normal distribution.
-   *
-   * @param mean Mean of the distribution.
-   * @param stddev Standard deviation of the distribution. This shall be a
-   *               positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> normal(T mean, U stddev,
-                                                         size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  normal(T mean, U stddev, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Pareto distribution.
-   *
-   * @details The probability density function for the Pareto distribution is
-   * @f[
-   *   f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}
-   * @f]
-   * for @f$x \geq x_m@f$, where @f$\alpha@f$ is the shape parameter and
-   * @f$x_m@f$ is the scale parameter.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type pareto(T shape, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> pareto(const abstract_tensor<Expr1, T, Rank> &shape,
-                         const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> pareto(const abstract_tensor<Expr, T, Rank> &shape,
-                         typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> pareto(typename detail::identity<T>::type shape,
-                         const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Pareto distribution.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> pareto(T shape, U scale,
-                                                         size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  pareto(T shape, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Rayleigh distribution.
-   *
-   * @details The probability density function for the Rayleigh distribution is
-   * @f[
-   *   f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}
-   * @f]
-   * for @f$x \geq 0@f$, where @f$\sigma@f$ is the scale parameter.
-   *
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   *
-   */
-  template <class T> typename detail::promote<T>::type rayleigh(T scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> rayleigh(const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Rayleigh distribution.
-   *
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<typename detail::promote<T>::type, 1> rayleigh(T scale, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<typename detail::promote<T>::type, Rank>
-  rayleigh(T scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a standard normal distribution ( @a mean=0,
-   * @a stddev=1 ).
-   *
-   * @return A sample from the distribution.
-   */
-  template <class T = double> T standard_normal();
-
-  /**
-   * @brief Draw samples from a standard normal distribution ( @a mean=0,
-   * @a stddev = 1 ).
-   *
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = double> tensor<T, 1> standard_normal(size_t size);
-
-  template <class T = double, size_t Rank>
-  tensor<T, Rank> standard_normal(const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Student's t distribution.
-   *
-   * @details The probability density function for the Student's t distribution
-   * is
-   * @f[
-   *   f(x;\nu) = \frac{1}{\sqrt{\pi\nu}}
-   *     \frac{\Gamma\left(\frac{\nu+1}{2}\right)}
-   *     {\Gamma\left(\frac{\nu}{2}\right)}
-   *     \left(1+\frac{x^2}{\nu}\right)^{-(\nu+1)/2}
-   * @f]
-   * for all @a x, where @f$\nu@f$ is the degrees of freedom.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> typename detail::promote<T>::type student_t(T df);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> student_t(const abstract_tensor<Expr, T, Rank> &df);
-
-  /**
-   * @brief Draw samples from a Student's t distribution.
-   *
-   * @param df Degrees of freedom. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<typename detail::promote<T>::type, 1> student_t(T df, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<typename detail::promote<T>::type, Rank>
-  student_t(T df, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from an uniform distribution.
-   *
-   * @details The probability density function for the uniform distribution is
-   * @f[
-   *   f(x;a,b) = \frac{1}{b-a}
-   * @f]
-   * for @f$a \leq x < b@f$, where @a a and @a b are the lower and upper
-   * boundaries of the distribution.
-   *
-   * @param low Lower boundary.
-   * @param high Upper boundary.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type uniform(T low, U high);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> uniform(const abstract_tensor<Expr1, T, Rank> &low,
-                          const abstract_tensor<Expr2, T, Rank> &high);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> uniform(const abstract_tensor<Expr, T, Rank> &low,
-                          typename detail::identity<T>::type high);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> uniform(typename detail::identity<T>::type low,
-                          const abstract_tensor<Expr, T, Rank> &high);
-
-  /**
-   * @brief Draw samples from an uniform distribution.
-   *
-   * @param low Lower boundary.
-   * @param high Upper boundary.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> uniform(T low, U high,
-                                                          size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  uniform(T low, U high, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Wald, or inverse Gaussian, distribution.
-   *
-   * @details The probability density function for the Wald distribution is
-   * @f[
-   *   f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
-   *     \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)
-   * @f]
-   * for @f$x > 0@f$, where @f$\mu@f$ is the mean and @f$\lambda@f$ is the scale
-   * parameter.
-   *
-   * @param mean Mean of the distribution. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type wald(T mean, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> wald(const abstract_tensor<Expr1, T, Rank> &mean,
-                       const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> wald(const abstract_tensor<Expr, T, Rank> &mean,
-                       typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> wald(typename detail::identity<T>::type mean,
-                       const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Wald distribution.
-   *
-   * @param mean Mean of the distribution. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> wald(T mean, U scale,
-                                                       size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  wald(T mean, U scale, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Weibull distribution.
-   *
-   * @details The probability density function for the Weibull distribution is
-   * @f[
-   *   f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a}
-   * @f]
-   * for @f$x \geq 0@f$, where @a a is the shape parameter and @a b is the scale
-   * parameter.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  typename detail::promote<T, U>::type weibull(T shape, U scale);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> weibull(const abstract_tensor<Expr1, T, Rank> &shape,
-                          const abstract_tensor<Expr2, T, Rank> &scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> weibull(const abstract_tensor<Expr, T, Rank> &shape,
-                          typename detail::identity<T>::type scale);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> weibull(typename detail::identity<T>::type shape,
-                          const abstract_tensor<Expr, T, Rank> &scale);
-
-  /**
-   * @brief Draw samples from a Weibull distribution.
-   *
-   * @param shape Shape parameter. This shall be a positive value.
-   * @param scale Scale parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, class U>
-  tensor<typename detail::promote<T, U>::type, 1> weibull(T shape, U scale,
-                                                          size_t size);
-
-  template <class T, class U, size_t Rank>
-  tensor<typename detail::promote<T, U>::type, Rank>
-  weibull(T shape, U scale, const shape_t<Rank> &size);
-
-  /// Discrete distributions.
-
-  /**
-   * @brief Draw samples from a Bernoulli distribution.
-   *
-   * @details The probability mass function for the Bernoulli distribution is
-   * @f[
-   *   f(x;p) = \begin{cases}
-   *     1-p, & x=0,\\
-   *     p, & x=1,
-   *   \end{cases}
-   * @f]
-   * where @a p is the probability of success.
-   *
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  bool bernoulli(double prob);
-
-  template <class Expr, size_t Rank>
-  tensor<bool, Rank> bernoulli(const abstract_tensor<Expr, double, Rank> &prob);
-
-  /**
-   * @brief Draw samples from a Bernoulli distribution.
-   *
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  tensor<bool, 1> bernoulli(double prob, size_t size);
-
-  template <size_t Rank>
-  tensor<bool, Rank> bernoulli(double prob, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a binomial distribution.
-   *
-   * @details The probability mass function for the binomial distribution is
-   * @f[
-   *   f(x;n,p) = \binom{n}{x} p^x (1-p)^{n-x}
-   * @f]
-   * for @f$x = 0, 1, 2, \ldots , n@f$, where @a n is the number of trials and
-   * @a p is the probability of success.
-   *
-   * @param n Number of trials.
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, detail::RequiresIntegral<T> = 0>
-  T binomial(T n, double prob);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank> binomial(const abstract_tensor<Expr1, T, Rank> &n,
-                           const abstract_tensor<Expr2, double, Rank> &prob);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> binomial(const abstract_tensor<Expr, T, Rank> &n,
-                           double prob);
-
-  template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T> = 0>
-  tensor<T, Rank> binomial(T n,
-                           const abstract_tensor<Expr, double, Rank> &prob);
-
-  /**
-   * @brief Draw samples from a binomial distribution.
-   *
-   * @param n Number of trials.
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T> tensor<T, 1> binomial(T n, double prob, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<T, Rank> binomial(T n, double prob, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a geometric distribution.
-   *
-   * @details The probability mass function for the geometric distribution is
-   * @f[
-   *   f(x;p) = p(1-p)^x
-   * @f]
-   * for @f$x = 0, 1, 2, ...@f$, where @a p is the probability of success.
-   *
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = int> T geometric(double prob);
-
-  template <class T = int, class Expr, size_t Rank>
-  tensor<T, Rank> geometric(const abstract_tensor<Expr, double, Rank> &prob);
-
-  /**
-   * @brief Draw samples from a geometric distribution.
-   *
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = int> tensor<T, 1> geometric(double prob, size_t size);
-
-  template <class T = int, size_t Rank>
-  tensor<T, Rank> geometric(double prob, const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a negative binomial distribution.
-   *
-   * @details The probability mass function for the negative binomial
-   * distribution is
-   * @f[
-   *   f(x;n,p) = \binom{n+x-1}{x} p^{n} (1-p)^{x}
-   * @f]
-   * for @f$x = 0, 1, 2, ...@f$, where @a n is the number of successes before
-   * the experiment is stopped and @a p is the probability of success.
-   *
-   * @param n Number of successes.
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::invalid_argument Thrown if the shapes are not compatible and
-   *                              cannot be broadcasted according to
-   *                              broadcasting rules.
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T, detail::RequiresIntegral<T> = 0>
-  T negative_binomial(T n, double prob);
-
-  template <class Expr1, class Expr2, class T, size_t Rank>
-  tensor<T, Rank>
-  negative_binomial(const abstract_tensor<Expr1, T, Rank> &n,
-                    const abstract_tensor<Expr2, double, Rank> &prob);
-
-  template <class Expr, class T, size_t Rank>
-  tensor<T, Rank> negative_binomial(const abstract_tensor<Expr, T, Rank> &n,
-                                    double prob);
-
-  template <class Expr, class T, size_t Rank, detail::RequiresIntegral<T> = 0>
-  tensor<T, Rank>
-  negative_binomial(T n, const abstract_tensor<Expr, double, Rank> &prob);
-
-  /**
-   * @brief Draw samples from a negative binomial distribution.
-   *
-   * @param n Number of successes.
-   * @param prob Probability of success. This shall be a value between 0 and 1
-   *             (inclusive).
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T>
-  tensor<T, 1> negative_binomial(T n, double prob, size_t size);
-
-  template <class T, size_t Rank>
-  tensor<T, Rank> negative_binomial(T n, double prob,
-                                    const shape_t<Rank> &size);
-
-  /**
-   * @brief Draw samples from a Poisson distribution.
-   *
-   * @details The probability mass function for the Poisson distribution is
-   * @f[
-   *   f(x;\lambda) = \frac{\lambda^{x}}{x!} e^{-\lambda}
-   * @f]
-   * for @f$x = 0, 1, 2, ...@f$, where @f$\lambda@f$ is the rate parameter.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   *
-   * @return A sample from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = int> T poisson(double rate);
-
-  template <class T = int, class Expr, size_t Rank>
-  tensor<T, Rank> poisson(const abstract_tensor<Expr, double, Rank> &rate);
-
-  /**
-   * @brief Draw samples from a Poisson distribution.
-   *
-   * @param rate Rate parameter. This shall be a positive value.
-   * @param size Output shape.
-   *
-   * @return A tensor with samples from the distribution.
-   *
-   * @throw std::bad_alloc If the function fails to allocate storage it may
-   *                       throw an exception.
-   */
-  template <class T = int> tensor<T, 1> poisson(double rate, size_t size);
-
-  template <class T = int, size_t Rank>
-  tensor<T, Rank> poisson(double rate, const shape_t<Rank> &size);
-
-private:
-  /**
-   * @brief Sample values from a distribution.
-   */
-  template <class OutputIterator, class Distribution>
-  void __sample_distribution(OutputIterator first, size_t n, Distribution &rvs);
-
-  /**
-   * @brief Sample element-wise values from a distribution with parameters.
-   */
-  template <class Distribution, class Expr, class T, size_t Rank>
-  tensor<typename Distribution::result_type, Rank>
-  __sample_element_wise(Distribution &rvs,
-                        const abstract_tensor<Expr, T, Rank> &param);
-
-  template <class Distribution, class Expr1, class T, class Expr2, class U,
-            size_t Rank>
-  tensor<typename Distribution::result_type, Rank>
-  __sample_element_wise(Distribution &rvs,
-                        const abstract_tensor<Expr1, T, Rank> &param1,
-                        const abstract_tensor<Expr2, U, Rank> &param2);
-
-  template <class Distribution, class Expr, class T, class U, size_t Rank,
-            detail::RequiresScalar<U> = 0>
-  tensor<typename Distribution::result_type, Rank>
-  __sample_element_wise(Distribution &rvs,
-                        const abstract_tensor<Expr, T, Rank> &param1,
-                        const U &param2);
-
-  template <class Distribution, class Expr, class T, class U, size_t Rank,
-            detail::RequiresScalar<T> = 0>
-  tensor<typename Distribution::result_type, Rank>
-  __sample_element_wise(Distribution &rvs, const T &param1,
-                        const abstract_tensor<Expr, U, Rank> &param2);
-
-  /**
-   * @brief Sample @a n elements (with replacement) from the sequence
-   * @a [first,last).
-   */
-  template <class RandomAccessIterator, class OutputIterator>
-  void __sample_replacement(RandomAccessIterator first,
-                            RandomAccessIterator last, OutputIterator out,
-                            size_t n);
-
-  template <class RandomAccessIterator1, class RandomAccessIterator2,
-            class OutputIterator>
-  void __sample_replacement(RandomAccessIterator1 first,
-                            RandomAccessIterator1 last,
-                            RandomAccessIterator2 weights, OutputIterator out,
-                            size_t n);
-
-  /**
-   * @brief Sample @a n elements (without replacement) from the sequence
-   * @a [first,last).
-   */
-  template <class InputIterator, class RandomAccessIterator>
-  void __sample_no_replacement(InputIterator first, InputIterator last,
-                               RandomAccessIterator out, size_t n);
-
-  template <class RandomAccessIterator1, class RandomAccessIterator2,
-            class OutputIterator>
-  void __sample_no_replacement(RandomAccessIterator1 first,
-                               RandomAccessIterator1 last,
-                               RandomAccessIterator2 weights,
-                               OutputIterator out, size_t n);
-
-private:
-  // Underlying uniform random number generator.
-  bit_generator m_rng;
-};
-
-using default_rng = Generator<std::default_random_engine>;
+template <class Distribution, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline random_generator<Distribution, Generator, Rank> sample(
+    Distribution rvs, const shape_t<Rank>& shape, Generator& urng) {
+  return random_generator<Distribution, Generator, Rank>(rvs, shape, urng);
+}
+
+template <class Distribution, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline random_generator<Distribution, Generator, Rank> sample(
+    Distribution rvs, const size_t (&shape)[Rank], Generator& urng) {
+  return random_generator<Distribution, Generator, Rank>(rvs, make_shape(shape),
+                                                         urng);
+}
+
+/**
+ * @brief Return a tensor of random integers from @a a to @a b (inclusive).
+ *
+ * @param a Lowest integer to be drawn.
+ * @param b Largest integer to be drawn.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <std::integral T, std::integral U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto integers(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<T, U> Rt;
+  std::uniform_int_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+template <std::integral T, std::integral U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto integers(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<T, U> Rt;
+  std::uniform_int_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Return a tensor of random floating-point numbers in the half-open
+ * interval [0, 1).
+ *
+ * @param shape Output shape.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <std::floating_point T = double, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto random(const shape_t<Rank>& shape, Generator& urng) {
+  std::uniform_real_distribution<T> rvs;
+  return sample(rvs, shape, urng);
+}
+
+template <std::floating_point T = double, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto random(const size_t (&shape)[Rank], Generator& urng) {
+  std::uniform_real_distribution<T> rvs;
+  return sample(rvs, shape, urng);
+}
+
+/// Continuous distributions.
+
+/**
+ * @brief Draw samples from a Beta distribution.
+ *
+ * @details The probability density function for the Beta distribution is
+ * @f[
+ *   f(x;\alpha,\beta) = \frac{\Gamma(\alpha+\beta)}
+ *     {\Gamma(\alpha)\Gamma(\beta)} x^{\alpha-1} (1-x)^{\beta-1}
+ * @f]
+ * for 0 <= @a x <= 1, where @a alpha and @a beta are shape parameters.
+ *
+ * @param alpha Shape parameter. This shall be a positive value.
+ * @param beta Shape parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto beta(T alpha, U beta, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  beta_distribution<Rt> rvs(alpha, beta);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto beta(T alpha, U beta, const size_t (&shape)[Rank],
+                 Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  beta_distribution<Rt> rvs(alpha, beta);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Cauchy distribution.
+ *
+ * @details The probability density function for the Cauchy distribution is
+ * @f[
+ *   f(x;a,b) = \frac{1}
+ *     {b\pi\left[1+\left(\frac{x-a}{b}\right)^2\right]}
+ * @f]
+ * for all @a x, where @a a and @a b are location and scale parameters.
+ *
+ * @param a Location parameter.
+ * @param b Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto cauchy(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::cauchy_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto cauchy(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::cauchy_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a chi-squared distribution.
+ *
+ * @details The probability density function for the chi-squared distribution is
+ * @f[
+ *   f(x;n) = \frac{1}{2^{n/2}\Gamma(n/2)} x^{n/2-1} e^{-x/2}
+ * @f]
+ * for @a x >= 0, where @a n is the degrees of freedom.
+ *
+ * @param n Degrees of freedom. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto chisquare(T n, const shape_t<Rank>& shape, Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::chi_squared_distribution<Rt> rvs(n);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto chisquare(T n, const size_t (&shape)[Rank], Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::chi_squared_distribution<Rt> rvs(n);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from an exponential distribution.
+ *
+ * @details The probability density function for the exponential distribution is
+ * @f[
+ *   f(x;\lambda) = \lambda e^{-\lambda x}
+ * @f]
+ * for @a x >= 0, where @a lambda is the rate parameter.
+ *
+ * @param lambda Rate parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto exponential(T lambda, const shape_t<Rank>& shape, Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::exponential_distribution<Rt> rvs(lambda);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto exponential(T lambda, const size_t (&shape)[Rank],
+                        Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::exponential_distribution<Rt> rvs(lambda);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Fisher F-distribution.
+ *
+ * @details The probability density function for the F distribution is
+ * @f[
+ *   f(x;m,n) = \frac{\Gamma\left(\frac{m+n}{2}\right)}
+ *     {\Gamma\left(\frac{m}{2}\right)\Gamma\left(\frac{n}{2}\right)}
+ *     \frac{\left(\frac{m}{n}\right)^{m/2}}
+ *     {x\left(1+\frac{mx}{n}\right)^{(m+n)/2}}
+ * @f]
+ * for @a x >= 0, where @a m and @a n are the degrees of freedom.
+ *
+ * @param m Degrees of freedom. This shall be a positive value.
+ * @param n Degrees of freedom. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto fisher_f(T m, U n, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::fisher_f_distribution<Rt> rvs(m, n);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto fisher_f(T m, U n, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::fisher_f_distribution<Rt> rvs(m, n);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Gamma distribution.
+ *
+ * @details The probability density function for the Gamma distribution is
+ * @f[
+ *   f(x;\alpha,\beta) = \frac{1}{\Gamma(\alpha)\beta^{\alpha}} x^{\alpha-1}
+ *     e^{-x/\beta}
+ * @f]
+ * for @a x > 0, where @a alpha is the shape parameter and @a beta is the scale
+ * parameter.
+ *
+ * @param alpha Shape parameter. This shall be a positive value.
+ * @param beta Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto gamma(T alpha, U beta, const shape_t<Rank>& shape,
+                  Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::gamma_distribution<Rt> rvs(alpha, beta);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto gamma(T alpha, U beta, const size_t (&shape)[Rank],
+                  Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::gamma_distribution<Rt> rvs(alpha, beta);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Gumbel distribution.
+ *
+ * @details The probability density function for the Gumbel distribution is
+ * @f[
+ *   f(x;a,b) = \frac{1}{b}e^{-z-e^{-z}}, \ z=\frac{x-a}{b}
+ * @f]
+ * for all @a x, where @a a is the location parameter and @a b is the scale
+ * parameter.
+ *
+ * @param a Location parameter.
+ * @param b Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto gumbel(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::extreme_value_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto gumbel(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::extreme_value_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Laplace distribution.
+ *
+ * @details The probability density function for the Laplace distribution is
+ * @f[
+ *   f(x;\mu,s) = \frac{1}{2s}\exp\left(-\frac{|x-\mu|}{s}\right)
+ * @f]
+ * for all @a x, where @a mu is the location parameter and @a s is the scale
+ * parameter.
+ *
+ * @param mu Location parameter.
+ * @param s Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto laplace(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  laplace_distribution<Rt> rvs(mu, s);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto laplace(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  laplace_distribution<Rt> rvs(mu, s);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a logistic distribution.
+ *
+ * @details The probability density function for the logistic distribution is
+ * @f[
+ *   f(x;\mu,s) = \frac{e^{-(x-\mu)/2}}{s\left(1+e^{-(x-\mu)/s}\right)^2}
+ * @f]
+ * for all @a x, where @a mu is the location parameter and @a s is the scale
+ * parameter.
+ *
+ * @param mu Location parameter.
+ * @param s Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto logistic(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  logistic_distribution<Rt> rvs(mu, s);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto logistic(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  logistic_distribution<Rt> rvs(mu, s);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a log-normal distribution.
+ *
+ * @details The probability density function for the log-normal distribution is
+ * @f[
+ *   f(x;m,s) = \frac{1}{xs\sqrt{2\pi}}
+ *     \exp\left(-\frac{(\log x-m)^2}{2s^2}\right)
+ * @f]
+ * for @a x > 0, where @a m and @a s are the mean and standard deviation of the
+ * underlying normal distribution formed by the logarithm transformation.
+ *
+ * @param m Mean of the underlying normal distribution.
+ * @param s Standard deviation of the underlying normal distribution. This
+ * shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto lognormal(T m, U s, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::lognormal_distribution<Rt> rvs(m, s);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto lognormal(T m, U s, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::lognormal_distribution<Rt> rvs(m, s);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a normal distribution.
+ *
+ * @details The probability density function for the normal distribution is
+ * @f[
+ *   f(x;\mu,\sigma) = \frac{1}{\sigma\sqrt{2\pi}}
+ *     \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+ * @f]
+ * for all @a x, where @a mu and @a sigma are the mean and standard deviation.
+ *
+ * @param mean Mean of the distribution.
+ * @param stddev Standard deviation of the distribution. This shall be a
+ * positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto normal(T mean, U stddev, const shape_t<Rank>& shape,
+                   Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::normal_distribution<Rt> rvs(mean, stddev);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto normal(T mean, U stddev, const size_t (&shape)[Rank],
+                   Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::normal_distribution<Rt> rvs(mean, stddev);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Pareto distribution.
+ *
+ * @details The probability density function for the Pareto distribution is
+ * @f[
+ *   f(x;\alpha,x_m) = \frac{\alpha x_m^{\alpha}}{x^{\alpha+1}}
+ * @f]
+ * for @a x >= x_m, where @a alpha is the shape parameter and @a x_m is the
+ * scale parameter.
+ *
+ * @param alpha Shape parameter. This shall be a positive value.
+ * @param xm Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto pareto(T alpha, U xm, const shape_t<Rank>& shape,
+                   Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  pareto_distribution<Rt> rvs(alpha, xm);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto pareto(T alpha, U xm, const size_t (&shape)[Rank],
+                   Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  pareto_distribution<Rt> rvs(alpha, xm);
+  return sample(rvs, shape, urng);
+}
+
+ /**
+ * @brief Draw samples from a Rayleigh distribution.
+ *
+ * @details The probability density function for the Rayleigh distribution is
+ * @f[
+ *   f(x;\sigma) = \frac{x}{\sigma^2}e^{-x^2/(2\sigma^2)}
+ * @f]
+ * for @a x >= 0, where @a sigma is the scale parameter.
+ *
+ * @param sigma Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ *
+ */
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto rayleigh(T sigma, const shape_t<Rank>& shape, Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  rayleigh_distribution<Rt> rvs(sigma);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto rayleigh(T sigma, const size_t (&shape)[Rank], Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  rayleigh_distribution<Rt> rvs(sigma);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a standard normal distribution ( @a mean=0,
+ * @a stddev=1 ).
+ * 
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <std::floating_point T = double, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto standard_normal(const shape_t<Rank>& shape, Generator& urng) {
+  std::normal_distribution<T> rvs;
+  return sample(rvs, shape, urng);
+}
+
+template <std::floating_point T = double, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto standard_normal(const size_t (&shape)[Rank], Generator& urng) {
+  std::normal_distribution<T> rvs;
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Student's t distribution.
+ *
+ * @details The probability density function for the Student's t distribution is
+ * @f[
+ *   f(x;n) = \frac{1}{\sqrt{n\pi}}
+ *     \frac{\Gamma\left(\frac{n+1}{2}\right)}
+ *     {\Gamma\left(\frac{n}{2}\right)}
+ *     \left(1+\frac{x^2}{n}\right)^{-(n+1)/2}
+ * @f]
+ * for all @a x, where @a n is the degrees of freedom.
+ *
+ * @param n Degrees of freedom. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto student_t(T n, const shape_t<Rank>& shape, Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::student_t_distribution<Rt> rvs(n);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto student_t(T n, const size_t (&shape)[Rank], Generator& urng) {
+  typedef detail::promote_t<T> Rt;
+  std::student_t_distribution<Rt> rvs(n);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from an uniform distribution.
+ *
+ * @details The probability density function for the uniform distribution is
+ * @f[
+ *   f(x;a,b) = \frac{1}{b-a}
+ * @f]
+ * for a <= @a x < b, where @a a and @a b are the lower and upper boundaries of
+ * the distribution.
+ *
+ * @param a Lower boundary.
+ * @param b Upper boundary.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto uniform(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::uniform_real_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto uniform(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::uniform_real_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Wald, or inverse Gaussian, distribution.
+ *
+ * @details The probability density function for the Wald distribution is
+ * @f[
+ *   f(x;\mu,\lambda) = \sqrt{\frac{\lambda}{2\pi x^3}}
+ *     \exp\left(-\frac{\lambda(x-\mu)^2}{2\mu^2 x}\right)
+ * @f]
+ * for @a x > 0, where @a mu is the mean and @a lambda is the scale parameter.
+ *
+ * @param mu Mean of the distribution. This shall be a positive value.
+ * @param lambda Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto wald(T mu, U lambda, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  inverse_gaussian_distribution<Rt> rvs(mu, lambda);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto wald(T mu, U lambda, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  inverse_gaussian_distribution<Rt> rvs(mu, lambda);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Weibull distribution.
+ *
+ * @details The probability density function for the Weibull distribution is
+ * @f[
+ *   f(x;a,b) = \frac{a}{b}\left(\frac{x}{b}\right)^{a-1}e^{-(x/b)^a}
+ * @f]
+ * for @f$x \geq 0@f$, where @a a is the shape parameter and @a b is the scale
+ * parameter.
+ *
+ * @param a Shape parameter. This shall be a positive value.
+ * @param b Scale parameter. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random floating-point numbers. This function
+ * does not create a new tensor, instead, a generator expression is returned.
+ * Each evaluation returns a different outcome and thus shall only be used to
+ * initialize a dense tensor.
+ */
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto weibull(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::weibull_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto weibull(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
+  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  std::weibull_distribution<Rt> rvs(a, b);
+  return sample(rvs, shape, urng);
+}
+
+/// Discrete distributions.
+
+/**
+ * @brief Draw samples from a Bernoulli distribution.
+ *
+ * @details The probability mass function for the Bernoulli distribution is
+ * @f[
+ *   f(x;p) = \begin{cases}
+ *     1-p, & x=0,\\
+ *     p, & x=1,
+ *   \end{cases}
+ * @f]
+ * where @a p is the probability of success.
+ *
+ * @param p Probability of success. This shall be a value between 0 and 1
+ * (inclusive).
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <size_t Rank, std::uniform_random_bit_generator Generator>
+inline auto bernoulli(double p, const shape_t<Rank>& shape, Generator& urng) {
+  std::bernoulli_distribution rvs(p);
+  return sample(rvs, shape, urng);
+}
+
+template <size_t Rank, std::uniform_random_bit_generator Generator>
+inline auto bernoulli(double p, const size_t (&shape)[Rank], Generator& urng) {
+  std::bernoulli_distribution rvs(p);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a binomial distribution.
+ *
+ * @details The probability mass function for the binomial distribution is
+ * @f[
+ *   f(x;t,p) = \binom{t}{x} p^x (1-p)^{t-x}
+ * @f]
+ * for @a x = 0, 1, 2, ... , t, where @a t is the number of trials and @a p is
+ * the probability of success.
+ *
+ * @param t Number of trials.
+ * @param p Probability of success. This shall be a value between 0 and 1
+ * (inclusive).
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <std::integral T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto binomial(T t, double p, const shape_t<Rank>& shape,
+                     Generator& urng) {
+  std::binomial_distribution<T> rvs(t, p);
+  return sample(rvs, shape, urng);
+}
+
+template <std::integral T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto binomial(T t, double p, const size_t (&shape)[Rank],
+                     Generator& urng) {
+  std::binomial_distribution<T> rvs(t, p);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a geometric distribution.
+ *
+ * @details The probability mass function for the geometric distribution is
+ * @f[
+ *   f(x;p) = p(1-p)^x
+ * @f]
+ * for @a x = 0, 1, 2, ..., where @a p is the probability of success.
+ *
+ * @param p Probability of success. This shall be a value between 0 and 1
+ * (inclusive).
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <std::integral T = int, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto geometric(double p, const shape_t<Rank>& shape, Generator& urng) {
+  std::geometric_distribution<T> rvs(p);
+  return sample(rvs, shape, urng);
+}
+
+template <std::integral T = int, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto geometric(double p, const size_t (&shape)[Rank], Generator& urng) {
+  std::geometric_distribution<T> rvs(p);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a negative binomial distribution.
+ *
+ * @details The probability mass function for the negative binomial
+ * distribution is
+ * @f[
+ *   f(x;k,p) = \binom{k+x-1}{x} p^{k} (1-p)^{x}
+ * @f]
+ * for @a x = 0, 1, 2, ..., where @a k is the number of successes before the
+ * experiment is stopped and @a p is the probability of success.
+ *
+ * @param k Number of successes.
+ * @param p Probability of success. This shall be a value between 0 and 1
+ * (inclusive).
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <std::integral T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto negative_binomial(T k, double p, const shape_t<Rank>& shape,
+                              Generator& urng) {
+  std::negative_binomial_distribution<T> rvs(k, p);
+  return sample(rvs, shape, urng);
+}
+
+template <std::integral T, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto negative_binomial(T k, double p, const size_t (&shape)[Rank],
+                              Generator& urng) {
+  std::negative_binomial_distribution<T> rvs(k, p);
+  return sample(rvs, shape, urng);
+}
+
+/**
+ * @brief Draw samples from a Poisson distribution.
+ *
+ * @details The probability mass function for the Poisson distribution is
+ * @f[
+ *   f(x;\lambda) = \frac{\lambda^{x}}{x!} e^{-\lambda}
+ * @f]
+ * for @a x = 0, 1, 2, ..., where @a lambda is the mean.
+ *
+ * @param mean Mean of the distribution. This shall be a positive value.
+ * @param shape Output shape.
+ * @param urng Uniform random bit generator.
+ *
+ * @return An abstract tensor of random integers. This function does not create
+ * a new tensor, instead, a generator expression is returned. Each evaluation
+ * returns a different outcome and thus shall only be used to initialize a
+ * dense tensor.
+ */
+template <std::integral T = int, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto poisson(double mean, const shape_t<Rank>& shape, Generator& urng) {
+  std::poisson_distribution<T> rvs(mean);
+  return sample(rvs, shape, urng);
+}
+
+template <std::integral T = int, size_t Rank,
+          std::uniform_random_bit_generator Generator>
+inline auto poisson(double mean, const size_t (&shape)[Rank], Generator& urng) {
+  std::poisson_distribution<T> rvs(mean);
+  return sample(rvs, shape, urng);
+}
+} // namspace random
 } // namespace numcpp
-
-#include "numcpp/random/random.tcc"
 
 #endif // NUMCPP_RANDOM_H_INCLUDED

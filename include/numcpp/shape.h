@@ -140,6 +140,13 @@ inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
   return shape_t<sizeof...(Sizes)>{static_cast<size_t>(sizes)...};
 }
 
+template <std::integral T, size_t Rank>
+inline shape_t<Rank> make_shape(const T (&sizes)[Rank]) {
+  shape_t<Rank> shape;
+  std::copy_n(sizes, Rank, shape.data());
+  return shape;
+}
+
 /**
  * @brief Create an @ref index_t instance deducing its dimension from the number
  * of arguments.
@@ -151,6 +158,13 @@ inline shape_t<sizeof...(Sizes)> make_shape(Sizes... sizes) {
 template <std::integral... Indices>
 inline index_t<sizeof...(Indices)> make_index(Indices... indices) {
   return index_t<sizeof...(Indices)>{static_cast<ptrdiff_t>(indices)...};
+}
+
+template <std::integral T, size_t Rank>
+inline index_t<Rank> make_index(const T (&indices)[Rank]) {
+  index_t<Rank> index;
+  std::copy_n(indices, Rank, index.data());
+  return index;
 }
 
 /**

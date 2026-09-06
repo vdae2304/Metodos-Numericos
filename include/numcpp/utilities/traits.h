@@ -35,41 +35,23 @@ using std::void_t;
 /**
  * @brief Returns the type argument unchanged.
  */
-template <class T> struct identity {
+template <class T>
+struct identity {
   typedef T type;
 };
 
 /**
- * Implementation of @ref promote.
+ * @brief Concept for arithmetic types (integer or floating point).
  */
-template <class T, bool = std::is_integral<T>::value>
-struct __promote {
-  typedef double type;
-};
-
 template <class T>
-struct __promote<T, false> {};
-
-template <>
-struct __promote<float> {
-  typedef float type;
-};
-
-template <>
-struct __promote<double> {
-  typedef double type;
-};
-
-template <>
-struct __promote<long double> {
-  typedef long double type;
-};
+concept arithmetic = std::integral<T> || std::floating_point<T>;
 
 /**
  * @brief Promotes integral types to floating-point.
  */
-template <class... T>
-using promote = std::common_type<typename __promote<T>::type...>;
+template <arithmetic T>
+using promote_t = std::conditional_t<std::is_floating_point_v<T>,
+                                     std::remove_cv_t<T>, double>;
 
 /**
  * @brief Constructs a nested initializer_list of given depth.
@@ -97,15 +79,8 @@ constexpr size_t slicing_rank =
  * @brief Result type of function call.
  */
 template <class Function, class... Args>
-using result_of_t = typename std::remove_reference<typename std::remove_cv<
-    decltype(std::declval<Function>()(std::declval<Args>()...))>::type>::type;
-
-template <class Signature, typename = void>
-struct __is_callable_impl : std::false_type {};
-
-template <class F, class... Args>
-struct __is_callable_impl<F(Args...), void_t<result_of_t<F, Args...>>>
-    : std::true_type {};
+using result_of_t = std::remove_cvref_t<decltype(std::declval<Function>()(
+    std::declval<Args>()...))>;
 } // namespace detail
 } // namespace numcpp
 
