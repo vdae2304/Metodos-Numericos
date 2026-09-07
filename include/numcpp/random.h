@@ -134,7 +134,7 @@ inline auto random(const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto beta(T alpha, U beta, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   beta_distribution<Rt> rvs(alpha, beta);
   return sample(rvs, shape, urng);
 }
@@ -143,7 +143,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto beta(T alpha, U beta, const size_t (&shape)[Rank],
                  Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   beta_distribution<Rt> rvs(alpha, beta);
   return sample(rvs, shape, urng);
 }
@@ -171,7 +171,7 @@ inline auto beta(T alpha, U beta, const size_t (&shape)[Rank],
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto cauchy(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::cauchy_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -179,7 +179,7 @@ inline auto cauchy(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto cauchy(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::cauchy_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -278,7 +278,7 @@ inline auto exponential(T lambda, const size_t (&shape)[Rank],
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto fisher_f(T m, U n, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::fisher_f_distribution<Rt> rvs(m, n);
   return sample(rvs, shape, urng);
 }
@@ -286,7 +286,7 @@ inline auto fisher_f(T m, U n, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto fisher_f(T m, U n, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::fisher_f_distribution<Rt> rvs(m, n);
   return sample(rvs, shape, urng);
 }
@@ -316,7 +316,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto gamma(T alpha, U beta, const shape_t<Rank>& shape,
                   Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::gamma_distribution<Rt> rvs(alpha, beta);
   return sample(rvs, shape, urng);
 }
@@ -325,7 +325,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto gamma(T alpha, U beta, const size_t (&shape)[Rank],
                   Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::gamma_distribution<Rt> rvs(alpha, beta);
   return sample(rvs, shape, urng);
 }
@@ -353,7 +353,7 @@ inline auto gamma(T alpha, U beta, const size_t (&shape)[Rank],
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto gumbel(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::extreme_value_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -361,7 +361,7 @@ inline auto gumbel(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto gumbel(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::extreme_value_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -389,7 +389,7 @@ inline auto gumbel(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto laplace(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   laplace_distribution<Rt> rvs(mu, s);
   return sample(rvs, shape, urng);
 }
@@ -397,7 +397,7 @@ inline auto laplace(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto laplace(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   laplace_distribution<Rt> rvs(mu, s);
   return sample(rvs, shape, urng);
 }
@@ -425,7 +425,7 @@ inline auto laplace(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto logistic(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   logistic_distribution<Rt> rvs(mu, s);
   return sample(rvs, shape, urng);
 }
@@ -433,7 +433,7 @@ inline auto logistic(T mu, U s, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto logistic(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   logistic_distribution<Rt> rvs(mu, s);
   return sample(rvs, shape, urng);
 }
@@ -463,7 +463,7 @@ inline auto logistic(T mu, U s, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto lognormal(T m, U s, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::lognormal_distribution<Rt> rvs(m, s);
   return sample(rvs, shape, urng);
 }
@@ -471,7 +471,7 @@ inline auto lognormal(T m, U s, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto lognormal(T m, U s, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::lognormal_distribution<Rt> rvs(m, s);
   return sample(rvs, shape, urng);
 }
@@ -501,7 +501,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto normal(T mean, U stddev, const shape_t<Rank>& shape,
                    Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::normal_distribution<Rt> rvs(mean, stddev);
   return sample(rvs, shape, urng);
 }
@@ -510,7 +510,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto normal(T mean, U stddev, const size_t (&shape)[Rank],
                    Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::normal_distribution<Rt> rvs(mean, stddev);
   return sample(rvs, shape, urng);
 }
@@ -539,7 +539,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto pareto(T alpha, U xm, const shape_t<Rank>& shape,
                    Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   pareto_distribution<Rt> rvs(alpha, xm);
   return sample(rvs, shape, urng);
 }
@@ -548,7 +548,7 @@ template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto pareto(T alpha, U xm, const size_t (&shape)[Rank],
                    Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   pareto_distribution<Rt> rvs(alpha, xm);
   return sample(rvs, shape, urng);
 }
@@ -674,7 +674,7 @@ inline auto student_t(T n, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto uniform(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::uniform_real_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -682,7 +682,7 @@ inline auto uniform(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto uniform(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::uniform_real_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -710,7 +710,7 @@ inline auto uniform(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto wald(T mu, U lambda, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   inverse_gaussian_distribution<Rt> rvs(mu, lambda);
   return sample(rvs, shape, urng);
 }
@@ -718,7 +718,7 @@ inline auto wald(T mu, U lambda, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto wald(T mu, U lambda, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   inverse_gaussian_distribution<Rt> rvs(mu, lambda);
   return sample(rvs, shape, urng);
 }
@@ -746,7 +746,7 @@ inline auto wald(T mu, U lambda, const size_t (&shape)[Rank], Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto weibull(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::weibull_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
@@ -754,7 +754,7 @@ inline auto weibull(T a, U b, const shape_t<Rank>& shape, Generator& urng) {
 template <detail::arithmetic T, detail::arithmetic U, size_t Rank,
           std::uniform_random_bit_generator Generator>
 inline auto weibull(T a, U b, const size_t (&shape)[Rank], Generator& urng) {
-  typedef std::common_type_t<detail::promote_t<T>, detail::promote_t<U>> Rt;
+  typedef detail::promote_t<std::common_type_t<T, U>> Rt;
   std::weibull_distribution<Rt> rvs(a, b);
   return sample(rvs, shape, urng);
 }
